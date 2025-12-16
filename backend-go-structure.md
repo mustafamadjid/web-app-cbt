@@ -3,48 +3,50 @@
 Dokumen ini mendeskripsikan struktur direktori yang diusulkan untuk backend Go. Struktur ini bisa dijadikan landasan saat mengembangkan layanan.
 
 ```
-myproject/
-  cmd/
-    api/main.go
-    worker/main.go
-
-  internal/
-    domain/
-      user/
-        entity.go
-        policy.go
-      exam/
-        entity.go
-        policy.go
-      question/
-        entity.go
-      attempt/
-        entity.go
-
-    usecase/
-      exam/
-        start_attempt.go
-        submit_attempt.go
-        grade_attempt.go
-        ports.go        // interface repository/gateway yang dibutuhkan usecase
-        start_attempt_test.go
-        submit_attempt_test.go
-
-    adapter/
-      http/
-        handler/
-          exam_handler.go
-      persistence/
-        postgres/
-          exam_repository.go
-      clock/
-      idgen/
-
-  migrations/
-  configs/
-  tests/
-    integration/
-    e2e/
+myproject
+├── cmd
+│   ├── api
+│   │   └── main.go
+│   └── worker
+│       └── main.go
+│
+├── internal
+│   ├── domain
+│   │   ├── user
+│   │   │   ├── entity.go
+│   │   │   └── policy.go
+│   │   ├── exam
+│   │   │   ├── entity.go
+│   │   │   └── policy.go
+│   │   ├── question
+│   │   │   └── entity.go
+│   │   └── attempt
+│   │       └── entity.go
+│   │
+│   ├── usecase
+│   │   └── exam
+│   │       ├── start_attempt.go
+│   │       ├── submit_attempt.go
+│   │       ├── grade_attempt.go
+│   │       ├── ports.go        // interface repository/gateway yang dibutuhkan usecase
+│   │       ├── start_attempt_test.go
+│   │       └── submit_attempt_test.go
+│   │
+│   └── adapter
+│       ├── http
+│       │   └── handler
+│       │       └── exam_handler.go
+│       ├── persistence
+│       │   └── postgres
+│       │       └── exam_repository.go
+│       ├── clock
+│       └── idgen
+│
+├── migrations
+├── configs
+└── tests
+    ├── integration
+    └── e2e
 ```
 
 ## Penjelasan Singkat
