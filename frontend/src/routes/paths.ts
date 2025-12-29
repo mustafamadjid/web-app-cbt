@@ -10,5 +10,7 @@ export const paths = {
     // home_admin: join("/dashboard", "/administrator"),
     kelola_akun_siswa: join("kelola-akun", "/siswa"),
     kelola_akun_guru: join("kelola-akun", "/guru"),
+    tambah_guru:join("kelola-akun", "/tambah-guru"),
+    tambah_siswa:join("kelola-akun", "/tambah-siswa")
   },
 } as const;

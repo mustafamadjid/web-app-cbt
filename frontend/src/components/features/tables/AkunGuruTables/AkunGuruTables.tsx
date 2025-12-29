@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 
 type StatusAkun = "aktif" | "nonaktif" | "dibekukan";
+type JenisKelamin = "LAKI_LAKI" | "PEREMPUAN";
 
 type BarisPengguna = {
   id: string;
@@ -8,11 +9,12 @@ type BarisPengguna = {
   email: string;
   username: string;
   nomorHp: string;
+  jenisKelamin: JenisKelamin;
   statusAkun: StatusAkun;
   nip: string;
   jabatan: string;
   bidangStudi: string;
-  sumberAvatar: string;
+ urlGambarProfil: string;
 };
 
 const kelasTitikStatus: Record<StatusAkun, string> = {
@@ -41,7 +43,7 @@ function samarkanNip(nip: string) {
   return `${digit.slice(0, 4)}****${terlihat}`;
 }
 
-export const UserTables: React.FC = () => {
+export const AkunGuruTables: React.FC = () => {
   const [dropdownAksiTerbuka, setDropdownAksiTerbuka] = useState(false);
   const [kataKunci, setKataKunci] = useState("");
   const [idTerpilih, setIdTerpilih] = useState<Set<string>>(new Set());
@@ -56,11 +58,12 @@ export const UserTables: React.FC = () => {
       email: "neil.sims@flowbite.com",
       username: "neilsims",
       nomorHp: "081234567890",
+      jenisKelamin: "LAKI_LAKI",
       statusAkun: "aktif",
       nip: "198701012010121001",
       jabatan: "React Developer",
       bidangStudi: "Informatika",
-      sumberAvatar: "/docs/images/people/profile-picture-1.jpg",
+     urlGambarProfil: "/docs/images/people/profile-picture-1.jpg",
     },
     {
       id: "u2",
@@ -68,11 +71,12 @@ export const UserTables: React.FC = () => {
       email: "bonnie@flowbite.com",
       username: "bonnieg",
       nomorHp: "082233445566",
+      jenisKelamin: "PEREMPUAN",
       statusAkun: "aktif",
       nip: "199002022011112002",
       jabatan: "Desainer",
       bidangStudi: "DKV",
-      sumberAvatar: "/docs/images/people/profile-picture-3.jpg",
+     urlGambarProfil: "/docs/images/people/profile-picture-3.jpg",
     },
   ]);
 
@@ -87,6 +91,7 @@ export const UserTables: React.FC = () => {
         p.username.toLowerCase().includes(q) ||
         p.nomorHp.toLowerCase().includes(q) ||
         p.nip.toLowerCase().includes(q) ||
+        p.jenisKelamin.toLowerCase().includes(q) ||
         p.jabatan.toLowerCase().includes(q) ||
         p.bidangStudi.toLowerCase().includes(q) ||
         labelStatus[p.statusAkun].toLowerCase().includes(q)
@@ -263,6 +268,9 @@ export const UserTables: React.FC = () => {
               Nama Pengguna
             </th>
             <th scope="col" className="px-6 py-3 font-medium">
+              Jenis Kelamin
+            </th>
+            <th scope="col" className="px-6 py-3 font-medium">
               Nomor HP
             </th>
             <th scope="col" className="px-6 py-3 font-medium">
@@ -310,7 +318,7 @@ export const UserTables: React.FC = () => {
                 <div className="flex items-center text-heading whitespace-nowrap">
                   <img
                     className="w-10 h-10 rounded-full"
-                    src={p.sumberAvatar}
+                    src={p.urlGambarProfil}
                     alt={`${p.namaLengkap} avatar`}
                   />
                   <div className="ps-3">
@@ -323,6 +331,8 @@ export const UserTables: React.FC = () => {
               </td>
 
               <td className="px-6 py-4">{p.username}</td>
+
+              <td className="px-6 py-4">{p.jenisKelamin}</td>
 
               <td className="px-6 py-4">
                 {samarkanDataSensitif ? samarkanNomorHp(p.nomorHp) : p.nomorHp}

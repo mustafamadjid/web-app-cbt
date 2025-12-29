@@ -1,10 +1,11 @@
-import { AdminLayout } from "@/layouts/MainLayout/AdminLayout/AdminLayout";
-
+import { Header } from "@/components/features/widget/Header/HeaderWidget";
 
 export const Home = ()=> {
     return (
       <>
-        <AdminLayout></AdminLayout>
+        <header className="px-4 py-4">
+          <Header />
+        </header>
       </>
     );
 }

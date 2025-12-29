@@ -4,14 +4,11 @@ import { SidebarAdmin } from "@/layouts/MainLayout/Sidebar/SidebarAdmin";
 
 export function AdminLayout() {
   return (
-    <div className="min-h-screen flex">
-      {/* Sidebar */}
-      <aside className="w-64 shrink-0">
-        <SidebarAdmin />
-      </aside>
+    <div className="min-h-screen bg-gray-100">
+      {/* Sidebar is fixed inside component; do NOT reserve width on mobile */}
+      <SidebarAdmin />
 
-      {/* Main content */}
-      <main className=" flex-1 min-h-screen bg-gray-100">
+      <main className="min-h-screen min-w-0 sm:ml-64">
         <Outlet />
       </main>
     </div>
