@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import axios from "axios";
-import { api } from "@/services/Api/http";
+import { api } from "@/services/Api/api";
 
 type UseFetchState<T> = {
   data: T | null;

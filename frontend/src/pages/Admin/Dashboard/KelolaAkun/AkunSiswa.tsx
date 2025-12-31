@@ -6,6 +6,16 @@ import { AkunSiswaTables } from "@/components/features/tables/AkunSiswaTables/Ak
 // React Link
 import { useNavigate } from "react-router";
 
+export const dummyHeaderUser = {
+  title: "Dashboard",
+  userName: "Administrator Sistem Pendidikan Nasional",
+  roleLabel: "Admin",
+  isOnline: true,
+  avatarUrl: null,
+};
+
+// Nanti header ini akan diisi lewat context supaya state datanya global
+
 export const KelolaAkunSiswa = () => {
   const navigate = useNavigate();
 
@@ -13,7 +23,13 @@ export const KelolaAkunSiswa = () => {
     <div className="w-full min-w-0">
       <div className="flex flex-col w-full min-w-0">
         {/* Header */}
-          <Header />
+          <Header 
+            title={dummyHeaderUser.title}
+            userName={dummyHeaderUser.userName}
+            roleLabel={dummyHeaderUser.roleLabel}
+            isOnline={dummyHeaderUser.isOnline}
+            avatarUrl={dummyHeaderUser.avatarUrl}
+          />
         
         {/* tombol Add User */}
         <div className="flex justify-end px-4 py-6 shrink-0">

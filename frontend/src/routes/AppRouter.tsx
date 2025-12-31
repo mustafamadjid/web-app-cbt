@@ -29,6 +29,7 @@ export const router = createBrowserRouter([
             {path:paths.dashboard.kelola_akun_siswa,element:<KelolaAkunSiswa/>},
             {path:paths.dashboard.tambah_guru,element:<TambahGuru/>},
             {path:paths.dashboard.tambah_siswa,element:<TambahSiswa/>},
+            {path:paths.dashboard.pengaturan,element:<div>pengaturan</div>}
         ]
     }
 ])

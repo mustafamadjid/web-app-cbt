@@ -3,7 +3,7 @@ import {  useState,useEffect,useRef } from "react";
 type StatusAkun = "AKTIF" | "NONAKTIF";
 type JenisKelamin = "LAKI_LAKI" | "PEREMPUAN";
 
-type TeacherRegisterFormValues = {
+type TeacherEditFormValues = {
   namaLengkap: string;
   email: string;
   username: string;
@@ -17,7 +17,7 @@ type TeacherRegisterFormValues = {
   fotoProfil: File | null;
 };
 
-const initialValues: TeacherRegisterFormValues = {
+const initialValues: TeacherEditFormValues = {
   namaLengkap: "",
   email: "",
   username: "",
@@ -31,19 +31,26 @@ const initialValues: TeacherRegisterFormValues = {
   fotoProfil: null,
 };
 
+// Type untuk props initialValues dan onSubmit
+
 const inputBase =
   "w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-[#397e50] focus:ring-2 focus:ring-[#397e50] disabled:bg-slate-50 disabled:text-slate-500";
 const labelBase = "text-xs font-medium text-slate-600";
 const sectionTitle = "text-sm font-semibold text-slate-800";
 const helperText = "text-xs text-slate-500";
 
-export const AkunGuruForm= () => {
+export const EditAkunGuruForm= () => {
   const [values, setValues] =
-    useState<TeacherRegisterFormValues>(initialValues);
+    useState<TeacherEditFormValues>(initialValues);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [fotoUrl, setFotoUrl] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // TODO : Panggil service GetGuruById() di halaman editGuruPage
+  // Return nya akan jadi isi initialValues
+  //  Buat props untuk onSubmit dan initialValues
+
 
   useEffect(() => {
     if (!values.fotoProfil) {
@@ -59,19 +66,19 @@ export const AkunGuruForm= () => {
     };
   }, [values.fotoProfil]);
 
-  const setField = <K extends keyof TeacherRegisterFormValues>(
+  const setField = <K extends keyof TeacherEditFormValues>(
     key: K,
-    value: TeacherRegisterFormValues[K]
+    value: TeacherEditFormValues[K]
   ) => {
     setValues((prev) => ({ ...prev, [key]: value }));
   };
 
-  const onBlur = (name: keyof TeacherRegisterFormValues) => {
+  const onBlur = (name: keyof TeacherEditFormValues) => {
     setTouched((prev) => ({ ...prev, [name]: true }));
   };
 
-  const validate = (v: TeacherRegisterFormValues) => {
-    const errors: Partial<Record<keyof TeacherRegisterFormValues, string>> = {};
+  const validate = (v: TeacherEditFormValues) => {
+    const errors: Partial<Record<keyof TeacherEditFormValues, string>> = {};
 
     if (!v.namaLengkap.trim()) errors.namaLengkap = "Nama lengkap wajib diisi.";
     if (!v.email.trim()) errors.email = "Email wajib diisi.";
@@ -101,7 +108,7 @@ export const AkunGuruForm= () => {
   };
 
   const errors = validate(values);
-  const hasError = (name: keyof TeacherRegisterFormValues) =>
+  const hasError = (name: keyof TeacherEditFormValues) =>
     !!errors[name] && !!touched[name];
 
   const onSubmit = (e: React.FormEvent) => {
@@ -144,7 +151,7 @@ export const AkunGuruForm= () => {
     if (values.fotoProfil) formData.append("fotoProfil", values.fotoProfil);
 
     // TODO: panggil API
-    // await api.post("/guru/register", formData)
+    // await api.put("/guru/register", formData)
 
     console.log("READY_TO_SUBMIT", Object.fromEntries(formData.entries()));
     alert("Form valid. Lanjutkan submit ke API.");

@@ -356,7 +356,8 @@ export const AkunGuruTables: React.FC = () => {
               <td className="px-6 py-4">{p.jabatan}</td>
 
               <td className="px-6 py-4">{p.bidangStudi}</td>
-
+              
+              {/* Tambahkan Link/navigate yang membawa Id sebagai route param */}
               <td className="px-6 py-4">
                 <button
                   type="button"

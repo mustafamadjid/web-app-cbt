@@ -11,6 +11,7 @@ export const paths = {
     kelola_akun_siswa: join("kelola-akun", "/siswa"),
     kelola_akun_guru: join("kelola-akun", "/guru"),
     tambah_guru:join("kelola-akun", "/tambah-guru"),
-    tambah_siswa:join("kelola-akun", "/tambah-siswa")
+    tambah_siswa:join("kelola-akun", "/tambah-siswa"),
+    pengaturan:"pengaturan",
   },
 } as const;
