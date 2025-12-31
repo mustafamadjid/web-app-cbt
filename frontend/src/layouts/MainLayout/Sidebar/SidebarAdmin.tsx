@@ -58,18 +58,18 @@ export const SidebarAdmin = () => {
   const navItemClass = ({ isActive }: { isActive: boolean }) =>
     [
       "flex items-center px-2 py-1.5 rounded-base group transition-colors",
-      "hover:bg-neutral-tertiary hover:text-[#397e50]",
+      "hover:bg-[#e3f4ea] hover:text-[#2f6f45]",
       isActive
-        ? "bg-neutral-tertiary text-[#397e50] font-semibold"
+        ? "bg-[#d5f0df] text-[#2f6f45] font-semibold shadow-sm"
         : "text-body",
     ].join(" ");
 
   const subNavItemClass = ({ isActive }: { isActive: boolean }) =>
     [
       "pl-10 flex items-center px-2 py-1.5 rounded-base group transition-colors",
-      "hover:bg-neutral-tertiary hover:text-[#397e50]",
+      "hover:bg-[#e3f4ea] hover:text-[#2f6f45]",
       isActive
-        ? "bg-neutral-tertiary text-[#397e50] font-semibold"
+        ? "bg-[#d5f0df] text-[#2f6f45] font-semibold shadow-sm"
         : "text-body",
     ].join(" ");
 
@@ -81,7 +81,7 @@ export const SidebarAdmin = () => {
         onClick={() => setIsSidebarOpen(true)}
         aria-controls="separator-sidebar"
         aria-expanded={isSidebarOpen}
-        className="text-heading bg-transparent box-border border border-transparent hover:bg-neutral-secondary-medium focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base ms-3 mt-3 text-sm p-2 focus:outline-none inline-flex sm:hidden"
+        className="text-heading bg-transparent box-border border border-transparent hover:bg-[#e3f4ea] focus:ring-4 focus:ring-[#cbead7] font-medium leading-5 rounded-base ms-3 mt-3 text-sm p-2 focus:outline-none inline-flex sm:hidden"
       >
         <span className="sr-only">Open sidebar</span>
         <svg
@@ -105,7 +105,7 @@ export const SidebarAdmin = () => {
       {/* Overlay (mobile) */}
       <div
         className={[
-          "fixed inset-0 z-30 bg-black/40 transition-opacity sm:hidden",
+          "fixed inset-0 z-30 bg-[#1a3d2a]/40 transition-opacity sm:hidden",
           isSidebarOpen
             ? "opacity-100 pointer-events-auto"
             : "opacity-0 pointer-events-none",
@@ -129,14 +129,14 @@ export const SidebarAdmin = () => {
         ].join(" ")}
       >
         {/* BODY (mengisi sisa tinggi layar) */}
-        <div className="flex-1 min-h-0 px-3 py-5  bg-neutral-primary-soft border-e border-default flex flex-col">
+        <div className="flex-1 min-h-0 px-3 py-5 bg-gradient-to-b from-[#f0faf3] via-[#e6f5ec] to-[#dbf0e3] border-e border-[#cbead7] flex flex-col">
           {/* Header mobile: stated (tidak ikut scroll) */}
           <div className="flex items-center justify-between sm:hidden mb-3 shrink-0">
-            <span className="text-sm font-medium text-heading">Menu</span>
+            <span className="text-sm font-medium text-[#2f6f45]">Menu</span>
             <button
               type="button"
               onClick={() => setIsSidebarOpen(false)}
-              className="p-2 rounded-base hover:bg-neutral-secondary-medium focus:outline-none focus:ring-4 focus:ring-neutral-tertiary"
+              className="p-2 rounded-base hover:bg-[#e3f4ea] focus:outline-none focus:ring-4 focus:ring-[#cbead7] text-[#2f6f45]"
             >
               <span className="sr-only">Close sidebar</span>
               <svg
@@ -159,13 +159,15 @@ export const SidebarAdmin = () => {
           {/* MENU UTAMA (scroll di sini) */}
           <div className="flex-1 min-h-0 overflow-y-auto pb-4">
             {/* HEADER / LOGO (tidak ikut scroll) */}
-            <div className="p-2  flex items-center shrink-0">
+            <div className="p-2 flex items-center shrink-0 rounded-base bg-white/70 border border-[#cbead7] shadow-sm">
               <img
                 src="/Images/LoginPageImg/logo-fi.png"
                 alt=""
                 className="w-20"
               />
-              <h2 className="text-sm font-semibold">SMA IT Fitrah Insani</h2>
+              <h2 className="text-sm font-semibold text-[#2f6f45]">
+                SMA IT Fitrah Insani
+              </h2>
             </div>
             <ul className="space-y-2 font-medium flex flex-col gap-3 py-4">
               {/* Dashboard */}
@@ -210,9 +212,9 @@ export const SidebarAdmin = () => {
                   onClick={() => setIsEcomOpen((v) => !v)}
                   className={[
                     "flex items-center w-full justify-between px-2 py-1.5 rounded-base group transition-colors",
-                    "hover:bg-neutral-tertiary hover:text-[#397e50]",
+                    "hover:bg-[#e3f4ea] hover:text-[#2f6f45]",
                     isKelolaPenggunaActive
-                      ? "bg-neutral-tertiary text-[#397e50] font-semibold"
+                      ? "bg-[#d5f0df] text-[#2f6f45] font-semibold shadow-sm"
                       : "text-body",
                   ].join(" ")}
                   aria-controls="dropdown-kelola-pengguna"
@@ -324,7 +326,7 @@ export const SidebarAdmin = () => {
                 <button
                   type="button"
                   onClick={() => setIsDataMasterOpen((v) => !v)}
-                  className="group flex w-full items-center justify-between rounded-base px-2 py-1.5 text-body hover:bg-neutral-tertiary hover:text-[#397e50]"
+                    className="group flex w-full items-center justify-between rounded-base px-2 py-1.5 text-body hover:bg-[#e3f4ea] hover:text-[#2f6f45]"
                   aria-controls="dropdown-data-master"
                   aria-expanded={isDataMasterOpen}
                 >
@@ -402,7 +404,7 @@ export const SidebarAdmin = () => {
           </div>
 
           {/* Divider section (tidak ikut scroll) */}
-          <div className="shrink-0 mt-4 border-t border-default pt-4">
+          <div className="shrink-0 mt-4 border-t border-[#cbead7] pt-4">
             <ul className="space-y-2 font-medium">
               <li>
                 <NavLink
