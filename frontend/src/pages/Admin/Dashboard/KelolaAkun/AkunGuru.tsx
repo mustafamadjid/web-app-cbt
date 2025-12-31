@@ -17,24 +17,29 @@ export const dummyHeaderUser = {
 // Nanti header ini akan diisi lewat context supaya state datanya global
 
 export const KelolaAkunGuru = () => {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
   return (
     <>
       <div className="p-0">
         <div className="p-0 flex flex-col">
           {/* Header*/}
-            <Header 
+          <Header
             title={dummyHeaderUser.title}
             userName={dummyHeaderUser.userName}
             roleLabel={dummyHeaderUser.roleLabel}
             isOnline={dummyHeaderUser.isOnline}
             avatarUrl={dummyHeaderUser.avatarUrl}
-            />
+          />
 
           {/* tombol Add User */}
           <div className=" flex justify-end px-4 py-6">
             <div>
-                <AddButton label="Tambah Akun Guru" onClick={() => navigate(`/dashboard/administrator/kelola-akun/tambah-guru`)} />
+              <AddButton
+                label="Tambah Akun Guru"
+                onClick={() =>
+                  navigate(`/dashboard/administrator/kelola-akun/tambah-guru`)
+                }
+              />
             </div>
           </div>
           {/* User Tables */}
