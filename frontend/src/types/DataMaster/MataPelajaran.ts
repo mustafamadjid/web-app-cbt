@@ -9,3 +9,8 @@ export type MataPelajaranRow = {
   namaMapel: string;
   deskripsiMapel: string;
 };
+
+export type MataPelajaranOption = {
+  id: string;
+  label: string;
+};
