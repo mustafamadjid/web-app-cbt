@@ -171,12 +171,12 @@ export const DataMataPelajaran: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setDropdownKelasTerbuka((prev) => !prev)}
-                className="inline-flex items-center gap-2 text-sm px-3 py-2 rounded-base border shadow-xs bg-neutral-secondary-medium text-body border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading"
+                className="inline-flex items-center gap-2 text-sm cursor-pointer px-3 py-2 rounded-base border shadow-xs bg-neutral-secondary-medium text-body border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading"
                 aria-haspopup="menu"
                 aria-expanded={dropdownKelasTerbuka}
               >
                 Kelas:{" "}
-                <span className="font-medium text-heading">
+                <span className="font-medium text-heading cursor-pointer">
                   {kelasTerpilih === "semua"
                     ? "Semua"
                     : kelasById[kelasTerpilih]?.label ?? "-"}
@@ -241,7 +241,7 @@ export const DataMataPelajaran: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setDropdownMapelTerbuka((prev) => !prev)}
-                className="inline-flex items-center gap-2 text-sm px-3 py-2 rounded-base border shadow-xs bg-neutral-secondary-medium text-body border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading"
+                className="inline-flex cursor-pointer items-center gap-2 text-sm px-3 py-2 rounded-base border shadow-xs bg-neutral-secondary-medium text-body border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading"
                 aria-haspopup="menu"
                 aria-expanded={dropdownMapelTerbuka}
               >
@@ -434,10 +434,6 @@ export const DataMataPelajaran: React.FC = () => {
             )}
           </tbody>
         </table>
-      </div>
-
-      <div className="px-4 py-3 text-xs text-slate-500 border-t border-default">
-        Geser tabel ke kanan/kiri untuk melihat kolom lainnya.
       </div>
     </div>
   );
