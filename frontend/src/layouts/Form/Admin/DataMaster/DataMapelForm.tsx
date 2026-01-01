@@ -13,6 +13,7 @@ const kelasOptions: KelasOption[] = [
 
 const initialValues: MataPelajaranFormValues = {
   kelasId: "",
+  kodeMapel: "",
   namaMapel: "",
   deskripsiMapel: "",
 };
@@ -43,6 +44,7 @@ export const DataMapelForm = () => {
     const errors: Partial<Record<keyof MataPelajaranFormValues, string>> = {};
 
     if (!v.kelasId) errors.kelasId = "Kelas wajib dipilih.";
+    if (!v.kodeMapel.trim()) errors.kodeMapel = "Kode mapel wajib diisi.";
     if (!v.namaMapel.trim())
       errors.namaMapel = "Nama mata pelajaran wajib diisi.";
     if (!v.deskripsiMapel.trim())
@@ -61,6 +63,7 @@ export const DataMapelForm = () => {
 
     setTouched({
       kelasId: true,
+      kodeMapel: true,
       namaMapel: true,
       deskripsiMapel: true,
     });
@@ -97,7 +100,7 @@ export const DataMapelForm = () => {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <div>
                 <label className={labelBase} htmlFor="kelasId">
                   Kelas
@@ -121,6 +124,29 @@ export const DataMapelForm = () => {
                 {hasError("kelasId") && (
                   <p className="mt-1 text-xs text-rose-500">
                     {errors.kelasId}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className={labelBase} htmlFor="kodeMapel">
+                  Kode Mapel
+                </label>
+                <input
+                  id="kodeMapel"
+                  className={`${inputBase} ${
+                    hasError("kodeMapel")
+                      ? "border-rose-300 ring-rose-100"
+                      : ""
+                  }`}
+                  placeholder="Contoh: MAT-10-01"
+                  value={values.kodeMapel}
+                  onChange={(e) => setField("kodeMapel", e.target.value)}
+                  onBlur={() => onBlur("kodeMapel")}
+                />
+                {hasError("kodeMapel") && (
+                  <p className="mt-1 text-xs text-rose-500">
+                    {errors.kodeMapel}
                   </p>
                 )}
               </div>
