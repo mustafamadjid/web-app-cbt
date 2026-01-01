@@ -14,3 +14,9 @@ export type MataPelajaranOption = {
   id: string;
   label: string;
 };
+
+export type MataPelajaranFormValues = {
+  kelasId: string;
+  namaMapel: string;
+  deskripsiMapel: string;
+};
