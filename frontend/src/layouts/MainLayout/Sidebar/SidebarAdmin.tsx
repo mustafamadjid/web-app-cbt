@@ -1,32 +1,238 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { NavLink, useLocation, matchPath } from "react-router";
+
+type SidebarMenuItem = {
+  id: string;
+  label: string;
+  icon: ReactNode;
+  to?: string;
+  end?: boolean;
+  children?: SidebarMenuItem[];
+};
 
 export const SidebarAdmin = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isEcomOpen, setIsEcomOpen] = useState(false);
-  const [isDataMasterOpen, setIsDataMasterOpen] = useState(false);
+  const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
   const sidebarRef = useRef<HTMLElement | null>(null);
 
   const { pathname } = useLocation();
 
-  // Definisikan route submenu
-  const kelolaPenggunaRoutes = useMemo(
-    () => ({
-      guru: "/dashboard/administrator/kelola-akun/guru",
-      siswa: "/dashboard/administrator/kelola-akun/siswa",
-    }),
+  const menuItems = useMemo<SidebarMenuItem[]>(
+    () => [
+      {
+        id: "dashboard",
+        label: "Dashboard",
+        to: "/dashboard/administrator",
+        end: true,
+        icon: (
+          <svg
+            className="w-5 h-5 transition duration-75 group-hover:text-[#397e50]"
+            aria-hidden="true"
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M10 6.025A7.5 7.5 0 1 0 17.975 14H10V6.025Z"
+            />
+            <path
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M13.5 3c-.169 0-.334.014-.5.025V11h7.975c.011-.166.025-.331.025-.5A7.5 7.5 0 0 0 13.5 3Z"
+            />
+          </svg>
+        ),
+      },
+      {
+        id: "kelola-pengguna",
+        label: "Kelola Pengguna",
+        icon: (
+          <svg
+            className="shrink-0 w-5 h-5 transition duration-75 group-hover:text-[#397e50]"
+            aria-hidden="true"
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M16 19h4a1 1 0 0 0 1-1v-1a3 3 0 0 0-3-3h-2m-2.236-4a3 3 0 1 0 0-4M3 18v-1a3 3 0 0 1 3-3h4a3 3 0 0 1 3 3v1a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Zm8-10a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+            />
+          </svg>
+        ),
+        children: [
+          {
+            id: "akun-guru",
+            label: "Akun Guru",
+            to: "/dashboard/administrator/kelola-akun/guru",
+            icon: (
+              <svg
+                className="w-6 h-6 group-hover:text-[#397e50]"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  d="M7 17v1a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1a3 3 0 0 0-3-3h-4a3 3 0 0 0-3 3Zm8-9a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+                />
+              </svg>
+            ),
+          },
+          {
+            id: "akun-siswa",
+            label: "Akun Siswa",
+            to: "/dashboard/administrator/kelola-akun/siswa",
+            icon: (
+              <svg
+                className="w-6 h-6 group-hover:text-[#397e50]"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  d="M7 17v1a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1a3 3 0 0 0-3-3h-4a3 3 0 0 0-3 3Zm8-9a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+                />
+              </svg>
+            ),
+          },
+        ],
+      },
+      {
+        id: "data-master",
+        label: "Data Master",
+        icon: (
+          <svg
+            className="h-5 w-5 shrink-0 transition duration-75 group-hover:text-[#397e50]"
+            aria-hidden="true"
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M15 5v14M9 5v14M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"
+            />
+          </svg>
+        ),
+        children: [],
+      },
+      {
+        id: "ujian",
+        label: "Ujian",
+        to: "/dashboard/administrator/ujian",
+        icon: (
+          <svg
+            className="w-6 h-6"
+            aria-hidden="true"
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M12 6.03v13m0-13c-2.819-.831-4.715-1.076-8.029-1.023A.99.99 0 0 0 3 6v11c0 .563.466 1.014 1.03 1.007 3.122-.043 5.018.212 7.97 1.023m0-13c2.819-.831 4.715-1.076 8.029-1.023A.99.99 0 0 1 21 6v11c0 .563-.466 1.014-1.03 1.007-3.122-.043-5.018.212-7.97 1.023"
+            />
+          </svg>
+        ),
+      },
+    ],
     []
   );
 
-  // Cek apakah user sedang ada di salah satu halaman Kelola Pengguna
-  const isKelolaPenggunaActive =
-    !!matchPath({ path: kelolaPenggunaRoutes.guru, end: false }, pathname) ||
-    !!matchPath({ path: kelolaPenggunaRoutes.siswa, end: false }, pathname);
+  const bottomMenuItems = useMemo<SidebarMenuItem[]>(
+    () => [
+      {
+        id: "pengaturan",
+        label: "Pengaturan",
+        to: "/dashboard/administrator/pengaturan",
+        icon: (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            width="24"
+            height="24"
+          >
+            <path
+              fill="currentColor"
+              d="M19.14 12.94c.04-.3.06-.61.06-.94c0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6s3.6 1.62 3.6 3.6s-1.62 3.6-3.6 3.6"
+            ></path>
+          </svg>
+        ),
+      },
+    ],
+    []
+  );
+
+  const activeMenuIds = useMemo(() => {
+    const activeIds = new Set<string>();
+
+    const isRouteActive = (route?: string, end = false) =>
+      route ? !!matchPath({ path: route, end }, pathname) : false;
+
+    const checkItem = (item: SidebarMenuItem) => {
+      if (isRouteActive(item.to, item.end)) {
+        activeIds.add(item.id);
+      }
+
+      item.children?.forEach((child) => {
+        if (isRouteActive(child.to, child.end)) {
+          activeIds.add(item.id);
+          activeIds.add(child.id);
+        }
+      });
+    };
+
+    menuItems.forEach(checkItem);
+    bottomMenuItems.forEach(checkItem);
+
+    return activeIds;
+  }, [menuItems, bottomMenuItems, pathname]);
 
   // Auto open dropdown jika sedang berada di dalam section itu
   useEffect(() => {
-    if (isKelolaPenggunaActive) setIsEcomOpen(true);
-  }, [isKelolaPenggunaActive]);
+    setOpenMenus((prev) => {
+      const next = { ...prev };
+      menuItems.forEach((item) => {
+        if (item.children && activeMenuIds.has(item.id)) {
+          next[item.id] = true;
+        }
+      });
+      return next;
+    });
+  }, [activeMenuIds, menuItems]);
 
   // Tutup sidebar via ESC
   useEffect(() => {
@@ -72,6 +278,90 @@ export const SidebarAdmin = () => {
         ? "bg-neutral-tertiary text-[#397e50] font-semibold"
         : "text-body",
     ].join(" ");
+
+  const renderMenuItem = (item: SidebarMenuItem) => {
+    const isActive = activeMenuIds.has(item.id);
+    const hasChildren = !!item.children;
+    const isOpen = !!openMenus[item.id];
+
+    if (hasChildren) {
+      return (
+        <li key={item.id}>
+          <button
+            type="button"
+            onClick={() =>
+              setOpenMenus((prev) => ({
+                ...prev,
+                [item.id]: !prev[item.id],
+              }))
+            }
+            className={[
+              "flex items-center w-full justify-between px-2 py-1.5 rounded-base group transition-colors",
+              "hover:bg-neutral-tertiary hover:text-[#397e50]",
+              isActive
+                ? "bg-neutral-tertiary text-[#397e50] font-semibold"
+                : "text-body",
+            ].join(" ")}
+            aria-controls={`dropdown-${item.id}`}
+            aria-expanded={isOpen}
+          >
+            {item.icon}
+            <span className="flex-1 ms-3 text-left rtl:text-right whitespace-nowrap">
+              {item.label}
+            </span>
+            <svg
+              className={[
+                "w-5 h-5 transition-transform duration-200",
+                isOpen ? "rotate-180" : "rotate-0",
+              ].join(" ")}
+              aria-hidden="true"
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="m19 9-7 7-7-7"
+              />
+            </svg>
+          </button>
+
+          {item.children && (
+            <ul
+              id={`dropdown-${item.id}`}
+              className={[
+                "py-2 space-y-2",
+                isOpen ? "block" : "hidden",
+              ].join(" ")}
+            >
+              {item.children.map((child) => (
+                <li key={child.id}>
+                  <NavLink to={child.to ?? ""} className={subNavItemClass}>
+                    {child.icon}
+                    <span className="ms-2">{child.label}</span>
+                  </NavLink>
+                </li>
+              ))}
+            </ul>
+          )}
+        </li>
+      );
+    }
+
+    return (
+      <li key={item.id}>
+        <NavLink to={item.to ?? ""} end={item.end} className={navItemClass}>
+          {item.icon}
+          <span className="ms-3">{item.label}</span>
+        </NavLink>
+      </li>
+    );
+  };
 
   return (
     <>
@@ -168,263 +458,14 @@ export const SidebarAdmin = () => {
               <h2 className="text-sm font-semibold">SMA IT Fitrah Insani</h2>
             </div>
             <ul className="space-y-2 font-medium flex flex-col gap-3 py-4">
-              {/* Dashboard */}
-              <li>
-                <NavLink
-                  to="/dashboard/administrator"
-                  end
-                  className={navItemClass}
-                >
-                  <svg
-                    className="w-5 h-5 transition duration-75 group-hover:text-[#397e50]"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M10 6.025A7.5 7.5 0 1 0 17.975 14H10V6.025Z"
-                    />
-                    <path
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M13.5 3c-.169 0-.334.014-.5.025V11h7.975c.011-.166.025-.331.025-.5A7.5 7.5 0 0 0 13.5 3Z"
-                    />
-                  </svg>
-                  <span className="ms-3">Dashboard</span>
-                </NavLink>
-              </li>
-
-              {/* Dropdown Kelola Pengguna */}
-              <li>
-                <button
-                  type="button"
-                  onClick={() => setIsEcomOpen((v) => !v)}
-                  className={[
-                    "flex items-center w-full justify-between px-2 py-1.5 rounded-base group transition-colors",
-                    "hover:bg-neutral-tertiary hover:text-[#397e50]",
-                    isKelolaPenggunaActive
-                      ? "bg-neutral-tertiary text-[#397e50] font-semibold"
-                      : "text-body",
-                  ].join(" ")}
-                  aria-controls="dropdown-kelola-pengguna"
-                  aria-expanded={isEcomOpen}
-                >
-                  <svg
-                    className="shrink-0 w-5 h-5 transition duration-75 group-hover:text-[#397e50]"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M16 19h4a1 1 0 0 0 1-1v-1a3 3 0 0 0-3-3h-2m-2.236-4a3 3 0 1 0 0-4M3 18v-1a3 3 0 0 1 3-3h4a3 3 0 0 1 3 3v1a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Zm8-10a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
-                    />
-                  </svg>
-
-                  <span className="flex-1 ms-3 text-left rtl:text-right whitespace-nowrap">
-                    Kelola Pengguna
-                  </span>
-
-                  <svg
-                    className={[
-                      "w-5 h-5 transition-transform duration-200",
-                      isEcomOpen ? "rotate-180" : "rotate-0",
-                    ].join(" ")}
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="m19 9-7 7-7-7"
-                    />
-                  </svg>
-                </button>
-
-                <ul
-                  id="dropdown-kelola-pengguna"
-                  className={[
-                    "py-2 space-y-2",
-                    isEcomOpen ? "block" : "hidden",
-                  ].join(" ")}
-                >
-                  <li>
-                    <NavLink
-                      to={kelolaPenggunaRoutes.guru}
-                      className={subNavItemClass}
-                    >
-                      <svg
-                        className="w-6 h-6 group-hover:text-[#397e50]"
-                        aria-hidden="true"
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          d="M7 17v1a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1a3 3 0 0 0-3-3h-4a3 3 0 0 0-3 3Zm8-9a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
-                        />
-                      </svg>
-                      <span className="ms-2">Akun Guru</span>
-                    </NavLink>
-                  </li>
-
-                  <li>
-                    <NavLink
-                      to={kelolaPenggunaRoutes.siswa}
-                      className={subNavItemClass}
-                    >
-                      <svg
-                        className="w-6 h-6 group-hover:text-[#397e50]"
-                        aria-hidden="true"
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          d="M7 17v1a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1a3 3 0 0 0-3-3h-4a3 3 0 0 0-3 3Zm8-9a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
-                        />
-                      </svg>
-                      <span className="ms-2">Akun Siswa</span>
-                    </NavLink>
-                  </li>
-                </ul>
-              </li>
-
-              {/* Data Master */}
-              <li>
-                <button
-                  type="button"
-                  onClick={() => setIsDataMasterOpen((v) => !v)}
-                  className="group flex w-full items-center justify-between rounded-base px-2 py-1.5 text-body hover:bg-neutral-tertiary hover:text-[#397e50]"
-                  aria-controls="dropdown-data-master"
-                  aria-expanded={isDataMasterOpen}
-                >
-                  <span className="flex items-center gap-3">
-                    <svg
-                      className="h-5 w-5 shrink-0 transition duration-75 group-hover:text-[#397e50]"
-                      aria-hidden="true"
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M15 5v14M9 5v14M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"
-                      />
-                    </svg>
-                    <span className="whitespace-nowrap">Data Master</span>
-                  </span>
-
-                  <svg
-                    className={[
-                      "h-5 w-5 transition-transform duration-200",
-                      isDataMasterOpen ? "rotate-180" : "rotate-0",
-                    ].join(" ")}
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="m19 9-7 7-7-7"
-                    />
-                  </svg>
-                </button>
-              </li>
-
-              {/* Ujian */}
-              <li>
-                <NavLink
-                  to="/dashboard/administrator/ujian"
-                  className={navItemClass}
-                >
-                  <svg
-                    className="w-6 h-6"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M12 6.03v13m0-13c-2.819-.831-4.715-1.076-8.029-1.023A.99.99 0 0 0 3 6v11c0 .563.466 1.014 1.03 1.007 3.122-.043 5.018.212 7.97 1.023m0-13c2.819-.831 4.715-1.076 8.029-1.023A.99.99 0 0 1 21 6v11c0 .563-.466 1.014-1.03 1.007-3.122-.043-5.018.212-7.97 1.023"
-                    />
-                  </svg>
-                  <span className="ms-3">Ujian</span>
-                </NavLink>
-              </li>
+              {menuItems.map(renderMenuItem)}
             </ul>
           </div>
 
           {/* Divider section (tidak ikut scroll) */}
           <div className="shrink-0 mt-4 border-t border-default pt-4">
             <ul className="space-y-2 font-medium">
-              <li>
-                <NavLink
-                  to="/dashboard/administrator/pengaturan"
-                  className={navItemClass}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    width="24"
-                    height="24"
-                  >
-                    <path
-                      fill="currentColor"
-                      d="M19.14 12.94c.04-.3.06-.61.06-.94c0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6s3.6 1.62 3.6 3.6s-1.62 3.6-3.6 3.6"
-                    ></path>
-                  </svg>
-                  <span className="flex-1 ms-3 whitespace-nowrap">
-                    Pengaturan
-                  </span>
-                </NavLink>
-              </li>
+              {bottomMenuItems.map(renderMenuItem)}
 
               {/* <li>
                 <NavLink
