@@ -32,7 +32,7 @@ export const Header: React.FC<HeaderProps> = ({
               {userName}
             </h2>
 
-            <span className="inline-flex items-center rounded-md bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800 ring-1 ring-inset ring-amber-200">
+            <span className="inline-flex items-center rounded-2xl bg-[#fff5d5] px-2.5 py-1 text-xs font-semibold text-[#724b00] ">
               {roleLabel}
             </span>
           </div>
@@ -56,7 +56,7 @@ export const Header: React.FC<HeaderProps> = ({
             <span
               className={[
                 "absolute bottom-0 right-0 h-3 w-3 rounded-full ring-2 ring-white",
-                isOnline ? "bg-emerald-500" : "bg-slate-300",
+                isOnline ? "bg-green-600" : "bg-slate-300",
               ].join(" ")}
               aria-label={isOnline ? "Online" : "Offline"}
               title={isOnline ? "Online" : "Offline"}

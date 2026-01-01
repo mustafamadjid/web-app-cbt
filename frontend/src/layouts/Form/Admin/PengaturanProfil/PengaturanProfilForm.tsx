@@ -1,14 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-type ProfilSekolahFormValues = {
-  nama_sekolah: string;
-  alamat_sekolah: string;
-  no_telp_sekolah: string;
-  email_sekolah: string;
-  kepala_sekolah: string;
-  wakil_kepala_sekolah: string;
-  logo_sekolah: File | null;
-};
+import type { ProfilSekolahFormValues } from "@/types/ProfilSekolah/ProfilSekolah";
 
 const initialValues: ProfilSekolahFormValues = {
   nama_sekolah: "",
@@ -126,7 +118,7 @@ export const PengaturanProfilForm = () => {
   };
 
   return (
-    <div className="min-h-screen w-full bg-slate-50 py-8">
+    <div className="min-h-screen w-full py-8">
       <div className="mx-auto w-full max-w-5xl px-4">
         <div className="mb-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <div>
@@ -273,7 +265,7 @@ export const PengaturanProfilForm = () => {
                 </label>
                 <textarea
                   id="alamat_sekolah"
-                  className={`${inputBase} min-h-[96px] ${
+                  className={`${inputBase} min-h-24 ${
                     hasError("alamat_sekolah")
                       ? "border-rose-300 ring-rose-100"
                       : ""
@@ -342,7 +334,7 @@ export const PengaturanProfilForm = () => {
                     <button
                       type="button"
                       onClick={clearLogo}
-                      className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-medium text-rose-500"
+                      className="rounded-lg border border-rose-200  px-3 py-2 text-xs font-medium text-rose-500 cursor-pointer hover:bg-rose-50 hover:border-rose-300 transition duration-100"
                     >
                       Hapus Logo
                     </button>

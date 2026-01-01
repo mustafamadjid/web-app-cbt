@@ -4,7 +4,7 @@ import { SidebarAdmin } from "@/layouts/MainLayout/Sidebar/SidebarAdmin";
 
 export function AdminLayout() {
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-[#ecf1ed] ">
       {/* Sidebar is fixed inside component; do NOT reserve width on mobile */}
       <SidebarAdmin />
 

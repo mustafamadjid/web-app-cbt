@@ -189,7 +189,7 @@ function AnnouncementRow({
                       title={d.name}
                     >
                       <Paperclip size={16} strokeWidth={2} />
-                      <span className="truncate max-w-[240px] sm:max-w-[260px]">
+                      <span className="truncate max-w-60 sm:max-w-[260px]">
                         {d.name}
                       </span>
                       {d.sizeLabel ? (

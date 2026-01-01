@@ -13,6 +13,7 @@ import { KelolaAkunSiswa } from "@/pages/Admin/Dashboard/KelolaAkun/AkunSiswa";
 import { TambahGuru } from "@/pages/Admin/Dashboard/KelolaAkun/TambahAkun/TambahGuru";
 import { TambahSiswa } from "@/pages/Admin/Dashboard/KelolaAkun/TambahAkun/TambahSiswa";
 import { AdminLayout } from "@/layouts/MainLayout/AdminLayout/AdminLayout";
+import { PengaturanProfil } from "@/pages/Admin/Dashboard/Pengaturan/Pengaturan";
 
 export const router = createBrowserRouter([
     // Login Page
@@ -29,7 +30,7 @@ export const router = createBrowserRouter([
             {path:paths.dashboard.kelola_akun_siswa,element:<KelolaAkunSiswa/>},
             {path:paths.dashboard.tambah_guru,element:<TambahGuru/>},
             {path:paths.dashboard.tambah_siswa,element:<TambahSiswa/>},
-            {path:paths.dashboard.pengaturan,element:<div>pengaturan</div>}
+            {path:paths.dashboard.pengaturan,element:<PengaturanProfil/>},
         ]
     }
 ])

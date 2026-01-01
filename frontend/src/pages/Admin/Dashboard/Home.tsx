@@ -145,7 +145,7 @@ export const dummyHeaderUser = {
 export const Home = ()=> {
     return (
       <>
-        <header className="px-4 py-4">
+        <header className="px-4 py-4 shrink-0">
           <Header
             title={dummyHeaderUser.title}
             userName={dummyHeaderUser.userName}

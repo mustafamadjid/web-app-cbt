@@ -356,7 +356,7 @@ export const AkunGuruTables: React.FC = () => {
               <td className="px-6 py-4">{p.jabatan}</td>
 
               <td className="px-6 py-4">{p.bidangStudi}</td>
-              
+
               {/* Tambahkan Link/navigate yang membawa Id sebagai route param */}
               <td className="px-6 py-4">
                 <button
@@ -379,6 +379,9 @@ export const AkunGuruTables: React.FC = () => {
           )}
         </tbody>
       </table>
+      <div className="px-4 py-3 text-xs text-slate-500 border-t border-default">
+        Geser tabel ke kanan/kiri untuk melihat kolom lainnya.
+      </div>
     </div>
   );
 };

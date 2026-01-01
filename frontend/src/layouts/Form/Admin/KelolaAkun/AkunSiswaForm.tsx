@@ -209,7 +209,7 @@ export const AkunSiswaForm = () => {
   };
 
   return (
-    <div className="min-h-screen w-full bg-slate-50 py-8">
+    <div className="min-h-screen w-full  py-8">
       <div className="mx-auto w-full max-w-5xl px-4">
         {/* Header + Progress */}
         <div className="mb-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -225,7 +225,7 @@ export const AkunSiswaForm = () => {
 
             <div className="hidden w-56 md:block">
               <div className="h-2 w-full rounded-full bg-slate-100">
-                <div className="h-2 w-[100%] rounded-full bg-[#397e50]" />
+                <div className="h-2 w-full rounded-full bg-[#397e50]" />
               </div>
               <p className="mt-2 text-right text-xs text-slate-500">Step 1/1</p>
             </div>

@@ -26,8 +26,8 @@ export const StatistikWidget = ({
   donutSize = 112,
   donutStroke = 10,
   trackColor = "#EEF2F6",
-  gradientFrom = "#22C55E",
-  gradientTo = "#D9F99D",
+  gradientFrom = "#8dd19d",
+  gradientTo = "#1ba23a",
 }: StatistikWidgetProps) => {
   const p = clamp(percent, 0, 100);
 

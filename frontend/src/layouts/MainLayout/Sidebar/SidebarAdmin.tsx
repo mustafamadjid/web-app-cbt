@@ -54,24 +54,18 @@ export const SidebarAdmin = () => {
     return () => document.removeEventListener("mousedown", onMouseDown);
   }, [isSidebarOpen]);
 
-  // Helper class untuk NavLink
+  // Helper class untuk NavLink (menu utama)
   const navItemClass = ({ isActive }: { isActive: boolean }) =>
     [
       "flex items-center px-2 py-1.5 rounded-base group transition-colors",
-      "hover:bg-neutral-tertiary hover:text-[#397e50]",
-      isActive
-        ? "bg-neutral-tertiary text-[#397e50] font-semibold"
-        : "text-body",
+      "text-white/80",
+      "hover:bg-white/10 hover:text-white",
+      isActive ? "bg-white/15 text-white font-semibold" : "",
     ].join(" ");
 
-  const subNavItemClass = ({ isActive }: { isActive: boolean }) =>
-    [
-      "pl-10 flex items-center px-2 py-1.5 rounded-base group transition-colors",
-      "hover:bg-neutral-tertiary hover:text-[#397e50]",
-      isActive
-        ? "bg-neutral-tertiary text-[#397e50] font-semibold"
-        : "text-body",
-    ].join(" ");
+  // Submenu: jangan kasih bg aktif full baris. Aktifnya di chip teks saja.
+  const subNavItemBase =
+    "pl-8 flex items-center gap-3 px-2 py-1.5 rounded-base transition-colors";
 
   return (
     <>
@@ -120,23 +114,22 @@ export const SidebarAdmin = () => {
         aria-label="Sidebar"
         ref={sidebarRef}
         className={[
-          "fixed top-0 left-0 z-40 w-64 h-screen",
+          "fixed top-0 left-0 z-40 w-64 h-screen rounded-r-",
           "transition-transform duration-200 ease-out",
           "sm:translate-x-0",
           isSidebarOpen ? "translate-x-0" : "-translate-x-full",
-          // penting:
           "flex flex-col overflow-hidden",
         ].join(" ")}
       >
-        {/* BODY (mengisi sisa tinggi layar) */}
-        <div className="flex-1 min-h-0 px-3 py-5  bg-neutral-primary-soft border-e border-default flex flex-col">
-          {/* Header mobile: stated (tidak ikut scroll) */}
+        {/* BODY */}
+        <div className="flex-1 min-h-0 px-3 py-5 bg-[#37513d] border-e border-black/10 flex flex-col">
+          {/* Header mobile */}
           <div className="flex items-center justify-between sm:hidden mb-3 shrink-0">
-            <span className="text-sm font-medium text-heading">Menu</span>
+            <span className="text-sm font-medium text-white">Menu</span>
             <button
               type="button"
               onClick={() => setIsSidebarOpen(false)}
-              className="p-2 rounded-base hover:bg-neutral-secondary-medium focus:outline-none focus:ring-4 focus:ring-neutral-tertiary"
+              className="p-2 rounded-base hover:bg-white/10 focus:outline-none focus:ring-4 focus:ring-white/20 text-white"
             >
               <span className="sr-only">Close sidebar</span>
               <svg
@@ -158,15 +151,30 @@ export const SidebarAdmin = () => {
 
           {/* MENU UTAMA (scroll di sini) */}
           <div className="flex-1 min-h-0 overflow-y-auto pb-4">
-            {/* HEADER / LOGO (tidak ikut scroll) */}
-            <div className="p-2  flex items-center shrink-0">
-              <img
-                src="/Images/LoginPageImg/logo-fi.png"
-                alt=""
-                className="w-20"
-              />
-              <h2 className="text-sm font-semibold">SMA IT Fitrah Insani</h2>
+            {/* HEADER / LOGO */}
+            <div className="px-2 pt-2 pb-3">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-xl ring-1 ring-white/15 flex items-center justify-center shrink-0">
+                  <img
+                    src="/Images/assetUpload/logo-fi-bg.webp"
+                    alt="Logo sekolah"
+                    className="h-12 w-12 object-cover rounded-xl"
+                  />
+                </div>
+
+                <div className="min-w-0">
+                  <h2 className="text-white font-semibold text-sm leading-tight wrap-break-word">
+                    SMA IT Fitrah Insani
+                  </h2>
+                  <p className="text-white/70 text-xs mt-0.5">
+                    Panel
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-3 h-px bg-white/10" />
             </div>
+
             <ul className="space-y-2 font-medium flex flex-col gap-3 py-4">
               {/* Dashboard */}
               <li>
@@ -176,7 +184,7 @@ export const SidebarAdmin = () => {
                   className={navItemClass}
                 >
                   <svg
-                    className="w-5 h-5 transition duration-75 group-hover:text-[#397e50]"
+                    className="w-5 h-5 transition duration-75 text-current"
                     aria-hidden="true"
                     xmlns="http://www.w3.org/2000/svg"
                     width="24"
@@ -210,16 +218,16 @@ export const SidebarAdmin = () => {
                   onClick={() => setIsEcomOpen((v) => !v)}
                   className={[
                     "flex items-center w-full justify-between px-2 py-1.5 rounded-base group transition-colors",
-                    "hover:bg-neutral-tertiary hover:text-[#397e50]",
+                    "text-white/80 hover:bg-white/10 hover:text-white",
                     isKelolaPenggunaActive
-                      ? "bg-neutral-tertiary text-[#397e50] font-semibold"
-                      : "text-body",
+                      ? "bg-white/15 text-white font-semibold"
+                      : "",
                   ].join(" ")}
                   aria-controls="dropdown-kelola-pengguna"
                   aria-expanded={isEcomOpen}
                 >
                   <svg
-                    className="shrink-0 w-5 h-5 transition duration-75 group-hover:text-[#397e50]"
+                    className="shrink-0 w-5 h-5 transition duration-75 text-current"
                     aria-hidden="true"
                     xmlns="http://www.w3.org/2000/svg"
                     width="24"
@@ -242,7 +250,7 @@ export const SidebarAdmin = () => {
 
                   <svg
                     className={[
-                      "w-5 h-5 transition-transform duration-200",
+                      "w-5 h-5 transition-transform duration-200 text-current",
                       isEcomOpen ? "rotate-180" : "rotate-0",
                     ].join(" ")}
                     aria-hidden="true"
@@ -269,51 +277,77 @@ export const SidebarAdmin = () => {
                     isEcomOpen ? "block" : "hidden",
                   ].join(" ")}
                 >
+                  {/* Akun Guru */}
                   <li>
                     <NavLink
                       to={kelolaPenggunaRoutes.guru}
-                      className={subNavItemClass}
+                      className={({}) =>
+                        [
+                          subNavItemBase,
+                          "text-white/80 hover:text-white",
+                          // tidak ada bg full row
+                        ].join(" ")
+                      }
                     >
-                      <svg
-                        className="w-6 h-6 group-hover:text-[#397e50]"
-                        aria-hidden="true"
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          d="M7 17v1a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1a3 3 0 0 0-3-3h-4a3 3 0 0 0-3 3Zm8-9a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
-                        />
-                      </svg>
-                      <span className="ms-2">Akun Guru</span>
+                      {({ isActive }) => (
+                        <>
+                          {/* Dot indikator */}
+                          <span
+                            className={[
+                              "h-2 w-2 rounded-full",
+                              isActive ? "bg-black/70" : "bg-white/40",
+                            ].join(" ")}
+                            aria-hidden="true"
+                          />
+
+                          {/* Chip teks (yang berubah saat aktif) */}
+                          <span
+                            className={[
+                              "px-3 py-1 rounded-full transition-colors",
+                              isActive
+                                ? "bg-white/15 text-white font-semibold"
+                                : "text-white/80 hover:bg-white/10",
+                            ].join(" ")}
+                          >
+                            Akun Guru
+                          </span>
+                        </>
+                      )}
                     </NavLink>
                   </li>
 
+                  {/* Akun Siswa */}
                   <li>
                     <NavLink
                       to={kelolaPenggunaRoutes.siswa}
-                      className={subNavItemClass}
+                      className={({}) =>
+                        [subNavItemBase, "text-white/80 hover:text-white"].join(
+                          " "
+                        )
+                      }
                     >
-                      <svg
-                        className="w-6 h-6 group-hover:text-[#397e50]"
-                        aria-hidden="true"
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          d="M7 17v1a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1a3 3 0 0 0-3-3h-4a3 3 0 0 0-3 3Zm8-9a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
-                        />
-                      </svg>
-                      <span className="ms-2">Akun Siswa</span>
+                      {({ isActive }) => (
+                        <>
+                          <span
+                            className={[
+                              "h-2 w-2 rounded-full",
+                              isActive ? "bg-black/70" : "bg-white/40",
+                            ].join(" ")}
+                            aria-hidden="true"
+                          />
+
+                          <span
+                            className={[
+                              "px-3 py-1 rounded-full transition-colors",
+                              isActive
+                                ? "bg-white/15 text-white font-semibold"
+                                : "text-white/80 hover:bg-white/10",
+                            ].join(" ")}
+                          >
+                            Akun Siswa
+                          </span>
+                        </>
+                      )}
                     </NavLink>
                   </li>
                 </ul>
@@ -324,13 +358,19 @@ export const SidebarAdmin = () => {
                 <button
                   type="button"
                   onClick={() => setIsDataMasterOpen((v) => !v)}
-                  className="group flex w-full items-center justify-between rounded-base px-2 py-1.5 text-body hover:bg-neutral-tertiary hover:text-[#397e50]"
+                  className={[
+                    "group flex w-full items-center justify-between rounded-base px-2 py-1.5 transition-colors",
+                    "text-white/80 hover:bg-white/10 hover:text-white",
+                    isDataMasterOpen
+                      ? "bg-white/15 text-white font-semibold"
+                      : "",
+                  ].join(" ")}
                   aria-controls="dropdown-data-master"
                   aria-expanded={isDataMasterOpen}
                 >
                   <span className="flex items-center gap-3">
                     <svg
-                      className="h-5 w-5 shrink-0 transition duration-75 group-hover:text-[#397e50]"
+                      className="h-5 w-5 shrink-0 transition duration-75 text-current"
                       aria-hidden="true"
                       xmlns="http://www.w3.org/2000/svg"
                       width="24"
@@ -351,7 +391,7 @@ export const SidebarAdmin = () => {
 
                   <svg
                     className={[
-                      "h-5 w-5 transition-transform duration-200",
+                      "h-5 w-5 transition-transform duration-200 text-current",
                       isDataMasterOpen ? "rotate-180" : "rotate-0",
                     ].join(" ")}
                     aria-hidden="true"
@@ -379,7 +419,7 @@ export const SidebarAdmin = () => {
                   className={navItemClass}
                 >
                   <svg
-                    className="w-6 h-6"
+                    className="w-6 h-6 text-current"
                     aria-hidden="true"
                     xmlns="http://www.w3.org/2000/svg"
                     width="24"
@@ -401,8 +441,8 @@ export const SidebarAdmin = () => {
             </ul>
           </div>
 
-          {/* Divider section (tidak ikut scroll) */}
-          <div className="shrink-0 mt-4 border-t border-default pt-4">
+          {/* Divider section */}
+          <div className="shrink-0 mt-4 border-t border-white/15 pt-4">
             <ul className="space-y-2 font-medium">
               <li>
                 <NavLink
@@ -410,6 +450,7 @@ export const SidebarAdmin = () => {
                   className={navItemClass}
                 >
                   <svg
+                    className="w-6 h-6 text-current"
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 24 24"
                     width="24"
@@ -418,67 +459,13 @@ export const SidebarAdmin = () => {
                     <path
                       fill="currentColor"
                       d="M19.14 12.94c.04-.3.06-.61.06-.94c0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6s3.6 1.62 3.6 3.6s-1.62 3.6-3.6 3.6"
-                    ></path>
+                    />
                   </svg>
                   <span className="flex-1 ms-3 whitespace-nowrap">
                     Pengaturan
                   </span>
                 </NavLink>
               </li>
-
-              {/* <li>
-                <NavLink
-                  to="/dashboard/administrator/support"
-                  className={navItemClass}
-                >
-                  <svg
-                    className="shrink-0 w-5 h-5 transition duration-75 group-hover:text-[#397e50]"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="m13.46 8.291 3.849-3.849a1.5 1.5 0 0 1 2.122 0l.127.127a1.5 1.5 0 0 1 0 2.122l-3.84 3.838a4 4 0 0 0-2.258-2.238Zm0 0a4 4 0 0 1 2.263 2.238l3.662-3.662a8.961 8.961 0 0 1 0 10.27l-3.676-3.676m-2.25-5.17 3.678-3.676a8.961 8.961 0 0 0-10.27 0l3.662 3.662a4 4 0 0 0-2.238 2.258L4.615 6.863a8.96 8.96 0 0 0 0 10.27l3.662-3.662a4 4 0 0 0 2.258 2.238l-3.672 3.676a8.96 8.96 0 0 0 10.27 0l-3.662-3.662a4.001 4.001 0 0 0 2.238-2.262m0 0 3.849 3.848a1.5 1.5 0 0 1 0 2.122l-.127.126a1.499 1.499 0 0 1-2.122 0l-3.838-3.838a4 4 0 0 0 2.238-2.258Zm.29-1.461a4 4 0 1 1-8 0 4 4 0 0 1 8 0Zm-7.718 1.471-3.84 3.838a1.5 1.5 0 0 0 0 2.122l.128.126a1.5 1.5 0 0 0 2.122 0l3.848-3.848a4 4 0 0 1-2.258-2.238Zm2.248-5.19L6.69 4.442a1.5 1.5 0 0 0-2.122 0l-.127.127a1.5 1.5 0 0 0 0 2.122l3.849 3.848a4 4 0 0 1 2.238-2.258Z"
-                    />
-                  </svg>
-                  <span className="flex-1 ms-3 whitespace-nowrap">Support</span>
-                </NavLink>
-              </li>
-
-              <li>
-                <NavLink
-                  to="/dashboard/administrator/pro"
-                  className={navItemClass}
-                >
-                  <svg
-                    className="shrink-0 w-5 h-5 transition duration-75 group-hover:text-[#397e50]"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="m10.051 8.102-3.778.322-1.994 1.994a.94.94 0 0 0 .533 1.6l2.698.316m8.39 1.617-.322 3.78-1.994 1.994a.94.94 0 0 1-1.595-.533l-.4-2.652m8.166-11.174a1.366 1.366 0 0 0-1.12-1.12c-1.616-.279-4.906-.623-6.38.853-1.671 1.672-5.211 8.015-6.31 10.023a.932.932 0 0 0 .162 1.111l.828.835.833.832a.932.932 0 0 0 1.111.163c2.008-1.102 8.35-4.642 10.021-6.312 1.475-1.478 1.133-4.77.855-6.385Zm-2.961 3.722a1.88 1.88 0 1 1-3.76 0 1.88 1.88 0 0 1 3.76 0Z"
-                    />
-                  </svg>
-                  <span className="flex-1 ms-3 whitespace-nowrap">
-                    PRO version
-                  </span>
-                </NavLink>
-              </li> */}
             </ul>
           </div>
         </div>
