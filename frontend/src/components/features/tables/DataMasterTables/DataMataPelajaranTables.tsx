@@ -26,12 +26,14 @@ export const DataMataPelajaran: React.FC = () => {
     {
       id: "mapel-1",
       kelasId: "kelas-10-ipa-1",
+      kodeMapel: "MAT-10-01",
       namaMapel: "Matematika",
       deskripsiMapel: "Aljabar dasar, geometri, dan statistika.",
     },
     {
       id: "mapel-2",
       kelasId: "kelas-10-ips-1",
+      kodeMapel: "EKO-10-01",
       namaMapel: "Ekonomi",
       deskripsiMapel: "Dasar-dasar ekonomi mikro dan makro.",
     },
@@ -55,6 +57,7 @@ export const DataMataPelajaran: React.FC = () => {
       const labelKelas = kelasById[mapel.kelasId]?.label ?? "";
       const cocokKata =
         !q ||
+        mapel.kodeMapel.toLowerCase().includes(q) ||
         mapel.namaMapel.toLowerCase().includes(q) ||
         mapel.deskripsiMapel.toLowerCase().includes(q) ||
         labelKelas.toLowerCase().includes(q);
@@ -366,6 +369,9 @@ export const DataMataPelajaran: React.FC = () => {
                 Kelas
               </th>
               <th scope="col" className="px-6 py-3 font-medium">
+                Kode Mapel
+              </th>
+              <th scope="col" className="px-6 py-3 font-medium">
                 Nama Mapel
               </th>
               <th scope="col" className="px-6 py-3 font-medium">
@@ -406,6 +412,9 @@ export const DataMataPelajaran: React.FC = () => {
                   {/* KELAS: teks biasa (tanpa dropdown) */}
                   <td className="px-6 py-4 text-heading">{labelKelas}</td>
 
+                  <td className="px-6 py-4 text-heading">
+                    {mapel.kodeMapel}
+                  </td>
                   <td className="px-6 py-4 text-heading font-medium">
                     {mapel.namaMapel}
                   </td>
@@ -427,7 +436,7 @@ export const DataMataPelajaran: React.FC = () => {
 
             {mapelTersaring.length === 0 && (
               <tr className="bg-neutral-primary-soft">
-                <td className="px-6 py-8 text-center text-body" colSpan={6}>
+                <td className="px-6 py-8 text-center text-body" colSpan={7}>
                   Tidak ada data.
                 </td>
               </tr>

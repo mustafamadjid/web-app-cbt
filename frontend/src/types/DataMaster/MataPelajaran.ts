@@ -6,6 +6,7 @@ export type KelasOption = {
 export type MataPelajaranRow = {
   id: string;
   kelasId: string;
+  kodeMapel: string;
   namaMapel: string;
   deskripsiMapel: string;
 };
@@ -17,6 +18,7 @@ export type MataPelajaranOption = {
 
 export type MataPelajaranFormValues = {
   kelasId: string;
+  kodeMapel: string;
   namaMapel: string;
   deskripsiMapel: string;
 };
