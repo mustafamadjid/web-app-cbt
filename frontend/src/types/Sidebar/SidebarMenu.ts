@@ -1,4 +1,5 @@
-export type SidebarIconRenderer = (className: string) => JSX.Element;
+import type React from "react";
+export type SidebarIconRenderer = (className: string) => React.JSX.Element;
 
 export type SidebarMenuItem =
   | SidebarMenuLinkItem

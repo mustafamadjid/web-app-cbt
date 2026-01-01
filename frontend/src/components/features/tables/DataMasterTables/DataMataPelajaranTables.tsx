@@ -10,13 +10,14 @@ export const DataMataPelajaran: React.FC = () => {
   const [kataKunci, setKataKunci] = useState("");
   const [idTerpilih, setIdTerpilih] = useState<Set<string>>(new Set());
 
+  // tetap dipakai untuk menampilkan label kelas (bukan pilihan)
   const [opsiKelas] = useState<KelasOption[]>([
     { id: "kelas-10-ipa-1", label: "X IPA 1" },
     { id: "kelas-10-ipa-2", label: "X IPA 2" },
     { id: "kelas-10-ips-1", label: "X IPS 1" },
   ]);
 
-  const [daftarMapel, setDaftarMapel] = useState<MataPelajaranRow[]>([
+  const [daftarMapel] = useState<MataPelajaranRow[]>([
     {
       id: "mapel-1",
       kelasId: "kelas-10-ipa-1",
@@ -75,14 +76,6 @@ export const DataMataPelajaran: React.FC = () => {
       else next.add(id);
       return next;
     });
-  };
-
-  const handleKelasChange = (id: string, kelasId: string) => {
-    setDaftarMapel((prev) =>
-      prev.map((mapel) =>
-        mapel.id === id ? { ...mapel, kelasId } : mapel
-      )
-    );
   };
 
   const jumlahTerpilih = idTerpilih.size;
@@ -230,59 +223,52 @@ export const DataMataPelajaran: React.FC = () => {
           </thead>
 
           <tbody>
-            {mapelTersaring.map((mapel, index) => (
-              <tr
-                key={mapel.id}
-                className="bg-neutral-primary-soft border-b border-default hover:bg-neutral-secondary-medium whitespace-nowrap"
-              >
-                <td className="w-4 p-4">
-                  <div className="flex items-center">
-                    <input
-                      id={`cek-${mapel.id}`}
-                      type="checkbox"
-                      checked={idTerpilih.has(mapel.id)}
-                      onChange={() => togglePilihBaris(mapel.id)}
-                      className="w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft"
-                    />
-                    <label htmlFor={`cek-${mapel.id}`} className="sr-only">
-                      Pilih baris
-                    </label>
-                  </div>
-                </td>
+            {mapelTersaring.map((mapel, index) => {
+              const labelKelas = kelasById[mapel.kelasId]?.label ?? "-";
 
-                <td className="px-6 py-4">{index + 1}</td>
-                <td className="px-6 py-4">
-                  <select
-                    className="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base px-3 py-2 focus:ring-brand focus:border-brand"
-                    value={mapel.kelasId}
-                    onChange={(e) =>
-                      handleKelasChange(mapel.id, e.target.value)
-                    }
-                  >
-                    {opsiKelas.map((kelas) => (
-                      <option key={kelas.id} value={kelas.id}>
-                        {kelas.label}
-                      </option>
-                    ))}
-                  </select>
-                </td>
-                <td className="px-6 py-4 text-heading font-medium">
-                  {mapel.namaMapel}
-                </td>
-                <td className="px-6 py-4 text-body">
-                  {mapel.deskripsiMapel}
-                </td>
-                <td className="px-6 py-4">
-                  <button
-                    type="button"
-                    className="font-medium text-fg-brand hover:underline"
-                    onClick={() => console.log("Ubah", mapel.id)}
-                  >
-                    Ubah
-                  </button>
-                </td>
-              </tr>
-            ))}
+              return (
+                <tr
+                  key={mapel.id}
+                  className="bg-neutral-primary-soft border-b border-default hover:bg-neutral-secondary-medium whitespace-nowrap"
+                >
+                  <td className="w-4 p-4">
+                    <div className="flex items-center">
+                      <input
+                        id={`cek-${mapel.id}`}
+                        type="checkbox"
+                        checked={idTerpilih.has(mapel.id)}
+                        onChange={() => togglePilihBaris(mapel.id)}
+                        className="w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft"
+                      />
+                      <label htmlFor={`cek-${mapel.id}`} className="sr-only">
+                        Pilih baris
+                      </label>
+                    </div>
+                  </td>
+
+                  <td className="px-6 py-4">{index + 1}</td>
+
+                  {/* KELAS: teks biasa (tanpa dropdown) */}
+                  <td className="px-6 py-4 text-heading">{labelKelas}</td>
+
+                  <td className="px-6 py-4 text-heading font-medium">
+                    {mapel.namaMapel}
+                  </td>
+                  <td className="px-6 py-4 text-body">
+                    {mapel.deskripsiMapel}
+                  </td>
+                  <td className="px-6 py-4">
+                    <button
+                      type="button"
+                      className="font-medium text-fg-brand hover:underline"
+                      onClick={() => console.log("Ubah", mapel.id)}
+                    >
+                      Ubah
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
 
             {mapelTersaring.length === 0 && (
               <tr className="bg-neutral-primary-soft">

@@ -156,7 +156,7 @@ export const AkunGuruForm= () => {
   };
 
   return (
-    <div className="min-h-screen w-full bg-slate-50 py-8">
+    <div className="min-h-screen w-full py-8">
       <div className="mx-auto w-full max-w-5xl px-4">
         {/* Header + Progress */}
         <div className="mb-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">

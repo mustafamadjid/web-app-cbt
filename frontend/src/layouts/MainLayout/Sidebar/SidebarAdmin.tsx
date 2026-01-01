@@ -6,13 +6,20 @@ import type {
   SidebarMenuItem,
   SidebarSubMenuItem,
 } from "../../../types/Sidebar/SidebarMenu";
-import {
-  footerMenuItems,
-  mainMenuItems,
-} from "./sidebarMenuItems";
+import { footerMenuItems, mainMenuItems } from "./sidebarMenuItems";
 
-export const SidebarAdmin = () => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+type SidebarAdminProps = {
+  isOpen: boolean;
+  onToggle: () => void;
+  onClose: () => void;
+  onOpen: () => void;
+};
+
+export const SidebarAdmin = ({
+  isOpen,
+  onToggle,
+  onClose,
+}: SidebarAdminProps) => {
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
   const sidebarRef = useRef<HTMLElement | null>(null);
 
@@ -41,38 +48,38 @@ export const SidebarAdmin = () => {
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setIsSidebarOpen(false);
+      if (e.key === "Escape") onClose();
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
+  }, [onClose]);
 
   useEffect(() => {
-    if (!isSidebarOpen) return;
+    if (!isOpen) return;
+
+    
+    const mql = window.matchMedia("(max-width: 639px)");
 
     const onMouseDown = (e: MouseEvent) => {
+      // Desktop: abaikan
+      if (!mql.matches) return;
+
       const el = sidebarRef.current;
       if (!el) return;
 
       if (e.target instanceof Node && !el.contains(e.target)) {
-        setIsSidebarOpen(false);
+        onClose();
       }
     };
 
     document.addEventListener("mousedown", onMouseDown);
     return () => document.removeEventListener("mousedown", onMouseDown);
-  }, [isSidebarOpen]);
+  }, [isOpen, onClose]);
 
-  /**
-   * Warna sidebar gelap -> semua menu harus punya text putih konsisten.
-   * State:
-   * - default: text-white/80
-   * - hover: bg putih tipis, text putih full
-   * - active: bg putih lebih kuat, text putih full, font-semibold
-   */
+ 
   const navItemClass = ({ isActive }: { isActive: boolean }) =>
     [
-      "flex items-center px-2 py-2 rounded-base group transition-colors",
+      "flex items-center px-2 py-2 rounded-base group transition-colors cursor-pointer",
       "text-white/80",
       "hover:bg-white/10 hover:text-white",
       isActive ? "bg-white/15 text-white font-semibold" : "",
@@ -80,26 +87,41 @@ export const SidebarAdmin = () => {
 
   const subNavItemClass = ({ isActive }: { isActive: boolean }) =>
     [
-      "pl-10 flex items-center px-2 py-2 rounded-base group transition-colors",
+      "pl-10 flex items-center px-2 py-2 rounded-base group transition-colors cursor-pointer",
       "text-white/70 text-sm",
       "hover:bg-white/10 hover:text-white",
       isActive ? "bg-white/15 text-white font-semibold" : "",
     ].join(" ");
 
-  // Icon class helper supaya ikon ikut konsisten warnanya
   const iconClass = (active?: boolean) =>
     [
-      "shrink-0 w-5 h-5 transition-colors duration-150",
+      "shrink-0 w-5 h-5 transition-colors duration-150 cursor-pointer",
       active ? "text-white" : "text-white/75",
       "group-hover:text-white",
     ].join(" ");
 
   const subIconClass = (active?: boolean) =>
     [
-      "shrink-0 w-5 h-5 transition-colors duration-150",
+      "shrink-0 w-5 h-5 transition-colors duration-150 cursor-pointer",
       active ? "text-white" : "text-white/70",
       "group-hover:text-white",
     ].join(" ");
+
+  const renderSubMenuItem = (
+    groupItem: SidebarMenuGroupItem,
+    child: SidebarSubMenuItem
+  ) => (
+    <li key={`${groupItem.id}-${child.id}`}>
+      <NavLink to={child.to} className={subNavItemClass}>
+        {({ isActive }) => (
+          <>
+            {child.icon(subIconClass(isActive))}
+            <span className="ms-2">{child.label}</span>
+          </>
+        )}
+      </NavLink>
+    </li>
+  );
 
   const renderMenuItem = (item: SidebarMenuItem) => {
     if (item.type === "link") {
@@ -133,7 +155,7 @@ export const SidebarAdmin = () => {
             }))
           }
           className={[
-            "flex items-center w-full justify-between px-2 py-2 rounded-base group transition-colors",
+            "flex items-center w-full justify-between px-2 py-2 rounded-base group transition-colors cursor-pointer",
             "text-white/80",
             "hover:bg-white/10 hover:text-white",
             groupIconActive ? "bg-white/15 text-white font-semibold" : "",
@@ -183,60 +205,50 @@ export const SidebarAdmin = () => {
     );
   };
 
-  const renderSubMenuItem = (
-    groupItem: SidebarMenuGroupItem,
-    child: SidebarSubMenuItem
-  ) => (
-    <li key={`${groupItem.id}-${child.id}`}>
-      <NavLink to={child.to} className={subNavItemClass}>
-        {({ isActive }) => (
-          <>
-            {child.icon(subIconClass(isActive))}
-            <span className="ms-2">{child.label}</span>
-          </>
-        )}
-      </NavLink>
-    </li>
-  );
-
   return (
     <>
-      {/* Mobile: tombol buka sidebar */}
-      <button
-        type="button"
-        onClick={() => setIsSidebarOpen(true)}
-        aria-controls="separator-sidebar"
-        aria-expanded={isSidebarOpen}
-        className="text-heading bg-transparent box-border border border-transparent hover:bg-neutral-secondary-medium focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base ms-3 mt-3 text-sm p-2 focus:outline-none inline-flex sm:hidden"
-      >
-        <span className="sr-only">Open sidebar</span>
-        <svg
-          className="w-6 h-6"
-          aria-hidden="true"
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          fill="none"
-          viewBox="0 0 24 24"
+      {!isOpen && (
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-controls="separator-sidebar"
+          aria-expanded={isOpen}
+          className={[
+            "z-50 top-3 left-0 cursor-pointer",
+            "text-heading bg-transparent border border-transparent",
+            "hover:bg-neutral-secondary-medium focus:ring-4 focus:ring-neutral-tertiary",
+            "font-medium rounded-base text-sm p-2 focus:outline-none inline-flex",
+          ].join(" ")}
         >
-          <path
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeWidth="2"
-            d="M5 7h14M5 12h14M5 17h10"
-          />
-        </svg>
-      </button>
+          <span className="sr-only">Open sidebar</span>
+          <svg
+            className="w-6 h-6"
+            aria-hidden="true"
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeWidth="2"
+              d="M5 7h14M5 12h14M5 17h10"
+            />
+          </svg>
+        </button>
+      )}
 
-      {/* Overlay (mobile) */}
+      {/* Overlay (mobile only) */}
       <div
         className={[
-          "fixed inset-0 z-30 bg-black/40 transition-opacity sm:hidden",
-          isSidebarOpen
+          "fixed inset-0 z-30 bg-black/40 transition-opacity sm:hidden ",
+          isOpen
             ? "opacity-100 pointer-events-auto"
             : "opacity-0 pointer-events-none",
         ].join(" ")}
-        onClick={() => setIsSidebarOpen(false)}
+        onClick={onClose}
         aria-hidden="true"
       />
 
@@ -246,22 +258,20 @@ export const SidebarAdmin = () => {
         aria-label="Sidebar"
         ref={sidebarRef}
         className={[
-          "fixed top-0 left-0 z-40 w-64 h-screen",
+          "fixed top-0 left-0 z-40 w-64 h-screen rounded-r-xl",
           "transition-transform duration-200 ease-out",
-          "sm:translate-x-0",
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full",
+          isOpen ? "translate-x-0" : "-translate-x-full",
           "flex flex-col overflow-hidden",
         ].join(" ")}
       >
-        {/* BODY */}
         <div className="flex-1 min-h-0 px-3 py-5 bg-[#37513d] border-e border-black/10 flex flex-col">
-          {/* Header mobile */}
-          <div className="flex items-center justify-between sm:hidden mb-3 shrink-0">
-            <span className="text-sm font-medium text-white">Menu</span>
+          {/* Header mobile (boleh tetap, tapi sekarang juga aman untuk desktop) */}
+          <div className="flex items-center justify-between  shrink-0">
+            <span className=""></span>
             <button
               type="button"
-              onClick={() => setIsSidebarOpen(false)}
-              className="p-2 rounded-base hover:bg-white/10 focus:outline-none focus:ring-4 focus:ring-white/20 text-white"
+              onClick={onClose}
+              className="p-2 rounded-base cursor-pointer hover:bg-white/10 focus:outline-none focus:ring-4 focus:ring-white/20 text-white"
             >
               <span className="sr-only">Close sidebar</span>
               <svg
@@ -281,9 +291,7 @@ export const SidebarAdmin = () => {
             </button>
           </div>
 
-          {/* MENU UTAMA (scroll) */}
           <div className="flex-1 min-h-0 overflow-y-auto pb-4">
-            {/* HEADER / LOGO */}
             <div className="px-2 pt-2 pb-3">
               <div className="flex items-center gap-3">
                 <div className="h-12 w-12 rounded-xl ring-1 ring-white/15 flex items-center justify-center shrink-0 overflow-hidden">
@@ -295,7 +303,7 @@ export const SidebarAdmin = () => {
                 </div>
 
                 <div className="min-w-0">
-                  <h2 className="text-white font-semibold text-sm leading-tight break-words">
+                  <h2 className="text-white font-semibold text-sm leading-tight wrap-break-word">
                     SMA IT Fitrah Insani
                   </h2>
                   <p className="text-white/70 text-xs mt-0.5">Panel</p>
@@ -310,7 +318,6 @@ export const SidebarAdmin = () => {
             </ul>
           </div>
 
-          {/* Divider section */}
           <div className="shrink-0 mt-4 border-t border-white/10 pt-4">
             <ul className="space-y-2 font-medium">
               {footerMenuItems.map((item) => renderMenuItem(item))}

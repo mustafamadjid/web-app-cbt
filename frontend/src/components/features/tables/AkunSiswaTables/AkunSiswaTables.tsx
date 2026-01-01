@@ -246,7 +246,7 @@ export const AkunSiswaTables: React.FC = () => {
             id="pencarian"
             value={kataKunci}
             onChange={(e) => setKataKunci(e.target.value)}
-            className="block w-full ps-9 pe-3 py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body"
+            className="block w-full ps-9 pe-3 py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-green-800 focus:border-green-800 shadow-xs placeholder:text-body"
             placeholder="Cari siswa..."
           />
         </div>
