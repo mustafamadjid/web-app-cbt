@@ -1,6 +1,7 @@
 export type KelasOption = {
   id: string;
-  label: string;
+  tingkat_kelas: number;
+  nama_kelas?: string;
 };
 
 export type MataPelajaranRow = {

@@ -10,16 +10,24 @@ export const DataMataPelajaran: React.FC = () => {
   const [dropdownAksiTerbuka, setDropdownAksiTerbuka] = useState(false);
   const [kataKunci, setKataKunci] = useState("");
   const [idTerpilih, setIdTerpilih] = useState<Set<string>>(new Set());
+
   const [dropdownKelasTerbuka, setDropdownKelasTerbuka] = useState(false);
   const [dropdownMapelTerbuka, setDropdownMapelTerbuka] = useState(false);
-  const [kelasTerpilih, setKelasTerpilih] = useState<string>("semua");
+
+  // "semua" atau angka tingkat_kelas (10/11/12)
+  const [tingkatTerpilih, setTingkatTerpilih] = useState<"semua" | number>(
+    "semua"
+  );
   const [mapelTerpilih, setMapelTerpilih] = useState<string>("semua");
 
   // tetap dipakai untuk menampilkan label kelas (bukan pilihan)
   const [opsiKelas] = useState<KelasOption[]>([
-    { id: "kelas-10-ipa-1", label: "X IPA 1" },
-    { id: "kelas-10-ipa-2", label: "X IPA 2" },
-    { id: "kelas-10-ips-1", label: "X IPS 1" },
+    { id: "kelas-10-ipa-1", tingkat_kelas: 10, nama_kelas: "X IPA 1" },
+    { id: "kelas-10-ips-1", tingkat_kelas: 10, nama_kelas: "X IPS 1" },
+    { id: "kelas-11-ipa-1", tingkat_kelas: 11, nama_kelas: "XI IPA 1" },
+    { id: "kelas-11-ips-1", tingkat_kelas: 11, nama_kelas: "XI IPS 1" },
+    { id: "kelas-12-ipa-1", tingkat_kelas: 12, nama_kelas: "XII IPA 1" },
+    { id: "kelas-12-ips-1", tingkat_kelas: 12, nama_kelas: "XII IPS 1" },
   ]);
 
   const [daftarMapel] = useState<MataPelajaranRow[]>([
@@ -51,21 +59,36 @@ export const DataMataPelajaran: React.FC = () => {
     }, {});
   }, [opsiKelas]);
 
+  // Dropdown tingkat_kelas yang unik (dedup)
+  const opsiTingkatKelas = useMemo(() => {
+    const set = new Set<number>();
+    opsiKelas.forEach((k) => set.add(k.tingkat_kelas));
+    return Array.from(set).sort((a, b) => a - b);
+  }, [opsiKelas]);
+
   const mapelTersaring = useMemo(() => {
     const q = kataKunci.trim().toLowerCase();
+
     return daftarMapel.filter((mapel) => {
-      const labelKelas = kelasById[mapel.kelasId]?.label ?? "";
+      const tingkatKelas = kelasById[mapel.kelasId]?.tingkat_kelas ?? null;
+
       const cocokKata =
         !q ||
         mapel.kodeMapel.toLowerCase().includes(q) ||
         mapel.namaMapel.toLowerCase().includes(q) ||
         mapel.deskripsiMapel.toLowerCase().includes(q) ||
-        labelKelas.toLowerCase().includes(q);
-      const cocokKelas = kelasTerpilih === "semua" || mapel.kelasId === kelasTerpilih;
-      const cocokMapel = mapelTerpilih === "semua" || mapel.id === mapelTerpilih;
+        (tingkatKelas !== null && tingkatKelas.toString().includes(q));
+
+      // Filter berdasarkan tingkat_kelas (bukan kelasId)
+      const cocokKelas =
+        tingkatTerpilih === "semua" || tingkatKelas === tingkatTerpilih;
+
+      const cocokMapel =
+        mapelTerpilih === "semua" || mapel.id === mapelTerpilih;
+
       return cocokKata && cocokKelas && cocokMapel;
     });
-  }, [kataKunci, daftarMapel, kelasById, kelasTerpilih, mapelTerpilih]);
+  }, [kataKunci, daftarMapel, kelasById, tingkatTerpilih, mapelTerpilih]);
 
   const semuaTerlihatTerpilih =
     mapelTersaring.length > 0 &&
@@ -170,6 +193,8 @@ export const DataMataPelajaran: React.FC = () => {
 
           <div className="flex items-center flex-wrap gap-2">
             <span className="text-xs font-medium text-body">Urutkan:</span>
+
+            {/* Dropdown Tingkat Kelas (unik) */}
             <div className="relative">
               <button
                 type="button"
@@ -180,9 +205,7 @@ export const DataMataPelajaran: React.FC = () => {
               >
                 Kelas:{" "}
                 <span className="font-medium text-heading cursor-pointer">
-                  {kelasTerpilih === "semua"
-                    ? "Semua"
-                    : kelasById[kelasTerpilih]?.label ?? "-"}
+                  {tingkatTerpilih === "semua" ? "Semua" : tingkatTerpilih}
                 </span>
                 <svg
                   className="w-4 h-4"
@@ -202,6 +225,7 @@ export const DataMataPelajaran: React.FC = () => {
                   />
                 </svg>
               </button>
+
               {dropdownKelasTerbuka && (
                 <div
                   role="menu"
@@ -214,24 +238,25 @@ export const DataMataPelajaran: React.FC = () => {
                         type="button"
                         className="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded text-left"
                         onClick={() => {
-                          setKelasTerpilih("semua");
+                          setTingkatTerpilih("semua");
                           setDropdownKelasTerbuka(false);
                         }}
                       >
                         Semua Kelas
                       </button>
                     </li>
-                    {opsiKelas.map((opsi) => (
-                      <li key={opsi.id}>
+
+                    {opsiTingkatKelas.map((tingkat) => (
+                      <li key={tingkat}>
                         <button
                           type="button"
                           className="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded text-left"
                           onClick={() => {
-                            setKelasTerpilih(opsi.id);
+                            setTingkatTerpilih(tingkat);
                             setDropdownKelasTerbuka(false);
                           }}
                         >
-                          {opsi.label}
+                          {tingkat}
                         </button>
                       </li>
                     ))}
@@ -240,6 +265,7 @@ export const DataMataPelajaran: React.FC = () => {
               )}
             </div>
 
+            {/* Dropdown Mapel */}
             <div className="relative">
               <button
                 type="button"
@@ -273,6 +299,7 @@ export const DataMataPelajaran: React.FC = () => {
                   />
                 </svg>
               </button>
+
               {dropdownMapelTerbuka && (
                 <div
                   role="menu"
@@ -292,6 +319,7 @@ export const DataMataPelajaran: React.FC = () => {
                         Semua Mata Pelajaran
                       </button>
                     </li>
+
                     {opsiMapel.map((opsi) => (
                       <li key={opsi.id}>
                         <button
@@ -313,6 +341,7 @@ export const DataMataPelajaran: React.FC = () => {
           </div>
         </div>
 
+        {/* Search */}
         <div className="relative w-full sm:w-80 md:w-96">
           <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
             <svg
@@ -343,6 +372,7 @@ export const DataMataPelajaran: React.FC = () => {
         </div>
       </div>
 
+      {/* Table */}
       <div className="w-full overflow-x-auto">
         <table className="w-max min-w-full text-sm text-left rtl:text-right text-body">
           <thead className="text-sm text-body bg-neutral-secondary-medium border-b border-t border-default-medium">
@@ -385,7 +415,8 @@ export const DataMataPelajaran: React.FC = () => {
 
           <tbody>
             {mapelTersaring.map((mapel, index) => {
-              const labelKelas = kelasById[mapel.kelasId]?.label ?? "-";
+              const tingkatKelas =
+                kelasById[mapel.kelasId]?.tingkat_kelas ?? "-";
 
               return (
                 <tr
@@ -410,11 +441,9 @@ export const DataMataPelajaran: React.FC = () => {
                   <td className="px-6 py-4">{index + 1}</td>
 
                   {/* KELAS: teks biasa (tanpa dropdown) */}
-                  <td className="px-6 py-4 text-heading">{labelKelas}</td>
+                  <td className="px-6 py-4 text-heading">{tingkatKelas}</td>
 
-                  <td className="px-6 py-4 text-heading">
-                    {mapel.kodeMapel}
-                  </td>
+                  <td className="px-6 py-4 text-heading">{mapel.kodeMapel}</td>
                   <td className="px-6 py-4 text-heading font-medium">
                     {mapel.namaMapel}
                   </td>
@@ -424,7 +453,7 @@ export const DataMataPelajaran: React.FC = () => {
                   <td className="px-6 py-4">
                     <button
                       type="button"
-                      className="font-medium text-fg-brand hover:underline"
+                      className="font-medium text-fg-brand hover:underline cursor-pointer"
                       onClick={() => console.log("Ubah", mapel.id)}
                     >
                       Ubah

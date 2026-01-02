@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { InputField } from "@/components/common/Input/InputField";
 
@@ -8,9 +8,12 @@ import type {
 } from "@/types/DataMaster/MataPelajaran";
 
 const kelasOptions: KelasOption[] = [
-  { id: "kelas-10", label: "Kelas 10" },
-  { id: "kelas-11", label: "Kelas 11" },
-  { id: "kelas-12", label: "Kelas 12" },
+  { id: "kelas-10-ipa-1", tingkat_kelas: 10, nama_kelas: "X IPA 1" },
+  { id: "kelas-10-ips-1", tingkat_kelas: 10, nama_kelas: "X IPS 1" },
+  { id: "kelas-11-ipa-1", tingkat_kelas: 11, nama_kelas: "XI IPA 1" },
+  { id: "kelas-11-ips-1", tingkat_kelas: 11, nama_kelas: "XI IPS 1" },
+  { id: "kelas-12-ipa-1", tingkat_kelas: 12, nama_kelas: "XII IPA 1" },
+  { id: "kelas-12-ips-1", tingkat_kelas: 12, nama_kelas: "XII IPS 1" },
 ];
 
 const initialValues: MataPelajaranFormValues = {
@@ -27,6 +30,19 @@ export const DataMapelForm = () => {
   const [values, setValues] = useState<MataPelajaranFormValues>(initialValues);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  // 1) Buat pilihan tingkat_kelas yang unik (10, 11, 12) lalu sort
+  const uniqueTingkatKelasOptions = useMemo(() => {
+    const tingkatSet = new Set<number>();
+    for (const k of kelasOptions) tingkatSet.add(k.tingkat_kelas);
+
+    return Array.from(tingkatSet)
+      .sort((a, b) => a - b)
+      .map((tingkat) => ({
+        id: `tingkat-${tingkat}`,
+        tingkat_kelas: tingkat,
+      }));
+  }, []);
 
   const setField = <K extends keyof MataPelajaranFormValues>(
     key: K,
@@ -118,13 +134,19 @@ export const DataMapelForm = () => {
                   onBlur={() => onBlur("kelasId")}
                   required
                 >
-                  <option value="">Pilih kelas</option>
-                  {kelasOptions.map((option) => (
-                    <option key={option.id} value={option.id}>
-                      {option.label}
+                  <option value="">Pilih tingkat kelas</option>
+
+                  {/* 2) Render hanya tingkat kelas unik */}
+                  {uniqueTingkatKelasOptions.map((option) => (
+                    <option
+                      key={option.id}
+                      value={String(option.tingkat_kelas)}
+                    >
+                      {option.tingkat_kelas}
                     </option>
                   ))}
                 </select>
+
                 {hasError("kelasId") && (
                   <p className="mt-1 text-xs text-rose-500">{errors.kelasId}</p>
                 )}
@@ -171,7 +193,6 @@ export const DataMapelForm = () => {
               </div>
             </div>
 
-            {/* Deskripsi (textarea native) */}
             <div className="mt-4">
               <label
                 htmlFor="deskripsiMapel"

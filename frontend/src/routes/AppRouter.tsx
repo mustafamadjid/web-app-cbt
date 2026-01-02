@@ -14,7 +14,11 @@ import { TambahGuru } from "@/pages/Admin/Dashboard/KelolaAkun/TambahAkun/Tambah
 import { TambahSiswa } from "@/pages/Admin/Dashboard/KelolaAkun/TambahAkun/TambahSiswa";
 
 import { MataPelajaran } from "@/pages/Admin/Dashboard/DataMaster/MataPelajaran";
+import { DataKelas } from "@/pages/Admin/Dashboard/DataMaster/DataKelas";
+import { RuangUjian } from "@/pages/Admin/Dashboard/DataMaster/RuangUjian";
 import { TambahMataPelajaran } from "@/pages/Admin/Dashboard/DataMaster/TambahDataMaster/TambahMapel";
+import { TambahKelas } from "@/pages/Admin/Dashboard/DataMaster/TambahDataMaster/TambahKelas";
+import { TambahRuang } from "@/pages/Admin/Dashboard/DataMaster/TambahDataMaster/TambahRuangUjian";
 
 import { AdminLayout } from "@/layouts/MainLayout/AdminLayout/AdminLayout";
 
@@ -37,13 +41,13 @@ export const router = createBrowserRouter([
             {path:paths.dashboard.tambah_siswa,element:<TambahSiswa/>},
 
             {path:paths.dashboard.data_master_mapel,element:<MataPelajaran/>},
-            {path:paths.dashboard.data_master_kelas,element:<div>data master kelas</div>},
-            {path:paths.dashboard.data_master_ruang,element:<div>data master ruang</div>},
+            {path:paths.dashboard.data_master_kelas,element:<DataKelas/>},
+            {path:paths.dashboard.data_master_ruang,element:<RuangUjian/>},
             {path:paths.dashboard.data_master_sesi,element:<div>data master sesi</div>},
 
             {path:paths.dashboard.tambah_data_master_mapel,element:<TambahMataPelajaran/>},
-            {path:paths.dashboard.tambah_data_master_kelas,element:<div>tambah data master kelas</div>},
-            {path:paths.dashboard.tambah_data_master_ruang,element:<div>tambah data master ruang</div>},
+            {path:paths.dashboard.tambah_data_master_kelas,element:<TambahKelas/>},
+            {path:paths.dashboard.tambah_data_master_ruang,element:<TambahRuang/>},
             {path:paths.dashboard.tambah_data_master_sesi,element:<div>tambah data master sesi</div>},
 
             {path:paths.dashboard.pengaturan,element:<PengaturanProfil/>},

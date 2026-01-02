@@ -361,7 +361,7 @@ export const AkunGuruTables: React.FC = () => {
               <td className="px-6 py-4">
                 <button
                   type="button"
-                  className="font-medium text-fg-brand hover:underline"
+                  className="font-medium text-fg-brand hover:underline cursor-pointer"
                   onClick={() => console.log("Edit", p.id)}
                 >
                   Ubah
