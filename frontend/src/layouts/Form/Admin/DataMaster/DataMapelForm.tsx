@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+import { InputField } from "@/components/common/Input/InputField";
+
 import type {
   KelasOption,
   MataPelajaranFormValues,
@@ -18,9 +20,6 @@ const initialValues: MataPelajaranFormValues = {
   deskripsiMapel: "",
 };
 
-const inputBase =
-  "w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-[#397e50] focus:ring-2 focus:ring-[#397e50] disabled:bg-slate-50 disabled:text-slate-500";
-const labelBase = "text-xs font-medium text-slate-600";
 const sectionTitle = "text-sm font-semibold text-slate-800";
 const helperText = "text-xs text-slate-500";
 
@@ -101,18 +100,23 @@ export const DataMapelForm = () => {
             </div>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              {/* Kelas (select native) */}
               <div>
-                <label className={labelBase} htmlFor="kelasId">
+                <label
+                  htmlFor="kelasId"
+                  className="text-xs font-medium text-slate-600"
+                >
                   Kelas
                 </label>
                 <select
                   id="kelasId"
-                  className={`${inputBase} ${
+                  className={`w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-[#397e50] focus:ring-2 focus:ring-[#397e50] disabled:bg-slate-50 disabled:text-slate-500 ${
                     hasError("kelasId") ? "border-rose-300 ring-rose-100" : ""
                   }`}
                   value={values.kelasId}
                   onChange={(e) => setField("kelasId", e.target.value)}
                   onBlur={() => onBlur("kelasId")}
+                  required
                 >
                   <option value="">Pilih kelas</option>
                   {kelasOptions.map((option) => (
@@ -122,27 +126,22 @@ export const DataMapelForm = () => {
                   ))}
                 </select>
                 {hasError("kelasId") && (
-                  <p className="mt-1 text-xs text-rose-500">
-                    {errors.kelasId}
-                  </p>
+                  <p className="mt-1 text-xs text-rose-500">{errors.kelasId}</p>
                 )}
               </div>
 
               <div>
-                <label className={labelBase} htmlFor="kodeMapel">
-                  Kode Mapel
-                </label>
-                <input
+                <InputField
                   id="kodeMapel"
-                  className={`${inputBase} ${
-                    hasError("kodeMapel")
-                      ? "border-rose-300 ring-rose-100"
-                      : ""
-                  }`}
-                  placeholder="Contoh: MAT-10-01"
+                  label="Kode Mapel"
                   value={values.kodeMapel}
-                  onChange={(e) => setField("kodeMapel", e.target.value)}
+                  onChange={(v) => setField("kodeMapel", v)}
                   onBlur={() => onBlur("kodeMapel")}
+                  placeholder="Contoh: MAT-10-01"
+                  inputClassName={
+                    hasError("kodeMapel") ? "border-rose-300 ring-rose-100" : ""
+                  }
+                  required
                 />
                 {hasError("kodeMapel") && (
                   <p className="mt-1 text-xs text-rose-500">
@@ -152,20 +151,17 @@ export const DataMapelForm = () => {
               </div>
 
               <div>
-                <label className={labelBase} htmlFor="namaMapel">
-                  Nama Mata Pelajaran
-                </label>
-                <input
+                <InputField
                   id="namaMapel"
-                  className={`${inputBase} ${
-                    hasError("namaMapel")
-                      ? "border-rose-300 ring-rose-100"
-                      : ""
-                  }`}
-                  placeholder="Contoh: Matematika"
+                  label="Nama Mata Pelajaran"
                   value={values.namaMapel}
-                  onChange={(e) => setField("namaMapel", e.target.value)}
+                  onChange={(v) => setField("namaMapel", v)}
                   onBlur={() => onBlur("namaMapel")}
+                  placeholder="Contoh: Matematika"
+                  inputClassName={
+                    hasError("namaMapel") ? "border-rose-300 ring-rose-100" : ""
+                  }
+                  required
                 />
                 {hasError("namaMapel") && (
                   <p className="mt-1 text-xs text-rose-500">
@@ -175,14 +171,18 @@ export const DataMapelForm = () => {
               </div>
             </div>
 
+            {/* Deskripsi (textarea native) */}
             <div className="mt-4">
-              <label className={labelBase} htmlFor="deskripsiMapel">
+              <label
+                htmlFor="deskripsiMapel"
+                className="text-xs font-medium text-slate-600"
+              >
                 Deskripsi Mata Pelajaran
               </label>
               <textarea
                 id="deskripsiMapel"
                 rows={4}
-                className={`${inputBase} ${
+                className={`w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-[#397e50] focus:ring-2 focus:ring-[#397e50] disabled:bg-slate-50 disabled:text-slate-500 ${
                   hasError("deskripsiMapel")
                     ? "border-rose-300 ring-rose-100"
                     : ""
@@ -191,6 +191,7 @@ export const DataMapelForm = () => {
                 value={values.deskripsiMapel}
                 onChange={(e) => setField("deskripsiMapel", e.target.value)}
                 onBlur={() => onBlur("deskripsiMapel")}
+                required
               />
               {hasError("deskripsiMapel") && (
                 <p className="mt-1 text-xs text-rose-500">

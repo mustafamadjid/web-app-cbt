@@ -1,4 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+
+import { ImageUpload } from "@/components/features/ImageUpload/ImageUpload";
+import { InputField } from "@/components/common/Input/InputField";
 
 import type { ProfilSekolahFormValues } from "@/types/ProfilSekolah/ProfilSekolah";
 
@@ -12,9 +15,6 @@ const initialValues: ProfilSekolahFormValues = {
   logo_sekolah: null,
 };
 
-const inputBase =
-  "w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-[#397e50] focus:ring-2 focus:ring-[#397e50] disabled:bg-slate-50 disabled:text-slate-500";
-const labelBase = "text-xs font-medium text-slate-600";
 const sectionTitle = "text-sm font-semibold text-slate-800";
 const helperText = "text-xs text-slate-500";
 
@@ -22,6 +22,7 @@ export const PengaturanProfilForm = () => {
   const [values, setValues] = useState<ProfilSekolahFormValues>(initialValues);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [logoUrl, setLogoUrl] = useState<string>("");
+
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
@@ -52,7 +53,8 @@ export const PengaturanProfilForm = () => {
   const validate = (v: ProfilSekolahFormValues) => {
     const errors: Partial<Record<keyof ProfilSekolahFormValues, string>> = {};
 
-    if (!v.nama_sekolah.trim()) errors.nama_sekolah = "Nama sekolah wajib diisi.";
+    if (!v.nama_sekolah.trim())
+      errors.nama_sekolah = "Nama sekolah wajib diisi.";
     if (!v.alamat_sekolah.trim())
       errors.alamat_sekolah = "Alamat sekolah wajib diisi.";
     if (!v.no_telp_sekolah.trim())
@@ -95,17 +97,15 @@ export const PengaturanProfilForm = () => {
     });
 
     const currentErrors = validate(values);
-    if (Object.keys(currentErrors).length > 0) {
-      return;
-    }
+    if (Object.keys(currentErrors).length > 0) return;
 
     const formData = new FormData();
-    formData.append("nama_sekolah", values.nama_sekolah);
-    formData.append("alamat_sekolah", values.alamat_sekolah);
-    formData.append("no_telp_sekolah", values.no_telp_sekolah);
-    formData.append("email_sekolah", values.email_sekolah);
-    formData.append("kepala_sekolah", values.kepala_sekolah);
-    formData.append("wakil_kepala_sekolah", values.wakil_kepala_sekolah);
+    formData.append("nama_sekolah", values.nama_sekolah.trim());
+    formData.append("alamat_sekolah", values.alamat_sekolah.trim());
+    formData.append("no_telp_sekolah", values.no_telp_sekolah.trim());
+    formData.append("email_sekolah", values.email_sekolah.trim());
+    formData.append("kepala_sekolah", values.kepala_sekolah.trim());
+    formData.append("wakil_kepala_sekolah", values.wakil_kepala_sekolah.trim());
     if (values.logo_sekolah)
       formData.append("logo_sekolah", values.logo_sekolah);
 
@@ -114,6 +114,7 @@ export const PengaturanProfilForm = () => {
 
   const clearLogo = () => {
     setField("logo_sekolah", null);
+    onBlur("logo_sekolah");
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -132,6 +133,7 @@ export const PengaturanProfilForm = () => {
         </div>
 
         <form onSubmit={onSubmit} className="space-y-6">
+          {/* INFORMASI SEKOLAH */}
           <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="mb-4">
               <h2 className={sectionTitle}>Informasi Sekolah</h2>
@@ -142,20 +144,19 @@ export const PengaturanProfilForm = () => {
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
-                <label className={labelBase} htmlFor="nama_sekolah">
-                  Nama Sekolah
-                </label>
-                <input
+                <InputField
                   id="nama_sekolah"
-                  className={`${inputBase} ${
+                  label="Nama Sekolah"
+                  value={values.nama_sekolah}
+                  onChange={(v) => setField("nama_sekolah", v)}
+                  onBlur={() => onBlur("nama_sekolah")}
+                  placeholder="Contoh: SMA Negeri 1"
+                  inputClassName={
                     hasError("nama_sekolah")
                       ? "border-rose-300 ring-rose-100"
                       : ""
-                  }`}
-                  placeholder="Contoh: SMA Negeri 1"
-                  value={values.nama_sekolah}
-                  onChange={(e) => setField("nama_sekolah", e.target.value)}
-                  onBlur={() => onBlur("nama_sekolah")}
+                  }
+                  required
                 />
                 {hasError("nama_sekolah") && (
                   <p className="mt-1 text-xs text-rose-500">
@@ -165,20 +166,19 @@ export const PengaturanProfilForm = () => {
               </div>
 
               <div>
-                <label className={labelBase} htmlFor="no_telp_sekolah">
-                  Nomor Telepon
-                </label>
-                <input
+                <InputField
                   id="no_telp_sekolah"
-                  className={`${inputBase} ${
+                  label="Nomor Telepon"
+                  value={values.no_telp_sekolah}
+                  onChange={(v) => setField("no_telp_sekolah", v)}
+                  onBlur={() => onBlur("no_telp_sekolah")}
+                  placeholder="Contoh: 021-123456"
+                  inputClassName={
                     hasError("no_telp_sekolah")
                       ? "border-rose-300 ring-rose-100"
                       : ""
-                  }`}
-                  placeholder="Contoh: 021-123456"
-                  value={values.no_telp_sekolah}
-                  onChange={(e) => setField("no_telp_sekolah", e.target.value)}
-                  onBlur={() => onBlur("no_telp_sekolah")}
+                  }
+                  required
                 />
                 {hasError("no_telp_sekolah") && (
                   <p className="mt-1 text-xs text-rose-500">
@@ -188,21 +188,20 @@ export const PengaturanProfilForm = () => {
               </div>
 
               <div>
-                <label className={labelBase} htmlFor="email_sekolah">
-                  Email Sekolah
-                </label>
-                <input
+                <InputField
                   id="email_sekolah"
                   type="email"
-                  className={`${inputBase} ${
+                  label="Email Sekolah"
+                  value={values.email_sekolah}
+                  onChange={(v) => setField("email_sekolah", v)}
+                  onBlur={() => onBlur("email_sekolah")}
+                  placeholder="Contoh: info@sekolah.sch.id"
+                  inputClassName={
                     hasError("email_sekolah")
                       ? "border-rose-300 ring-rose-100"
                       : ""
-                  }`}
-                  placeholder="Contoh: info@sekolah.sch.id"
-                  value={values.email_sekolah}
-                  onChange={(e) => setField("email_sekolah", e.target.value)}
-                  onBlur={() => onBlur("email_sekolah")}
+                  }
+                  required
                 />
                 {hasError("email_sekolah") && (
                   <p className="mt-1 text-xs text-rose-500">
@@ -212,20 +211,19 @@ export const PengaturanProfilForm = () => {
               </div>
 
               <div>
-                <label className={labelBase} htmlFor="kepala_sekolah">
-                  Kepala Sekolah
-                </label>
-                <input
+                <InputField
                   id="kepala_sekolah"
-                  className={`${inputBase} ${
+                  label="Kepala Sekolah"
+                  value={values.kepala_sekolah}
+                  onChange={(v) => setField("kepala_sekolah", v)}
+                  onBlur={() => onBlur("kepala_sekolah")}
+                  placeholder="Nama kepala sekolah"
+                  inputClassName={
                     hasError("kepala_sekolah")
                       ? "border-rose-300 ring-rose-100"
                       : ""
-                  }`}
-                  placeholder="Nama kepala sekolah"
-                  value={values.kepala_sekolah}
-                  onChange={(e) => setField("kepala_sekolah", e.target.value)}
-                  onBlur={() => onBlur("kepala_sekolah")}
+                  }
+                  required
                 />
                 {hasError("kepala_sekolah") && (
                   <p className="mt-1 text-xs text-rose-500">
@@ -235,22 +233,19 @@ export const PengaturanProfilForm = () => {
               </div>
 
               <div>
-                <label className={labelBase} htmlFor="wakil_kepala_sekolah">
-                  Wakil Kepala Sekolah
-                </label>
-                <input
+                <InputField
                   id="wakil_kepala_sekolah"
-                  className={`${inputBase} ${
+                  label="Wakil Kepala Sekolah"
+                  value={values.wakil_kepala_sekolah}
+                  onChange={(v) => setField("wakil_kepala_sekolah", v)}
+                  onBlur={() => onBlur("wakil_kepala_sekolah")}
+                  placeholder="Nama wakil kepala sekolah"
+                  inputClassName={
                     hasError("wakil_kepala_sekolah")
                       ? "border-rose-300 ring-rose-100"
                       : ""
-                  }`}
-                  placeholder="Nama wakil kepala sekolah"
-                  value={values.wakil_kepala_sekolah}
-                  onChange={(e) =>
-                    setField("wakil_kepala_sekolah", e.target.value)
                   }
-                  onBlur={() => onBlur("wakil_kepala_sekolah")}
+                  required
                 />
                 {hasError("wakil_kepala_sekolah") && (
                   <p className="mt-1 text-xs text-rose-500">
@@ -260,12 +255,15 @@ export const PengaturanProfilForm = () => {
               </div>
 
               <div className="md:col-span-2">
-                <label className={labelBase} htmlFor="alamat_sekolah">
+                <label
+                  className="text-xs font-medium text-slate-600"
+                  htmlFor="alamat_sekolah"
+                >
                   Alamat Sekolah
                 </label>
                 <textarea
                   id="alamat_sekolah"
-                  className={`${inputBase} min-h-24 ${
+                  className={`min-h-24 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-[#397e50] focus:ring-2 focus:ring-[#397e50] disabled:bg-slate-50 disabled:text-slate-500 ${
                     hasError("alamat_sekolah")
                       ? "border-rose-300 ring-rose-100"
                       : ""
@@ -274,6 +272,7 @@ export const PengaturanProfilForm = () => {
                   value={values.alamat_sekolah}
                   onChange={(e) => setField("alamat_sekolah", e.target.value)}
                   onBlur={() => onBlur("alamat_sekolah")}
+                  required
                 />
                 {hasError("alamat_sekolah") && (
                   <p className="mt-1 text-xs text-rose-500">
@@ -284,75 +283,40 @@ export const PengaturanProfilForm = () => {
             </div>
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div className="mb-4">
-              <h2 className={sectionTitle}>Logo Sekolah</h2>
-              <p className={helperText}>
-                Unggah logo berformat PNG/JPG dengan ukuran maksimal 2MB.
-              </p>
-            </div>
-
-            <div className="flex flex-col gap-4 md:flex-row md:items-center">
-              <div className="flex h-28 w-28 items-center justify-center overflow-hidden rounded-xl border border-dashed border-slate-200 bg-slate-50">
-                {logoUrl ? (
-                  <img
-                    src={logoUrl}
-                    alt="Preview Logo Sekolah"
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <span className="text-xs text-slate-400">
-                    Preview logo
-                  </span>
-                )}
-              </div>
-
-              <div className="flex-1 space-y-2">
-                <input
-                  ref={fileInputRef}
-                  id="logo_sekolah"
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) =>
-                    setField(
-                      "logo_sekolah",
-                      e.target.files ? e.target.files[0] : null
+          {/* LOGO SEKOLAH (pakai komponen ImageUpload) */}
+          <div>
+            <ImageUpload
+              ref={fileInputRef}
+              sectionTitle="Logo Sekolah"
+              helperText="Unggah logo berformat PNG/JPG dengan ukuran maksimal 2MB."
+              formatText="Format: PNG/JPG"
+              optionalText="Logo akan ditampilkan pada profil sekolah."
+              imgSrc={logoUrl || undefined}
+              imgAlt="Preview Logo Sekolah"
+              type="file"
+              accept="image/*"
+              imageFileCheck={!!values.logo_sekolah}
+              fileName={values.logo_sekolah?.name}
+              size={
+                values.logo_sekolah
+                  ? Number(
+                      (values.logo_sekolah.size / (1024 * 1024)).toFixed(2)
                     )
-                  }
-                  onBlur={() => onBlur("logo_sekolah")}
-                />
+                  : undefined
+              }
+              onChange={(e) => {
+                const file = e.target.files?.[0] ?? null;
+                setField("logo_sekolah", file);
+                onBlur("logo_sekolah");
+              }}
+              onClick={clearLogo}
+            />
 
-                <div className="flex flex-wrap gap-2">
-                  <label
-                    htmlFor="logo_sekolah"
-                    className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-600 shadow-sm transition hover:border-[#397e50] hover:text-[#397e50]"
-                  >
-                    Pilih File
-                  </label>
-                  {values.logo_sekolah && (
-                    <button
-                      type="button"
-                      onClick={clearLogo}
-                      className="rounded-lg border border-rose-200  px-3 py-2 text-xs font-medium text-rose-500 cursor-pointer hover:bg-rose-50 hover:border-rose-300 transition duration-100"
-                    >
-                      Hapus Logo
-                    </button>
-                  )}
-                </div>
-
-                <p className="text-xs text-slate-500">
-                  {values.logo_sekolah
-                    ? values.logo_sekolah.name
-                    : "Belum ada file yang dipilih."}
-                </p>
-                {hasError("logo_sekolah") && (
-                  <p className="text-xs text-rose-500">
-                    {errors.logo_sekolah}
-                  </p>
-                )}
-              </div>
-            </div>
+            {hasError("logo_sekolah") && (
+              <p className="mt-2 text-xs text-rose-500">
+                {errors.logo_sekolah}
+              </p>
+            )}
           </div>
 
           <div className="flex items-center justify-end gap-3">

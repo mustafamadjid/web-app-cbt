@@ -14,6 +14,7 @@ import { TambahGuru } from "@/pages/Admin/Dashboard/KelolaAkun/TambahAkun/Tambah
 import { TambahSiswa } from "@/pages/Admin/Dashboard/KelolaAkun/TambahAkun/TambahSiswa";
 
 import { MataPelajaran } from "@/pages/Admin/Dashboard/DataMaster/MataPelajaran";
+import { TambahMataPelajaran } from "@/pages/Admin/Dashboard/DataMaster/TambahDataMaster/TambahMapel";
 
 import { AdminLayout } from "@/layouts/MainLayout/AdminLayout/AdminLayout";
 
@@ -40,7 +41,7 @@ export const router = createBrowserRouter([
             {path:paths.dashboard.data_master_ruang,element:<div>data master ruang</div>},
             {path:paths.dashboard.data_master_sesi,element:<div>data master sesi</div>},
 
-            {path:paths.dashboard.tambah_data_master_mapel,element:<div>tambah data master mapel</div>},
+            {path:paths.dashboard.tambah_data_master_mapel,element:<TambahMataPelajaran/>},
             {path:paths.dashboard.tambah_data_master_kelas,element:<div>tambah data master kelas</div>},
             {path:paths.dashboard.tambah_data_master_ruang,element:<div>tambah data master ruang</div>},
             {path:paths.dashboard.tambah_data_master_sesi,element:<div>tambah data master sesi</div>},
