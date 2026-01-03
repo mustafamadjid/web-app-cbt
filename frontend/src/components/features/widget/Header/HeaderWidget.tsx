@@ -19,7 +19,7 @@ export const Header: React.FC<HeaderProps> = ({
   className,
 }) => {
   return (
-    <header className={["px-4 py-4 shrink-0", className ?? ""].join(" ")}>
+    <header className={["px-8 py-4 shrink-0", className ?? ""].join(" ")}>
       <div className="flex items-center justify-between gap-4 bg-white w-full p-4 sm:p-5 rounded-xl border border-slate-200 shadow-[0_10px_24px_rgba(15,23,42,0.06)]">
         <h1 className="font-semibold text-lg sm:text-xl text-slate-900">
           {title}

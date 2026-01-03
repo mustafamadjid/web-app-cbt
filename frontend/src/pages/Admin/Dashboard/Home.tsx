@@ -1,4 +1,3 @@
-import { Header } from "@/components/features/widget/Header/HeaderWidget";
 import { StatistikWidget } from "@/components/features/widget/Soal/StatistikWidget";
 import { SimpleStatWidget } from "@/components/features/widget/Soal/StatistikWidgetSimpler";
 import { PengumumanWidget } from "@/components/features/widget/Pengumuman/PengumumanWidget";
@@ -132,29 +131,11 @@ export const dummyAktivitas: AktivitasLogItem[] = [
   },
 ];
 
-export const dummyHeaderUser = {
-  title: "Dashboard",
-  userName: "Administrator Sistem Pendidikan Nasional",
-  roleLabel: "Admin",
-  isOnline: true,
-  avatarUrl: null,
-};
 
-// Nanti header ini akan diisi lewat context supaya state datanya global
 
 export const Home = ()=> {
     return (
       <>
-        <header className="px-4 py-4 shrink-0">
-          <Header
-            title={dummyHeaderUser.title}
-            userName={dummyHeaderUser.userName}
-            roleLabel={dummyHeaderUser.roleLabel}
-            isOnline={dummyHeaderUser.isOnline}
-            avatarUrl={dummyHeaderUser.avatarUrl}
-          />
-        </header>
-
         {/* Widget dan konten */}
         <div className="flex flex-col gap-5">
           <div className="flex items-center gap-3 px-8 ">

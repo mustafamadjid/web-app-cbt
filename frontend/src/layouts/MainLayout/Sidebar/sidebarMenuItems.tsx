@@ -175,10 +175,11 @@ export const mainMenuItems: SidebarMenuItem[] = [
     ],
   },
   {
-    id: "ujian",
+    id: "bank-soal",
     type: "link",
-    label: "Ujian",
-    to: "/dashboard/administrator/ujian",
+    label: "Bank Soal",
+    to: "/dashboard/administrator/bank-soal",
+    end: true,
     icon: (className) => (
       <svg
         className={className}
@@ -194,10 +195,48 @@ export const mainMenuItems: SidebarMenuItem[] = [
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth="2"
-          d="M12 6.03v13m0-13c-2.819-.831-4.715-1.076-8.029-1.023A.99.99 0 0 0 3 6v11c0 .563.466 1.014 1.03 1.007 3.122-.043 5.018.212 7.97 1.023m0-13c2.819-.831 4.715-1.076 8.029-1.023A.99.99 0 0 1 21 6v11c0 .563-.466 1.014-1.03 1.007-3.122-.043-5.018.212-7.97 1.023"
+          d="M11 18h2M5.875 3h12.25c.483 0 .875.448.875 1v16c0 .552-.392 1-.875 1H5.875C5.392 21 5 20.552 5 20V4c0-.552.392-1 .875-1Z"
         />
       </svg>
     ),
+  },
+  {
+    id: "ujian",
+    type: "group",
+    label: "Ujian",
+    icon: (className) => (
+      <svg
+        className={className}
+        aria-hidden="true"
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        fill="none"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="2"
+          d="M15 5v14M9 5v14M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"
+        />
+      </svg>
+    ),
+    children: [
+      {
+        id: "jadwal-ujian",
+        label: "Jadwal Ujian",
+        to: "/dashboard/administrator/ujian/jadwal",
+        icon: chevronDoubleIcon,
+      },
+      {
+        id: "buat-ujian",
+        label: "Buat Ujian",
+        to: "/dashboard/administrator/ujian/buat-ujian",
+        icon: chevronDoubleIcon,
+      },
+    ],
   },
 ];
 
