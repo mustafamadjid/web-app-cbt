@@ -1,4 +1,5 @@
 import React from "react";
+import { TrendingUp } from "lucide-react";
 
 type StatistikWidgetProps = {
   title: string;
@@ -23,11 +24,11 @@ export const StatistikWidget = ({
   centerLabel,
   valueFormatter,
   className,
-  donutSize = 112,
-  donutStroke = 10,
-  trackColor = "#EEF2F6",
-  gradientFrom = "#8dd19d",
-  gradientTo = "#1ba23a",
+  donutSize = 100, // Sedikit diperkecil agar proporsional
+  donutStroke = 8,
+  trackColor = "#f1f5f9", // Slate-100
+  gradientFrom = "#397e50", // Warna branding 1
+  gradientTo = "#37513d", // Warna branding 2
 }: StatistikWidgetProps) => {
   const p = clamp(percent, 0, 100);
 
@@ -45,44 +46,51 @@ export const StatistikWidget = ({
   return (
     <div
       className={[
-        "flex flex-col sm:flex-row sm:items-center sm:justify-between",
-        "gap-5 sm:gap-8",
-        "rounded-2xl border border-slate-100 bg-white",
-        "px-4 py-5 sm:px-6 sm:py-6",
-        "shadow-[0_10px_24px_rgba(15,23,42,0.06)]",
+        "group relative flex flex-col overflow-hidden rounded-xl bg-white",
+        "border border-gray-200 shadow-sm transition-all duration-300",
+        "hover:-translate-y-1 hover:border-[#397e50]/30 hover:shadow-lg hover:shadow-[#397e50]/5",
         className ?? "",
       ].join(" ")}
     >
-      {/* Left */}
-      <div className="min-w-0 flex flex-1 flex-col space-y-4 sm:space-y-6">
-        <div className="truncate text-xs font-medium text-slate-400 sm:text-sm">
-          {title}
+      {/* Top Accent Line */}
+      <div className="h-1 w-full bg-linear-to-r from-[#397e50] to-[#37513d]" />
+
+      <div className="flex flex-1 items-center justify-between p-5 sm:p-6">
+        {/* Left Content */}
+        <div className="flex min-w-0 flex-1 flex-col justify-between self-stretch">
+          <div className="flex flex-col items-star gap-2 md:gap-6 ">
+            {/* Title */}
+            <h3 className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
+              {title}
+            </h3>
+
+            {/* Main Value */}
+            <div className="mt-1 text-3xl font-black text-[#37513d] sm:text-4xl">
+              {formattedValue}
+            </div>
+          </div>
+
+          {/* Footer Text */}
+          <div className="mt-4 flex items-center gap-2 text-xs font-medium text-gray-500">
+            <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-[#397e50]">
+              <TrendingUp className="h-3 w-3" />
+            </div>
+            <span className="truncate leading-snug">{footerText}</span>
+          </div>
         </div>
 
-        <div className="text-[24px] font-bold leading-none tracking-[-0.02em] text-slate-900 sm:text-[28px]">
-          {formattedValue}
-        </div>
-
-        <div className="flex items-start gap-3 text-xs font-medium text-slate-400 sm:items-center sm:text-sm">
-          <span className="mt-0.5 h-4 w-[3px] rounded-full bg-slate-300 sm:mt-0" />
-          <span className="leading-snug sm:truncate">{footerText}</span>
-        </div>
-      </div>
-
-      {/* Right */}
-      <div
-        className="shrink-0 self-start sm:self-auto"
-        style={{ width: donutSize, height: donutSize }}
-        aria-label={`Progress ${p}%`}
-      >
+        {/* Right Content (Chart) */}
         <div
-          className="relative grid place-items-center"
+          className="relative ml-4 shrink-0"
           style={{ width: donutSize, height: donutSize }}
+          aria-label={`Progress ${p}%`}
         >
+          {/* SVG Chart */}
           <svg
             width={donutSize}
             height={donutSize}
             viewBox={`0 0 ${donutSize} ${donutSize}`}
+            className="-rotate-90 transition-all duration-500 group-hover:scale-105"
           >
             <defs>
               <linearGradient id={`pw-grad-${gid}`} x1="0" y1="0" x2="1" y2="1">
@@ -91,6 +99,7 @@ export const StatistikWidget = ({
               </linearGradient>
             </defs>
 
+            {/* Track Circle */}
             <circle
               cx={donutSize / 2}
               cy={donutSize / 2}
@@ -98,8 +107,10 @@ export const StatistikWidget = ({
               fill="none"
               stroke={trackColor}
               strokeWidth={donutStroke}
+              className="opacity-80"
             />
 
+            {/* Progress Circle */}
             <circle
               cx={donutSize / 2}
               cy={donutSize / 2}
@@ -109,17 +120,18 @@ export const StatistikWidget = ({
               strokeWidth={donutStroke}
               strokeLinecap="round"
               strokeDasharray={`${dash} ${c - dash}`}
-              transform={`rotate(-90 ${donutSize / 2} ${donutSize / 2})`}
+              className="transition-all duration-1000 ease-out"
             />
           </svg>
 
+          {/* Center Label */}
           <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-            <div className="text-[18px] font-bold leading-tight text-slate-700 sm:text-[22px]">
+            <span className="text-xl font-bold text-[#37513d]">
               {Math.round(p)}%
-            </div>
-            <div className="mt-1 text-[11px] font-semibold text-slate-400 sm:text-xs">
+            </span>
+            <span className="text-2xs font-semibold uppercase tracking-wide text-gray-400">
               {centerLabel}
-            </div>
+            </span>
           </div>
         </div>
       </div>

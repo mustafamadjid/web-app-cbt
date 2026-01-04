@@ -1,5 +1,5 @@
 import React from "react";
-import { GraduationCap, Users } from "lucide-react";
+import { GraduationCap, Users, School } from "lucide-react";
 
 import type { TotalSiswaGuru } from "@/types/Widget/TotalSiswaGuru";
 
@@ -17,45 +17,80 @@ export const TotalSiswaGuruWidget: React.FC<TotalSiswaGuruWidgetProps> = ({
   return (
     <section
       className={[
-        "rounded-xl border border-gray-200 bg-white p-5 shadow-sm",
-        "transition-all duration-300 hover:shadow-lg hover:shadow-[#397e50]/5",
+        "relative flex flex-col overflow-hidden rounded-xl bg-white",
+        "border border-gray-200 shadow-sm transition-all duration-300",
+        "hover:shadow-lg hover:shadow-[#397e50]/5",
         className ?? "",
       ].join(" ")}
     >
-      <header className="mb-4">
-        <h2 className="text-lg font-bold text-[#37513d]">{title}</h2>
-        <p className="text-xs font-medium text-gray-500">
-          Ringkasan total pengguna aktif
-        </p>
+      {/* Top Accent Line */}
+      <div className="h-1.5 w-full bg-gradient-to-r from-[#397e50] to-[#37513d]" />
+
+      {/* Header */}
+      <header className="flex items-center gap-3 px-5 pt-5 pb-2">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#397e50]/10 text-[#397e50]">
+          <School className="h-5 w-5" />
+        </div>
+        <div>
+          <h2 className="text-lg font-bold text-[#37513d]">{title}</h2>
+          <p className="text-xs font-medium text-gray-500">
+            Ringkasan data akademik
+          </p>
+        </div>
       </header>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="flex items-center gap-4 rounded-xl border border-emerald-100 bg-emerald-50/60 p-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
-            <GraduationCap className="h-6 w-6" />
+      {/* Content Grid */}
+      <div className="grid gap-4 p-5 sm:grid-cols-2">
+        {/* Card Siswa */}
+        <div className="group relative overflow-hidden rounded-xl border border-gray-100 bg-white p-4 shadow-sm transition-all hover:-translate-y-1 hover:border-[#397e50]/30 hover:shadow-md">
+          {/* Side Accent */}
+          <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#397e50]" />
+
+          <div className="relative z-10 flex items-center gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-[#397e50]/10 text-[#397e50] group-hover:bg-[#397e50] group-hover:text-white transition-colors">
+              <GraduationCap className="h-6 w-6" />
+            </div>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider text-gray-500">
+                Total Siswa
+              </p>
+              <p className="mt-0.5 text-2xl font-black text-[#37513d]">
+                {totalSiswa.toLocaleString("id-ID")}
+              </p>
+            </div>
           </div>
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">
-              Total Siswa
-            </p>
-            <p className="text-2xl font-bold text-emerald-900">
-              {totalSiswa.toLocaleString("id-ID")}
-            </p>
-          </div>
+
+          {/* Watermark Icon */}
+          <GraduationCap
+            className="absolute -bottom-2 -right-2 h-20 w-20 text-[#397e50]/5 transition-transform group-hover:scale-110 group-hover:text-[#397e50]/10"
+            strokeWidth={1}
+          />
         </div>
 
-        <div className="flex items-center gap-4 rounded-xl border border-sky-100 bg-sky-50/60 p-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-sky-100 text-sky-700">
-            <Users className="h-6 w-6" />
+        {/* Card Guru */}
+        <div className="group relative overflow-hidden rounded-xl border border-gray-100 bg-white p-4 shadow-sm transition-all hover:-translate-y-1 hover:border-sky-500/30 hover:shadow-md">
+          {/* Side Accent */}
+          <div className="absolute left-0 top-0 bottom-0 w-1 bg-sky-600" />
+
+          <div className="relative z-10 flex items-center gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-sky-50 text-sky-600 group-hover:bg-sky-600 group-hover:text-white transition-colors">
+              <Users className="h-6 w-6" />
+            </div>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider text-gray-500">
+                Total Guru
+              </p>
+              <p className="mt-0.5 text-2xl font-black text-[#37513d]">
+                {totalGuru.toLocaleString("id-ID")}
+              </p>
+            </div>
           </div>
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-sky-700">
-              Total Guru
-            </p>
-            <p className="text-2xl font-bold text-sky-900">
-              {totalGuru.toLocaleString("id-ID")}
-            </p>
-          </div>
+
+          {/* Watermark Icon */}
+          <Users
+            className="absolute -bottom-2 -right-2 h-20 w-20 text-sky-600/5 transition-transform group-hover:scale-110 group-hover:text-sky-600/10"
+            strokeWidth={1}
+          />
         </div>
       </div>
     </section>
