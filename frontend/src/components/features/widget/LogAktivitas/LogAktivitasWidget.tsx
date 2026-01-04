@@ -11,56 +11,51 @@ import {
   Settings,
   RefreshCw,
   ChevronRight,
+  Clock,
 } from "lucide-react";
 
 import { Link } from "react-router";
 
-import type { UserRole,AktivitasLogItem } from "@/types/Log/LogAktivitas";
+import type { UserRole, AktivitasLogItem } from "@/types/Log/LogAktivitas";
 
 type AktivitasLogWidgetProps = {
   title?: string;
   items: AktivitasLogItem[];
   className?: string;
-
-  /** tinggi maksimum list (opsional) */
-  maxHeightClassName?: string; // default disediakan
-
-  /** opsional: link lihat semua */
+  maxHeightClassName?: string;
   lihatSemuaTo?: string;
 };
+
+// --- Helpers ---
 
 function roleBadge(role: UserRole) {
   switch (role) {
     case "admin":
       return {
         label: "Admin",
-        className:
-          "bg-[#397e50] text-white ring-1 ring-inset ring-indigo-500/30",
+        className: "bg-[#397e50] text-white",
         Icon: Shield,
       };
     case "guru":
       return {
         label: "Guru",
-        className:
-          "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200",
+        className: "bg-emerald-100 text-emerald-800",
         Icon: GraduationCap,
       };
     case "siswa":
       return {
         label: "Siswa",
-        className: "bg-sky-50 text-sky-700 ring-1 ring-inset ring-sky-200",
+        className: "bg-sky-100 text-sky-800",
         Icon: User,
       };
     default:
       return {
         label: role,
-        className:
-          "bg-slate-50 text-slate-700 ring-1 ring-inset ring-slate-200",
+        className: "bg-gray-100 text-gray-700",
         Icon: User,
       };
   }
 }
-
 
 function aksiMeta(aksi: string) {
   const a = aksi.trim().toUpperCase();
@@ -69,68 +64,50 @@ function aksiMeta(aksi: string) {
     return {
       Icon: LogIn,
       label: "Login",
-      iconClassName:
-        "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200",
-      pillClassName:
-        "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200",
+      colorClass: "text-emerald-600 bg-emerald-50 border-emerald-100",
     };
 
   if (a.includes("LOGOUT"))
     return {
       Icon: LogOut,
       label: "Logout",
-      iconClassName:
-        "bg-amber-50 text-amber-800 ring-1 ring-inset ring-amber-200",
-      pillClassName:
-        "bg-amber-50 text-amber-800 ring-1 ring-inset ring-amber-200",
+      colorClass: "text-amber-600 bg-amber-50 border-amber-100",
     };
 
   if (a.includes("CREATE") || a.includes("ADD"))
     return {
       Icon: FilePlus2,
       label: "Create",
-      iconClassName: "bg-sky-50 text-sky-700 ring-1 ring-inset ring-sky-200",
-      pillClassName: "bg-sky-50 text-sky-700 ring-1 ring-inset ring-sky-200",
+      colorClass: "text-blue-600 bg-blue-50 border-blue-100",
     };
 
   if (a.includes("UPDATE") || a.includes("EDIT"))
     return {
       Icon: FilePenLine,
       label: "Update",
-      iconClassName:
-        "bg-green-100 text-green-700 ring-1 ring-inset ring-indigo-200",
-      pillClassName:
-        "bg-green-100 text-green-700 ring-1 ring-inset ring-indigo-200",
+      colorClass: "text-indigo-600 bg-indigo-50 border-indigo-100",
     };
 
   if (a.includes("DELETE") || a.includes("REMOVE"))
     return {
       Icon: Trash2,
       label: "Delete",
-      iconClassName: "bg-rose-50 text-rose-700 ring-1 ring-inset ring-rose-200",
-      pillClassName: "bg-rose-50 text-rose-700 ring-1 ring-inset ring-rose-200",
+      colorClass: "text-rose-600 bg-rose-50 border-rose-100",
     };
 
   if (a.includes("SETTING") || a.includes("CONFIG"))
     return {
       Icon: Settings,
       label: "Setting",
-      iconClassName:
-        "bg-slate-100 text-slate-700 ring-1 ring-inset ring-slate-200",
-      pillClassName:
-        "bg-slate-100 text-slate-700 ring-1 ring-inset ring-slate-200",
+      colorClass: "text-slate-600 bg-slate-50 border-slate-100",
     };
 
   return {
     Icon: RefreshCw,
     label: aksi,
-    iconClassName:
-      "bg-slate-100 text-slate-700 ring-1 ring-inset ring-slate-200",
-    pillClassName:
-      "bg-slate-100 text-slate-700 ring-1 ring-inset ring-slate-200",
+    colorClass: "text-gray-600 bg-gray-50 border-gray-100",
   };
 }
-
 
 export const LogAktivitasWidget = ({
   title = "Log Aktivitas",
@@ -140,139 +117,140 @@ export const LogAktivitasWidget = ({
   lihatSemuaTo,
 }: AktivitasLogWidgetProps) => {
   return (
-    <>
-      <section
-        className={[
-          "rounded-2xl border border-slate-200 bg-white",
-          "shadow-[0_10px_24px_rgba(15,23,42,0.06)]",
-          "p-4 sm:p-5",
-          className ?? "",
-        ].join(" ")}
-      >
-        <header className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <span className="grid h-8 w-8 place-items-center rounded-full bg-slate-50 text-slate-600">
-              <Activity className="h-4 w-4" />
-            </span>
-            <div>
-              <h2 className="text-sm font-semibold text-slate-900">{title}</h2>
-              <p className="text-xs text-slate-500">{items.length} aktivitas</p>
-            </div>
+    <section
+      className={[
+        "relative flex flex-col overflow-hidden rounded-xl bg-white",
+        "border border-gray-200 shadow-sm transition-all duration-300",
+        "hover:shadow-lg hover:shadow-[#397e50]/5",
+        className ?? "",
+      ].join(" ")}
+    >
+      {/* Top Accent Line */}
+      {/* <div className="h-1.5 w-full bg-linear-to-r from-[#397e50] to-[#37513d]" /> */}
+
+      {/* Header */}
+      <header className="flex items-center justify-between px-5 pt-5 pb-2">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#397e50]/10 text-[#397e50]">
+            <Activity className="h-5 w-5" />
           </div>
+          <div>
+            <h2 className="text-lg font-bold text-[#37513d]">{title}</h2>
+            <p className="text-xs font-medium text-gray-500">
+              {items.length} aktivitas terakhir
+            </p>
+          </div>
+        </div>
 
-          {lihatSemuaTo ? (
-            <Link
-              to={lihatSemuaTo}
-              className={[
-                "shrink-0 bg-white",
-                "px-3 py-1.5 text-sm font-semibold text-[#397e50]",
-                " hover:underline",
-              ].join(" ")}
-            >
-              Lihat Semua
-            </Link>
-          ) : null}
-        </header>
+        {lihatSemuaTo && (
+          <Link
+            to={lihatSemuaTo}
+            className="group flex items-center gap-1 text-xs font-bold text-[#397e50] transition-colors hover:text-[#2f5c3f]"
+          >
+            Lihat Semua
+            <ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+          </Link>
+        )}
+      </header>
 
-        <div className="mt-4 border-t border-slate-100 pt-4">
-          {items.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-slate-200 p-4 text-sm text-slate-600">
-              Belum ada aktivitas.
-            </div>
-          ) : (
-            <div
-              className={["overflow-y-auto pr-1", maxHeightClassName].join(" ")}
-            >
-              <ul className="space-y-2">
-                {items.map((it) => {
-                  const rb = roleBadge(it.role);
-                  const am = aksiMeta(it.aksi);
-                  const AksiIcon = am.Icon;
-                  const RoleIcon = rb.Icon;
+      {/* Content */}
+      <div className="mt-2 flex-1 border-t border-gray-100 bg-gray-50/30 p-5">
+        {items.length === 0 ? (
+          <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-gray-300 bg-white py-10 text-center">
+            <Activity className="h-8 w-8 text-gray-300" />
+            <p className="text-sm text-gray-500">
+              Belum ada aktivitas tercatat.
+            </p>
+          </div>
+        ) : (
+          <div
+            className={[
+              "overflow-y-auto pr-2 relative",
+              maxHeightClassName,
+            ].join(" ")}
+          >
+            {/* Vertical Line for Timeline effect */}
+            <div className="absolute left-6 top-4 bottom-4 w-px bg-gray-200" />
 
-                  return (
-                    <li
-                      key={it.id}
+            <div className="space-y-6">
+              {items.map((it) => {
+                const rb = roleBadge(it.role);
+                const am = aksiMeta(it.aksi);
+                const AksiIcon = am.Icon;
+                const RoleIcon = rb.Icon;
+
+                return (
+                  <div key={it.id} className="group relative flex gap-4">
+                    {/* Timeline Node (Icon Aksi) */}
+                    <div
                       className={[
-                        "rounded-xl border border-slate-200 bg-white",
-                        "transition hover:border-slate-300 hover:bg-slate-50",
-                        "hover:shadow-[0_10px_24px_rgba(15,23,42,0.06)]",
+                        "relative z-10 flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 bg-white transition-all duration-300",
+                        am.colorClass
+                          .replace("bg-", "border-")
+                          .replace("text-", "text-"), // logic kasar utk border color
+                        "group-hover:scale-110 shadow-sm",
                       ].join(" ")}
                     >
-                      <div className="flex items-start gap-3 p-3 sm:p-4">
-                        {/* Icon aksi */}
-                        <div
-                          className={[
-                            "mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-lg",
-                            am.iconClassName,
-                          ].join(" ")}
-                        >
-                          <AksiIcon className="h-4 w-4" />
+                      <div
+                        className={[
+                          "flex h-8 w-8 items-center justify-center rounded-full",
+                          am.colorClass,
+                        ].join(" ")}
+                      >
+                        <AksiIcon className="h-4 w-4" />
+                      </div>
+                    </div>
+
+                    {/* Content Card */}
+                    <div className="flex-1 min-w-0 rounded-xl border border-gray-100 bg-white p-3.5 shadow-sm transition-all hover:border-[#397e50]/30 hover:shadow-md">
+                      {/* Header: User & Role */}
+                      <div className="mb-2 flex flex-wrap items-center justify-between gap-2 border-b border-gray-50 pb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-bold text-gray-800">
+                            {it.username}
+                          </span>
+                          <span
+                            className={[
+                              "inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-2xs font-bold uppercase tracking-wide",
+                              rb.className,
+                            ].join(" ")}
+                          >
+                            <RoleIcon className="h-3 w-3" />
+                            {rb.label}
+                          </span>
                         </div>
 
-                        {/* Konten utama */}
-                        <div className="min-w-0 flex-1">
-                          {/* Baris atas: username + role badge */}
-                          <div className="flex flex-wrap items-center gap-2">
-                            <p className="text-sm font-semibold text-slate-900">
-                              {it.username}
-                            </p>
-
-                            <span
-                              className={[
-                                "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold",
-                                rb.className,
-                              ].join(" ")}
-                            >
-                              <RoleIcon className="h-3.5 w-3.5" />
-                              {rb.label}
-                            </span>
-
-                            <span className="text-xs text-slate-400">•</span>
-
-                            <span
-                              className={[
-                                "text-[11px] font-semibold rounded-full px-2 py-0.5",
-                                am.pillClassName,
-                              ].join(" ")}
-                            >
-                              {am.label}
-                            </span>
-
-                            {it.waktu ? (
-                              <>
-                                <span className="text-xs text-slate-400">
-                                  •
-                                </span>
-                                <span className="text-xs text-slate-500">
-                                  {it.waktu}
-                                </span>
-                              </>
-                            ) : null}
-                          </div>
-
-                          {/* Deskripsi */}
-                          <p className="mt-1 text-sm text-slate-600">
-                            {it.deskripsi}
-                          </p>
-
-                          {/* Footer mini (mobile-friendly) */}
-                          <div className="mt-2 flex items-center justify-between">
-                            <span className="text-[11px] text-slate-400">
-                              {it.aksi}
-                            </span>
-                            <ChevronRight className="h-4 w-4 text-slate-300" />
-                          </div>
+                        {/* Waktu */}
+                        <div className="flex items-center gap-1 text-2xs font-medium text-gray-400">
+                          <Clock className="h-3 w-3" />
+                          {it.waktu}
                         </div>
                       </div>
-                    </li>
-                  );
-                })}
-              </ul>
+
+                      {/* Body: Deskripsi */}
+                      <div className="mb-2">
+                        <p className="text-xs leading-relaxed text-gray-600">
+                          <span className="font-semibold text-gray-800 mr-1">
+                            {am.label}:
+                          </span>
+                          {it.deskripsi}
+                        </p>
+                      </div>
+
+                      {/* Footer: Meta Aksi (Raw) */}
+                      <div className="flex items-center gap-1 text-2xs text-gray-400">
+                        <span className="font-mono bg-gray-50 px-1 py-0.5 rounded text-gray-500">
+                          {it.aksi}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          )}
-        </div>
-      </section>
-    </>
+          </div>
+        )}
+      </div>
+    </section>
   );
 };

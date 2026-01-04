@@ -20,12 +20,25 @@ const formatTanggal = (iso?: string) => {
   });
 };
 
+const kelasLabelClass = (k?: number | string) => {
+  const kk = String(k ?? "");
+  const base = "rounded-md px-2 py-1 text-sm font-bold text-white shadow-sm";
+
+  const map: Record<string, string> = {
+    "10": "bg-linear-to-r from-emerald-600 to-emerald-800",
+    "11": "bg-linear-to-r from-green-700 to-green-900",
+    "12": "bg-linear-to-r from-teal-600 to-teal-800",
+  };
+
+  return [base, map[kk] ?? "bg-gray-400"].join(" ");
+};
+
+
 export const BoxBankSoal: React.FC<BoxBankSoalProps> = ({
   nama_banksoal = "Bank Soal",
   mata_pelajaran = "-",
   materi = "-",
   kelas,
-  deskripsi = "-",
   tgl_buat,
   jumlah_soal_pg = 0,
   jumlah_soal_essay = 0,
@@ -37,189 +50,164 @@ export const BoxBankSoal: React.FC<BoxBankSoalProps> = ({
   return (
     <div
       className={[
-        "group relative w-full overflow-hidden rounded-2xl border",
-        "border-emerald-200/70 bg-white shadow-sm transition hover:shadow-md",
-        "p-4 sm:p-5",
+        "group flex w-full flex-col overflow-hidden rounded-xl bg-white",
+        "border border-gray-200 shadow-sm transition-all duration-300",
+        "hover:-translate-y-1 hover:border-[#397e50]/50 hover:shadow-lg hover:shadow-[#397e50]/10",
         className,
       ].join(" ")}
     >
-      {/* accent bar */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-1.5 bg-[#397e50]" />
+      {/* Top Accent Line */}
+      <div className="h-1.5 w-full bg-linear-to-r from-[#397e50] to-[#37513d]" />
 
-      {/* subtle tint */}
-      <div className="pointer-events-none absolute -right-24 -top-24 h-56 w-56 rounded-full bg-emerald-500/10 blur-3xl" />
+      <div className="flex flex-1 flex-col p-5">
+        {/* Header: Date & Class */}
+        <div className="mb-3 flex items-center justify-between text-xs font-medium text-gray-500">
+          <span className="flex items-center gap-1.5">
+            <svg
+              className="h-4 w-4 text-gray-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
+            </svg>
+            {formatTanggal(tgl_buat)}
+          </span>
 
-      <div className="flex gap-4">
-        {/* Left content */}
-        <div className="min-w-0 flex-1">
-          {/* Title + date */}
-          <div className="flex items-start justify-between gap-3">
-            <h3 className="truncate text-base font-semibold text-emerald-950 sm:text-lg">
-              {nama_banksoal}
-            </h3>
+          <span className={kelasLabelClass(kelas)}>Kelas {kelas ?? "-"}</span>
+        </div>
 
-            <span className="shrink-0 rounded-lg border border-emerald-200/70 bg-emerald-50 px-3 py-1.5 text-sm text-emerald-900">
-              <span className="font-semibold">Tanggal Upload:</span>{" "}
-              {formatTanggal(tgl_buat)}
+        {/* Title (Lebih Besar) */}
+        <h3 className="mb-4 line-clamp-2 text-lg font-bold leading-snug text-[#37513d] transition-colors group-hover:text-[#397e50]">
+          {nama_banksoal}
+        </h3>
+
+        {/* Info Content (Text SM agar terbaca jelas) */}
+        <div className="mb-4 space-y-2 text-sm">
+          <div className="flex gap-3">
+            <span className="min-w-20 font-medium text-gray-500">Mapel:</span>
+            <span className="truncate font-semibold text-gray-700">
+              {mata_pelajaran}
             </span>
           </div>
 
-          {/* Meta */}
-          <div className="mt-3 space-y-2 text-sm text-emerald-950/80">
-            <div className="flex flex-wrap gap-x-6 gap-y-1">
-              <div className="flex items-center gap-2">
-                <span className="text-emerald-900/60">Kelas</span>
-                <span className="font-semibold text-emerald-950">
-                  {kelas ?? "-"}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-emerald-900/60">Mata Pelajaran</span>
-                <span className="font-semibold text-emerald-950">
-                  {mata_pelajaran}
-                </span>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap gap-x-6 gap-y-1">
-              <div className="flex items-center gap-2">
-                <span className="text-emerald-900/60">Materi</span>
-                <span className="font-semibold text-emerald-950">{materi}</span>
-              </div>
-            </div>
-
-            {/* Jumlah Soal */}
-            <div className="mt-2 flex flex-wrap items-center gap-2">
-              <span className="text-emerald-900/60">Jumlah Soal</span>
-
-              <span className="inline-flex items-center gap-2 rounded-full border border-emerald-200/70 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-900">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
-                PG: <span className="text-emerald-950">{jumlah_soal_pg}</span>
-              </span>
-
-              <span className="inline-flex items-center gap-2 rounded-full border border-emerald-200/70 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-900">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
-                Essay:{" "}
-                <span className="text-emerald-950">{jumlah_soal_essay}</span>
-              </span>
-            </div>
+          <div className="flex gap-3">
+            <span className="min-w-20 font-medium text-gray-500">Materi:</span>
+            <span className="truncate font-semibold text-gray-700">
+              {materi}
+            </span>
           </div>
+        </div>
 
-          {/* Description */}
-          <div className="mt-4">
-            <div className="text-sm font-semibold text-emerald-950">
-              Deskripsi
-            </div>
-            <p className="mt-1 line-clamp-3 text-sm leading-relaxed text-emerald-950/70">
-              {deskripsi}
-            </p>
-          </div>
+        {/* Stats Pills */}
+        <div className="mb-5 flex items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-800">
+            <span className="h-2 w-2 rounded-full bg-emerald-600" />
+            PG: {jumlah_soal_pg}
+          </span>
 
-          {/* Actions */}
-          <div className="mt-5 flex flex-wrap gap-2">
-            {/* Preview (primary) */}
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-100 bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-800">
+            <span className="h-2 w-2 rounded-full bg-amber-500" />
+            Essay: {jumlah_soal_essay}
+          </span>
+        </div>
+
+        {/* Divider & Actions */}
+        <div className="mt-auto border-t border-gray-100 pt-4">
+          <div className="flex items-center justify-between gap-3">
+            {/* Primary Button: Preview */}
             <button
               type="button"
               onClick={onPreview}
               disabled={!onPreview}
               className={[
-                "inline-flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold",
-                "bg-emerald-800 text-white shadow-sm transition",
-                "hover:bg-emerald-900 active:scale-[0.99]",
-                "disabled:cursor-not-allowed disabled:opacity-60",
+                "inline-flex cursor-pointer items-center gap-2 rounded-full px-5 py-2 text-sm font-bold text-white shadow-md transition-all",
+                "bg-[#397e50] hover:bg-[#2f5c3f] hover:shadow-lg active:scale-95",
+                "disabled:cursor-not-allowed disabled:opacity-50",
               ].join(" ")}
             >
-              {/* eye icon */}
               <svg
-                className="h-5 w-5"
-                aria-hidden="true"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
+                className="h-4 w-4"
                 fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="2.5"
               >
                 <path
-                  d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"
-                  stroke="currentColor"
-                  strokeWidth="2"
+                  strokeLinecap="round"
                   strokeLinejoin="round"
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
                 />
                 <path
-                  d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"
-                  stroke="currentColor"
-                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
                 />
               </svg>
               Preview
             </button>
 
-            {/* Kelola */}
-            <button
-              type="button"
-              onClick={onKelola}
-              disabled={!onKelola}
-              className={[
-                "inline-flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 text-sm font-semibold shadow-sm transition",
-                "border-emerald-200/70 bg-white text-emerald-900",
-                "hover:bg-emerald-50 active:scale-[0.99]",
-                "disabled:cursor-not-allowed disabled:opacity-60",
-              ].join(" ")}
-            >
-              {/* gear icon (react-safe attrs) */}
-              <svg
-                className="h-5 w-5 text-emerald-700"
-                aria-hidden="true"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
+            {/* Icon Buttons Group */}
+            <div className="flex items-center gap-1">
+              {/* Kelola */}
+              <button
+                type="button"
+                onClick={onKelola}
+                disabled={!onKelola}
+                className={[
+                  "cursor-pointer rounded-full p-2 text-gray-500 transition-colors",
+                  "hover:bg-emerald-50 hover:text-[#397e50]",
+                  "disabled:cursor-not-allowed disabled:opacity-50",
+                ].join(" ")}
+                title="Kelola"
               >
-                <path
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
                   stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
                   strokeWidth="2"
-                  d="M21 13v-2a1 1 0 0 0-1-1h-.757l-.707-1.707.535-.536a1 1 0 0 0 0-1.414l-1.414-1.414a1 1 0 0 0-1.414 0l-.536.535L14 4.757V4a1 1 0 0 0-1-1h-2a1 1 0 0 0-1 1v.757l-1.707.707-.536-.535a1 1 0 0 0-1.414 0L4.929 6.343a1 1 0 0 0 0 1.414l.536.536L4.757 10H4a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h.757l.707 1.707-.535.536a1 1 0 0 0 0 1.414l1.414 1.414a1 1 0 0 0 1.414 0l.536-.535 1.707.707V20a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-.757l1.707-.708.536.536a1 1 0 0 0 1.414 0l1.414-1.414a1 1 0 0 0 0-1.414l-.535-.536.707-1.707H20a1 1 0 0 0 1-1Z"
-                />
-                <path
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"
-                />
-              </svg>
-              Kelola
-            </button>
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                  />
+                </svg>
+              </button>
 
-            {/* Hapus */}
-            <button
-              type="button"
-              onClick={onHapus}
-              disabled={!onHapus}
-              className={[
-                "inline-flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 text-sm font-semibold shadow-sm transition",
-                "border-rose-200 bg-rose-50 text-rose-700",
-                "hover:bg-rose-100 active:scale-[0.99]",
-                "disabled:cursor-not-allowed disabled:opacity-60",
-              ].join(" ")}
-            >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                className="text-rose-600"
-                fill="none"
-                aria-hidden="true"
+              {/* Hapus */}
+              <button
+                type="button"
+                onClick={onHapus}
+                disabled={!onHapus}
+                className={[
+                  "cursor-pointer rounded-full p-2 text-gray-400 transition-colors",
+                  "hover:bg-rose-50 hover:text-rose-600",
+                  "disabled:cursor-not-allowed disabled:opacity-50",
+                ].join(" ")}
+                title="Hapus"
               >
-                <path
-                  d="M4 7h16M10 11v7M14 11v7M6 7l1 14h10l1-14M9 7V5h6v2"
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
                   stroke="currentColor"
                   strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              Hapus
-            </button>
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
       </div>

@@ -1,35 +1,33 @@
 import React from "react";
-import { ChevronDown, Megaphone, Paperclip } from "lucide-react";
+import {
+  ChevronDown,
+  Megaphone,
+  Paperclip,
+  CalendarDays,
+  FileText,
+} from "lucide-react";
 
 export type AnnouncementDoc = {
   id?: string;
-  name: string; 
-  url: string; 
+  name: string;
+  url: string;
   mimeType?: string;
-  sizeLabel?: string; 
+  sizeLabel?: string;
 };
 
-
-// Nanti buat mappping agar field dari response API bisa sesuai dengan type di bawah ini
-// Buat mapper di utils dan panggil mapper nanti di service ketika getPEngumuman
 export type PengumumanItem = {
   id: string;
   judul: string;
-  isi_pengumuman: string; 
-  tanggal_rilis_pengumuman: string; 
+  isi_pengumuman: string;
+  tanggal_rilis_pengumuman: string;
   dokumen?: AnnouncementDoc | AnnouncementDoc[] | null;
 };
 
 type PengumumanWidgetProps = {
-  title?: string; // default: "Pengumuman"
+  title?: string;
   items: PengumumanItem[];
-
-  /** default: buka item pertama */
   defaultOpenId?: string;
-
-  /** default: false (accordion) */
   allowMultipleOpen?: boolean;
-
   className?: string;
 };
 
@@ -67,27 +65,40 @@ export const PengumumanWidget: React.FC<PengumumanWidgetProps> = ({
   return (
     <section
       className={[
-        "rounded-2xl border border-slate-100 bg-white",
-        "shadow-[0_10px_24px_rgba(15,23,42,0.06)] h-full",
-        "p-4 sm:p-5",
+        "relative flex flex-col overflow-hidden rounded-xl bg-white",
+        "border border-gray-200 shadow-sm transition-all duration-300",
+        "hover:shadow-lg hover:shadow-[#397e50]/5",
+        "h-full", // Pastikan widget mengisi height parent jika diperlukan
         className ?? "",
       ].join(" ")}
     >
+      {/* Top Accent Line */}
+      <div className="h-1.5 w-full bg-[#37513d]" />
+
       {/* Header */}
-      <header className="flex items-center gap-2">
-        <span className="grid h-7 w-7 place-items-center rounded-full bg-slate-50 text-slate-500">
-          <Megaphone size={16} strokeWidth={2} />
-        </span>
-        <h2 className="text-sm font-semibold text-slate-800">{title}</h2>
+      <header className="flex items-center gap-3 px-5 pt-5 pb-2">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#397e50]/10 text-[#397e50]">
+          <Megaphone className="h-5 w-5" />
+        </div>
+        <div>
+          <h2 className="text-lg font-bold text-[#37513d]">{title}</h2>
+          <p className="text-xs font-medium text-gray-500">
+            {items.length} informasi terbaru
+          </p>
+        </div>
       </header>
 
-      <div className="mt-3 border-t border-slate-100 pt-3">
+      {/* List Container */}
+      <div className="mt-2 flex-1 overflow-y-auto px-5 pb-5">
         {items.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-slate-200 p-4 text-sm text-slate-500">
-            Tidak ada pengumuman.
+          <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-gray-300 bg-gray-50 py-10 text-center mt-2">
+            <Megaphone className="h-8 w-8 text-gray-300" />
+            <p className="text-sm text-gray-500">
+              Tidak ada pengumuman saat ini.
+            </p>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-3 pt-2">
             {items.map((item) => {
               const isOpen = openIds.has(item.id);
               return (
@@ -120,59 +131,76 @@ function AnnouncementRow({
   return (
     <article
       className={[
-        "rounded-xl border bg-white cursor-pointer",
-        isOpen ? "border-[#397e50]" : "border-slate-100",
+        "group overflow-hidden rounded-xl border transition-all duration-300",
+        isOpen
+          ? "border-[#397e50] bg-white shadow-md shadow-[#397e50]/5 ring-1 ring-[#397e50]/10"
+          : "border-gray-200 bg-white hover:border-[#397e50]/40 hover:bg-gray-50/50",
       ].join(" ")}
     >
-      {/* Row header (clickable) */}
+      {/* Header Row (Clickable) */}
       <button
         type="button"
         onClick={onToggle}
-        className="flex w-full items-start justify-between gap-3 px-4 py-3 text-left cursor-pointer"
+        className="flex w-full cursor-pointer items-start justify-between gap-4 px-4 py-3.5 text-left focus:outline-none"
         aria-expanded={isOpen}
       >
-        <div className="min-w-0 ">
-          <div className="truncate text-sm font-semibold text-slate-800 cursor-pointer">
+        <div className="flex-1 space-y-1.5">
+          {/* Tanggal */}
+          <div className="flex items-center gap-1.5 text-xs font-medium text-gray-500">
+            <CalendarDays className="h-3.5 w-3.5" />
+            <span>{item.tanggal_rilis_pengumuman}</span>
+          </div>
+
+          {/* Judul */}
+          <h3
+            className={[
+              "text-sm font-bold leading-snug transition-colors",
+              isOpen
+                ? "text-black"
+                : "text-gray-800 group-hover:text-[#37513d]",
+            ].join(" ")}
+          >
             {item.judul}
-          </div>
-          <div className="mt-1 text-xs text-slate-500">
-            {item.tanggal_rilis_pengumuman}
-          </div>
+          </h3>
         </div>
 
+        {/* Chevron Icon */}
         <span
           className={[
-            "mt-0.5 shrink-0 text-slate-500 transition-transform",
-            isOpen ? "rotate-180" : "rotate-0",
+            "mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition-all duration-300",
+            isOpen
+              ? "bg-[#397e50] text-white rotate-180"
+              : "bg-gray-100 text-gray-500 group-hover:bg-[#397e50]/10 group-hover:text-[#397e50]",
           ].join(" ")}
           aria-hidden="true"
         >
-          <ChevronDown size={18} strokeWidth={2.5} />
+          <ChevronDown className="h-4 w-4" strokeWidth={2.5} />
         </span>
       </button>
 
-      {/* Dropdown content */}
+      {/* Accordion Content */}
       <div
         className={[
-          "grid transition-[grid-template-rows]  duration-200 ease-out",
+          "grid transition-[grid-template-rows] duration-300 ease-out",
           isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
         ].join(" ")}
       >
         <div className="overflow-hidden">
-          <div className="border-t border-slate-100 px-4 py-3">
-            {/* isi_pengumuman */}
-            <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-600">
+          <div className="border-t border-gray-100 px-4 py-4">
+            {/* Isi Pengumuman */}
+            <div className="prose-sm text-sm leading-relaxed text-gray-600 whitespace-pre-wrap">
               {item.isi_pengumuman}
-            </p>
+            </div>
 
-            {/* dokumen */}
+            {/* Dokumen Section */}
             {docs.length > 0 && (
-              <div className="mt-4">
-                <div className="mb-2 text-xs font-semibold text-slate-700">
-                  Dokumen
+              <div className="mt-5">
+                <div className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gray-400">
+                  <Paperclip className="h-3.5 w-3.5" />
+                  Lampiran Dokumen
                 </div>
 
-                <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {docs.map((d, idx) => (
                     <a
                       key={d.id ?? `${d.url}-${idx}`}
@@ -180,21 +208,27 @@ function AnnouncementRow({
                       target="_blank"
                       rel="noreferrer"
                       className={[
-                        "inline-flex items-center justify-center gap-2",
-                        "rounded-lg border border-slate-200 bg-white",
-                        "px-3 py-2 text-xs font-semibold text-slate-700",
-                        "hover:bg-slate-50",
-                        "w-full sm:w-auto",
+                        "group/doc flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50/50 p-2.5 transition-all",
+                        "hover:border-[#397e50]/50 hover:bg-[#397e50]/5 hover:shadow-sm",
                       ].join(" ")}
                       title={d.name}
                     >
-                      <Paperclip size={16} strokeWidth={2} />
-                      <span className="truncate max-w-60 sm:max-w-[260px]">
-                        {d.name}
-                      </span>
-                      {d.sizeLabel ? (
-                        <span className="text-slate-400">{d.sizeLabel}</span>
-                      ) : null}
+                      {/* Icon Container */}
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-white text-[#397e50] shadow-sm ring-1 ring-gray-100 group-hover/doc:ring-[#397e50]/20">
+                        <FileText className="h-4 w-4" />
+                      </div>
+
+                      {/* File Info */}
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-xs font-bold text-gray-700 group-hover/doc:text-[#397e50]">
+                          {d.name}
+                        </p>
+                        {d.sizeLabel && (
+                          <p className="mt-0.5 text-2xs text-gray-500">
+                            {d.sizeLabel}
+                          </p>
+                        )}
+                      </div>
                     </a>
                   ))}
                 </div>
