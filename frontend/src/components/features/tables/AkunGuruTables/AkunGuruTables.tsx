@@ -1,7 +1,24 @@
 import React, { useMemo, useState } from "react";
+import {
+  Search,
+  Eye,
+  EyeOff,
+  ChevronDown,
+  Trash2,
+  Archive,
+  Edit3,
+  User,
+  ShieldAlert,
+  CheckCircle2,
+  XCircle,
+  Trash,
+} from "lucide-react";
+import { AddButton } from "@/components/common/Button/AddButton";
+import { useNavigate } from "react-router";
 
-type StatusAkun = "aktif" | "nonaktif" | "dibekukan";
-type JenisKelamin = "LAKI_LAKI" | "PEREMPUAN";
+import type { StatusAkun,JenisKelamin } from "@/types/OpsiTypes/Option";
+
+// --- Tipe Data (Sama seperti sebelumnya) ---
 
 type BarisPengguna = {
   id: string;
@@ -14,19 +31,31 @@ type BarisPengguna = {
   nip: string;
   jabatan: string;
   bidangStudi: string;
- urlGambarProfil: string;
+  urlGambarProfil: string;
 };
 
-const kelasTitikStatus: Record<StatusAkun, string> = {
-  aktif: "bg-success",
-  nonaktif: "bg-danger",
-  dibekukan: "bg-neutral-tertiary-medium",
-};
-
-const labelStatus: Record<StatusAkun, string> = {
-  aktif: "Aktif",
-  nonaktif: "Nonaktif",
-  dibekukan: "Dibekukan",
+// --- Helper Functions ---
+const getStatusBadge = (status: StatusAkun) => {
+  switch (status) {
+    case "aktif":
+      return (
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
+          <CheckCircle2 className="h-3 w-3" /> Aktif
+        </span>
+      );
+    case "nonaktif":
+      return (
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-2.5 py-0.5 text-xs font-medium text-rose-700 ring-1 ring-inset ring-rose-600/20">
+          <XCircle className="h-3 w-3" /> Nonaktif
+        </span>
+      );
+    case "dibekukan":
+      return (
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-50 px-2.5 py-0.5 text-xs font-medium text-slate-600 ring-1 ring-inset ring-slate-500/20">
+          <ShieldAlert className="h-3 w-3" /> Dibekukan
+        </span>
+      );
+  }
 };
 
 function samarkanNomorHp(nomorHp: string) {
@@ -43,14 +72,14 @@ function samarkanNip(nip: string) {
   return `${digit.slice(0, 4)}****${terlihat}`;
 }
 
+// --- Komponen Utama ---
 export const AkunGuruTables: React.FC = () => {
   const [dropdownAksiTerbuka, setDropdownAksiTerbuka] = useState(false);
   const [kataKunci, setKataKunci] = useState("");
   const [idTerpilih, setIdTerpilih] = useState<Set<string>>(new Set());
-
-  // Privasi: default ON (data sensitif disamarkan)
   const [samarkanDataSensitif, setSamarkanDataSensitif] = useState(true);
 
+  // Data Dummy
   const [daftarPengguna] = useState<BarisPengguna[]>([
     {
       id: "u1",
@@ -61,9 +90,9 @@ export const AkunGuruTables: React.FC = () => {
       jenisKelamin: "LAKI_LAKI",
       statusAkun: "aktif",
       nip: "198701012010121001",
-      jabatan: "React Developer",
-      bidangStudi: "Informatika",
-     urlGambarProfil: "/docs/images/people/profile-picture-1.jpg",
+      jabatan: "Guru Matematika",
+      bidangStudi: "Sains & Teknologi",
+      urlGambarProfil: "https://i.pravatar.cc/150?u=neil",
     },
     {
       id: "u2",
@@ -72,11 +101,37 @@ export const AkunGuruTables: React.FC = () => {
       username: "bonnieg",
       nomorHp: "082233445566",
       jenisKelamin: "PEREMPUAN",
-      statusAkun: "aktif",
+      statusAkun: "nonaktif",
       nip: "199002022011112002",
-      jabatan: "Desainer",
-      bidangStudi: "DKV",
-     urlGambarProfil: "/docs/images/people/profile-picture-3.jpg",
+      jabatan: "Guru Bahasa Inggris",
+      bidangStudi: "Bahasa",
+      urlGambarProfil: "https://i.pravatar.cc/150?u=bonnie",
+    },
+    {
+      id: "u3",
+      namaLengkap: "Jese Leos",
+      email: "jese@flowbite.com",
+      username: "jeseleos",
+      nomorHp: "085677889900",
+      jenisKelamin: "LAKI_LAKI",
+      statusAkun: "dibekukan",
+      nip: "199505052015051005",
+      jabatan: "Guru Olahraga",
+      bidangStudi: "PJOK",
+      urlGambarProfil: "https://i.pravatar.cc/150?u=jese",
+    },
+    {
+      id: "u4",
+      namaLengkap: "Jese Leos",
+      email: "jese@flowbite.com",
+      username: "jeseleos",
+      nomorHp: "085677889900",
+      jenisKelamin: "LAKI_LAKI",
+      statusAkun: "dibekukan",
+      nip: "199505052015051005",
+      jabatan: "Guru Olahraga",
+      bidangStudi: "PJOK",
+      urlGambarProfil: "https://i.pravatar.cc/150?u=jese",
     },
   ]);
 
@@ -88,13 +143,8 @@ export const AkunGuruTables: React.FC = () => {
       return (
         p.namaLengkap.toLowerCase().includes(q) ||
         p.email.toLowerCase().includes(q) ||
-        p.username.toLowerCase().includes(q) ||
-        p.nomorHp.toLowerCase().includes(q) ||
-        p.nip.toLowerCase().includes(q) ||
-        p.jenisKelamin.toLowerCase().includes(q) ||
-        p.jabatan.toLowerCase().includes(q) ||
-        p.bidangStudi.toLowerCase().includes(q) ||
-        labelStatus[p.statusAkun].toLowerCase().includes(q)
+        p.nip.includes(q) ||
+        p.username.toLowerCase().includes(q)
       );
     });
   }, [kataKunci, daftarPengguna]);
@@ -124,263 +174,246 @@ export const AkunGuruTables: React.FC = () => {
     });
   };
 
+  const navigate = useNavigate();
+
   const jumlahTerpilih = idTerpilih.size;
 
   return (
-    <div className="relative overflow-x-auto bg-neutral-primary-soft shadow-xs rounded-base border border-default">
-      <div className="flex items-center justify-between flex-column md:flex-row flex-wrap space-y-4 md:space-y-0 p-4">
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <button
-              className="inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-3 py-2 focus:outline-none"
-              type="button"
-              aria-haspopup="menu"
-              aria-expanded={dropdownAksiTerbuka}
-              onClick={() => setDropdownAksiTerbuka((v) => !v)}
-            >
-              Aksi
-              <svg
-                className="w-4 h-4 ms-1.5 -me-0.5"
-                aria-hidden="true"
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="m19 9-7 7-7-7"
-                />
-              </svg>
-            </button>
-
-            {dropdownAksiTerbuka && (
-              <div
-                role="menu"
-                className="absolute mt-2 z-10 bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-36"
-                onMouseLeave={() => setDropdownAksiTerbuka(false)}
-              >
-                <ul className="p-2 text-sm text-body font-medium">
-                  <li>
-                    <button
-                      type="button"
-                      className="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded text-left"
-                      onClick={() => setDropdownAksiTerbuka(false)}
-                      disabled={jumlahTerpilih === 0}
-                      title={
-                        jumlahTerpilih === 0 ? "Pilih minimal 1 pengguna" : ""
-                      }
-                    >
-                      Arsipkan
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      type="button"
-                      className="inline-flex items-center w-full p-2 text-fg-danger hover:bg-neutral-tertiary-medium rounded text-left"
-                      onClick={() => setDropdownAksiTerbuka(false)}
-                      disabled={jumlahTerpilih === 0}
-                      title={
-                        jumlahTerpilih === 0 ? "Pilih minimal 1 pengguna" : ""
-                      }
-                    >
-                      Hapus
-                    </button>
-                  </li>
-                </ul>
-              </div>
-            )}
-          </div>
-
-          <label className="inline-flex items-center gap-2 text-sm text-body select-none">
-            <input
-              type="checkbox"
-              checked={samarkanDataSensitif}
-              onChange={(e) => setSamarkanDataSensitif(e.target.checked)}
-              className="w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft"
-            />
-            Samarkan data sensitif
-          </label>
+    <div className="w-full space-y-6">
+      {/* --- Header Section --- */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight text-slate-900">
+            Manajemen Akun Guru
+          </h2>
+          <p className="mt-1 text-sm text-slate-500">
+            Kelola data guru, status akun, dan informasi kepegawaian.
+          </p>
         </div>
-
-        <label htmlFor="pencarian" className="sr-only">
-          Pencarian
-        </label>
-        <div className="relative">
-          <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-            <svg
-              className="w-4 h-4 text-body"
-              aria-hidden="true"
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeWidth="2"
-                d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z"
-              />
-            </svg>
-          </div>
-          <input
-            type="text"
-            id="pencarian"
-            value={kataKunci}
-            onChange={(e) => setKataKunci(e.target.value)}
-            className="block w-full max-w-96 ps-9 pe-3 py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body"
-            placeholder="Cari pengguna..."
+        <div className="flex items-center gap-3">
+          {/* Privacy Toggle */}
+          <button
+            onClick={() => setSamarkanDataSensitif(!samarkanDataSensitif)}
+            className={`group inline-flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-all ${
+              samarkanDataSensitif
+                ? "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                : "border-slate-200 bg-slate-100 text-slate-900 hover:bg-slate-50"
+            }`}
+          >
+            {samarkanDataSensitif ? (
+              <>
+                <EyeOff className="h-4 w-4 text-slate-400 group-hover:text-slate-600" />
+                <span className="hidden sm:inline">Tampilkan Data</span>
+              </>
+            ) : (
+              <>
+                <Eye className="h-4 w-4 text-slate-400 group-hover:text-slate-600" />
+                <span className="hidden sm:inline">Samarkan Data</span>
+              </>
+            )}
+          </button>
+          <AddButton
+            label="Tambah Akun Guru"
+            onClick={() =>
+              navigate(`/dashboard/administrator/kelola-akun/tambah-guru`)
+            }
           />
         </div>
       </div>
 
-      <table className="w-full text-sm text-left rtl:text-right text-body">
-        <thead className="text-sm text-body bg-neutral-secondary-medium border-b border-t border-default-medium">
-          <tr>
-            <th scope="col" className="p-4">
-              <div className="flex items-center">
-                <input
-                  id="cek-semua"
-                  type="checkbox"
-                  checked={semuaTerlihatTerpilih}
-                  onChange={togglePilihSemuaTerlihat}
-                  className="w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft"
-                />
-                <label htmlFor="cek-semua" className="sr-only">
-                  Pilih semua
-                </label>
-              </div>
-            </th>
+      {/* --- Filter & Action Bar --- */}
+      <div className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative w-full sm:w-80">
+          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+            <Search className="h-4 w-4 text-slate-400" />
+          </div>
+          <input
+            type="text"
+            value={kataKunci}
+            onChange={(e) => setKataKunci(e.target.value)}
+            className="block w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-10 pr-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#397e50] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#397e50]"
+            placeholder="Cari nama, NIP, atau email..."
+          />
+        </div>
 
-            <th scope="col" className="px-6 py-3 font-medium">
-              Nomor
-            </th>
-            <th scope="col" className="px-6 py-3 font-medium">
-              Nama Lengkap
-            </th>
-            <th scope="col" className="px-6 py-3 font-medium">
-              Nama Pengguna
-            </th>
-            <th scope="col" className="px-6 py-3 font-medium">
-              Jenis Kelamin
-            </th>
-            <th scope="col" className="px-6 py-3 font-medium">
-              Nomor HP
-            </th>
-            <th scope="col" className="px-6 py-3 font-medium">
-              Status Akun
-            </th>
-            <th scope="col" className="px-6 py-3 font-medium">
-              NIP
-            </th>
-            <th scope="col" className="px-6 py-3 font-medium">
-              Jabatan
-            </th>
-            <th scope="col" className="px-6 py-3 font-medium">
-              Bidang Studi
-            </th>
-            <th scope="col" className="px-6 py-3 font-medium">
-              Aksi
-            </th>
-          </tr>
-        </thead>
+        <div className="flex items-center gap-2">
+          {/* Bulk Actions Dropdown (Muncul jika ada yang dipilih) */}
+          {jumlahTerpilih > 0 && (
+            <div className="relative">
+              <button
+                onClick={() => setDropdownAksiTerbuka(!dropdownAksiTerbuka)}
+                className="inline-flex items-center gap-2 rounded-lg bg-slate-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800"
+              >
+                {jumlahTerpilih} Terpilih
+                <ChevronDown className="h-4 w-4" />
+              </button>
 
-        <tbody>
-          {penggunaTersaring.map((p, indeks) => (
-            <tr
-              key={p.id}
-              className="bg-neutral-primary-soft border-b border-default hover:bg-neutral-secondary-medium"
-            >
-              <td className="w-4 p-4">
-                <div className="flex items-center">
-                  <input
-                    id={`cek-${p.id}`}
-                    type="checkbox"
-                    checked={idTerpilih.has(p.id)}
-                    onChange={() => togglePilihBaris(p.id)}
-                    className="w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft"
-                  />
-                  <label htmlFor={`cek-${p.id}`} className="sr-only">
-                    Pilih baris
-                  </label>
-                </div>
-              </td>
-
-              <td className="px-6 py-4">{indeks + 1}</td>
-
-              <td className="px-6 py-4">
-                <div className="flex items-center text-heading whitespace-nowrap">
-                  <img
-                    className="w-10 h-10 rounded-full"
-                    src={p.urlGambarProfil}
-                    alt={`${p.namaLengkap} avatar`}
-                  />
-                  <div className="ps-3">
-                    <div className="text-base font-semibold">
-                      {p.namaLengkap}
-                    </div>
-                    <div className="font-normal text-body">{p.email}</div>
-                  </div>
-                </div>
-              </td>
-
-              <td className="px-6 py-4">{p.username}</td>
-
-              <td className="px-6 py-4">{p.jenisKelamin}</td>
-
-              <td className="px-6 py-4">
-                {samarkanDataSensitif ? samarkanNomorHp(p.nomorHp) : p.nomorHp}
-              </td>
-
-              <td className="px-6 py-4">
-                <div className="flex items-center">
+              {dropdownAksiTerbuka && (
+                <>
                   <div
-                    className={`h-2.5 w-2.5 rounded-full ${
-                      kelasTitikStatus[p.statusAkun]
-                    } me-2`}
+                    className="fixed inset-0 z-10"
+                    onClick={() => setDropdownAksiTerbuka(false)}
                   />
-                  {labelStatus[p.statusAkun]}
-                </div>
-              </td>
-
-              <td className="px-6 py-4">
-                {samarkanDataSensitif ? samarkanNip(p.nip) : p.nip}
-              </td>
-
-              <td className="px-6 py-4">{p.jabatan}</td>
-
-              <td className="px-6 py-4">{p.bidangStudi}</td>
-
-              {/* Tambahkan Link/navigate yang membawa Id sebagai route param */}
-              <td className="px-6 py-4">
-                <button
-                  type="button"
-                  className="font-medium text-fg-brand hover:underline cursor-pointer"
-                  onClick={() => console.log("Edit", p.id)}
-                >
-                  Ubah
-                </button>
-              </td>
-            </tr>
-          ))}
-
-          {penggunaTersaring.length === 0 && (
-            <tr className="bg-neutral-primary-soft">
-              <td className="px-6 py-8 text-center text-body" colSpan={10}>
-                Tidak ada data.
-              </td>
-            </tr>
+                  <div className="absolute right-0 z-20 mt-2 w-48 origin-top-right rounded-lg border border-slate-100 bg-white shadow-xl ring-1 ring-black ring-opacity-5 focus:outline-none">
+                    <div className="p-1">
+                      <button className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                        <Archive className="h-4 w-4 text-slate-400" /> Arsipkan
+                      </button>
+                      <button className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-rose-600 hover:bg-rose-50">
+                        <Trash2 className="h-4 w-4" /> Hapus Data
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
           )}
-        </tbody>
-      </table>
-      <div className="px-4 py-3 text-xs text-slate-500 border-t border-default">
-        Geser tabel ke kanan/kiri untuk melihat kolom lainnya.
+        </div>
+      </div>
+
+      {/* --- Table Section --- */}
+      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm text-slate-600">
+            <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase text-slate-500">
+              <tr>
+                <th scope="col" className="p-4 w-4">
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={semuaTerlihatTerpilih}
+                      onChange={togglePilihSemuaTerlihat}
+                      className="h-4 w-4 rounded border-slate-300 text-[#397e50] focus:ring-[#397e50]"
+                    />
+                  </div>
+                </th>
+                <th scope="col" className="px-6 py-3 font-semibold">
+                  Guru
+                </th>
+                <th scope="col" className="px-6 py-3 font-semibold">
+                  NIP & Kontak
+                </th>
+                <th scope="col" className="px-6 py-3 font-semibold">
+                  Jabatan
+                </th>
+                <th scope="col" className="px-6 py-3 font-semibold">
+                  Status
+                </th>
+                <th scope="col" className="px-6 py-3 text-right font-semibold">
+                  Aksi
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-200">
+              {penggunaTersaring.length > 0 ? (
+                penggunaTersaring.map((p) => (
+                  <tr
+                    key={p.id}
+                    className={`transition-colors hover:bg-slate-50 ${
+                      idTerpilih.has(p.id) ? "bg-indigo-50/30" : ""
+                    }`}
+                  >
+                    <td className="p-4">
+                      <div className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={idTerpilih.has(p.id)}
+                          onChange={() => togglePilihBaris(p.id)}
+                          className="h-4 w-4 rounded border-slate-300 text-[#397e50] focus:ring-[#397e50]"
+                        />
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <img
+                          className="h-10 w-10 rounded-full object-cover ring-2 ring-white"
+                          src={p.urlGambarProfil}
+                          alt=""
+                        />
+                        <div className="flex flex-col">
+                          <span className="font-semibold text-slate-900">
+                            {p.namaLengkap}
+                          </span>
+                          <span className="text-xs text-slate-500">
+                            @{p.username}
+                          </span>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col gap-1">
+                        <span className="font-mono text-xs font-medium text-slate-700">
+                          {samarkanDataSensitif ? samarkanNip(p.nip) : p.nip}
+                        </span>
+                        <span className="text-xs text-slate-500">
+                          {p.email}
+                        </span>
+                        <span className="text-xs text-slate-500">
+                          {samarkanDataSensitif
+                            ? samarkanNomorHp(p.nomorHp)
+                            : p.nomorHp}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col">
+                        <span className="text-slate-900">{p.jabatan}</span>
+                        <span className="text-xs text-slate-500">
+                          {p.bidangStudi}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      {getStatusBadge(p.statusAkun)}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          className="rounded-lg cursor-pointer p-2 text-slate-400 hover:bg-slate-100 hover:text-green-600 transition-colors"
+                          title="Edit"
+                        >
+                          <Edit3 className="h-4 w-4" />
+                        </button>
+                        <button
+                          className="rounded-lg p-2 text-slate-400 cursor-pointer hover:bg-slate-100 hover:text-red-600 transition-colors"
+                          title="Detail"
+                        >
+                          <Trash className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={6} className="px-6 py-12 text-center">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <User className="h-10 w-10 text-slate-300" />
+                      <p className="text-base font-medium text-slate-900">
+                        Tidak ada pengguna ditemukan
+                      </p>
+                      <p className="text-sm text-slate-500">
+                        Coba sesuaikan kata kunci pencarian Anda.
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+        {/* Pagination Dummy */}
+        <div className="flex items-center justify-between border-t border-slate-200 bg-white px-4 py-3 sm:px-6">
+          <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm text-slate-700">
+                Menampilkan <span className="font-medium">1</span> sampai{" "}
+                <span className="font-medium">{penggunaTersaring.length}</span>{" "}
+                dari <span className="font-medium">100</span> hasil
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

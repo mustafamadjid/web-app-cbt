@@ -1,5 +1,5 @@
 import React from "react";
-import { User } from "lucide-react";
+import { User, Menu, CalendarRange, Settings, ChevronDown } from "lucide-react";
 
 type HeaderProps = {
   title?: string;
@@ -7,7 +7,12 @@ type HeaderProps = {
   roleLabel: string;
   isOnline?: boolean;
   avatarUrl?: string | null;
+  schoolName?: string;
+  academicYear?: string;
+  semester?: string;
   className?: string;
+  onMenuClick?: () => void;
+  onSettingsClick?: () => void;
 };
 
 export const Header: React.FC<HeaderProps> = ({
@@ -16,51 +21,102 @@ export const Header: React.FC<HeaderProps> = ({
   roleLabel,
   isOnline = true,
   avatarUrl = null,
+  academicYear = "2025/2026",
+  semester = "Ganjil",
   className,
+ 
+
 }) => {
+  const today = new Date().toLocaleDateString("id-ID", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
   return (
-    <header className={["px-8 py-4 shrink-0", className ?? ""].join(" ")}>
-      <div className="flex items-center justify-between gap-4 bg-white w-full p-4 sm:p-5 rounded-xl border border-slate-200 shadow-[0_10px_24px_rgba(15,23,42,0.06)]">
-        <h1 className="font-semibold text-lg sm:text-xl text-slate-900">
-          {title}
-        </h1>
+    <header
+      className={[
+        " top-0 z-40 w-full flex-none transition-all duration-300",
+        className ?? "",
+      ].join(" ")}
+    >
+      <div className="h-1 w-full" />
 
-        {/* Profil */}
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="min-w-0 text-right">
-            <h2 className="font-semibold text-sm sm:text-base text-slate-900 truncate">
-              {userName}
-            </h2>
+      <div className="flex items-center justify-between border-b border-gray-200 bg-white/90 px-4 py-3 shadow-sm backdrop-blur-md sm:px-6 lg:px-8">
+        {/* --- LEFT: Mobile Menu & Title --- */}
+        <div className="flex items-center gap-4">
+        
 
-            <span className="inline-flex items-center rounded-2xl bg-[#fff5d5] px-2.5 py-1 text-xs font-semibold text-[#724b00] ">
-              {roleLabel}
-            </span>
+          <div className="flex flex-col">
+            <h1 className="text-xl font-bold tracking-tight text-[#37513d] sm:text-2xl">
+              {title}
+            </h1>
+            <p className="hidden text-xs font-medium text-gray-500 sm:block">
+              {today}
+            </p>
           </div>
+        </div>
 
-          <div className="relative shrink-0">
-            <div className="bg-slate-100 text-slate-700 w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center overflow-hidden ring-1 ring-slate-200">
-              {avatarUrl ? (
-                <img
-                  src={avatarUrl}
-                  alt={`Foto profil ${userName}`}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <User
-                  className="h-5 w-5 sm:h-6 sm:w-6"
-                  aria-label="Profil pengguna"
-                />
-              )}
+        {/* --- CENTER: REDESIGNED ACADEMIC BADGE --- */}
+        <div className="hidden md:flex flex-1 justify-center px-4">
+          {/* Container Utama */}
+          <div className="group flex items-center overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all hover:border-[#397e50]/30 hover:shadow-md">
+            {/* Bagian Tahun Ajaran (Kiri) */}
+            <div className="hidden md:flex flex-1 justify-center px-4">
+              <div className="flex items-center gap-3 rounded-lg px-4 py-2 transition-colors hover:bg-gray-100">
+                <div className="text-right">
+                  <p className="text-xs font-bold text-gray-900">
+                    {academicYear}
+                  </p>
+                  <p className="text-2xs font-medium text-gray-500">
+                    Semester {semester}
+                  </p>
+                </div>
+                <div className="h-8 w-px] bg-gray-300"></div>
+                <div className="rounded-full bg-white p-1.5 shadow-sm text-[#397e50]">
+                  <CalendarRange className="h-5 w-5" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* --- RIGHT: Profile --- */}
+        <div className="flex items-center gap-3 sm:gap-6">
+          <div className="hidden h-8 w-px bg-gray-200 sm:block" />
+
+          <div className="flex items-center gap-3">
+            <div className="hidden text-right lg:block">
+              <div className="text-sm font-bold text-gray-800">{userName}</div>
+              <div className="flex justify-end">
+                <span className="inline-flex items-center rounded-md bg-[#397e50] px-2 py-0.5 text-2xs font-bold uppercase tracking-wider text-white shadow-sm">
+                  {roleLabel}
+                </span>
+              </div>
             </div>
 
-            <span
-              className={[
-                "absolute bottom-0 right-0 h-3 w-3 rounded-full ring-2 ring-white",
-                isOnline ? "bg-green-600" : "bg-slate-300",
-              ].join(" ")}
-              aria-label={isOnline ? "Online" : "Offline"}
-              title={isOnline ? "Online" : "Offline"}
-            />
+            <div className="group relative cursor-pointer">
+              <div className="relative h-10 w-10 overflow-hidden rounded-full ring-2 ring-gray-100 transition-all group-hover:ring-[#397e50]/30 sm:h-11 sm:w-11">
+                {avatarUrl ? (
+                  <img
+                    src={avatarUrl}
+                    alt={userName}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center bg-slate-100 text-slate-500">
+                    <User className="h-5 w-5" />
+                  </div>
+                )}
+              </div>
+              <span
+                className={[
+                  "absolute bottom-0.5 right-0.5 h-3 w-3 rounded-full ring-2 ring-white transition-colors",
+                  isOnline ? "bg-emerald-500" : "bg-gray-400",
+                ].join(" ")}
+              />
+            </div>
           </div>
         </div>
       </div>
