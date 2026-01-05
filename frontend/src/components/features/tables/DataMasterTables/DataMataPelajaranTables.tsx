@@ -1,56 +1,116 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import {
+  Archive,
+  BookOpen,
+  ChevronDown,
+  Edit3,
+  Search,
+  Trash2,
+} from "lucide-react";
+import { useNavigate } from "react-router";
 
+import { AddButton } from "@/components/common/Button/AddButton";
 import type {
   KelasOption,
   MataPelajaranOption,
   MataPelajaranRow,
-} from "../../../../types/DataMaster/MataPelajaran";
+} from "@/types/DataMaster/MataPelajaran";
+import {
+  getKelasOptions,
+  getMataPelajaran,
+  getMataPelajaranOptions,
+} from "@/services/Api/features-api/DataMaster/mapel.service";
+
+function useDebouncedValue<T>(value: T, delayMs = 300) {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(value), delayMs);
+    return () => clearTimeout(t);
+  }, [value, delayMs]);
+  return debounced;
+}
 
 export const DataMataPelajaran: React.FC = () => {
+  const navigate = useNavigate();
+
   const [dropdownAksiTerbuka, setDropdownAksiTerbuka] = useState(false);
   const [kataKunci, setKataKunci] = useState("");
+
+  const [tingkatTerpilih, setTingkatTerpilih] = useState("");
+  const [mapelTerpilih, setMapelTerpilih] = useState("");
+
+  const [opsiKelas, setOpsiKelas] = useState<KelasOption[]>([]);
+  const [opsiMapel, setOpsiMapel] = useState<MataPelajaranOption[]>([]);
+
+  const [daftarMapel, setDaftarMapel] = useState<MataPelajaranRow[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+
   const [idTerpilih, setIdTerpilih] = useState<Set<string>>(new Set());
 
-  const [dropdownKelasTerbuka, setDropdownKelasTerbuka] = useState(false);
-  const [dropdownMapelTerbuka, setDropdownMapelTerbuka] = useState(false);
+  const debouncedKataKunci = useDebouncedValue(kataKunci, 300);
+  const requestSeq = useRef(0);
 
-  // "semua" atau angka tingkat_kelas (10/11/12)
-  const [tingkatTerpilih, setTingkatTerpilih] = useState<"semua" | number>(
-    "semua"
-  );
-  const [mapelTerpilih, setMapelTerpilih] = useState<string>("semua");
+  useEffect(() => {
+    let mounted = true;
 
-  // tetap dipakai untuk menampilkan label kelas (bukan pilihan)
-  const [opsiKelas] = useState<KelasOption[]>([
-    { id: "kelas-10-ipa-1", tingkat_kelas: 10, nama_kelas: "X IPA 1" },
-    { id: "kelas-10-ips-1", tingkat_kelas: 10, nama_kelas: "X IPS 1" },
-    { id: "kelas-11-ipa-1", tingkat_kelas: 11, nama_kelas: "XI IPA 1" },
-    { id: "kelas-11-ips-1", tingkat_kelas: 11, nama_kelas: "XI IPS 1" },
-    { id: "kelas-12-ipa-1", tingkat_kelas: 12, nama_kelas: "XII IPA 1" },
-    { id: "kelas-12-ips-1", tingkat_kelas: 12, nama_kelas: "XII IPS 1" },
-  ]);
+    (async () => {
+      try {
+        setErrorMsg("");
+        const [kelas, mapel] = await Promise.all([
+          getKelasOptions(),
+          getMataPelajaranOptions(),
+        ]);
+        if (!mounted) return;
+        setOpsiKelas(kelas);
+        setOpsiMapel(mapel);
+      } catch {
+        if (!mounted) return;
+        setErrorMsg("Gagal memuat opsi mata pelajaran.");
+      }
+    })();
 
-  const [daftarMapel] = useState<MataPelajaranRow[]>([
-    {
-      id: "mapel-1",
-      kelasId: "kelas-10-ipa-1",
-      kodeMapel: "MAT-10-01",
-      namaMapel: "Matematika",
-      deskripsiMapel: "Aljabar dasar, geometri, dan statistika.",
-    },
-    {
-      id: "mapel-2",
-      kelasId: "kelas-10-ips-1",
-      kodeMapel: "EKO-10-01",
-      namaMapel: "Ekonomi",
-      deskripsiMapel: "Dasar-dasar ekonomi mikro dan makro.",
-    },
-  ]);
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
-  const [opsiMapel] = useState<MataPelajaranOption[]>([
-    { id: "mapel-1", label: "Matematika" },
-    { id: "mapel-2", label: "Ekonomi" },
-  ]);
+  useEffect(() => {
+    const seq = ++requestSeq.current;
+
+    (async () => {
+      try {
+        setLoading(true);
+        setErrorMsg("");
+
+        const data = await getMataPelajaran({
+          q: debouncedKataKunci.trim() || undefined,
+          tingkatKelas: tingkatTerpilih ? Number(tingkatTerpilih) : undefined,
+          mapelId: mapelTerpilih || undefined,
+        });
+
+        if (seq !== requestSeq.current) return;
+
+        setDaftarMapel(data);
+        setIdTerpilih((prev) => {
+          if (prev.size === 0) return prev;
+          const ids = new Set(data.map((mapel) => mapel.id));
+          const next = new Set<string>();
+          prev.forEach((id) => {
+            if (ids.has(id)) next.add(id);
+          });
+          return next;
+        });
+      } catch {
+        if (seq !== requestSeq.current) return;
+        setErrorMsg("Gagal memuat data mata pelajaran.");
+        setDaftarMapel([]);
+      } finally {
+        if (seq !== requestSeq.current) return;
+        setLoading(false);
+      }
+    })();
+  }, [debouncedKataKunci, tingkatTerpilih, mapelTerpilih]);
 
   const kelasById = useMemo(() => {
     return opsiKelas.reduce<Record<string, KelasOption>>((acc, opsi) => {
@@ -59,48 +119,23 @@ export const DataMataPelajaran: React.FC = () => {
     }, {});
   }, [opsiKelas]);
 
-  // Dropdown tingkat_kelas yang unik (dedup)
   const opsiTingkatKelas = useMemo(() => {
     const set = new Set<number>();
     opsiKelas.forEach((k) => set.add(k.tingkat_kelas));
     return Array.from(set).sort((a, b) => a - b);
   }, [opsiKelas]);
 
-  const mapelTersaring = useMemo(() => {
-    const q = kataKunci.trim().toLowerCase();
-
-    return daftarMapel.filter((mapel) => {
-      const tingkatKelas = kelasById[mapel.kelasId]?.tingkat_kelas ?? null;
-
-      const cocokKata =
-        !q ||
-        mapel.kodeMapel.toLowerCase().includes(q) ||
-        mapel.namaMapel.toLowerCase().includes(q) ||
-        mapel.deskripsiMapel.toLowerCase().includes(q) ||
-        (tingkatKelas !== null && tingkatKelas.toString().includes(q));
-
-      // Filter berdasarkan tingkat_kelas (bukan kelasId)
-      const cocokKelas =
-        tingkatTerpilih === "semua" || tingkatKelas === tingkatTerpilih;
-
-      const cocokMapel =
-        mapelTerpilih === "semua" || mapel.id === mapelTerpilih;
-
-      return cocokKata && cocokKelas && cocokMapel;
-    });
-  }, [kataKunci, daftarMapel, kelasById, tingkatTerpilih, mapelTerpilih]);
-
   const semuaTerlihatTerpilih =
-    mapelTersaring.length > 0 &&
-    mapelTersaring.every((mapel) => idTerpilih.has(mapel.id));
+    daftarMapel.length > 0 &&
+    daftarMapel.every((mapel) => idTerpilih.has(mapel.id));
 
   const togglePilihSemuaTerlihat = () => {
     setIdTerpilih((prev) => {
       const next = new Set(prev);
       if (semuaTerlihatTerpilih) {
-        mapelTersaring.forEach((mapel) => next.delete(mapel.id));
+        daftarMapel.forEach((mapel) => next.delete(mapel.id));
       } else {
-        mapelTersaring.forEach((mapel) => next.add(mapel.id));
+        daftarMapel.forEach((mapel) => next.add(mapel.id));
       }
       return next;
     });
@@ -117,361 +152,288 @@ export const DataMataPelajaran: React.FC = () => {
 
   const jumlahTerpilih = idTerpilih.size;
 
+  const resetFilter = () => {
+    setKataKunci("");
+    setTingkatTerpilih("");
+    setMapelTerpilih("");
+  };
+
   return (
-    <div className="bg-neutral-primary-soft shadow-xs rounded-base border border-default w-full min-w-0">
-      <div className="flex items-center justify-between flex-wrap gap-3 p-4">
-        <div className="flex items-center flex-wrap gap-3">
-          <div className="relative">
-            <button
-              className="inline-flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-3 py-2 focus:outline-none"
-              type="button"
-              aria-haspopup="menu"
-              aria-expanded={dropdownAksiTerbuka}
-              onClick={() => setDropdownAksiTerbuka((v) => !v)}
-            >
-              Aksi
-              <svg
-                className="w-4 h-4 ms-1.5 -me-0.5"
-                aria-hidden="true"
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="m19 9-7 7-7-7"
-                />
-              </svg>
-            </button>
-
-            {dropdownAksiTerbuka && (
-              <div
-                role="menu"
-                className="absolute mt-2 z-20 bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-36"
-                onMouseLeave={() => setDropdownAksiTerbuka(false)}
-              >
-                <ul className="p-2 text-sm text-body font-medium">
-                  <li>
-                    <button
-                      type="button"
-                      className="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded text-left"
-                      onClick={() => setDropdownAksiTerbuka(false)}
-                      disabled={jumlahTerpilih === 0}
-                      title={
-                        jumlahTerpilih === 0
-                          ? "Pilih minimal 1 mata pelajaran"
-                          : ""
-                      }
-                    >
-                      Arsipkan
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      type="button"
-                      className="inline-flex items-center w-full p-2 text-fg-danger hover:bg-neutral-tertiary-medium rounded text-left"
-                      onClick={() => setDropdownAksiTerbuka(false)}
-                      disabled={jumlahTerpilih === 0}
-                      title={
-                        jumlahTerpilih === 0
-                          ? "Pilih minimal 1 mata pelajaran"
-                          : ""
-                      }
-                    >
-                      Hapus
-                    </button>
-                  </li>
-                </ul>
-              </div>
-            )}
-          </div>
-
-          <div className="flex items-center flex-wrap gap-2">
-            <span className="text-xs font-medium text-body">Urutkan:</span>
-
-            {/* Dropdown Tingkat Kelas (unik) */}
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setDropdownKelasTerbuka((prev) => !prev)}
-                className="inline-flex items-center gap-2 text-sm cursor-pointer px-3 py-2 rounded-base border shadow-xs bg-neutral-secondary-medium text-body border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading"
-                aria-haspopup="menu"
-                aria-expanded={dropdownKelasTerbuka}
-              >
-                Kelas:{" "}
-                <span className="font-medium text-heading cursor-pointer">
-                  {tingkatTerpilih === "semua" ? "Semua" : tingkatTerpilih}
-                </span>
-                <svg
-                  className="w-4 h-4"
-                  aria-hidden="true"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="m19 9-7 7-7-7"
-                  />
-                </svg>
-              </button>
-
-              {dropdownKelasTerbuka && (
-                <div
-                  role="menu"
-                  className="absolute mt-2 z-20 bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-48"
-                  onMouseLeave={() => setDropdownKelasTerbuka(false)}
-                >
-                  <ul className="p-2 text-sm text-body font-medium">
-                    <li>
-                      <button
-                        type="button"
-                        className="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded text-left"
-                        onClick={() => {
-                          setTingkatTerpilih("semua");
-                          setDropdownKelasTerbuka(false);
-                        }}
-                      >
-                        Semua Kelas
-                      </button>
-                    </li>
-
-                    {opsiTingkatKelas.map((tingkat) => (
-                      <li key={tingkat}>
-                        <button
-                          type="button"
-                          className="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded text-left"
-                          onClick={() => {
-                            setTingkatTerpilih(tingkat);
-                            setDropdownKelasTerbuka(false);
-                          }}
-                        >
-                          {tingkat}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-
-            {/* Dropdown Mapel */}
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setDropdownMapelTerbuka((prev) => !prev)}
-                className="inline-flex cursor-pointer items-center gap-2 text-sm px-3 py-2 rounded-base border shadow-xs bg-neutral-secondary-medium text-body border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading"
-                aria-haspopup="menu"
-                aria-expanded={dropdownMapelTerbuka}
-              >
-                Mapel:{" "}
-                <span className="font-medium text-heading">
-                  {mapelTerpilih === "semua"
-                    ? "Semua"
-                    : opsiMapel.find((opsi) => opsi.id === mapelTerpilih)
-                        ?.label ?? "-"}
-                </span>
-                <svg
-                  className="w-4 h-4"
-                  aria-hidden="true"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="m19 9-7 7-7-7"
-                  />
-                </svg>
-              </button>
-
-              {dropdownMapelTerbuka && (
-                <div
-                  role="menu"
-                  className="absolute mt-2 z-20 bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-52"
-                  onMouseLeave={() => setDropdownMapelTerbuka(false)}
-                >
-                  <ul className="p-2 text-sm text-body font-medium">
-                    <li>
-                      <button
-                        type="button"
-                        className="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded text-left"
-                        onClick={() => {
-                          setMapelTerpilih("semua");
-                          setDropdownMapelTerbuka(false);
-                        }}
-                      >
-                        Semua Mata Pelajaran
-                      </button>
-                    </li>
-
-                    {opsiMapel.map((opsi) => (
-                      <li key={opsi.id}>
-                        <button
-                          type="button"
-                          className="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded text-left"
-                          onClick={() => {
-                            setMapelTerpilih(opsi.id);
-                            setDropdownMapelTerbuka(false);
-                          }}
-                        >
-                          {opsi.label}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          </div>
+    <div className="w-full space-y-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight text-slate-900">
+            Data Mata Pelajaran
+          </h2>
+          <p className="mt-1 text-sm text-slate-500">
+            Kelola daftar mata pelajaran, kode mapel, serta kelas terkait.
+          </p>
         </div>
 
-        {/* Search */}
-        <div className="relative w-full sm:w-80 md:w-96">
-          <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-            <svg
-              className="w-4 h-4 text-body"
-              aria-hidden="true"
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeWidth="2"
-                d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z"
-              />
-            </svg>
-          </div>
-          <input
-            type="text"
-            id="pencarian-mapel"
-            value={kataKunci}
-            onChange={(e) => setKataKunci(e.target.value)}
-            className="block w-full ps-9 pe-3 py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body"
-            placeholder="Cari mata pelajaran..."
+        <div className="flex items-center gap-3">
+          <AddButton
+            label="Tambah Mata Pelajaran"
+            onClick={() =>
+              navigate("/dashboard/administrator/data-master/tambah-mapel")
+            }
           />
         </div>
       </div>
 
-      {/* Table */}
-      <div className="w-full overflow-x-auto">
-        <table className="w-max min-w-full text-sm text-left rtl:text-right text-body">
-          <thead className="text-sm text-body bg-neutral-secondary-medium border-b border-t border-default-medium">
-            <tr className="whitespace-nowrap">
-              <th scope="col" className="p-4">
-                <div className="flex items-center">
+      <div className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+          <div className="w-full lg:w-[340px]">
+            <label className="text-xs font-medium text-slate-600">
+              Pencarian
+            </label>
+            <div className="relative mt-1">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                <Search className="h-4 w-4 text-slate-400" />
+              </div>
+              <input
+                type="text"
+                value={kataKunci}
+                onChange={(e) => setKataKunci(e.target.value)}
+                className="block w-full cursor-pointer rounded-lg border border-slate-200 bg-slate-50 py-2 pl-10 pr-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#397e50] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#397e50]"
+                placeholder="Cari kode, nama mapel, atau deskripsi..."
+              />
+            </div>
+          </div>
+
+          <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-3">
+            <div>
+              <label className="text-xs font-medium text-slate-600">
+                Tingkat Kelas
+              </label>
+              <select
+                value={tingkatTerpilih}
+                onChange={(e) => setTingkatTerpilih(e.target.value)}
+                className="mt-1 w-full cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-[#397e50] focus:outline-none focus:ring-1 focus:ring-[#397e50]"
+              >
+                <option value="">Semua</option>
+                {opsiTingkatKelas.map((tingkat) => (
+                  <option key={tingkat} value={String(tingkat)}>
+                    {tingkat}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-slate-600">Mapel</label>
+              <select
+                value={mapelTerpilih}
+                onChange={(e) => setMapelTerpilih(e.target.value)}
+                className="mt-1 w-full cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-[#397e50] focus:outline-none focus:ring-1 focus:ring-[#397e50]"
+              >
+                <option value="">Semua</option>
+                {opsiMapel.map((mapel) => (
+                  <option key={mapel.id} value={mapel.id}>
+                    {mapel.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between gap-2 lg:justify-end">
+            <button
+              type="button"
+              onClick={resetFilter}
+              className="cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
+            >
+              Reset Filter
+            </button>
+
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setDropdownAksiTerbuka((v) => !v)}
+                className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                aria-haspopup="menu"
+                aria-expanded={dropdownAksiTerbuka}
+              >
+                Aksi
+                <ChevronDown className="h-4 w-4 text-slate-400" />
+              </button>
+
+              {dropdownAksiTerbuka && (
+                <div
+                  role="menu"
+                  className="absolute right-0 z-20 mt-2 w-44 rounded-lg border border-slate-200 bg-white shadow-lg"
+                  onMouseLeave={() => setDropdownAksiTerbuka(false)}
+                >
+                  <ul className="p-2 text-sm text-slate-700">
+                    <li>
+                      <button
+                        type="button"
+                        className="flex w-full items-center gap-2 rounded-lg px-3 py-2 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                        onClick={() => setDropdownAksiTerbuka(false)}
+                        disabled={jumlahTerpilih === 0}
+                      >
+                        <Archive className="h-4 w-4 text-slate-500" />
+                        Arsipkan
+                      </button>
+                    </li>
+                    <li>
+                      <button
+                        type="button"
+                        className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-rose-600 hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-50"
+                        onClick={() => setDropdownAksiTerbuka(false)}
+                        disabled={jumlahTerpilih === 0}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        Hapus
+                      </button>
+                    </li>
+                  </ul>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="text-sm text-slate-600">
+          {loading ? (
+            <span>Memuat data...</span>
+          ) : errorMsg ? (
+            <span className="text-rose-600">{errorMsg}</span>
+          ) : (
+            <span>
+              Menampilkan <span className="font-medium">{daftarMapel.length}</span>{" "}
+              hasil.
+            </span>
+          )}
+        </div>
+      </div>
+
+      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm text-slate-600">
+            <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase text-slate-500">
+              <tr>
+                <th scope="col" className="w-4 p-4">
                   <input
-                    id="cek-semua-mapel"
                     type="checkbox"
                     checked={semuaTerlihatTerpilih}
                     onChange={togglePilihSemuaTerlihat}
-                    className="w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft"
+                    className="h-4 w-4 cursor-pointer rounded border-slate-300 text-[#397e50] focus:ring-[#397e50]"
                   />
-                  <label htmlFor="cek-semua-mapel" className="sr-only">
-                    Pilih semua
-                  </label>
-                </div>
-              </th>
-
-              <th scope="col" className="px-6 py-3 font-medium">
-                Nomor
-              </th>
-              <th scope="col" className="px-6 py-3 font-medium">
-                Kelas
-              </th>
-              <th scope="col" className="px-6 py-3 font-medium">
-                Kode Mapel
-              </th>
-              <th scope="col" className="px-6 py-3 font-medium">
-                Nama Mapel
-              </th>
-              <th scope="col" className="px-6 py-3 font-medium">
-                Deskripsi Mapel
-              </th>
-              <th scope="col" className="px-6 py-3 font-medium">
-                Aksi
-              </th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {mapelTersaring.map((mapel, index) => {
-              const tingkatKelas =
-                kelasById[mapel.kelasId]?.tingkat_kelas ?? "-";
-
-              return (
-                <tr
-                  key={mapel.id}
-                  className="bg-neutral-primary-soft border-b border-default hover:bg-neutral-secondary-medium whitespace-nowrap"
-                >
-                  <td className="w-4 p-4">
-                    <div className="flex items-center">
-                      <input
-                        id={`cek-${mapel.id}`}
-                        type="checkbox"
-                        checked={idTerpilih.has(mapel.id)}
-                        onChange={() => togglePilihBaris(mapel.id)}
-                        className="w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft"
-                      />
-                      <label htmlFor={`cek-${mapel.id}`} className="sr-only">
-                        Pilih baris
-                      </label>
+                </th>
+                <th scope="col" className="px-6 py-3 font-semibold">
+                  Kode Mapel
+                </th>
+                <th scope="col" className="px-6 py-3 font-semibold">
+                  Mata Pelajaran
+                </th>
+                <th scope="col" className="px-6 py-3 font-semibold">
+                  Kelas
+                </th>
+                <th scope="col" className="px-6 py-3 font-semibold">
+                  Deskripsi
+                </th>
+                <th scope="col" className="px-6 py-3 text-right font-semibold">
+                  Aksi
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-200">
+              {daftarMapel.length > 0 ? (
+                daftarMapel.map((mapel) => {
+                  const kelas = kelasById[mapel.kelasId];
+                  return (
+                    <tr
+                      key={mapel.id}
+                      className={`transition-colors hover:bg-slate-50 ${
+                        idTerpilih.has(mapel.id) ? "bg-indigo-50/30" : ""
+                      }`}
+                    >
+                      <td className="p-4">
+                        <input
+                          type="checkbox"
+                          checked={idTerpilih.has(mapel.id)}
+                          onChange={() => togglePilihBaris(mapel.id)}
+                          className="h-4 w-4 cursor-pointer rounded border-slate-300 text-[#397e50] focus:ring-[#397e50]"
+                        />
+                      </td>
+                      <td className="px-6 py-4 font-semibold text-slate-900">
+                        {mapel.kodeMapel}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col">
+                          <span className="font-semibold text-slate-900">
+                            {mapel.namaMapel}
+                          </span>
+                          <span className="text-xs text-slate-500">
+                            ID: {mapel.id}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-slate-700">
+                          {kelas?.label ?? "-"}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <p className="text-sm text-slate-600">
+                          {mapel.deskripsiMapel}
+                        </p>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            className="cursor-pointer rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-green-600"
+                            title="Edit"
+                            onClick={() =>
+                              navigate(
+                                "/dashboard/administrator/data-master/tambah-mapel"
+                              )
+                            }
+                          >
+                            <Edit3 className="h-4 w-4" />
+                          </button>
+                          <button
+                            className="cursor-pointer rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-red-600"
+                            title="Hapus"
+                            onClick={() => setIdTerpilih(new Set([mapel.id]))}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr>
+                  <td colSpan={6} className="px-6 py-12 text-center">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <BookOpen className="h-10 w-10 text-slate-300" />
+                      <p className="text-base font-medium text-slate-900">
+                        Tidak ada mata pelajaran ditemukan
+                      </p>
+                      <p className="text-sm text-slate-500">
+                        Coba sesuaikan kata kunci atau filter Anda.
+                      </p>
                     </div>
                   </td>
-
-                  <td className="px-6 py-4">{index + 1}</td>
-
-                  {/* KELAS: teks biasa (tanpa dropdown) */}
-                  <td className="px-6 py-4 text-heading">{tingkatKelas}</td>
-
-                  <td className="px-6 py-4 text-heading">{mapel.kodeMapel}</td>
-                  <td className="px-6 py-4 text-heading font-medium">
-                    {mapel.namaMapel}
-                  </td>
-                  <td className="px-6 py-4 text-body">
-                    {mapel.deskripsiMapel}
-                  </td>
-                  <td className="px-6 py-4">
-                    <button
-                      type="button"
-                      className="font-medium text-fg-brand hover:underline cursor-pointer"
-                      onClick={() => console.log("Ubah", mapel.id)}
-                    >
-                      Ubah
-                    </button>
-                  </td>
                 </tr>
-              );
-            })}
+              )}
+            </tbody>
+          </table>
+        </div>
 
-            {mapelTersaring.length === 0 && (
-              <tr className="bg-neutral-primary-soft">
-                <td className="px-6 py-8 text-center text-body" colSpan={7}>
-                  Tidak ada data.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+        <div className="flex items-center justify-between border-t border-slate-200 bg-white px-4 py-3 sm:px-6">
+          <div className="flex flex-1 items-center justify-between">
+            <p className="text-sm text-slate-700">
+              Menampilkan <span className="font-medium">1</span> sampai{" "}
+              <span className="font-medium">{daftarMapel.length}</span> dari{" "}
+              <span className="font-medium">{daftarMapel.length}</span> hasil
+            </p>
+            <p className="hidden text-xs text-slate-500 sm:block">
+              Geser tabel ke kanan/kiri untuk melihat kolom lainnya.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );
