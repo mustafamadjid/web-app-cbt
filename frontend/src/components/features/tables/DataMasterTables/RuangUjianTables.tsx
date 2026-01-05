@@ -149,7 +149,7 @@ export const RuangUjianTables: React.FC = () => {
             <button
               type="button"
               onClick={resetFilter}
-              className="cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
+              className="min-w-[140px] cursor-pointer rounded-lg border border-slate-200 bg-white px-5 py-2 text-sm text-slate-700 hover:bg-slate-50"
             >
               Reset Filter
             </button>
