@@ -23,7 +23,7 @@ export const paths = {
     tambah_data_master_sesi : join("data-master", "/tambah-sesi"),
 
     bank_soal : "bank-soal",
-    tambah_bank_soal : join("bank-soal", "/tambah-bank-soal"),
+    tambah_bank_soal : join("bank-soal", "/tambah"),
 
     pengaturan:"pengaturan",
   },

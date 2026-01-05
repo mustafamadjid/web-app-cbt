@@ -26,6 +26,7 @@ import { TambahRuang } from "@/pages/Admin/Dashboard/DataMaster/TambahDataMaster
 import { TambahSesi } from "@/pages/Admin/Dashboard/DataMaster/TambahDataMaster/TambahSesi";
 
 import { BankSoal } from "@/pages/Admin/Dashboard/BankSoal/BankSoal";
+import { TambahBankSoal } from "@/pages/Admin/Dashboard/BankSoal/TambahBankSoal";
 
 import { AdminLayout } from "@/layouts/MainLayout/AdminLayout/AdminLayout";
 
@@ -85,7 +86,7 @@ export const router = createBrowserRouter([
       },
       {
         path: paths.dashboard.tambah_bank_soal,
-        element: <div>tambah bank soal</div>,
+        element: <TambahBankSoal />,
       },
     ],
   },
