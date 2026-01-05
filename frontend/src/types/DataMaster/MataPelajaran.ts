@@ -23,3 +23,9 @@ export type MataPelajaranFormValues = {
   namaMapel: string;
   deskripsiMapel: string;
 };
+
+export type MataPelajaranFilterParams = {
+  q?: string;
+  tingkatKelas?: number;
+  mapelId?: string;
+};
