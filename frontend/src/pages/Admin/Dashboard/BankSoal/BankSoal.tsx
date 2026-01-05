@@ -144,7 +144,7 @@ export const BankSoal = () => {
   }, [kelasOptions, selectedKelasId]);
 
   return (
-    <div className="min-h-screen  pb-20">
+    <div className="min-h-screen bg-[#ecf1ed] pb-20">
       <div className="mx-auto max-w-[1600px] space-y-6 p-4 sm:p-6 lg:p-8">
         {/* === ADD BUTTON === */}
         <div className="flex justify-end">

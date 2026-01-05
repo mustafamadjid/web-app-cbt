@@ -2,7 +2,7 @@ import { DataKelasTables } from "@/components/features/tables/DataMasterTables/D
 
 export const DataKelas = () => {
   return (
-    <div className="px-8 pb-8">
+    <div className="px-8 py-13">
       <DataKelasTables />
     </div>
   );

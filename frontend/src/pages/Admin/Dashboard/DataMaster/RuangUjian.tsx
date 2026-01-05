@@ -2,7 +2,7 @@ import { RuangUjianTables } from "@/components/features/tables/DataMasterTables/
 
 export const RuangUjian = () => {
   return (
-    <div className="px-4 pb-8">
+    <div className="px-8 py-13">
       <RuangUjianTables />
     </div>
   );

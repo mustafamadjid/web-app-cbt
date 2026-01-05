@@ -2,7 +2,7 @@ import { DataMataPelajaran } from "@/components/features/tables/DataMasterTables
 
 export const MataPelajaran = () => {
   return (
-    <div className="px-8 pb-8">
+    <div className="px-8 py-13">
       <DataMataPelajaran />
     </div>
   );

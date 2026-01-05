@@ -2,7 +2,7 @@ import { DataSesiTables } from "@/components/features/tables/DataMasterTables/Da
 
 export const DataSesi = () => {
   return (
-    <div className="px-8 pb-8">
+    <div className="px-8 py-13">
       <DataSesiTables />
     </div>
   );

@@ -5,9 +5,36 @@ import type { KelasOption,MataPelajaranOption } from "@/types/DataMaster/MataPel
 // DUMMY DATA
 // =====================
 const DUMMY_KELAS: KelasOption[] = [
-  { id: "kls-10", tingkat_kelas: 10, nama_kelas: "A" },
-  { id: "kls-11", tingkat_kelas: 11, nama_kelas: "IPA 1" },
-  { id: "kls-12", tingkat_kelas: 12, nama_kelas: "IPS 2" },
+  {
+    id: "kls-10-ipa-1",
+    tingkat_kelas: 10,
+    nama_kelas: "IPA 1",
+    label: "Kelas 10 - IPA 1",
+  },
+  {
+    id: "kls-10-ips-1",
+    tingkat_kelas: 10,
+    nama_kelas: "IPS 1",
+    label: "Kelas 10 - IPS 1",
+  },
+  {
+    id: "kls-11-ipa-1",
+    tingkat_kelas: 11,
+    nama_kelas: "IPA 1",
+    label: "Kelas 11 - IPA 1",
+  },
+  {
+    id: "kls-11-ips-1",
+    tingkat_kelas: 11,
+    nama_kelas: "IPS 1",
+    label: "Kelas 11 - IPS 1",
+  },
+  {
+    id: "kls-12-ipa-2",
+    tingkat_kelas: 12,
+    nama_kelas: "IPA 2",
+    label: "Kelas 12 - IPA 2",
+  },
 ];
 
 const DUMMY_MAPEL: MataPelajaranOption[] = [
