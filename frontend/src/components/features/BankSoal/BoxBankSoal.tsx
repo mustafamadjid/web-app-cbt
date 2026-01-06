@@ -1,6 +1,6 @@
 import React from "react";
 
-import { User } from "lucide-react";
+
 
 import type { BankSoalItem } from "@/types/DataMaster/BankSoal";
 

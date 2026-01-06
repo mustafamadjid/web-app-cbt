@@ -13,3 +13,7 @@ export type KelasFilterParams = {
   q?: string;
   tingkatKelas?: number;
 };
+
+export type KelasSubmitResponse = {
+  id: number;
+};
