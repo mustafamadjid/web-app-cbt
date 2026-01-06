@@ -5,5 +5,7 @@ export type ProfilSekolahFormValues = {
   email_sekolah: string;
   kepala_sekolah: string;
   wakil_kepala_sekolah: string;
+  semester: string; //ganjil atau genap
+  tahun_ajaran: string;
   logo_sekolah: File | null;
 };

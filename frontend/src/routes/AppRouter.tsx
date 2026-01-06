@@ -45,6 +45,7 @@ export const router = createBrowserRouter([
       {
         element: <HeaderLayout />,
         children: [
+          { index: true, element: <Home /> },
           {
             path: paths.dashboard.kelola_akun_guru,
             element: <KelolaAkunGuru />,
@@ -64,7 +65,6 @@ export const router = createBrowserRouter([
           { path: paths.dashboard.bank_soal, element: <BankSoal /> },
         ],
       },
-      { index: true, element: <Home /> },
 
       { path: paths.dashboard.tambah_guru, element: <TambahGuru /> },
       { path: paths.dashboard.tambah_siswa, element: <TambahSiswa /> },

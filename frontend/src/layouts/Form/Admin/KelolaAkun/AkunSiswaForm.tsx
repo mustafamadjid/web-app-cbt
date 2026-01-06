@@ -4,32 +4,13 @@ import { InputField } from "@/components/common/Input/InputField";
 import { ImageUpload } from "@/components/features/ImageUpload/ImageUpload";
 
 import type { JenisKelamin} from "@/types/OpsiTypes/Option";
+import type { KelasOption } from "@/types/DataMaster/MataPelajaran";
+import type { StudentRegisterFormValues } from "@/types/KelolaAkun/AkunSiswa";
+import { submitStudentRegister } from "@/services/Api/features-api/KelolaAkun/akunsiswa.service";
+import { paths } from "@/routes/paths";
+import { useNavigate } from "react-router";
+import { ApiError } from "@/services/Api/api";
 
-type KelasOption = {
-  id: string;
-  nama: string; 
-};
-
-type StudentRegisterFormValues = {
-  namaLengkap: string;
-  username: string;
-  password: string;
-
-  jenisKelamin: JenisKelamin;
-
-  email?: string; 
-  noHp?: string; 
-
-  noAbsen: string; 
-  angkatan: string; 
-
-  tempatLahir: string;
-  tanggalLahir: string; 
-
-  kelasId: string; 
-
-  fotoProfil: File | null;
-};
 
 const initialValues: StudentRegisterFormValues = {
   namaLengkap: "",
@@ -50,6 +31,9 @@ const sectionTitle = "text-sm font-semibold text-slate-800";
 const helperText = "text-xs text-slate-500";
 
 export const AkunSiswaForm = () => {
+  const navigate = useNavigate();
+
+  const [submitting, setSubmitting] = useState<boolean>(false);
   const [values, setValues] =
     useState<StudentRegisterFormValues>(initialValues);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -74,9 +58,12 @@ export const AkunSiswaForm = () => {
 
   // Dummy options - nanti ganti dari API Data Master
   const kelasOptions: KelasOption[] = [
-    { id: "kelas-1", nama: "X IPA 1" },
-    { id: "kelas-2", nama: "X IPA 2" },
-    { id: "kelas-3", nama: "X IPS 1" },
+    {id: "kelas-10-ipa-1", tingkat_kelas: 10, nama_kelas: "X IPA 1", label: "X IPA 1"},
+    {id: "kelas-10-ips-1", tingkat_kelas: 10, nama_kelas: "X IPS 1", label: "X IPS 1"},
+    {id: "kelas-11-ipa-1", tingkat_kelas: 11, nama_kelas: "XI IPA 1", label: "XI IPA 1"},
+    {id: "kelas-11-ips-1", tingkat_kelas: 11, nama_kelas: "XI IPS 1", label: "XI IPS 1"},
+    {id: "kelas-12-ipa-1", tingkat_kelas: 12, nama_kelas: "XII IPA 1", label: "XII IPA 1"},
+    {id: "kelas-12-ips-1", tingkat_kelas: 12, nama_kelas: "XII IPS 1", label: "XII IPS 1"},
   ];
 
   const setField = <K extends keyof StudentRegisterFormValues>(
@@ -147,7 +134,7 @@ export const AkunSiswaForm = () => {
   const hasError = (name: keyof StudentRegisterFormValues) =>
     !!errors[name] && !!touched[name];
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitError(null);
 
@@ -172,25 +159,18 @@ export const AkunSiswaForm = () => {
       return;
     }
 
-    const formData = new FormData();
-    formData.append("namaLengkap", values.namaLengkap.trim());
-    formData.append("username", values.username.trim());
-    formData.append("password", values.password);
-    formData.append("jenisKelamin", values.jenisKelamin);
-
-    if (values.email?.trim()) formData.append("email", values.email.trim());
-    if (values.noHp?.trim()) formData.append("noHp", values.noHp.trim());
-
-    formData.append("noAbsen", values.noAbsen.trim());
-    formData.append("angkatan", values.angkatan.trim());
-    formData.append("tempatLahir", values.tempatLahir.trim());
-    formData.append("tanggalLahir", values.tanggalLahir);
-    formData.append("kelasId", values.kelasId);
-
-    if (values.fotoProfil) formData.append("fotoProfil", values.fotoProfil);
-
-    console.log("READY_TO_SUBMIT", Object.fromEntries(formData.entries()));
-    alert("Form valid. Lanjutkan submit ke API.");
+    try {
+      setSubmitting(true);
+      await submitStudentRegister(values);
+      alert("Akun siswa berhasil dibuat.");
+      setTimeout(() => navigate(`dashboard/administrator/${paths.dashboard.kelola_akun_siswa}`), 1500);
+    } catch (error) {
+      if (error instanceof ApiError){
+              setSubmitError(error.message);
+        } 
+    }finally{
+      setSubmitting(false);
+    }
   };
 
   const clearFoto = () => {
@@ -437,7 +417,7 @@ export const AkunSiswaForm = () => {
                   </option>
                   {kelasOptions.map((k) => (
                     <option key={k.id} value={k.id}>
-                      {k.nama}
+                      {k.nama_kelas}
                     </option>
                   ))}
                 </select>

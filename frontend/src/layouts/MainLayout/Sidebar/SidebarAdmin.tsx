@@ -258,7 +258,7 @@ export const SidebarAdmin = ({
         aria-label="Sidebar"
         ref={sidebarRef}
         className={[
-          "fixed top-0 left-0 z-40 w-64 h-screen rounded-r-xl",
+          "fixed top-0 left-0 z-40 w-64 h-screen rounded-r-sm",
           "transition-transform duration-200 ease-out",
           isOpen ? "translate-x-0" : "-translate-x-full",
           "flex flex-col overflow-hidden",

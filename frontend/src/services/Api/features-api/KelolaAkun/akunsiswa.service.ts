@@ -1,0 +1,266 @@
+import { buildFormData } from "@/helper/FormData/BuildFormData";
+
+import type { JenisKelamin } from "@/types/OpsiTypes/Option";
+import type { KelasOption } from "@/types/DataMaster/MataPelajaran";
+import type { StudentRegisterFormValues, StudentRegisterResponse } from "@/types/KelolaAkun/AkunSiswa";
+import { api, type ApiEnvelope } from "../../api";
+
+export type BarisSiswa = {
+  id: string;
+  namaLengkap: string;
+  username: string;
+  email?: string;
+  nomorHp?: string;
+  jenisKelamin: JenisKelamin;
+  statusAkun: "aktif" | "nonaktif" | "dibekukan";
+  noAbsen: number;
+  angkatan: number;
+  tempatLahir: string;
+  tanggalLahir: string; // yyyy-mm-dd
+  kelas: string;
+  urlGambarProfil: string;
+};
+
+export type SiswaFilterParams = {
+  q?: string;
+  angkatan?: number;
+  kelasId?: string;
+  jenisKelamin?: JenisKelamin;
+};
+
+
+
+type BarisSiswaLocal = BarisSiswa & { __kelasId: string };
+export const DUMMY_KELAS: KelasOption[] = [
+  {
+    id: "kls-10-ipa-1",
+    tingkat_kelas: 10,
+    nama_kelas: "IPA 1",
+    label: "Kelas 10 - IPA 1",
+  },
+  {
+    id: "kls-10-ips-1",
+    tingkat_kelas: 10,
+    nama_kelas: "IPS 1",
+    label: "Kelas 10 - IPS 1",
+  },
+  {
+    id: "kls-11-ipa-1",
+    tingkat_kelas: 11,
+    nama_kelas: "IPA 1",
+    label: "Kelas 11 - IPA 1",
+  },
+  {
+    id: "kls-11-ips-1",
+    tingkat_kelas: 11,
+    nama_kelas: "IPS 1",
+    label: "Kelas 11 - IPS 1",
+  },
+  {
+    id: "kls-12-ipa-2",
+    tingkat_kelas: 12,
+    nama_kelas: "IPA 2",
+    label: "Kelas 12 - IPA 2",
+  },
+];
+
+export const DUMMY_JENIS_KELAMIN: Array<{
+  value: JenisKelamin;
+  label: string;
+}> = [
+  { value: "LAKI_LAKI", label: "Laki-laki" },
+  { value: "PEREMPUAN", label: "Perempuan" },
+];
+
+export const DUMMY_SISWA: BarisSiswaLocal[] = [
+  {
+    id: "s-0001",
+    __kelasId: "kls-11-ipa-1",
+    namaLengkap: "Siti Aminah",
+    username: "siti.aminah",
+    email: "siti.aminah@gmail.com",
+    nomorHp: "081234567890",
+    jenisKelamin: "PEREMPUAN",
+    statusAkun: "aktif",
+    noAbsen: 12,
+    angkatan: 2025,
+    tempatLahir: "Bandung",
+    tanggalLahir: "2008-01-31",
+    kelas: "XI IPA 1",
+    urlGambarProfil: "https://i.pravatar.cc/150?u=s-0001",
+  },
+  {
+    id: "s-0002",
+    __kelasId: "kls-10-ips-1",
+    namaLengkap: "Raka Pratama",
+    username: "raka.pratama",
+    email: "",
+    nomorHp: "",
+    jenisKelamin: "LAKI_LAKI",
+    statusAkun: "nonaktif",
+    noAbsen: 7,
+    angkatan: 2024,
+    tempatLahir: "Jakarta",
+    tanggalLahir: "2009-08-12",
+    kelas: "X IPS 1",
+    urlGambarProfil: "https://i.pravatar.cc/150?u=s-0002",
+  },
+  {
+    id: "s-0003",
+    __kelasId: "kls-10-ipa-1",
+    namaLengkap: "Dimas Saputra",
+    username: "dimas.saputra",
+    email: "dimas.saputra@mail.com",
+    nomorHp: "082198765432",
+    jenisKelamin: "LAKI_LAKI",
+    statusAkun: "aktif",
+    noAbsen: 3,
+    angkatan: 2025,
+    tempatLahir: "Surabaya",
+    tanggalLahir: "2009-02-20",
+    kelas: "X IPA 1",
+    urlGambarProfil: "https://i.pravatar.cc/150?u=s-0003",
+  },
+  {
+    id: "s-0004",
+    __kelasId: "kls-11-ips-1",
+    namaLengkap: "Nadya Putri",
+    username: "nadya.putri",
+    email: "nadya.putri@gmail.com",
+    nomorHp: "081355500011",
+    jenisKelamin: "PEREMPUAN",
+    statusAkun: "dibekukan",
+    noAbsen: 18,
+    angkatan: 2023,
+    tempatLahir: "Semarang",
+    tanggalLahir: "2008-11-05",
+    kelas: "XI IPS 1",
+    urlGambarProfil: "https://i.pravatar.cc/150?u=s-0004",
+  },
+  {
+    id: "s-0005",
+    __kelasId: "kls-12-ipa-2",
+    namaLengkap: "Bagas Wiratama",
+    username: "bagas.wiratama",
+    email: "bagas.wiratama@school.id",
+    nomorHp: "081200011122",
+    jenisKelamin: "LAKI_LAKI",
+    statusAkun: "aktif",
+    noAbsen: 9,
+    angkatan: 2024,
+    tempatLahir: "Depok",
+    tanggalLahir: "2007-06-14",
+    kelas: "XII IPA 2",
+    urlGambarProfil: "https://i.pravatar.cc/150?u=s-0005",
+  },
+  {
+    id: "s-0006",
+    __kelasId: "kls-10-ips-1",
+    namaLengkap: "Alya Maharani",
+    username: "alya.maharani",
+    email: "alya.maharani@mail.com",
+    nomorHp: "085700099988",
+    jenisKelamin: "PEREMPUAN",
+    statusAkun: "aktif",
+    noAbsen: 21,
+    angkatan: 2025,
+    tempatLahir: "Bogor",
+    tanggalLahir: "2009-09-01",
+    kelas: "X IPS 1",
+    urlGambarProfil: "https://i.pravatar.cc/150?u=s-0006",
+  },
+];
+/** === DUMMY OPTIONS === */
+export const DUMMY_ANGKATAN: number[] = [2023, 2024, 2025];
+
+// Submit Data
+export async function submitStudentRegister(values: StudentRegisterFormValues) {
+  const formData = buildFormData(values, {
+    transform: (key, value) => {
+      if (value instanceof Blob) return value;
+      if (typeof value === "string") {
+        if (key === "email") return value.trim().toLowerCase();
+        if (key === "password") return value;
+        return value.trim();
+      }
+      return value as any;
+    },
+  });
+
+  const res = await api<ApiEnvelope<StudentRegisterResponse>>(
+    "/students/register",
+    {
+      method: "POST",
+      data: formData,
+    }
+  );
+
+  return res.data;
+}
+
+
+/** === MOCK "API" (simulasikan network delay) === */
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+function normalize(s: string) {
+  return s.toLowerCase().trim();
+}
+
+export async function getAngkatanOptions(): Promise<number[]> {
+  await sleep(250);
+  return DUMMY_ANGKATAN;
+}
+
+export async function getKelasOptions(): Promise<KelasOption[]> {
+  await sleep(250);
+  return DUMMY_KELAS;
+}
+
+export async function getJenisKelaminOptions(): Promise<
+  Array<{ value: JenisKelamin; label: string }>
+> {
+  await sleep(150);
+  return DUMMY_JENIS_KELAMIN;
+}
+
+export async function getSiswa(params: SiswaFilterParams): Promise<BarisSiswa[]> {
+  await sleep(350);
+
+  let data = [...DUMMY_SISWA];
+
+  if (params.angkatan) {
+    data = data.filter((s) => s.angkatan === params.angkatan);
+  }
+
+  if (params.kelasId) {
+    data = data.filter((s) => s.__kelasId === params.kelasId);
+  }
+
+  if (params.jenisKelamin) {
+    data = data.filter((s) => s.jenisKelamin === params.jenisKelamin);
+  }
+
+  if (params.q) {
+    const q = normalize(params.q);
+    data = data.filter((s) => {
+      const hay = normalize(
+        [
+          s.namaLengkap,
+          s.username,
+          s.email ?? "",
+          s.nomorHp ?? "",
+          s.kelas,
+          String(s.noAbsen),
+          String(s.angkatan),
+          s.tempatLahir,
+          s.tanggalLahir,
+          s.statusAkun,
+        ].join(" ")
+      );
+      return hay.includes(q);
+    });
+  }
+
+  // strip internal field sebelum return
+  return data.map(({ __kelasId, ...rest }) => rest);
+}
