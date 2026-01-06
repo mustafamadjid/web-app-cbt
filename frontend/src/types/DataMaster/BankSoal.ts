@@ -1,5 +1,6 @@
 export type BankSoalItem = {
     id: string;
+    guru?: string;
     nama_banksoal?: string;
     mata_pelajaran?: string;
     materi?: string;

@@ -17,6 +17,7 @@ import { AddButton } from "@/components/common/Button/AddButton";
 import { useNavigate } from "react-router";
 
 import type { StatusAkun,JenisKelamin } from "@/types/OpsiTypes/Option";
+import { paths } from "@/routes/paths";
 
 // --- Tipe Data (Sama seperti sebelumnya) ---
 
@@ -215,7 +216,7 @@ export const AkunGuruTables: React.FC = () => {
           <AddButton
             label="Tambah Akun Guru"
             onClick={() =>
-              navigate(`/dashboard/administrator/kelola-akun/tambah-guru`)
+              navigate(`/dashboard/administrator/${paths.dashboard.tambah_guru}`)
             }
           />
         </div>

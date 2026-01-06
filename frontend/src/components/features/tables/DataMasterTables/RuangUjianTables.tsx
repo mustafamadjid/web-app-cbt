@@ -12,6 +12,7 @@ import { useNavigate } from "react-router";
 import { AddButton } from "@/components/common/Button/AddButton";
 import type { RuangUjianRow } from "@/types/DataMaster/RuangUjian";
 import { getRuangUjian } from "@/services/Api/features-api/DataMaster/ruang-ujian.service";
+import { paths } from "@/routes/paths";
 
 function useDebouncedValue<T>(value: T, delayMs = 300) {
   const [debounced, setDebounced] = useState(value);
@@ -119,7 +120,7 @@ export const RuangUjianTables: React.FC = () => {
           <AddButton
             label="Tambah Ruang"
             onClick={() =>
-              navigate("/dashboard/administrator/data-master/tambah-ruang")
+              navigate(`/dashboard/administrator/${paths.dashboard.tambah_data_master_ruang}`)
             }
           />
         </div>

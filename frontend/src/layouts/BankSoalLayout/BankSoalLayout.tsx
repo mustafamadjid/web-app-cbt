@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router";
+
 
 import { BoxBankSoal } from "@/components/features/BankSoal/BoxBankSoal";
 
@@ -63,6 +63,7 @@ export const BankSoalLayout: React.FC<BankSoalLayoutProps> = ({
               {/* Content card (geser kanan, sejajar node) */}
               <div className="pl-16">
                 <BoxBankSoal
+                  guru={item.guru}
                   nama_banksoal={item.nama_banksoal}
                   kelas={item.kelas}
                   mata_pelajaran={item.mata_pelajaran}

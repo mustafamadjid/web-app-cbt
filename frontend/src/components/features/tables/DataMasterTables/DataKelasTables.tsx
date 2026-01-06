@@ -15,6 +15,7 @@ import {
   getKelas,
   getTingkatKelasOptions,
 } from "@/services/Api/features-api/DataMaster/kelas.service";
+import { paths } from "@/routes/paths";
 
 function useDebouncedValue<T>(value: T, delayMs = 300) {
   const [debounced, setDebounced] = useState(value);
@@ -145,7 +146,7 @@ export const DataKelasTables: React.FC = () => {
           <AddButton
             label="Tambah Kelas"
             onClick={() =>
-              navigate("/dashboard/administrator/data-master/tambah-kelas")
+              navigate(`/dashboard/administrator/${paths.dashboard.tambah_data_master_kelas}`)
             }
           />
         </div>
@@ -325,7 +326,7 @@ export const DataKelasTables: React.FC = () => {
                           title="Edit"
                           onClick={() =>
                             navigate(
-                              "/dashboard/administrator/data-master/tambah-kelas"
+                              `/dashboard/administrator/${paths.dashboard.data_master_kelas}/id`
                             )
                           }
                         >

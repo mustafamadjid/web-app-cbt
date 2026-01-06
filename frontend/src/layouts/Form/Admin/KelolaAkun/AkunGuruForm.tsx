@@ -3,22 +3,13 @@ import React, { useEffect, useRef, useState } from "react";
 import { InputField } from "@/components/common/Input/InputField";
 import { ImageUpload } from "@/components/features/ImageUpload/ImageUpload";
 
-import type { JenisKelamin,StatusAkun } from "@/types/OpsiTypes/Option";
+import type { TeacherRegisterFormValues } from "@/types/KelolaAkun/AkunGuru";
+import type { JenisKelamin } from "@/types/OpsiTypes/Option";
+import { submitTeacherRegister } from "@/services/Api/features-api/KelolaAkun/akunguru.service";
+import { ApiError } from "@/services/Api/api";
+import { useNavigate } from "react-router";
+import { paths } from "@/routes/paths";
 
-
-type TeacherRegisterFormValues = {
-  namaLengkap: string;
-  email: string;
-  username: string;
-  password: string;
-  noHp: string;
-  jenisKelamin: JenisKelamin;
-  statusAkun: StatusAkun;
-  nip: string;
-  jabatan: string;
-  bidangStudi: string;
-  fotoProfil: File | null;
-};
 
 const initialValues: TeacherRegisterFormValues = {
   namaLengkap: "",
@@ -27,7 +18,7 @@ const initialValues: TeacherRegisterFormValues = {
   password: "",
   noHp: "",
   jenisKelamin: "LAKI_LAKI",
-  statusAkun: "AKTIF",
+  statusAkun: "aktif",
   nip: "",
   jabatan: "",
   bidangStudi: "",
@@ -38,10 +29,13 @@ const sectionTitle = "text-sm font-semibold text-slate-800";
 const helperText = "text-xs text-slate-500";
 
 export const AkunGuruForm = () => {
+  const navigate = useNavigate();
+
   const [values, setValues] =
     useState<TeacherRegisterFormValues>(initialValues);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState<boolean>(false);
   const [fotoUrl, setFotoUrl] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -102,7 +96,7 @@ export const AkunGuruForm = () => {
   const hasError = (name: keyof TeacherRegisterFormValues) =>
     !!errors[name] && !!touched[name];
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitError(null);
 
@@ -126,21 +120,20 @@ export const AkunGuruForm = () => {
       return;
     }
 
-    const formData = new FormData();
-    formData.append("namaLengkap", values.namaLengkap);
-    formData.append("email", values.email);
-    formData.append("username", values.username);
-    formData.append("password", values.password);
-    formData.append("noHp", values.noHp);
-    formData.append("jenisKelamin", values.jenisKelamin);
-    formData.append("statusAkun", values.statusAkun);
-    formData.append("nip", values.nip);
-    formData.append("jabatan", values.jabatan);
-    formData.append("bidangStudi", values.bidangStudi);
-    if (values.fotoProfil) formData.append("fotoProfil", values.fotoProfil);
-
-    console.log("READY_TO_SUBMIT", Object.fromEntries(formData.entries()));
-    alert("Form valid. Lanjutkan submit ke API.");
+    try {
+      setSubmitting(true);
+      await submitTeacherRegister(values);
+      
+      alert("Akun guru berhasil dibuat.");
+      setTimeout(() => navigate(`dashboard/administrator/${paths.dashboard.kelola_akun_guru}`), 1500);
+    } catch (error) {
+      if (error instanceof ApiError){
+        setSubmitError(error.message);
+      } 
+      
+    }finally{
+      setSubmitting(false);
+    }
   };
 
   const clearFoto = () => {

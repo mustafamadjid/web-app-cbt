@@ -20,6 +20,7 @@ import {
   getMataPelajaran,
   getMataPelajaranOptions,
 } from "@/services/Api/features-api/DataMaster/mapel.service";
+import { paths } from "@/routes/paths";
 
 function useDebouncedValue<T>(value: T, delayMs = 300) {
   const [debounced, setDebounced] = useState(value);
@@ -174,7 +175,7 @@ export const DataMataPelajaran: React.FC = () => {
           <AddButton
             label="Tambah Mata Pelajaran"
             onClick={() =>
-              navigate("/dashboard/administrator/data-master/tambah-mapel")
+              navigate(`/dashboard/administrator/${paths.dashboard.data_master_mapel}`)
             }
           />
         </div>
@@ -385,7 +386,7 @@ export const DataMataPelajaran: React.FC = () => {
                             title="Edit"
                             onClick={() =>
                               navigate(
-                                "/dashboard/administrator/data-master/tambah-mapel"
+                                "/dashboard/administrator/data-master/tambah-mapel/id"
                               )
                             }
                           >

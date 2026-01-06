@@ -49,3 +49,36 @@
 //     token,
 //   });
 // }
+
+import { api } from "../../api";
+import { buildFormData } from "@/helper/FormData/BuildFormData";
+
+import type { TeacherRegisterFormValues,TeacherRegisterResponse } from "@/types/KelolaAkun/AkunGuru";
+import type { ApiEnvelope } from "../../api";
+
+
+export async function submitTeacherRegister(values: TeacherRegisterFormValues) {
+  const formData = buildFormData(values, {
+    transform: (key, value) => {
+      if (value instanceof Blob) return value;
+      if (typeof value === "string") {
+        if (key === "email") return value.trim().toLowerCase();
+        if (key === "password") return value;
+        return value.trim();
+      }
+      return value as any;
+    },
+  });
+
+  // Penting: jangan set Content-Type manual untuk FormData
+  const res = await api<ApiEnvelope<TeacherRegisterResponse>>(
+    "/teachers/register",
+    {
+      method: "POST",
+      data: formData,
+      
+    }
+  );
+
+  return res.data;
+}

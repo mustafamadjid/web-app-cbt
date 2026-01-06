@@ -27,6 +27,7 @@ import {
 } from "@/services/Api/features-api/KelolaAkun/akunsiswa.service";
 
 import type { KelasOption } from "@/types/DataMaster/MataPelajaran";
+import { paths } from "@/routes/paths";
 
 /** ===== Helpers ===== */
 const getStatusBadge = (status: StatusAkun) => {
@@ -262,7 +263,7 @@ export const AkunSiswaTables: React.FC = () => {
           <AddButton
             label="Tambah Akun Siswa"
             onClick={() =>
-              navigate(`/dashboard/administrator/kelola-akun/tambah-siswa`)
+              navigate(`/dashboard/administrator/${paths.dashboard.tambah_siswa}`)
             }
           />
         </div>

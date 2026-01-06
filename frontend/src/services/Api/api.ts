@@ -37,9 +37,7 @@ export class ApiError extends Error {
 const client = axios.create({
   baseURL: API_URL,
   withCredentials: true, // penting: kirim refresh cookie
-  headers: {
-    "Content-Type": "application/json",
-  },
+ 
 });
 
 // client khusus refresh supaya tidak terjebak interceptor/loop

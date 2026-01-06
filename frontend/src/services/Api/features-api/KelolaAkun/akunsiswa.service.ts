@@ -1,7 +1,9 @@
+import { buildFormData } from "@/helper/FormData/BuildFormData";
 
 import type { JenisKelamin } from "@/types/OpsiTypes/Option";
-
 import type { KelasOption } from "@/types/DataMaster/MataPelajaran";
+import type { StudentRegisterFormValues, StudentRegisterResponse } from "@/types/KelolaAkun/AkunSiswa";
+import { api, type ApiEnvelope } from "../../api";
 
 export type BarisSiswa = {
   id: string;
@@ -170,6 +172,32 @@ export const DUMMY_SISWA: BarisSiswaLocal[] = [
 ];
 /** === DUMMY OPTIONS === */
 export const DUMMY_ANGKATAN: number[] = [2023, 2024, 2025];
+
+// Submit Data
+export async function submitStudentRegister(values: StudentRegisterFormValues) {
+  const formData = buildFormData(values, {
+    transform: (key, value) => {
+      if (value instanceof Blob) return value;
+      if (typeof value === "string") {
+        if (key === "email") return value.trim().toLowerCase();
+        if (key === "password") return value;
+        return value.trim();
+      }
+      return value as any;
+    },
+  });
+
+  const res = await api<ApiEnvelope<StudentRegisterResponse>>(
+    "/students/register",
+    {
+      method: "POST",
+      data: formData,
+    }
+  );
+
+  return res.data;
+}
+
 
 /** === MOCK "API" (simulasikan network delay) === */
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));

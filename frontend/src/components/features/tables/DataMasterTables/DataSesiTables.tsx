@@ -12,6 +12,7 @@ import { useNavigate } from "react-router";
 import { AddButton } from "@/components/common/Button/AddButton";
 import type { SesiRow } from "@/types/DataMaster/Sesi";
 import { getSesi } from "@/services/Api/features-api/DataMaster/sesi.service";
+import { paths } from "@/routes/paths";
 
 function useDebouncedValue<T>(value: T, delayMs = 300) {
   const [debounced, setDebounced] = useState(value);
@@ -118,7 +119,7 @@ export const DataSesiTables: React.FC = () => {
           <AddButton
             label="Tambah Sesi"
             onClick={() =>
-              navigate("/dashboard/administrator/data-master/tambah-sesi")
+              navigate(`/dashboard/administrator/${paths.dashboard.tambah_data_master_sesi}`)
             }
           />
         </div>
