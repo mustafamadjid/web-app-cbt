@@ -3,6 +3,8 @@ import React, { useState } from "react";
 import { InputField } from "@/components/common/Input/InputField";
 
 import type { KelasFormValues } from "@/types/DataMaster/Kelas";
+import { submitKelasResponse } from "@/services/Api/features-api/DataMaster/kelas.service";
+import { ApiError } from "@/services/Api/api";
 
 const initialValues: KelasFormValues = {
   tingkat_kelas: "",
@@ -52,7 +54,7 @@ export const DataKelasForm = () => {
   const hasError = (name: keyof KelasFormValues) =>
     !!errors[name] && !!touched[name];
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitError(null);
 
@@ -69,13 +71,14 @@ export const DataKelasForm = () => {
       return;
     }
 
-    // payload siap kirim API
-    const payload = {
-      tingkat_kelas: values.tingkat_kelas as number,
-      nama_kelas: values.nama_kelas.trim(),
-    };
-
-    console.log("READY_TO_SUBMIT", payload);
+    try {
+      await submitKelasResponse(values);
+      alert("Kelas berhasil ditambahkan.");
+    } catch (error) {
+      if(error instanceof ApiError){
+        setSubmitError(error.message);
+      }
+    }
   };
 
   return (

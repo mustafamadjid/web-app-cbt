@@ -1,4 +1,9 @@
+import { api, } from "../../api";
+import { buildJsonData } from "@/helper/FormData/BuildJsonData";
+
 import type { KelasFilterParams, KelasRow } from "@/types/DataMaster/Kelas";
+import type { KelasSubmitResponse,KelasFormValues } from "@/types/DataMaster/Kelas";
+import type { ApiEnvelope } from "../../api";
 
 const DUMMY_KELAS: KelasRow[] = [
   { id: "kelas-10-ipa-1", tingkat_kelas: 10, nama_kelas: "X IPA 1" },
@@ -8,6 +13,22 @@ const DUMMY_KELAS: KelasRow[] = [
   { id: "kelas-12-ipa-1", tingkat_kelas: 12, nama_kelas: "XII IPA 1" },
   { id: "kelas-12-ips-2", tingkat_kelas: 12, nama_kelas: "XII IPS 2" },
 ];
+
+
+// Submit Handler
+export async function submitKelasResponse(values: KelasFormValues) {
+  const data = buildJsonData(values);
+  const res = await api<ApiEnvelope<KelasSubmitResponse>>(
+    "/kelas",
+    {
+      method: "POST",
+      data,
+    }
+  )
+
+  return res.data
+  
+}
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
