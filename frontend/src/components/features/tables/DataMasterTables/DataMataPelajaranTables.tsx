@@ -167,7 +167,7 @@ export const DataMataPelajaran: React.FC = () => {
             Data Mata Pelajaran
           </h2>
           <p className="mt-1 text-sm text-slate-500">
-            Kelola daftar mata pelajaran, kode mapel, serta kelas terkait.
+            Kelola daftar mata pelajaran, kode mapel, serta tingkat kelas terkait.
           </p>
         </div>
 
@@ -327,7 +327,7 @@ export const DataMataPelajaran: React.FC = () => {
                   Mata Pelajaran
                 </th>
                 <th scope="col" className="px-6 py-3 font-semibold">
-                  Kelas
+                  Tingkat Kelas
                 </th>
                 <th scope="col" className="px-6 py-3 font-semibold">
                   Deskripsi

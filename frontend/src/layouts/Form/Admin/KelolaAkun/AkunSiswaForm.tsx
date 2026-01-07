@@ -58,12 +58,9 @@ export const AkunSiswaForm = () => {
 
   // Dummy options - nanti ganti dari API Data Master
   const kelasOptions: KelasOption[] = [
-    {id: "kelas-10-ipa-1", tingkat_kelas: 10, nama_kelas: "X IPA 1", label: "X IPA 1"},
-    {id: "kelas-10-ips-1", tingkat_kelas: 10, nama_kelas: "X IPS 1", label: "X IPS 1"},
-    {id: "kelas-11-ipa-1", tingkat_kelas: 11, nama_kelas: "XI IPA 1", label: "XI IPA 1"},
-    {id: "kelas-11-ips-1", tingkat_kelas: 11, nama_kelas: "XI IPS 1", label: "XI IPS 1"},
-    {id: "kelas-12-ipa-1", tingkat_kelas: 12, nama_kelas: "XII IPA 1", label: "XII IPA 1"},
-    {id: "kelas-12-ips-1", tingkat_kelas: 12, nama_kelas: "XII IPS 1", label: "XII IPS 1"},
+    { id: "kelas-10", tingkat_kelas: 10, label: "Kelas 10" },
+    { id: "kelas-11", tingkat_kelas: 11, label: "Kelas 11" },
+    { id: "kelas-12", tingkat_kelas: 12, label: "Kelas 12" },
   ];
 
   const setField = <K extends keyof StudentRegisterFormValues>(
@@ -400,7 +397,7 @@ export const AkunSiswaForm = () => {
                   htmlFor="kelasId"
                   className="text-xs font-medium text-slate-600"
                 >
-                  Kelas
+                  Tingkat Kelas
                 </label>
                 <select
                   id="kelasId"
@@ -413,17 +410,17 @@ export const AkunSiswaForm = () => {
                   required
                 >
                   <option value="" disabled>
-                    Pilih kelas...
+                    Pilih tingkat kelas...
                   </option>
                   {kelasOptions.map((k) => (
                     <option key={k.id} value={k.id}>
-                      {k.nama_kelas}
+                      {k.label}
                     </option>
                   ))}
                 </select>
 
                 <p className="mt-1 text-xs text-slate-500">
-                  Kelas akan diambil dari Data Master.
+                  Tingkat kelas akan diambil dari Data Master.
                 </p>
 
                 {hasError("kelasId") && (

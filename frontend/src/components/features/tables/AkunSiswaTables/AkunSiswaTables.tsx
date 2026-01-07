@@ -312,10 +312,10 @@ export const AkunSiswaTables: React.FC = () => {
               </select>
             </div>
 
-            {/* Kelas */}
+            {/* Tingkat Kelas */}
             <div>
               <label className="text-xs font-medium text-slate-600">
-                Kelas
+                Tingkat Kelas
               </label>
               <select
                 value={kelasId}

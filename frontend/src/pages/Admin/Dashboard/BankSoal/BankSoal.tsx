@@ -139,9 +139,7 @@ export const BankSoal = () => {
     if (!selectedKelasId) return "";
     const k = kelasOptions.find((x) => x.id === selectedKelasId);
     if (!k) return "";
-    return k.nama_kelas
-      ? `Kelas ${k.tingkat_kelas} - ${k.nama_kelas}`
-      : `Kelas ${k.tingkat_kelas}`;
+    return k.label;
   }, [kelasOptions, selectedKelasId]);
 
   return (
@@ -191,7 +189,7 @@ export const BankSoal = () => {
                     }`}
                   >
                     <LayoutGrid className="h-4 w-4" />
-                    Filter Kelas
+                    Filter Tingkat Kelas
                   </button>
                 </div>
               </div>
@@ -200,19 +198,17 @@ export const BankSoal = () => {
               {viewMode === "BY_KELAS" && (
                 <div className="animate-in fade-in slide-in-from-top-2 duration-300">
                   <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-gray-500">
-                    Pilih Kelas
+                    Pilih Tingkat Kelas
                   </label>
                   <div className="flex flex-wrap gap-2">
                     {kelasOptions.length === 0 ? (
                       <span className="text-sm italic text-gray-400">
-                        Data kelas tidak tersedia.
+                        Data tingkat kelas tidak tersedia.
                       </span>
                     ) : (
                       kelasOptions.map((k) => {
                         const isActive = k.id === selectedKelasId;
-                        const label = k.nama_kelas
-                          ? `${k.tingkat_kelas} - ${k.nama_kelas}`
-                          : `Kelas ${k.tingkat_kelas}`;
+                        const label = k.label;
                         return (
                           <button
                             key={k.id}

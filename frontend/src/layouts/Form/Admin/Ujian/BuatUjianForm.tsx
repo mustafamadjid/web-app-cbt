@@ -351,9 +351,9 @@ export const BuatUjianForm = () => {
 
           <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="mb-4">
-              <h2 className={sectionTitle}>Kelas & Bank Soal</h2>
+              <h2 className={sectionTitle}>Tingkat Kelas & Bank Soal</h2>
               <p className={helperText}>
-                Pilih kelas, bank soal, dan lihat jumlah soal otomatis.
+                Pilih tingkat kelas, bank soal, dan lihat jumlah soal otomatis.
               </p>
             </div>
 
@@ -363,7 +363,7 @@ export const BuatUjianForm = () => {
                   htmlFor="kelas_id"
                   className="text-xs font-medium text-slate-600"
                 >
-                  Kelas
+                  Tingkat Kelas
                 </label>
                 <select
                   id="kelas_id"
@@ -375,7 +375,7 @@ export const BuatUjianForm = () => {
                   onBlur={() => onBlur("kelas_id")}
                   required
                 >
-                  <option value="">Pilih kelas</option>
+                  <option value="">Pilih tingkat kelas</option>
                   {kelasOptions.map((kelas) => (
                     <option key={kelas.id} value={kelas.id}>
                       {kelas.label}
@@ -703,7 +703,7 @@ export const BuatUjianForm = () => {
                 <div>
                   <h2 className={sectionTitle}>Preview Daftar Siswa</h2>
                   <p className={helperText}>
-                    Siswa terdaftar berdasarkan kelas yang dipilih.
+                    Siswa terdaftar berdasarkan tingkat kelas yang dipilih.
                   </p>
                 </div>
                 <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
@@ -713,7 +713,7 @@ export const BuatUjianForm = () => {
 
               {!values.kelas_id && (
                 <p className="text-sm text-slate-500">
-                  Pilih kelas untuk melihat daftar siswa.
+                  Pilih tingkat kelas untuk melihat daftar siswa.
                 </p>
               )}
 
@@ -723,7 +723,7 @@ export const BuatUjianForm = () => {
 
               {values.kelas_id && !loadingSiswa && siswaPreview.length === 0 && (
                 <p className="text-sm text-slate-500">
-                  Belum ada siswa pada kelas ini.
+                  Belum ada siswa pada tingkat kelas ini.
                 </p>
               )}
 
