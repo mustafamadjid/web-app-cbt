@@ -8,4 +8,5 @@ export type BankSoalItem = {
     tgl_buat?: string;
     jumlah_soal_pg?: number;
     jumlah_soal_essay?: number;
+    total_soal?: number;
 };
