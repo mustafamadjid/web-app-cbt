@@ -4,7 +4,7 @@ export type BuatUjianFormValues = {
   nama_ujian: string;
   deskripsi_ujian: string;
   tipe_ujian: TipeUjian;
-  kelas_id: string;
+  kelas_id: number | "";
   bank_soal_id: string;
   jumlah_soal: number;
   tanggal_ujian: string;

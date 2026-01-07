@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState } from "react";
 
 import { InputField } from "@/components/common/Input/InputField";
 
-import type { KelasOption } from "@/types/DataMaster/MataPelajaran";
 import type {
   BankSoalOption,
   BuatUjianFormValues,
@@ -15,13 +14,13 @@ import type {
 import {
   getUjianBankSoalOptions,
   getUjianGuruPengawasOptions,
-  getUjianKelasOptions,
   getUjianRuangOptions,
   getUjianSesiOptions,
   getUjianSiswaPreview,
   submitBuatUjian,
 } from "@/services/Api/features-api/Ujian/ujian.service";
 import { ApiError } from "@/services/Api/api";
+import { getTingkatKelasOptions } from "@/services/Api/features-api/DataMaster/kelas.service";
 
 const initialValues: BuatUjianFormValues = {
   nama_ujian: "",
@@ -69,7 +68,7 @@ export const BuatUjianForm = () => {
   const [loadingBankSoal, setLoadingBankSoal] = useState(false);
   const [loadingSiswa, setLoadingSiswa] = useState(false);
 
-  const [kelasOptions, setKelasOptions] = useState<KelasOption[]>([]);
+  const [kelasOptions, setKelasOptions] = useState<number[]>([]);
   const [bankSoalOptions, setBankSoalOptions] = useState<BankSoalOption[]>([]);
   const [ruangOptions, setRuangOptions] = useState<RuangUjianOption[]>([]);
   const [guruOptions, setGuruOptions] = useState<GuruPengawasOption[]>([]);
@@ -90,6 +89,12 @@ export const BuatUjianForm = () => {
     setTouched((prev) => ({ ...prev, [name]: true }));
   };
 
+  const selectedKelasId = useMemo(
+    () =>
+      values.kelas_id === "" ? undefined : `kelas-${values.kelas_id}`,
+    [values.kelas_id]
+  );
+
   const selectedBankSoal = useMemo(
     () => bankSoalOptions.find((item) => item.id === values.bank_soal_id),
     [bankSoalOptions, values.bank_soal_id]
@@ -101,7 +106,7 @@ export const BuatUjianForm = () => {
     const loadOptions = async () => {
       try {
         const [kelas, ruang, guru, sesi] = await Promise.all([
-          getUjianKelasOptions(),
+          getTingkatKelasOptions(),
           getUjianRuangOptions(),
           getUjianGuruPengawasOptions(),
           getUjianSesiOptions(),
@@ -130,7 +135,7 @@ export const BuatUjianForm = () => {
       setLoadingBankSoal(true);
       try {
         const data = await getUjianBankSoalOptions({
-          kelasId: values.kelas_id || undefined,
+          kelasId: selectedKelasId,
         });
         if (!active) return;
         setBankSoalOptions(data);
@@ -139,7 +144,7 @@ export const BuatUjianForm = () => {
       }
     };
 
-    if (values.kelas_id) {
+    if (selectedKelasId) {
       loadBankSoal();
     } else {
       setBankSoalOptions([]);
@@ -150,7 +155,7 @@ export const BuatUjianForm = () => {
     return () => {
       active = false;
     };
-  }, [values.kelas_id]);
+  }, [selectedKelasId]);
 
   useEffect(() => {
     let active = true;
@@ -158,7 +163,7 @@ export const BuatUjianForm = () => {
       setLoadingSiswa(true);
       try {
         const data = await getUjianSiswaPreview({
-          kelasId: values.kelas_id || undefined,
+          kelasId: selectedKelasId,
         });
         if (!active) return;
         setSiswaPreview(data);
@@ -167,7 +172,7 @@ export const BuatUjianForm = () => {
       }
     };
 
-    if (values.kelas_id) {
+    if (selectedKelasId) {
       loadSiswa();
     } else {
       setSiswaPreview([]);
@@ -176,7 +181,7 @@ export const BuatUjianForm = () => {
     return () => {
       active = false;
     };
-  }, [values.kelas_id]);
+  }, [selectedKelasId]);
 
   useEffect(() => {
     if (selectedBankSoal) {
@@ -198,7 +203,7 @@ export const BuatUjianForm = () => {
     if (!v.deskripsi_ujian.trim())
       errors.deskripsi_ujian = "Deskripsi ujian wajib diisi.";
     if (!v.tipe_ujian) errors.tipe_ujian = "Tipe ujian wajib dipilih.";
-    if (!v.kelas_id) errors.kelas_id = "Kelas wajib dipilih.";
+    if (v.kelas_id === "") errors.kelas_id = "Tingkat kelas wajib dipilih.";
     if (!v.bank_soal_id) errors.bank_soal_id = "Bank soal wajib dipilih.";
     if (!v.tanggal_ujian) errors.tanggal_ujian = "Tanggal ujian wajib diisi.";
     if (!v.waktu_mulai) errors.waktu_mulai = "Waktu mulai wajib diisi.";
@@ -370,15 +375,20 @@ export const BuatUjianForm = () => {
                   className={`${selectBaseClass} ${
                     hasError("kelas_id") ? "border-rose-300 ring-rose-100" : ""
                   }`}
-                  value={values.kelas_id}
-                  onChange={(e) => setField("kelas_id", e.target.value)}
+                  value={values.kelas_id === "" ? "" : String(values.kelas_id)}
+                  onChange={(e) =>
+                    setField(
+                      "kelas_id",
+                      e.target.value === "" ? "" : Number(e.target.value)
+                    )
+                  }
                   onBlur={() => onBlur("kelas_id")}
                   required
                 >
                   <option value="">Pilih tingkat kelas</option>
-                  {kelasOptions.map((kelas) => (
-                    <option key={kelas.id} value={kelas.id}>
-                      {kelas.label}
+                  {kelasOptions.map((tingkat) => (
+                    <option key={tingkat} value={String(tingkat)}>
+                      Kelas {tingkat}
                     </option>
                   ))}
                 </select>
@@ -406,7 +416,7 @@ export const BuatUjianForm = () => {
                   value={values.bank_soal_id}
                   onChange={(e) => setField("bank_soal_id", e.target.value)}
                   onBlur={() => onBlur("bank_soal_id")}
-                  disabled={!values.kelas_id || loadingBankSoal}
+                  disabled={values.kelas_id === "" || loadingBankSoal}
                 >
                   <option value="">
                     {loadingBankSoal
@@ -711,17 +721,17 @@ export const BuatUjianForm = () => {
                 </span>
               </div>
 
-              {!values.kelas_id && (
+              {values.kelas_id === "" && (
                 <p className="text-sm text-slate-500">
                   Pilih tingkat kelas untuk melihat daftar siswa.
                 </p>
               )}
 
-              {values.kelas_id && loadingSiswa && (
+              {values.kelas_id !== "" && loadingSiswa && (
                 <p className="text-sm text-slate-500">Memuat data siswa...</p>
               )}
 
-              {values.kelas_id && !loadingSiswa && siswaPreview.length === 0 && (
+              {values.kelas_id !== "" && !loadingSiswa && siswaPreview.length === 0 && (
                 <p className="text-sm text-slate-500">
                   Belum ada siswa pada tingkat kelas ini.
                 </p>

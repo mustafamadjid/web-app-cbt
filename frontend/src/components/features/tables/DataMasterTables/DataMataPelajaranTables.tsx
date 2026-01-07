@@ -11,15 +11,14 @@ import { useNavigate } from "react-router";
 
 import { AddButton } from "@/components/common/Button/AddButton";
 import type {
-  KelasOption,
   MataPelajaranOption,
   MataPelajaranRow,
 } from "@/types/DataMaster/MataPelajaran";
 import {
-  getKelasOptions,
   getMataPelajaran,
   getMataPelajaranOptions,
 } from "@/services/Api/features-api/DataMaster/mapel.service";
+import { getTingkatKelasOptions } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { paths } from "@/routes/paths";
 
 function useDebouncedValue<T>(value: T, delayMs = 300) {
@@ -40,7 +39,7 @@ export const DataMataPelajaran: React.FC = () => {
   const [tingkatTerpilih, setTingkatTerpilih] = useState("");
   const [mapelTerpilih, setMapelTerpilih] = useState("");
 
-  const [opsiKelas, setOpsiKelas] = useState<KelasOption[]>([]);
+  const [opsiTingkatKelas, setOpsiTingkatKelas] = useState<number[]>([]);
   const [opsiMapel, setOpsiMapel] = useState<MataPelajaranOption[]>([]);
 
   const [daftarMapel, setDaftarMapel] = useState<MataPelajaranRow[]>([]);
@@ -59,11 +58,11 @@ export const DataMataPelajaran: React.FC = () => {
       try {
         setErrorMsg("");
         const [kelas, mapel] = await Promise.all([
-          getKelasOptions(),
+          getTingkatKelasOptions(),
           getMataPelajaranOptions(),
         ]);
         if (!mounted) return;
-        setOpsiKelas(kelas);
+        setOpsiTingkatKelas(kelas);
         setOpsiMapel(mapel);
       } catch {
         if (!mounted) return;
@@ -113,18 +112,12 @@ export const DataMataPelajaran: React.FC = () => {
     })();
   }, [debouncedKataKunci, tingkatTerpilih, mapelTerpilih]);
 
-  const kelasById = useMemo(() => {
-    return opsiKelas.reduce<Record<string, KelasOption>>((acc, opsi) => {
-      acc[opsi.id] = opsi;
+  const kelasLabelById = useMemo(() => {
+    return opsiTingkatKelas.reduce<Record<string, string>>((acc, tingkat) => {
+      acc[`kelas-${tingkat}`] = `Kelas ${tingkat}`;
       return acc;
     }, {});
-  }, [opsiKelas]);
-
-  const opsiTingkatKelas = useMemo(() => {
-    const set = new Set<number>();
-    opsiKelas.forEach((k) => set.add(k.tingkat_kelas));
-    return Array.from(set).sort((a, b) => a - b);
-  }, [opsiKelas]);
+  }, [opsiTingkatKelas]);
 
   const semuaTerlihatTerpilih =
     daftarMapel.length > 0 &&
@@ -340,7 +333,7 @@ export const DataMataPelajaran: React.FC = () => {
             <tbody className="divide-y divide-slate-200">
               {daftarMapel.length > 0 ? (
                 daftarMapel.map((mapel) => {
-                  const kelas = kelasById[mapel.kelasId];
+                  const kelasLabel = kelasLabelById[mapel.kelasId];
                   return (
                     <tr
                       key={mapel.id}
@@ -371,7 +364,7 @@ export const DataMataPelajaran: React.FC = () => {
                       </td>
                       <td className="px-6 py-4">
                         <span className="text-slate-700">
-                          {kelas?.label ?? "-"}
+                          {kelasLabel ?? "-"}
                         </span>
                       </td>
                       <td className="px-6 py-4">

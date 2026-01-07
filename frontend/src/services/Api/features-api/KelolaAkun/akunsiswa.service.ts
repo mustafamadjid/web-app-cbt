@@ -1,7 +1,6 @@
 import { buildFormData } from "@/helper/FormData/BuildFormData";
 
 import type { JenisKelamin } from "@/types/OpsiTypes/Option";
-import type { KelasOption } from "@/types/DataMaster/MataPelajaran";
 import type { StudentRegisterFormValues, StudentRegisterResponse } from "@/types/KelolaAkun/AkunSiswa";
 import { api, type ApiEnvelope } from "../../api";
 
@@ -31,23 +30,6 @@ export type SiswaFilterParams = {
 
 
 type BarisSiswaLocal = BarisSiswa & { __kelasId: string };
-export const DUMMY_KELAS: KelasOption[] = [
-  {
-    id: "kelas-10",
-    tingkat_kelas: 10,
-    label: "Kelas 10",
-  },
-  {
-    id: "kelas-11",
-    tingkat_kelas: 11,
-    label: "Kelas 11",
-  },
-  {
-    id: "kelas-12",
-    tingkat_kelas: 12,
-    label: "Kelas 12",
-  },
-];
 
 export const DUMMY_JENIS_KELAMIN: Array<{
   value: JenisKelamin;
@@ -196,11 +178,6 @@ export async function getAngkatanOptions(): Promise<number[]> {
   return DUMMY_ANGKATAN;
 }
 
-export async function getKelasOptions(): Promise<KelasOption[]> {
-  await sleep(250);
-  return DUMMY_KELAS;
-}
-
 export async function getJenisKelaminOptions(): Promise<
   Array<{ value: JenisKelamin; label: string }>
 > {
@@ -212,13 +189,18 @@ export async function getSiswa(params: SiswaFilterParams): Promise<BarisSiswa[]>
   await sleep(350);
 
   let data = [...DUMMY_SISWA];
+  const kelasId = params.kelasId
+    ? params.kelasId.startsWith("kelas-")
+      ? params.kelasId
+      : `kelas-${params.kelasId}`
+    : undefined;
 
   if (params.angkatan) {
     data = data.filter((s) => s.angkatan === params.angkatan);
   }
 
-  if (params.kelasId) {
-    data = data.filter((s) => s.__kelasId === params.kelasId);
+  if (kelasId) {
+    data = data.filter((s) => s.__kelasId === kelasId);
   }
 
   if (params.jenisKelamin) {

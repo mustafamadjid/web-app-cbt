@@ -1,17 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { InputField } from "@/components/common/Input/InputField";
 
-import type {
-  KelasOption,
-  MataPelajaranFormValues,
-} from "@/types/DataMaster/MataPelajaran";
-
-const kelasOptions: KelasOption[] = [
-  { id: "kelas-10", tingkat_kelas: 10, label: "Kelas 10" },
-  { id: "kelas-11", tingkat_kelas: 11, label: "Kelas 11" },
-  { id: "kelas-12", tingkat_kelas: 12, label: "Kelas 12" },
-];
+import type { MataPelajaranFormValues } from "@/types/DataMaster/MataPelajaran";
+import { getTingkatKelasOptions } from "@/services/Api/features-api/DataMaster/kelas.service";
 
 const initialValues: MataPelajaranFormValues = {
   kelasId: "",
@@ -27,11 +19,20 @@ export const DataMapelForm = () => {
   const [values, setValues] = useState<MataPelajaranFormValues>(initialValues);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [kelasOptions, setKelasOptions] = useState<number[]>([]);
 
-  const kelasTingkatOptions = useMemo(
-    () => [...kelasOptions].sort((a, b) => a.tingkat_kelas - b.tingkat_kelas),
-    []
-  );
+  useEffect(() => {
+    let active = true;
+    const loadKelas = async () => {
+      const data = await getTingkatKelasOptions();
+      if (!active) return;
+      setKelasOptions(data);
+    };
+    loadKelas();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const setField = <K extends keyof MataPelajaranFormValues>(
     key: K,
@@ -126,9 +127,9 @@ export const DataMapelForm = () => {
                   <option value="">Pilih tingkat kelas</option>
 
                   {/* 2) Render hanya tingkat kelas unik */}
-                  {kelasTingkatOptions.map((option) => (
-                    <option key={option.id} value={option.id}>
-                      {option.label}
+                  {kelasOptions.map((tingkat) => (
+                    <option key={tingkat} value={String(tingkat)}>
+                      Kelas {tingkat}
                     </option>
                   ))}
                 </select>

@@ -1,7 +1,6 @@
 import { api, type ApiEnvelope } from "../../api";
 import { buildJsonData } from "@/helper/FormData/BuildJsonData";
 
-import type { KelasOption } from "@/types/DataMaster/MataPelajaran";
 import type { BankSoalItem } from "@/types/DataMaster/BankSoal";
 import type {
   BankSoalOption,
@@ -13,10 +12,7 @@ import type {
   SiswaPreviewItem,
 } from "@/types/Ujian/BuatUjian";
 import { getBankSoalByKelas } from "@/services/Api/features-api/BankSoal/banksoal.service";
-import {
-  DUMMY_KELAS,
-  DUMMY_SISWA,
-} from "@/services/Api/features-api/KelolaAkun/akunsiswa.service";
+import { DUMMY_SISWA } from "@/services/Api/features-api/KelolaAkun/akunsiswa.service";
 
 const DUMMY_GURU_PENGAWAS: GuruPengawasOption[] = [
   { id: "gr-001", nama: "Budi Santoso", nip: "198305232010011001", mapel: "Matematika" },
@@ -45,11 +41,6 @@ const getTotalSoal = (item: BankSoalItem) => {
   const essay = item.jumlah_soal_essay ?? 0;
   return pg + essay;
 };
-
-export async function getUjianKelasOptions(): Promise<KelasOption[]> {
-  await sleep(200);
-  return [...DUMMY_KELAS];
-}
 
 export async function getUjianGuruPengawasOptions(): Promise<GuruPengawasOption[]> {
   await sleep(180);

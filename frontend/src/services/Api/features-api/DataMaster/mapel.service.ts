@@ -70,11 +70,6 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const normalize = (value: string) => value.toLowerCase().trim();
 
-export async function getKelasOptions(): Promise<KelasOption[]> {
-  await sleep(150);
-  return DUMMY_KELAS;
-}
-
 export async function getMataPelajaranOptions(): Promise<MataPelajaranOption[]> {
   await sleep(150);
   return DUMMY_MAPEL_OPTIONS;

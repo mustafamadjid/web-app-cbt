@@ -1,26 +1,5 @@
 import type { BankSoalItem } from "@/types/DataMaster/BankSoal";
-import type { KelasOption,MataPelajaranOption } from "@/types/DataMaster/MataPelajaran";
-
-// =====================
-// DUMMY DATA
-// =====================
-const DUMMY_KELAS: KelasOption[] = [
-  {
-    id: "kelas-10",
-    tingkat_kelas: 10,
-    label: "Kelas 10",
-  },
-  {
-    id: "kelas-11",
-    tingkat_kelas: 11,
-    label: "Kelas 11",
-  },
-  {
-    id: "kelas-12",
-    tingkat_kelas: 12,
-    label: "Kelas 12",
-  },
-];
+import type { MataPelajaranOption } from "@/types/DataMaster/MataPelajaran";
 
 const DUMMY_MAPEL: MataPelajaranOption[] = [
   { id: "mp-bindo-10", label: "Bahasa Indonesia (Kelas 10)" },
@@ -118,10 +97,6 @@ const DUMMY_BANKSOAL: BankSoalItemLocal[] = [
 // =====================
 function normalize(s: string) {
   return s.toLowerCase().trim();
-}
-
-export async function getKelasOptions(): Promise<KelasOption[]> {
-  return new Promise((resolve) => setTimeout(() => resolve(DUMMY_KELAS), 250));
 }
 
 export async function getMataPelajaranOptions(params: {
