@@ -1,5 +1,7 @@
 import React from "react";
 
+
+
 import type { BankSoalItem } from "@/types/DataMaster/BankSoal";
 
 type BoxBankSoalProps = Omit<BankSoalItem, "id"> & {
@@ -36,6 +38,7 @@ const kelasLabelClass = (k?: number | string) => {
 
 export const BoxBankSoal: React.FC<BoxBankSoalProps> = ({
   nama_banksoal = "Bank Soal",
+  guru = "-",
   mata_pelajaran = "-",
   materi = "-",
   kelas,
@@ -83,9 +86,14 @@ export const BoxBankSoal: React.FC<BoxBankSoalProps> = ({
         </div>
 
         {/* Title (Lebih Besar) */}
-        <h3 className="mb-4 line-clamp-2 text-lg font-bold leading-snug text-[#37513d] transition-colors group-hover:text-[#397e50]">
+        <h3 className="mb-2 line-clamp-2 text-lg font-bold leading-snug text-[#37513d] transition-colors group-hover:text-[#397e50]">
           {nama_banksoal}
         </h3>
+
+        {/* Guru pembuat soal */}
+        <h4 className="mb-7 truncate  text-gray-700 text-sm flex items-center gap-2">
+          <span className="font-semibold">Dibuat Oleh :</span> {guru}
+        </h4>
 
         {/* Info Content (Text SM agar terbaca jelas) */}
         <div className="mb-4 space-y-2 text-sm">

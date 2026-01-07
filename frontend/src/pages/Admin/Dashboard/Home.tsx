@@ -127,17 +127,7 @@ export const Home = () => {
   return (
     <div className="min-h-screen bg-[#ecf1ed]  pb-20">
       <div className="mx-auto max-w-[1920px] space-y-8 p-4 sm:p-6 lg:p-8">
-        {/* === HEADER SECTION === */}
-        <div className="flex flex-col gap-1">
-          <h1 className="flex items-center gap-2 text-2xl font-bold text-slate-800 sm:text-3xl">
-            <LayoutDashboard className="h-6 w-6 text-[#397e50]  sm:h-8 sm:w-8" />
-            Dashboard
-          </h1>
-          <p className="text-sm text-slate-500">
-            Selamat datang kembali, ringkasan aktivitas akademik hari ini.
-          </p>
-        </div>
-
+      
         {/* === TOP STATS (GRID 4 KOLOM) === */}
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {/* Card 1: Total User (Card Spesial) */}

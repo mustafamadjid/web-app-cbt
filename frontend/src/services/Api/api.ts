@@ -6,6 +6,8 @@ import { authToken } from "../auth/token";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
+export type ApiEnvelope<T> = { data: T; message?: string; meta?: unknown };
+
 export type RequestOptions = Omit<
   AxiosRequestConfig,
   "url" | "baseURL" | "headers"
@@ -35,9 +37,7 @@ export class ApiError extends Error {
 const client = axios.create({
   baseURL: API_URL,
   withCredentials: true, // penting: kirim refresh cookie
-  headers: {
-    "Content-Type": "application/json",
-  },
+ 
 });
 
 // client khusus refresh supaya tidak terjebak interceptor/loop

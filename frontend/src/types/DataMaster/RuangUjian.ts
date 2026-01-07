@@ -1,3 +1,12 @@
 export type RuangUjianFormValues = {
   nama_ruangan_ujian: string;
 };
+
+export type RuangUjianRow = {
+  id: string;
+  namaRuangan: string;
+};
+
+export type RuangUjianFilterParams = {
+  q?: string;
+};
