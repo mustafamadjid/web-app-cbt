@@ -1,3 +1,4 @@
+import { paths } from "@/routes/paths";
 import type { SidebarMenuItem } from "../../../types/Sidebar/SidebarMenu";
 
 const chevronDoubleIcon = (className: string) => (
@@ -25,7 +26,7 @@ export const mainMenuItems: SidebarMenuItem[] = [
     id: "dashboard",
     type: "link",
     label: "Dashboard",
-    to: "/dashboard/administrator",
+    to: paths.dashboard.home_admin,
     end: true,
     icon: (className) => (
       <svg
@@ -81,7 +82,7 @@ export const mainMenuItems: SidebarMenuItem[] = [
       {
         id: "akun-guru",
         label: "Akun Guru",
-        to: "/dashboard/administrator/kelola-akun/guru",
+        to: paths.dashboard.kelola_akun_guru,
         icon: (className) => (
           <svg
             className={className}
@@ -103,7 +104,7 @@ export const mainMenuItems: SidebarMenuItem[] = [
       {
         id: "akun-siswa",
         label: "Akun Siswa",
-        to: "/dashboard/administrator/kelola-akun/siswa",
+        to: paths.dashboard.kelola_akun_siswa,
         icon: (className) => (
           <svg
             className={className}
@@ -151,25 +152,25 @@ export const mainMenuItems: SidebarMenuItem[] = [
       {
         id: "data-mata-pelajaran",
         label: "Data Mata Pelajaran",
-        to: "/dashboard/administrator/data-master/mapel",
+        to: paths.dashboard.data_master_mapel,
         icon: chevronDoubleIcon,
       },
       {
         id: "data-kelas",
         label: "Data Kelas",
-        to: "/dashboard/administrator/data-master/kelas",
+        to: paths.dashboard.data_master_kelas,
         icon: chevronDoubleIcon,
       },
       {
         id: "data-ruang-ujian",
         label: "Data Ruang Ujian",
-        to: "/dashboard/administrator/data-master/ruang",
+        to: paths.dashboard.data_master_ruang,
         icon: chevronDoubleIcon,
       },
       {
         id: "data-sesi",
         label: "Data Sesi",
-        to: "/dashboard/administrator/data-master/sesi",
+        to: paths.dashboard.data_master_sesi,
         icon: chevronDoubleIcon,
       },
     ],
@@ -178,7 +179,7 @@ export const mainMenuItems: SidebarMenuItem[] = [
     id: "bank-soal",
     type: "link",
     label: "Bank Soal",
-    to: "/dashboard/administrator/bank-soal",
+    to: paths.dashboard.bank_soal,
     end: true,
     icon: (className) => (
       <svg
@@ -227,13 +228,13 @@ export const mainMenuItems: SidebarMenuItem[] = [
       {
         id: "jadwal-ujian",
         label: "Jadwal Ujian",
-        to: "/dashboard/administrator/ujian/jadwal",
+        to: paths.dashboard.jadwal_ujian,
         icon: chevronDoubleIcon,
       },
       {
         id: "buat-ujian",
         label: "Buat Ujian",
-        to: "/dashboard/administrator/ujian/buat-ujian",
+        to: paths.dashboard.buat_ujian,
         icon: chevronDoubleIcon,
       },
     ],
@@ -245,7 +246,7 @@ export const footerMenuItems: SidebarMenuItem[] = [
     id: "pengaturan",
     type: "link",
     label: "Pengaturan",
-    to: "/dashboard/administrator/pengaturan",
+    to: paths.dashboard.pengaturan,
     icon: (className) => (
       <svg
         className={className}

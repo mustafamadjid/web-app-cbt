@@ -1,4 +1,9 @@
-const join = (base: string, path: string) => `${base}${path.startsWith('/')? path : `/${path}`}`
+const join = (base: string, path: string) =>
+  `${base}${path.startsWith("/") ? path : `/${path}`}`;
+
+const DASHBOARD_ADMIN = "/dashboard/administrator";
+
+const djoin = (path: string) => join(DASHBOARD_ADMIN, path);
 
 export const paths = {
   public: {
@@ -7,24 +12,30 @@ export const paths = {
   },
 
   dashboard: {
-    // home_admin: join("/dashboard", "/administrator"),
-    kelola_akun_siswa: join("kelola-akun", "/siswa"),
-    kelola_akun_guru: join("kelola-akun", "/guru"),
-    tambah_guru:join("kelola-akun", "/tambah-guru"),
-    tambah_siswa:join("kelola-akun", "/tambah-siswa"),
+    home_admin: DASHBOARD_ADMIN,
 
-    data_master_mapel : join("data-master", "/mapel"),
-    data_master_kelas : join("data-master", "/kelas"),
-    data_master_ruang : join("data-master", "/ruang"),
-    data_master_sesi : join("data-master", "/sesi"),
-    tambah_data_master_mapel : join("data-master", "/tambah-mapel"),
-    tambah_data_master_kelas : join("data-master", "/tambah-kelas"),
-    tambah_data_master_ruang : join("data-master", "/tambah-ruang"),
-    tambah_data_master_sesi : join("data-master", "/tambah-sesi"),
+    kelola_akun_siswa: djoin(join("kelola-akun", "/siswa")),
+    kelola_akun_guru: djoin(join("kelola-akun", "/guru")),
+    tambah_guru: djoin(join("kelola-akun", "/tambah-guru")),
+    tambah_siswa: djoin(join("kelola-akun", "/tambah-siswa")),
 
-    bank_soal : "bank-soal",
-    tambah_bank_soal : join("bank-soal", "/tambah"),
+    data_master_mapel: djoin(join("data-master", "/mapel")),
+    data_master_kelas: djoin(join("data-master", "/kelas")),
+    data_master_ruang: djoin(join("data-master", "/ruang")),
+    data_master_sesi: djoin(join("data-master", "/sesi")),
 
-    pengaturan:"pengaturan",
+    tambah_data_master_mapel: djoin(join("data-master", "/tambah-mapel")),
+    tambah_data_master_kelas: djoin(join("data-master", "/tambah-kelas")),
+    tambah_data_master_ruang: djoin(join("data-master", "/tambah-ruang")),
+    tambah_data_master_sesi: djoin(join("data-master", "/tambah-sesi")),
+
+    bank_soal: djoin("bank-soal"),
+    tambah_bank_soal: djoin(join("bank-soal", "/tambah")),
+
+    // kamu belum definisikan jadwal_ujian, jadi aku tambahkan biar menu tidak hardcode
+    jadwal_ujian: djoin(join("ujian", "/jadwal")),
+    buat_ujian: djoin(join("ujian", "/buat-ujian")),
+
+    pengaturan: djoin("pengaturan"),
   },
 } as const;
