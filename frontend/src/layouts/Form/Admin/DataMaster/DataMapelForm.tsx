@@ -8,12 +8,9 @@ import type {
 } from "@/types/DataMaster/MataPelajaran";
 
 const kelasOptions: KelasOption[] = [
-  { id: "kelas-10-ipa-1", tingkat_kelas: 10, nama_kelas: "X IPA 1" },
-  { id: "kelas-10-ips-1", tingkat_kelas: 10, nama_kelas: "X IPS 1" },
-  { id: "kelas-11-ipa-1", tingkat_kelas: 11, nama_kelas: "XI IPA 1" },
-  { id: "kelas-11-ips-1", tingkat_kelas: 11, nama_kelas: "XI IPS 1" },
-  { id: "kelas-12-ipa-1", tingkat_kelas: 12, nama_kelas: "XII IPA 1" },
-  { id: "kelas-12-ips-1", tingkat_kelas: 12, nama_kelas: "XII IPS 1" },
+  { id: "kelas-10", tingkat_kelas: 10, label: "Kelas 10" },
+  { id: "kelas-11", tingkat_kelas: 11, label: "Kelas 11" },
+  { id: "kelas-12", tingkat_kelas: 12, label: "Kelas 12" },
 ];
 
 const initialValues: MataPelajaranFormValues = {
@@ -31,18 +28,10 @@ export const DataMapelForm = () => {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  // 1) Buat pilihan tingkat_kelas yang unik (10, 11, 12) lalu sort
-  const uniqueTingkatKelasOptions = useMemo(() => {
-    const tingkatSet = new Set<number>();
-    for (const k of kelasOptions) tingkatSet.add(k.tingkat_kelas);
-
-    return Array.from(tingkatSet)
-      .sort((a, b) => a - b)
-      .map((tingkat) => ({
-        id: `tingkat-${tingkat}`,
-        tingkat_kelas: tingkat,
-      }));
-  }, []);
+  const kelasTingkatOptions = useMemo(
+    () => [...kelasOptions].sort((a, b) => a.tingkat_kelas - b.tingkat_kelas),
+    []
+  );
 
   const setField = <K extends keyof MataPelajaranFormValues>(
     key: K,
@@ -58,7 +47,7 @@ export const DataMapelForm = () => {
   const validate = (v: MataPelajaranFormValues) => {
     const errors: Partial<Record<keyof MataPelajaranFormValues, string>> = {};
 
-    if (!v.kelasId) errors.kelasId = "Kelas wajib dipilih.";
+    if (!v.kelasId) errors.kelasId = "Tingkat kelas wajib dipilih.";
     if (!v.kodeMapel.trim()) errors.kodeMapel = "Kode mapel wajib diisi.";
     if (!v.namaMapel.trim())
       errors.namaMapel = "Nama mata pelajaran wajib diisi.";
@@ -111,18 +100,18 @@ export const DataMapelForm = () => {
             <div className="mb-4">
               <h2 className={sectionTitle}>Informasi Mata Pelajaran</h2>
               <p className={helperText}>
-                Pilih kelas dan isi detail mata pelajaran.
+                Pilih tingkat kelas dan isi detail mata pelajaran.
               </p>
             </div>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-              {/* Kelas (select native) */}
+              {/* Tingkat Kelas (select native) */}
               <div>
                 <label
                   htmlFor="kelasId"
                   className="text-xs font-medium text-slate-600"
                 >
-                  Kelas
+                  Tingkat Kelas
                 </label>
                 <select
                   id="kelasId"
@@ -137,12 +126,9 @@ export const DataMapelForm = () => {
                   <option value="">Pilih tingkat kelas</option>
 
                   {/* 2) Render hanya tingkat kelas unik */}
-                  {uniqueTingkatKelasOptions.map((option) => (
-                    <option
-                      key={option.id}
-                      value={String(option.tingkat_kelas)}
-                    >
-                      {option.tingkat_kelas}
+                  {kelasTingkatOptions.map((option) => (
+                    <option key={option.id} value={option.id}>
+                      {option.label}
                     </option>
                   ))}
                 </select>

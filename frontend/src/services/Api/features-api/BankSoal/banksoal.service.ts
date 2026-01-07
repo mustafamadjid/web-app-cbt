@@ -6,17 +6,17 @@ import type { KelasOption,MataPelajaranOption } from "@/types/DataMaster/MataPel
 // =====================
 const DUMMY_KELAS: KelasOption[] = [
   {
-    id: "kls-10",
+    id: "kelas-10",
     tingkat_kelas: 10,
     label: "Kelas 10",
   },
   {
-    id: "kls-11",
+    id: "kelas-11",
     tingkat_kelas: 11,
     label: "Kelas 11",
   },
   {
-    id: "kls-12",
+    id: "kelas-12",
     tingkat_kelas: 12,
     label: "Kelas 12",
   },
@@ -41,7 +41,7 @@ type BankSoalItemLocal = BankSoalItem & {
 const DUMMY_BANKSOAL: BankSoalItemLocal[] = [
   {
     id: "bs-001",
-    __kelasId: "kls-11",
+    __kelasId: "kelas-11",
     __mapelId: "mp-bindo-11",
     nama_banksoal: "Bank Soal Ujian Bahasa",
     guru: "Budianto",
@@ -55,7 +55,7 @@ const DUMMY_BANKSOAL: BankSoalItemLocal[] = [
   },
   {
     id: "bs-002",
-    __kelasId: "kls-10",
+    __kelasId: "kelas-10",
     __mapelId: "mp-fisika-10",
     nama_banksoal: "Bank Soal Ujian Fisika",
     guru: "Andi",
@@ -69,7 +69,7 @@ const DUMMY_BANKSOAL: BankSoalItemLocal[] = [
   },
   {
     id: "bs-003",
-    __kelasId: "kls-10",
+    __kelasId: "kelas-10",
     __mapelId: "mp-bindo-10",
     nama_banksoal: "Bank Soal Bahasa Indonesia - Teks",
     guru: "Budi",
@@ -83,7 +83,7 @@ const DUMMY_BANKSOAL: BankSoalItemLocal[] = [
   },
   {
     id: "bs-004",
-    __kelasId: "kls-11",
+    __kelasId: "kelas-11",
     __mapelId: "mp-mtk-11",
     nama_banksoal: "Bank Soal Matematika - Fungsi",
     guru: "Budi",
@@ -98,7 +98,7 @@ const DUMMY_BANKSOAL: BankSoalItemLocal[] = [
   },
   {
     id: "bs-005",
-    __kelasId: "kls-12",
+    __kelasId: "kelas-12",
     __mapelId: "mp-ekonomi-12",
     nama_banksoal: "Bank Soal Ekonomi - Pasar",
     guru: "Andi",
@@ -133,9 +133,9 @@ export async function getMataPelajaranOptions(params: {
   const filtered = !kelasId
     ? DUMMY_MAPEL
     : DUMMY_MAPEL.filter((m) => {
-        if (kelasId === "kls-10") return m.label.includes("(Kelas 10)");
-        if (kelasId === "kls-11") return m.label.includes("(Kelas 11)");
-        if (kelasId === "kls-12") return m.label.includes("(Kelas 12)");
+        if (kelasId === "kelas-10") return m.label.includes("(Kelas 10)");
+        if (kelasId === "kelas-11") return m.label.includes("(Kelas 11)");
+        if (kelasId === "kelas-12") return m.label.includes("(Kelas 12)");
         return true;
       });
 
