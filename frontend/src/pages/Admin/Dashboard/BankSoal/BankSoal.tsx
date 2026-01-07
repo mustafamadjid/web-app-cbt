@@ -18,16 +18,13 @@ import { AddButton } from "@/components/common/Button/AddButton";
 import { BankSoalLayout } from "@/layouts/BankSoalLayout/BankSoalLayout";
 
 import type { BankSoalItem } from "@/types/DataMaster/BankSoal";
-import type {
-  KelasOption,
-  MataPelajaranOption,
-} from "@/types/DataMaster/MataPelajaran";
+import type { MataPelajaranOption } from "@/types/DataMaster/MataPelajaran";
 
 import {
   getBankSoalByKelas,
   getMataPelajaranOptions,
-  getKelasOptions,
 } from "@/services/Api/features-api/BankSoal/banksoal.service";
+import { getTingkatKelasOptions } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { paths } from "@/routes/paths";
 
 // Util: Debounce
@@ -47,13 +44,13 @@ export const BankSoal = () => {
 
   // ----- UI State -----
   const [viewMode, setViewMode] = useState<ViewMode>("ALL");
-  const [selectedKelasId, setSelectedKelasId] = useState<string | null>(null);
+  const [selectedTingkat, setSelectedTingkat] = useState<number | null>(null);
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search, 400); // Sedikit diperlambat agar lebih smooth
   const [selectedMapelId, setSelectedMapelId] = useState<string>("");
 
   // ----- Data State -----
-  const [kelasOptions, setKelasOptions] = useState<KelasOption[]>([]);
+  const [tingkatKelasOptions, setTingkatKelasOptions] = useState<number[]>([]);
   const [mapelOptions, setMapelOptions] = useState<MataPelajaranOption[]>([]);
   const [items, setItems] = useState<BankSoalItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -66,18 +63,18 @@ export const BankSoal = () => {
     let mounted = true;
     (async () => {
       try {
-        const kelas = await getKelasOptions();
+        const kelas = await getTingkatKelasOptions();
         if (!mounted) return;
-        setKelasOptions(kelas);
+        setTingkatKelasOptions(kelas);
         if (
           kelas.length > 0 &&
-          selectedKelasId == null &&
+          selectedTingkat == null &&
           viewMode === "BY_KELAS"
         ) {
-          setSelectedKelasId(kelas[0].id);
+          setSelectedTingkat(kelas[0]);
         }
       } catch (e) {
-        if (mounted) setErrorMsg("Gagal memuat data kelas.");
+        if (mounted) setErrorMsg("Gagal memuat data tingkat kelas.");
       }
     })();
     return () => {
@@ -91,7 +88,9 @@ export const BankSoal = () => {
     (async () => {
       try {
         const kelasIdForMapel =
-          viewMode === "BY_KELAS" ? selectedKelasId ?? undefined : undefined;
+          viewMode === "BY_KELAS" && selectedTingkat != null
+            ? `kelas-${selectedTingkat}`
+            : undefined;
         const mapel = await getMataPelajaranOptions({
           kelasId: kelasIdForMapel,
         });
@@ -107,7 +106,7 @@ export const BankSoal = () => {
     return () => {
       mounted = false;
     };
-  }, [viewMode, selectedKelasId]);
+  }, [viewMode, selectedTingkat]);
 
   // 3. Load Bank Soal Data
   useEffect(() => {
@@ -117,7 +116,9 @@ export const BankSoal = () => {
         setLoading(true);
         setErrorMsg("");
         const kelasId =
-          viewMode === "BY_KELAS" ? selectedKelasId ?? undefined : undefined;
+          viewMode === "BY_KELAS" && selectedTingkat != null
+            ? `kelas-${selectedTingkat}`
+            : undefined;
         const data = await getBankSoalByKelas({
           kelasId,
           mapelId: selectedMapelId || undefined,
@@ -133,16 +134,12 @@ export const BankSoal = () => {
         if (seq === requestSeq.current) setLoading(false);
       }
     })();
-  }, [viewMode, selectedKelasId, selectedMapelId, debouncedSearch]);
+  }, [viewMode, selectedTingkat, selectedMapelId, debouncedSearch]);
 
   const selectedKelasLabel = useMemo(() => {
-    if (!selectedKelasId) return "";
-    const k = kelasOptions.find((x) => x.id === selectedKelasId);
-    if (!k) return "";
-    return k.nama_kelas
-      ? `Kelas ${k.tingkat_kelas} - ${k.nama_kelas}`
-      : `Kelas ${k.tingkat_kelas}`;
-  }, [kelasOptions, selectedKelasId]);
+    if (selectedTingkat == null) return "";
+    return `Kelas ${selectedTingkat}`;
+  }, [selectedTingkat]);
 
   return (
     <div className="min-h-screen bg-[#ecf1ed] pb-20">
@@ -167,7 +164,7 @@ export const BankSoal = () => {
                   <button
                     onClick={() => {
                       setViewMode("ALL");
-                      setSelectedKelasId(null);
+                      setSelectedTingkat(null);
                     }}
                     className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-bold transition-all ${
                       viewMode === "ALL"
@@ -181,8 +178,8 @@ export const BankSoal = () => {
                   <button
                     onClick={() => {
                       setViewMode("BY_KELAS");
-                      if (!selectedKelasId && kelasOptions.length > 0)
-                        setSelectedKelasId(kelasOptions[0].id);
+                      if (selectedTingkat == null && tingkatKelasOptions.length > 0)
+                        setSelectedTingkat(tingkatKelasOptions[0]);
                     }}
                     className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-bold transition-all ${
                       viewMode === "BY_KELAS"
@@ -191,7 +188,7 @@ export const BankSoal = () => {
                     }`}
                   >
                     <LayoutGrid className="h-4 w-4" />
-                    Filter Kelas
+                    Filter Tingkat Kelas
                   </button>
                 </div>
               </div>
@@ -200,23 +197,21 @@ export const BankSoal = () => {
               {viewMode === "BY_KELAS" && (
                 <div className="animate-in fade-in slide-in-from-top-2 duration-300">
                   <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-gray-500">
-                    Pilih Kelas
+                    Pilih Tingkat Kelas
                   </label>
                   <div className="flex flex-wrap gap-2">
-                    {kelasOptions.length === 0 ? (
+                    {tingkatKelasOptions.length === 0 ? (
                       <span className="text-sm italic text-gray-400">
-                        Data kelas tidak tersedia.
+                        Data tingkat kelas tidak tersedia.
                       </span>
                     ) : (
-                      kelasOptions.map((k) => {
-                        const isActive = k.id === selectedKelasId;
-                        const label = k.nama_kelas
-                          ? `${k.tingkat_kelas} - ${k.nama_kelas}`
-                          : `Kelas ${k.tingkat_kelas}`;
+                      tingkatKelasOptions.map((tingkat) => {
+                        const isActive = tingkat === selectedTingkat;
+                        const label = `Kelas ${tingkat}`;
                         return (
                           <button
-                            key={k.id}
-                            onClick={() => setSelectedKelasId(k.id)}
+                            key={tingkat}
+                            onClick={() => setSelectedTingkat(tingkat)}
                             className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-all border ${
                               isActive
                                 ? "bg-[#397e50] text-white border-[#397e50] shadow-md shadow-[#397e50]/20"

@@ -1,20 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { InputField } from "@/components/common/Input/InputField";
 
-import type {
-  KelasOption,
-  MataPelajaranFormValues,
-} from "@/types/DataMaster/MataPelajaran";
-
-const kelasOptions: KelasOption[] = [
-  { id: "kelas-10-ipa-1", tingkat_kelas: 10, nama_kelas: "X IPA 1" },
-  { id: "kelas-10-ips-1", tingkat_kelas: 10, nama_kelas: "X IPS 1" },
-  { id: "kelas-11-ipa-1", tingkat_kelas: 11, nama_kelas: "XI IPA 1" },
-  { id: "kelas-11-ips-1", tingkat_kelas: 11, nama_kelas: "XI IPS 1" },
-  { id: "kelas-12-ipa-1", tingkat_kelas: 12, nama_kelas: "XII IPA 1" },
-  { id: "kelas-12-ips-1", tingkat_kelas: 12, nama_kelas: "XII IPS 1" },
-];
+import type { MataPelajaranFormValues } from "@/types/DataMaster/MataPelajaran";
+import { getTingkatKelasOptions } from "@/services/Api/features-api/DataMaster/kelas.service";
 
 const initialValues: MataPelajaranFormValues = {
   kelasId: "",
@@ -30,18 +19,19 @@ export const DataMapelForm = () => {
   const [values, setValues] = useState<MataPelajaranFormValues>(initialValues);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [kelasOptions, setKelasOptions] = useState<number[]>([]);
 
-  // 1) Buat pilihan tingkat_kelas yang unik (10, 11, 12) lalu sort
-  const uniqueTingkatKelasOptions = useMemo(() => {
-    const tingkatSet = new Set<number>();
-    for (const k of kelasOptions) tingkatSet.add(k.tingkat_kelas);
-
-    return Array.from(tingkatSet)
-      .sort((a, b) => a - b)
-      .map((tingkat) => ({
-        id: `tingkat-${tingkat}`,
-        tingkat_kelas: tingkat,
-      }));
+  useEffect(() => {
+    let active = true;
+    const loadKelas = async () => {
+      const data = await getTingkatKelasOptions();
+      if (!active) return;
+      setKelasOptions(data);
+    };
+    loadKelas();
+    return () => {
+      active = false;
+    };
   }, []);
 
   const setField = <K extends keyof MataPelajaranFormValues>(
@@ -58,7 +48,7 @@ export const DataMapelForm = () => {
   const validate = (v: MataPelajaranFormValues) => {
     const errors: Partial<Record<keyof MataPelajaranFormValues, string>> = {};
 
-    if (!v.kelasId) errors.kelasId = "Kelas wajib dipilih.";
+    if (!v.kelasId) errors.kelasId = "Tingkat kelas wajib dipilih.";
     if (!v.kodeMapel.trim()) errors.kodeMapel = "Kode mapel wajib diisi.";
     if (!v.namaMapel.trim())
       errors.namaMapel = "Nama mata pelajaran wajib diisi.";
@@ -111,18 +101,18 @@ export const DataMapelForm = () => {
             <div className="mb-4">
               <h2 className={sectionTitle}>Informasi Mata Pelajaran</h2>
               <p className={helperText}>
-                Pilih kelas dan isi detail mata pelajaran.
+                Pilih tingkat kelas dan isi detail mata pelajaran.
               </p>
             </div>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-              {/* Kelas (select native) */}
+              {/* Tingkat Kelas (select native) */}
               <div>
                 <label
                   htmlFor="kelasId"
                   className="text-xs font-medium text-slate-600"
                 >
-                  Kelas
+                  Tingkat Kelas
                 </label>
                 <select
                   id="kelasId"
@@ -137,12 +127,9 @@ export const DataMapelForm = () => {
                   <option value="">Pilih tingkat kelas</option>
 
                   {/* 2) Render hanya tingkat kelas unik */}
-                  {uniqueTingkatKelasOptions.map((option) => (
-                    <option
-                      key={option.id}
-                      value={String(option.tingkat_kelas)}
-                    >
-                      {option.tingkat_kelas}
+                  {kelasOptions.map((tingkat) => (
+                    <option key={tingkat} value={String(tingkat)}>
+                      Kelas {tingkat}
                     </option>
                   ))}
                 </select>

@@ -4,12 +4,12 @@ import { InputField } from "@/components/common/Input/InputField";
 import { ImageUpload } from "@/components/features/ImageUpload/ImageUpload";
 
 import type { JenisKelamin} from "@/types/OpsiTypes/Option";
-import type { KelasOption } from "@/types/DataMaster/MataPelajaran";
 import type { StudentRegisterFormValues } from "@/types/KelolaAkun/AkunSiswa";
 import { submitStudentRegister } from "@/services/Api/features-api/KelolaAkun/akunsiswa.service";
 import { paths } from "@/routes/paths";
 import { useNavigate } from "react-router";
 import { ApiError } from "@/services/Api/api";
+import { getTingkatKelasOptions } from "@/services/Api/features-api/DataMaster/kelas.service";
 
 
 const initialValues: StudentRegisterFormValues = {
@@ -56,15 +56,20 @@ export const AkunSiswaForm = () => {
     };
   }, [values.fotoProfil]);
 
-  // Dummy options - nanti ganti dari API Data Master
-  const kelasOptions: KelasOption[] = [
-    {id: "kelas-10-ipa-1", tingkat_kelas: 10, nama_kelas: "X IPA 1", label: "X IPA 1"},
-    {id: "kelas-10-ips-1", tingkat_kelas: 10, nama_kelas: "X IPS 1", label: "X IPS 1"},
-    {id: "kelas-11-ipa-1", tingkat_kelas: 11, nama_kelas: "XI IPA 1", label: "XI IPA 1"},
-    {id: "kelas-11-ips-1", tingkat_kelas: 11, nama_kelas: "XI IPS 1", label: "XI IPS 1"},
-    {id: "kelas-12-ipa-1", tingkat_kelas: 12, nama_kelas: "XII IPA 1", label: "XII IPA 1"},
-    {id: "kelas-12-ips-1", tingkat_kelas: 12, nama_kelas: "XII IPS 1", label: "XII IPS 1"},
-  ];
+  const [kelasOptions, setKelasOptions] = useState<number[]>([]);
+
+  useEffect(() => {
+    let active = true;
+    const loadKelas = async () => {
+      const data = await getTingkatKelasOptions();
+      if (!active) return;
+      setKelasOptions(data);
+    };
+    loadKelas();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const setField = <K extends keyof StudentRegisterFormValues>(
     key: K,
@@ -117,7 +122,7 @@ export const AkunSiswaForm = () => {
     if (!v.tanggalLahir.trim())
       errors.tanggalLahir = "Tanggal lahir wajib diisi.";
 
-    if (!v.kelasId.trim()) errors.kelasId = "Kelas wajib dipilih.";
+    if (!v.kelasId.trim()) errors.kelasId = "Tingkat kelas wajib dipilih.";
 
     if (v.fotoProfil) {
       const maxBytes = 2 * 1024 * 1024;
@@ -400,7 +405,7 @@ export const AkunSiswaForm = () => {
                   htmlFor="kelasId"
                   className="text-xs font-medium text-slate-600"
                 >
-                  Kelas
+                  Tingkat Kelas
                 </label>
                 <select
                   id="kelasId"
@@ -413,17 +418,17 @@ export const AkunSiswaForm = () => {
                   required
                 >
                   <option value="" disabled>
-                    Pilih kelas...
+                    Pilih tingkat kelas...
                   </option>
-                  {kelasOptions.map((k) => (
-                    <option key={k.id} value={k.id}>
-                      {k.nama_kelas}
+                  {kelasOptions.map((tingkat) => (
+                    <option key={tingkat} value={String(tingkat)}>
+                      Kelas {tingkat}
                     </option>
                   ))}
                 </select>
 
                 <p className="mt-1 text-xs text-slate-500">
-                  Kelas akan diambil dari Data Master.
+                  Tingkat kelas akan diambil dari Data Master.
                 </p>
 
                 {hasError("kelasId") && (

@@ -21,12 +21,11 @@ import { useNavigate } from "react-router";
 import {
   getAngkatanOptions,
   getJenisKelaminOptions,
-  getKelasOptions,
   getSiswa,
   type BarisSiswa,
 } from "@/services/Api/features-api/KelolaAkun/akunsiswa.service";
+import { getTingkatKelasOptions } from "@/services/Api/features-api/DataMaster/kelas.service";
 
-import type { KelasOption } from "@/types/DataMaster/MataPelajaran";
 import { paths } from "@/routes/paths";
 
 /** ===== Helpers ===== */
@@ -105,7 +104,7 @@ export const AkunSiswaTables: React.FC = () => {
 
   // OPTIONS from server
   const [opsiAngkatan, setOpsiAngkatan] = useState<number[]>([]);
-  const [opsiKelas, setOpsiKelas] = useState<KelasOption[]>([]);
+  const [opsiTingkatKelas, setOpsiTingkatKelas] = useState<number[]>([]);
   const [opsiGender, setOpsiGender] = useState<
     Array<{ value: JenisKelamin; label: string }>
   >([]);
@@ -131,13 +130,13 @@ export const AkunSiswaTables: React.FC = () => {
         setErrorMsg("");
         const [a, k, g] = await Promise.all([
           getAngkatanOptions(),
-          getKelasOptions(),
+          getTingkatKelasOptions(),
           getJenisKelaminOptions(),
         ]);
         if (!mounted) return;
 
         setOpsiAngkatan(a);
-        setOpsiKelas(k);
+        setOpsiTingkatKelas(k);
         setOpsiGender(g);
       } catch {
         if (!mounted) return;
@@ -312,10 +311,10 @@ export const AkunSiswaTables: React.FC = () => {
               </select>
             </div>
 
-            {/* Kelas */}
+            {/* Tingkat Kelas */}
             <div>
               <label className="text-xs font-medium text-slate-600">
-                Kelas
+                Tingkat Kelas
               </label>
               <select
                 value={kelasId}
@@ -323,9 +322,9 @@ export const AkunSiswaTables: React.FC = () => {
                 className="mt-1 w-full cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-[#397e50] focus:outline-none focus:ring-1 focus:ring-[#397e50]"
               >
                 <option value="">Semua</option>
-                {opsiKelas.map((k) => (
-                  <option key={k.id} value={k.id}>
-                    {k.label}
+                {opsiTingkatKelas.map((tingkat) => (
+                  <option key={tingkat} value={String(tingkat)}>
+                    Kelas {tingkat}
                   </option>
                 ))}
               </select>

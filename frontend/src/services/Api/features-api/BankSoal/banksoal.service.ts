@@ -1,26 +1,5 @@
 import type { BankSoalItem } from "@/types/DataMaster/BankSoal";
-import type { KelasOption,MataPelajaranOption } from "@/types/DataMaster/MataPelajaran";
-
-// =====================
-// DUMMY DATA
-// =====================
-const DUMMY_KELAS: KelasOption[] = [
-  {
-    id: "kls-10",
-    tingkat_kelas: 10,
-    label: "Kelas 10",
-  },
-  {
-    id: "kls-11",
-    tingkat_kelas: 11,
-    label: "Kelas 11",
-  },
-  {
-    id: "kls-12",
-    tingkat_kelas: 12,
-    label: "Kelas 12",
-  },
-];
+import type { MataPelajaranOption } from "@/types/DataMaster/MataPelajaran";
 
 const DUMMY_MAPEL: MataPelajaranOption[] = [
   { id: "mp-bindo-10", label: "Bahasa Indonesia (Kelas 10)" },
@@ -41,7 +20,7 @@ type BankSoalItemLocal = BankSoalItem & {
 const DUMMY_BANKSOAL: BankSoalItemLocal[] = [
   {
     id: "bs-001",
-    __kelasId: "kls-11",
+    __kelasId: "kelas-11",
     __mapelId: "mp-bindo-11",
     nama_banksoal: "Bank Soal Ujian Bahasa",
     guru: "Budianto",
@@ -55,7 +34,7 @@ const DUMMY_BANKSOAL: BankSoalItemLocal[] = [
   },
   {
     id: "bs-002",
-    __kelasId: "kls-10",
+    __kelasId: "kelas-10",
     __mapelId: "mp-fisika-10",
     nama_banksoal: "Bank Soal Ujian Fisika",
     guru: "Andi",
@@ -69,7 +48,7 @@ const DUMMY_BANKSOAL: BankSoalItemLocal[] = [
   },
   {
     id: "bs-003",
-    __kelasId: "kls-10",
+    __kelasId: "kelas-10",
     __mapelId: "mp-bindo-10",
     nama_banksoal: "Bank Soal Bahasa Indonesia - Teks",
     guru: "Budi",
@@ -83,7 +62,7 @@ const DUMMY_BANKSOAL: BankSoalItemLocal[] = [
   },
   {
     id: "bs-004",
-    __kelasId: "kls-11",
+    __kelasId: "kelas-11",
     __mapelId: "mp-mtk-11",
     nama_banksoal: "Bank Soal Matematika - Fungsi",
     guru: "Budi",
@@ -98,7 +77,7 @@ const DUMMY_BANKSOAL: BankSoalItemLocal[] = [
   },
   {
     id: "bs-005",
-    __kelasId: "kls-12",
+    __kelasId: "kelas-12",
     __mapelId: "mp-ekonomi-12",
     nama_banksoal: "Bank Soal Ekonomi - Pasar",
     guru: "Andi",
@@ -120,10 +99,6 @@ function normalize(s: string) {
   return s.toLowerCase().trim();
 }
 
-export async function getKelasOptions(): Promise<KelasOption[]> {
-  return new Promise((resolve) => setTimeout(() => resolve(DUMMY_KELAS), 250));
-}
-
 export async function getMataPelajaranOptions(params: {
   kelasId?: string;
 }): Promise<MataPelajaranOption[]> {
@@ -133,9 +108,9 @@ export async function getMataPelajaranOptions(params: {
   const filtered = !kelasId
     ? DUMMY_MAPEL
     : DUMMY_MAPEL.filter((m) => {
-        if (kelasId === "kls-10") return m.label.includes("(Kelas 10)");
-        if (kelasId === "kls-11") return m.label.includes("(Kelas 11)");
-        if (kelasId === "kls-12") return m.label.includes("(Kelas 12)");
+        if (kelasId === "kelas-10") return m.label.includes("(Kelas 10)");
+        if (kelasId === "kelas-11") return m.label.includes("(Kelas 11)");
+        if (kelasId === "kelas-12") return m.label.includes("(Kelas 12)");
         return true;
       });
 

@@ -1,7 +1,6 @@
 import { buildFormData } from "@/helper/FormData/BuildFormData";
 
 import type { JenisKelamin } from "@/types/OpsiTypes/Option";
-import type { KelasOption } from "@/types/DataMaster/MataPelajaran";
 import type { StudentRegisterFormValues, StudentRegisterResponse } from "@/types/KelolaAkun/AkunSiswa";
 import { api, type ApiEnvelope } from "../../api";
 
@@ -31,38 +30,6 @@ export type SiswaFilterParams = {
 
 
 type BarisSiswaLocal = BarisSiswa & { __kelasId: string };
-export const DUMMY_KELAS: KelasOption[] = [
-  {
-    id: "kls-10-ipa-1",
-    tingkat_kelas: 10,
-    nama_kelas: "IPA 1",
-    label: "Kelas 10 - IPA 1",
-  },
-  {
-    id: "kls-10-ips-1",
-    tingkat_kelas: 10,
-    nama_kelas: "IPS 1",
-    label: "Kelas 10 - IPS 1",
-  },
-  {
-    id: "kls-11-ipa-1",
-    tingkat_kelas: 11,
-    nama_kelas: "IPA 1",
-    label: "Kelas 11 - IPA 1",
-  },
-  {
-    id: "kls-11-ips-1",
-    tingkat_kelas: 11,
-    nama_kelas: "IPS 1",
-    label: "Kelas 11 - IPS 1",
-  },
-  {
-    id: "kls-12-ipa-2",
-    tingkat_kelas: 12,
-    nama_kelas: "IPA 2",
-    label: "Kelas 12 - IPA 2",
-  },
-];
 
 export const DUMMY_JENIS_KELAMIN: Array<{
   value: JenisKelamin;
@@ -75,7 +42,7 @@ export const DUMMY_JENIS_KELAMIN: Array<{
 export const DUMMY_SISWA: BarisSiswaLocal[] = [
   {
     id: "s-0001",
-    __kelasId: "kls-11-ipa-1",
+    __kelasId: "kelas-11",
     namaLengkap: "Siti Aminah",
     username: "siti.aminah",
     email: "siti.aminah@gmail.com",
@@ -91,7 +58,7 @@ export const DUMMY_SISWA: BarisSiswaLocal[] = [
   },
   {
     id: "s-0002",
-    __kelasId: "kls-10-ips-1",
+    __kelasId: "kelas-10",
     namaLengkap: "Raka Pratama",
     username: "raka.pratama",
     email: "",
@@ -107,7 +74,7 @@ export const DUMMY_SISWA: BarisSiswaLocal[] = [
   },
   {
     id: "s-0003",
-    __kelasId: "kls-10-ipa-1",
+    __kelasId: "kelas-10",
     namaLengkap: "Dimas Saputra",
     username: "dimas.saputra",
     email: "dimas.saputra@mail.com",
@@ -123,7 +90,7 @@ export const DUMMY_SISWA: BarisSiswaLocal[] = [
   },
   {
     id: "s-0004",
-    __kelasId: "kls-11-ips-1",
+    __kelasId: "kelas-11",
     namaLengkap: "Nadya Putri",
     username: "nadya.putri",
     email: "nadya.putri@gmail.com",
@@ -139,7 +106,7 @@ export const DUMMY_SISWA: BarisSiswaLocal[] = [
   },
   {
     id: "s-0005",
-    __kelasId: "kls-12-ipa-2",
+    __kelasId: "kelas-12",
     namaLengkap: "Bagas Wiratama",
     username: "bagas.wiratama",
     email: "bagas.wiratama@school.id",
@@ -155,7 +122,7 @@ export const DUMMY_SISWA: BarisSiswaLocal[] = [
   },
   {
     id: "s-0006",
-    __kelasId: "kls-10-ips-1",
+    __kelasId: "kelas-10",
     namaLengkap: "Alya Maharani",
     username: "alya.maharani",
     email: "alya.maharani@mail.com",
@@ -211,11 +178,6 @@ export async function getAngkatanOptions(): Promise<number[]> {
   return DUMMY_ANGKATAN;
 }
 
-export async function getKelasOptions(): Promise<KelasOption[]> {
-  await sleep(250);
-  return DUMMY_KELAS;
-}
-
 export async function getJenisKelaminOptions(): Promise<
   Array<{ value: JenisKelamin; label: string }>
 > {
@@ -227,13 +189,18 @@ export async function getSiswa(params: SiswaFilterParams): Promise<BarisSiswa[]>
   await sleep(350);
 
   let data = [...DUMMY_SISWA];
+  const kelasId = params.kelasId
+    ? params.kelasId.startsWith("kelas-")
+      ? params.kelasId
+      : `kelas-${params.kelasId}`
+    : undefined;
 
   if (params.angkatan) {
     data = data.filter((s) => s.angkatan === params.angkatan);
   }
 
-  if (params.kelasId) {
-    data = data.filter((s) => s.__kelasId === params.kelasId);
+  if (kelasId) {
+    data = data.filter((s) => s.__kelasId === kelasId);
   }
 
   if (params.jenisKelamin) {
