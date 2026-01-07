@@ -28,6 +28,8 @@ import { TambahSesi } from "@/pages/Admin/Dashboard/DataMaster/TambahDataMaster/
 import { BankSoal } from "@/pages/Admin/Dashboard/BankSoal/BankSoal";
 import { TambahBankSoal } from "@/pages/Admin/Dashboard/BankSoal/TambahBankSoal";
 
+import { BuatUjian } from "@/pages/Admin/Dashboard/Ujian/BuatUjian";
+
 import { AdminLayout } from "@/layouts/MainLayout/AdminLayout/AdminLayout";
 
 import { PengaturanProfil } from "@/pages/Admin/Dashboard/Pengaturan/Pengaturan";
@@ -63,6 +65,7 @@ export const router = createBrowserRouter([
           { path: paths.dashboard.pengaturan, element: <PengaturanProfil /> },
           { path: paths.dashboard.data_master_sesi, element: <DataSesi /> },
           { path: paths.dashboard.bank_soal, element: <BankSoal /> },
+          { path: paths.dashboard.buat_ujian, element: <BuatUjian /> },
         ],
       },
 
