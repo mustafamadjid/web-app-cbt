@@ -4,6 +4,8 @@ import { InputField } from "@/components/common/Input/InputField";
 
 import type { RuangUjianFormValues } from "@/types/DataMaster/RuangUjian";
 
+import { createSetField } from "@/helper/setField/setField";
+
 const initialValues: RuangUjianFormValues = {
   nama_ruangan_ujian: "",
 };
@@ -20,13 +22,7 @@ export const DataRuangForm = () => {
   });
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const setField = <K extends keyof RuangUjianFormValues>(
-    key: K,
-    value: RuangUjianFormValues[K]
-  ) => {
-    setValues((prev) => ({ ...prev, [key]: value }));
-  };
-
+  const setField = createSetField(setValues);
   const onBlur = (name: keyof RuangUjianFormValues) => {
     setTouched((prev) => ({ ...prev, [name]: true }));
   };

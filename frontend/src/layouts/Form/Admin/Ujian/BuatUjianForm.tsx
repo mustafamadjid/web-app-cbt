@@ -22,6 +22,10 @@ import {
 import { ApiError } from "@/services/Api/api";
 import { getTingkatKelasOptions } from "@/services/Api/features-api/DataMaster/kelas.service";
 
+// helper
+import { createSetField } from "@/helper/setField/setField";
+import { calculateDuration } from "@/helper/CalculateDuration/calculateDuration";
+
 const initialValues: BuatUjianFormValues = {
   nama_ujian: "",
   deskripsi_ujian: "",
@@ -46,20 +50,9 @@ const helperText = "text-xs text-slate-500";
 const selectBaseClass =
   "w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-[#397e50] focus:ring-2 focus:ring-[#397e50] disabled:bg-slate-50 disabled:text-slate-500";
 
-const parseTime = (value: string) => {
-  if (!value) return null;
-  const [h, m] = value.split(":").map((part) => Number(part));
-  if (!Number.isFinite(h) || !Number.isFinite(m)) return null;
-  return h * 60 + m;
-};
 
-const calculateDuration = (start: string, end: string) => {
-  const startMin = parseTime(start);
-  const endMin = parseTime(end);
-  if (startMin == null || endMin == null) return 0;
-  const diff = endMin - startMin;
-  return diff > 0 ? diff : 0;
-};
+
+
 
 export const BuatUjianForm = () => {
   const [values, setValues] = useState<BuatUjianFormValues>(initialValues);
@@ -75,30 +68,23 @@ export const BuatUjianForm = () => {
   const [sesiOptions, setSesiOptions] = useState<SesiUjianOption[]>([]);
   const [siswaPreview, setSiswaPreview] = useState<SiswaPreviewItem[]>([]);
 
-  const setField = <K extends keyof BuatUjianFormValues>(
-    key: K,
-    value: BuatUjianFormValues[K]
-  ) => {
-    setValues((prev) => {
-      if (prev[key] === value) return prev;
-      return { ...prev, [key]: value };
-    });
-  };
+  const setField = createSetField(setValues);
 
   const onBlur = (name: keyof BuatUjianFormValues) => {
     setTouched((prev) => ({ ...prev, [name]: true }));
   };
 
   const selectedKelasId = useMemo(
-    () =>
-      values.kelas_id === "" ? undefined : `kelas-${values.kelas_id}`,
+    () => (values.kelas_id === "" ? undefined : `kelas-${values.kelas_id}`),
     [values.kelas_id]
   );
 
-  const selectedBankSoal = useMemo(
-    () => bankSoalOptions.find((item) => item.id === values.bank_soal_id),
-    [bankSoalOptions, values.bank_soal_id]
-  );
+  const bankSoalById = useMemo(() => {
+    const map = new Map(bankSoalOptions.map((x) => [String(x.id), x]));
+    return map;
+  }, [bankSoalOptions]);
+
+  const selectedBankSoal = bankSoalById.get(String(values.bank_soal_id));
 
   useEffect(() => {
     let active = true;
@@ -166,6 +152,7 @@ export const BuatUjianForm = () => {
           kelasId: selectedKelasId,
         });
         if (!active) return;
+        // harusnya data dari server sudah di sorting
         setSiswaPreview(data);
       } finally {
         if (active) setLoadingSiswa(false);
@@ -192,7 +179,10 @@ export const BuatUjianForm = () => {
   }, [selectedBankSoal]);
 
   useEffect(() => {
-    const duration = calculateDuration(values.waktu_mulai, values.waktu_selesai);
+    const duration = calculateDuration(
+      values.waktu_mulai,
+      values.waktu_selesai
+    );
     setField("durasi_menit", duration);
   }, [values.waktu_mulai, values.waktu_selesai]);
 
@@ -209,8 +199,7 @@ export const BuatUjianForm = () => {
     if (!v.waktu_mulai) errors.waktu_mulai = "Waktu mulai wajib diisi.";
     if (!v.waktu_selesai) errors.waktu_selesai = "Waktu selesai wajib diisi.";
     if (v.waktu_mulai && v.waktu_selesai && v.durasi_menit <= 0) {
-      errors.waktu_selesai =
-        "Waktu selesai harus setelah waktu mulai.";
+      errors.waktu_selesai = "Waktu selesai harus setelah waktu mulai.";
     }
     if (!v.ruang_ujian_id) errors.ruang_ujian_id = "Ruang ujian wajib dipilih.";
     if (!v.guru_pengawas_id)
@@ -236,7 +225,9 @@ export const BuatUjianForm = () => {
 
     const currentErrors = validate(values);
     if (Object.keys(currentErrors).length > 0) {
-      setSubmitError("Periksa kembali input yang masih kosong atau belum valid.");
+      setSubmitError(
+        "Periksa kembali input yang masih kosong atau belum valid."
+      );
       return;
     }
 
@@ -256,9 +247,7 @@ export const BuatUjianForm = () => {
     <div className="min-h-screen w-full py-8">
       <div className="mx-auto w-full max-w-6xl px-4">
         <div className="mb-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h1 className="text-base font-semibold text-slate-900">
-            Buat Ujian
-          </h1>
+          <h1 className="text-base font-semibold text-slate-900">Buat Ujian</h1>
           <p className="mt-1 text-sm text-slate-500">
             Lengkapi detail ujian, jadwal, serta bank soal yang digunakan.
           </p>
@@ -333,7 +322,9 @@ export const BuatUjianForm = () => {
                 <select
                   id="tipe_ujian"
                   className={`${selectBaseClass} ${
-                    hasError("tipe_ujian") ? "border-rose-300 ring-rose-100" : ""
+                    hasError("tipe_ujian")
+                      ? "border-rose-300 ring-rose-100"
+                      : ""
                   }`}
                   value={values.tipe_ujian}
                   onChange={(e) =>
@@ -486,7 +477,7 @@ export const BuatUjianForm = () => {
               <div>
                 <InputField
                   id="waktu_mulai"
-                  type="time"
+                  type="time/datetime-local"
                   label="Waktu Mulai"
                   value={values.waktu_mulai}
                   onChange={(v) => setField("waktu_mulai", v)}
@@ -508,7 +499,7 @@ export const BuatUjianForm = () => {
               <div>
                 <InputField
                   id="waktu_selesai"
-                  type="time"
+                  type="time/datetime-local"
                   label="Waktu Selesai"
                   value={values.waktu_selesai}
                   onChange={(v) => setField("waktu_selesai", v)}
@@ -610,9 +601,7 @@ export const BuatUjianForm = () => {
                   ))}
                 </select>
                 {hasError("sesi_id") && (
-                  <p className="mt-1 text-xs text-rose-600">
-                    {errors.sesi_id}
-                  </p>
+                  <p className="mt-1 text-xs text-rose-600">{errors.sesi_id}</p>
                 )}
               </div>
 
@@ -631,9 +620,7 @@ export const BuatUjianForm = () => {
                       : ""
                   }`}
                   value={values.guru_pengawas_id}
-                  onChange={(e) =>
-                    setField("guru_pengawas_id", e.target.value)
-                  }
+                  onChange={(e) => setField("guru_pengawas_id", e.target.value)}
                   onBlur={() => onBlur("guru_pengawas_id")}
                   required
                 >
@@ -731,11 +718,13 @@ export const BuatUjianForm = () => {
                 <p className="text-sm text-slate-500">Memuat data siswa...</p>
               )}
 
-              {values.kelas_id !== "" && !loadingSiswa && siswaPreview.length === 0 && (
-                <p className="text-sm text-slate-500">
-                  Belum ada siswa pada tingkat kelas ini.
-                </p>
-              )}
+              {values.kelas_id !== "" &&
+                !loadingSiswa &&
+                siswaPreview.length === 0 && (
+                  <p className="text-sm text-slate-500">
+                    Belum ada siswa pada tingkat kelas ini.
+                  </p>
+                )}
 
               {siswaPreview.length > 0 && (
                 <div className="max-h-64 overflow-y-auto rounded-lg border border-slate-200">
@@ -744,7 +733,7 @@ export const BuatUjianForm = () => {
                       <tr>
                         <th className="px-3 py-2 font-medium">Nama</th>
                         <th className="px-3 py-2 font-medium">Absen</th>
-                        <th className="px-3 py-2 font-medium">Username</th>
+                        <th className="px-3 py-2 font-medium">Kelas</th>
                         <th className="px-3 py-2 font-medium">Status</th>
                       </tr>
                     </thead>
@@ -758,7 +747,7 @@ export const BuatUjianForm = () => {
                             {siswa.nama}
                           </td>
                           <td className="px-3 py-2">{siswa.no_absen}</td>
-                          <td className="px-3 py-2">{siswa.username}</td>
+                          <td className="px-3 py-2">{siswa.kelas}</td>
                           <td className="px-3 py-2 capitalize">
                             {siswa.status_akun}
                           </td>

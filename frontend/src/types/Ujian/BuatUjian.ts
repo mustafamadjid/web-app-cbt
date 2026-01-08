@@ -16,6 +16,7 @@ export type BuatUjianFormValues = {
   guru_pengawas_id: string;
   sesi_id: string;
   token_ujian: string;
+  // Nanti status dibuat default tergantung jam jadwal
 };
 
 export type BankSoalOption = {

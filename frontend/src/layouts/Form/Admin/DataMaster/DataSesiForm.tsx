@@ -4,6 +4,8 @@ import { InputField } from "@/components/common/Input/InputField";
 
 import type { SesiFormValues } from "@/types/DataMaster/Sesi";
 
+import { createSetField } from "@/helper/setField/setField";
+
 const initialValues: SesiFormValues = {
   kode_sesi: "",
   nama_sesi: "",
@@ -14,21 +16,15 @@ const helperText = "text-xs text-slate-500";
 
 export const DataSesiForm = () => {
   const [values, setValues] = useState<SesiFormValues>(initialValues);
-  const [touched, setTouched] = useState<
-    Record<keyof SesiFormValues, boolean>
-  >({
-    kode_sesi: false,
-    nama_sesi: false,
-  });
+  const [touched, setTouched] = useState<Record<keyof SesiFormValues, boolean>>(
+    {
+      kode_sesi: false,
+      nama_sesi: false,
+    }
+  );
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const setField = <K extends keyof SesiFormValues>(
-    key: K,
-    value: SesiFormValues[K]
-  ) => {
-    setValues((prev) => ({ ...prev, [key]: value }));
-  };
-
+  const setField = createSetField(setValues);
   const onBlur = (name: keyof SesiFormValues) => {
     setTouched((prev) => ({ ...prev, [name]: true }));
   };
@@ -105,9 +101,7 @@ export const DataSesiForm = () => {
                   onBlur={() => onBlur("kode_sesi")}
                   placeholder="Contoh: SESI-01"
                   inputClassName={
-                    hasError("kode_sesi")
-                      ? "border-rose-300 ring-rose-100"
-                      : ""
+                    hasError("kode_sesi") ? "border-rose-300 ring-rose-100" : ""
                   }
                   required
                 />
@@ -127,9 +121,7 @@ export const DataSesiForm = () => {
                   onBlur={() => onBlur("nama_sesi")}
                   placeholder="Contoh: Sesi Pagi"
                   inputClassName={
-                    hasError("nama_sesi")
-                      ? "border-rose-300 ring-rose-100"
-                      : ""
+                    hasError("nama_sesi") ? "border-rose-300 ring-rose-100" : ""
                   }
                   required
                 />

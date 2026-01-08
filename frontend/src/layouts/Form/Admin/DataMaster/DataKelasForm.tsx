@@ -6,6 +6,8 @@ import type { KelasFormValues } from "@/types/DataMaster/Kelas";
 import { submitKelasResponse } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { ApiError } from "@/services/Api/api";
 
+import { createSetField } from "@/helper/setField/setField";
+
 const initialValues: KelasFormValues = {
   tingkat_kelas: "",
   nama_kelas: "",
@@ -24,13 +26,7 @@ export const DataKelasForm = () => {
   });
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const setField = <K extends keyof KelasFormValues>(
-    key: K,
-    value: KelasFormValues[K]
-  ) => {
-    setValues((prev) => ({ ...prev, [key]: value }));
-  };
-
+  const setField = createSetField(setValues);
   const onBlur = (name: keyof KelasFormValues) => {
     setTouched((prev) => ({ ...prev, [name]: true }));
   };
@@ -75,7 +71,7 @@ export const DataKelasForm = () => {
       await submitKelasResponse(values);
       alert("Kelas berhasil ditambahkan.");
     } catch (error) {
-      if(error instanceof ApiError){
+      if (error instanceof ApiError) {
         setSubmitError(error.message);
       }
     }

@@ -27,9 +27,9 @@ const kelasLabelClass = (k?: number | string) => {
   const base = "rounded-md px-2 py-1 text-sm font-bold text-white shadow-sm";
 
   const map: Record<string, string> = {
-    "10": "bg-linear-to-r from-emerald-600 to-emerald-800",
-    "11": "bg-linear-to-r from-green-700 to-green-900",
-    "12": "bg-linear-to-r from-teal-600 to-teal-800",
+    "10": "bg-green-700",
+    "11": "bg-green-800",
+    "12": "bg-green-900",
   };
 
   return [base, map[kk] ?? "bg-gray-400"].join(" ");

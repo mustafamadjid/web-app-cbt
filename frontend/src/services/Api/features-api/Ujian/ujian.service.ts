@@ -73,8 +73,9 @@ export async function getUjianBankSoalOptions(params: {
     total_soal: getTotalSoal(item),
   }));
 }
-
 export async function getUjianSiswaPreview(params: {
+// Data dari server harusnya di sorting duluan berdasarkan nama nomor absen dan kelas
+
   kelasId?: string;
 }): Promise<SiswaPreviewItem[]> {
   await sleep(220);

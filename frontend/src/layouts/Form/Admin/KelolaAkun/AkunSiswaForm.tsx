@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { InputField } from "@/components/common/Input/InputField";
 import { ImageUpload } from "@/components/features/ImageUpload/ImageUpload";
 
-import type { JenisKelamin} from "@/types/OpsiTypes/Option";
+import type { JenisKelamin } from "@/types/OpsiTypes/Option";
 import type { StudentRegisterFormValues } from "@/types/KelolaAkun/AkunSiswa";
 import { submitStudentRegister } from "@/services/Api/features-api/KelolaAkun/akunsiswa.service";
 import { paths } from "@/routes/paths";
@@ -11,6 +11,7 @@ import { useNavigate } from "react-router";
 import { ApiError } from "@/services/Api/api";
 import { getTingkatKelasOptions } from "@/services/Api/features-api/DataMaster/kelas.service";
 
+import { createSetField } from "@/helper/setField/setField";
 
 const initialValues: StudentRegisterFormValues = {
   namaLengkap: "",
@@ -71,12 +72,7 @@ export const AkunSiswaForm = () => {
     };
   }, []);
 
-  const setField = <K extends keyof StudentRegisterFormValues>(
-    key: K,
-    value: StudentRegisterFormValues[K]
-  ) => {
-    setValues((prev) => ({ ...prev, [key]: value }));
-  };
+  const setField = createSetField(setValues);
 
   const onBlur = (name: keyof StudentRegisterFormValues) => {
     setTouched((prev) => ({ ...prev, [name]: true }));
@@ -168,12 +164,18 @@ export const AkunSiswaForm = () => {
       setSubmitting(true);
       await submitStudentRegister(values);
       alert("Akun siswa berhasil dibuat.");
-      setTimeout(() => navigate(`dashboard/administrator/${paths.dashboard.kelola_akun_siswa}`), 1500);
+      setTimeout(
+        () =>
+          navigate(
+            `dashboard/administrator/${paths.dashboard.kelola_akun_siswa}`
+          ),
+        1500
+      );
     } catch (error) {
-      if (error instanceof ApiError){
-              setSubmitError(error.message);
-        } 
-    }finally{
+      if (error instanceof ApiError) {
+        setSubmitError(error.message);
+      }
+    } finally {
       setSubmitting(false);
     }
   };

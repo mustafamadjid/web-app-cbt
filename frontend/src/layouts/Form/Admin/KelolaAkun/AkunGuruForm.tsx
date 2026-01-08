@@ -10,6 +10,7 @@ import { ApiError } from "@/services/Api/api";
 import { useNavigate } from "react-router";
 import { paths } from "@/routes/paths";
 
+import { createSetField } from "@/helper/setField/setField";
 
 const initialValues: TeacherRegisterFormValues = {
   namaLengkap: "",
@@ -40,7 +41,6 @@ export const AkunGuruForm = () => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
-
     if (!values.fotoProfil) {
       setFotoUrl("");
       return;
@@ -52,12 +52,7 @@ export const AkunGuruForm = () => {
     return () => URL.revokeObjectURL(url);
   }, [values.fotoProfil]);
 
-  const setField = <K extends keyof TeacherRegisterFormValues>(
-    key: K,
-    value: TeacherRegisterFormValues[K]
-  ) => {
-    setValues((prev) => ({ ...prev, [key]: value }));
-  };
+  const setField = createSetField(setValues);
 
   const onBlur = (name: keyof TeacherRegisterFormValues) => {
     setTouched((prev) => ({ ...prev, [name]: true }));
@@ -123,15 +118,20 @@ export const AkunGuruForm = () => {
     try {
       setSubmitting(true);
       await submitTeacherRegister(values);
-      
+
       alert("Akun guru berhasil dibuat.");
-      setTimeout(() => navigate(`dashboard/administrator/${paths.dashboard.kelola_akun_guru}`), 1500);
+      setTimeout(
+        () =>
+          navigate(
+            `dashboard/administrator/${paths.dashboard.kelola_akun_guru}`
+          ),
+        1500
+      );
     } catch (error) {
-      if (error instanceof ApiError){
+      if (error instanceof ApiError) {
         setSubmitError(error.message);
-      } 
-      
-    }finally{
+      }
+    } finally {
       setSubmitting(false);
     }
   };

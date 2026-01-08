@@ -5,6 +5,8 @@ import { InputField } from "@/components/common/Input/InputField";
 import type { MataPelajaranFormValues } from "@/types/DataMaster/MataPelajaran";
 import { getTingkatKelasOptions } from "@/services/Api/features-api/DataMaster/kelas.service";
 
+import { createSetField } from "@/helper/setField/setField";
+
 const initialValues: MataPelajaranFormValues = {
   kelasId: "",
   kodeMapel: "",
@@ -34,12 +36,7 @@ export const DataMapelForm = () => {
     };
   }, []);
 
-  const setField = <K extends keyof MataPelajaranFormValues>(
-    key: K,
-    value: MataPelajaranFormValues[K]
-  ) => {
-    setValues((prev) => ({ ...prev, [key]: value }));
-  };
+  const setField = createSetField(setValues);
 
   const onBlur = (name: keyof MataPelajaranFormValues) => {
     setTouched((prev) => ({ ...prev, [name]: true }));

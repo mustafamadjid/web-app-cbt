@@ -5,6 +5,8 @@ import { InputField } from "@/components/common/Input/InputField";
 
 import type { ProfilSekolahFormValues } from "@/types/ProfilSekolah/ProfilSekolah";
 
+import { createSetField } from "@/helper/setField/setField";
+
 const initialValues: ProfilSekolahFormValues = {
   nama_sekolah: "",
   alamat_sekolah: "",
@@ -13,6 +15,8 @@ const initialValues: ProfilSekolahFormValues = {
   kepala_sekolah: "",
   wakil_kepala_sekolah: "",
   logo_sekolah: null,
+  semester: "Ganjil",
+  tahun_ajaran: "2025/2026",
 };
 
 const sectionTitle = "text-sm font-semibold text-slate-800";
@@ -39,12 +43,7 @@ export const PengaturanProfilForm = () => {
     };
   }, [values.logo_sekolah]);
 
-  const setField = <K extends keyof ProfilSekolahFormValues>(
-    key: K,
-    value: ProfilSekolahFormValues[K]
-  ) => {
-    setValues((prev) => ({ ...prev, [key]: value }));
-  };
+  const setField = createSetField(setValues);
 
   const onBlur = (name: keyof ProfilSekolahFormValues) => {
     setTouched((prev) => ({ ...prev, [name]: true }));
