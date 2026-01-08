@@ -2,13 +2,11 @@ import { BoxJadwalUjian } from "@/components/features/Ujian/BoxJadwalUjian";
 
 import { getTingkatKelasOptions } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { getRuangUjian } from "@/services/Api/features-api/DataMaster/ruang-ujian.service";
-import { getJadwalUjian } from "@/services/Api/features-api/Ujian/jadwalujian.service";
+import { getJadwalUjianByFilters } from "@/services/Api/features-api/Ujian/jadwalujian.service";
 import type { RuangUjianRow } from "@/types/DataMaster/RuangUjian";
 import type { JadwalUjianItem } from "@/types/Ujian/jadwalUjian";
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { formatTanggalToIso } from "@/helper/dateFormatting/formatToIso";
-import { normalize } from "@/helper/normalizeString/normalizeString";
 
 const STATUS_SECTIONS = [
   { key: "belum_dimulai", label: "Belum Mulai" },
@@ -34,6 +32,24 @@ export const JadwalUjian = () => {
 
   const requestSeq = useRef(0);
 
+  useEffect(() => {
+    (async () => {
+      try {
+        const [tingkatOptions, ruangUjianOptions] = await Promise.all([
+          getTingkatKelasOptions(),
+          getRuangUjian(),
+        ]);
+
+        setTingkatKelasOptions(tingkatOptions);
+        setRuangOptions(ruangUjianOptions);
+      } catch (e) {
+        setTingkatKelasOptions([]);
+        setRuangOptions([]);
+      } finally {
+      }
+    })();
+  }, []);
+
   // Fetch data jadwal ujian
   useEffect(() => {
     const seq = ++requestSeq.current;
@@ -42,68 +58,26 @@ export const JadwalUjian = () => {
         setLoading(true);
         setErrorMsg("");
 
-        const [data, tingkatOptions, ruangUjianOptions] = await Promise.all([
-          getJadwalUjian(),
-          getTingkatKelasOptions(),
-          getRuangUjian(),
-        ]);
+        const data = await getJadwalUjianByFilters({
+          q: searchTerm,
+          tanggal: selectedDate || undefined,
+          ruang: selectedRuang || undefined,
+          tingkatKelas: selectedTingkat ? Number(selectedTingkat) : undefined,
+        });
 
         if (seq !== requestSeq.current) return;
 
         setDaftarJadwalUjian(data);
-        setTingkatKelasOptions(tingkatOptions);
-        setRuangOptions(ruangUjianOptions);
       } catch (e) {
         if (seq !== requestSeq.current) return;
         setErrorMsg("Gagal memuat data jadwal ujian.");
         setDaftarJadwalUjian([]);
-        setTingkatKelasOptions([]);
-        setRuangOptions([]);
       } finally {
         if (seq !== requestSeq.current) return;
         setLoading(false);
       }
     })();
-  }, []);
-
-  const filteredJadwal = useMemo(() => {
-    const query = normalize(searchTerm);
-
-    return daftarJadwalUjian.filter((ujian) => {
-      if (selectedTingkat && ujian.tingkat_kelas !== Number(selectedTingkat)) {
-        return false;
-      }
-
-      if (selectedRuang && ujian.ruang_ujian !== selectedRuang) {
-        return false;
-      }
-
-      if (selectedDate) {
-        const isoDate = formatTanggalToIso(ujian.tgl_ujian);
-        if (!isoDate || isoDate !== selectedDate) return false;
-      }
-
-      if (!query) return true;
-
-      const searchable = normalize(
-        [
-          ujian.nama_ujian,
-          ujian.pengawas_ujian,
-          ujian.tgl_ujian,
-          ujian.waktu_mulai,
-          ujian.sesi_ujian ? String(ujian.sesi_ujian) : "",
-          ujian.ruang_ujian ?? "",
-          ujian.status_ujian ?? "",
-          ujian.tingkat_kelas ? String(ujian.tingkat_kelas) : "",
-          ujian.nama_kelas ?? "",
-        ]
-          .filter(Boolean)
-          .join(" ")
-      );
-
-      return searchable.includes(query);
-    });
-  }, [daftarJadwalUjian, searchTerm, selectedDate, selectedRuang, selectedTingkat]);
+  }, [searchTerm, selectedDate, selectedRuang, selectedTingkat]);
 
   const groupedJadwal = useMemo(() => {
     const grouped: Record<string, JadwalUjianItem[]> = {
@@ -112,7 +86,7 @@ export const JadwalUjian = () => {
       selesai: [],
     };
 
-    filteredJadwal.forEach((ujian) => {
+    daftarJadwalUjian.forEach((ujian) => {
       const status = ujian.status_ujian ?? "";
       if (grouped[status]) {
         grouped[status].push(ujian);
@@ -120,7 +94,7 @@ export const JadwalUjian = () => {
     });
 
     return grouped;
-  }, [filteredJadwal]);
+  }, [daftarJadwalUjian]);
 
   return (
     <>
@@ -203,7 +177,7 @@ export const JadwalUjian = () => {
             </div>
           ) : null}
 
-          {!loading && !errorMsg && filteredJadwal.length === 0 ? (
+          {!loading && !errorMsg && daftarJadwalUjian.length === 0 ? (
             <div className="rounded-2xl border border-slate-200 bg-white px-4 py-6 text-center text-sm text-slate-500">
               Tidak ada jadwal ujian yang sesuai dengan filter.
             </div>
