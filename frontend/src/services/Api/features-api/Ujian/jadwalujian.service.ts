@@ -1,4 +1,9 @@
-import type { JadwalUjianItem } from "@/types/Ujian/jadwalUjian";
+import { formatTanggalToIso } from "@/helper/dateFormatting/formatToIso";
+import { normalize } from "@/helper/normalizeString/normalizeString";
+import type {
+  JadwalUjianFilterParams,
+  JadwalUjianItem,
+} from "@/types/Ujian/jadwalUjian";
 
 export const dummyJadwalUjian: JadwalUjianItem[] = [
   {
@@ -61,7 +66,95 @@ export const dummyJadwalUjian: JadwalUjianItem[] = [
 ];
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-export async function getJadwalUjian (): Promise<JadwalUjianItem[]> {
+
+const buildSearchableText = (ujian: JadwalUjianItem) =>
+  normalize(
+    [
+      ujian.nama_ujian,
+      ujian.pengawas_ujian,
+      ujian.tgl_ujian,
+      ujian.waktu_mulai,
+      ujian.sesi_ujian ? String(ujian.sesi_ujian) : "",
+      ujian.ruang_ujian ?? "",
+      ujian.status_ujian ?? "",
+      ujian.tingkat_kelas ? String(ujian.tingkat_kelas) : "",
+      ujian.nama_kelas ?? "",
+    ]
+      .filter(Boolean)
+      .join(" ")
+  );
+
+const filterByTingkatKelas = (
+  data: JadwalUjianItem[],
+  tingkatKelas?: number | string
+) => {
+  if (tingkatKelas === undefined || tingkatKelas === null || tingkatKelas === "")
+    return data;
+  const tingkatFilter = Number(tingkatKelas);
+  return data.filter((ujian) => ujian.tingkat_kelas === tingkatFilter);
+};
+
+const filterByRuang = (data: JadwalUjianItem[], ruang?: string) => {
+  if (!ruang) return data;
+  return data.filter((ujian) => ujian.ruang_ujian === ruang);
+};
+
+const filterByTanggal = (data: JadwalUjianItem[], tanggal?: string) => {
+  if (!tanggal) return data;
+  return data.filter((ujian) => {
+    const isoDate = formatTanggalToIso(ujian.tgl_ujian);
+    return Boolean(isoDate && isoDate === tanggal);
+  });
+};
+
+const filterBySearch = (data: JadwalUjianItem[], q?: string) => {
+  const query = q ? normalize(q) : "";
+  if (!query) return data;
+  return data.filter((ujian) => buildSearchableText(ujian).includes(query));
+};
+
+export async function getJadwalUjian(): Promise<JadwalUjianItem[]> {
   await sleep(250);
   return dummyJadwalUjian;
+}
+
+export async function getJadwalUjianByTingkatKelas(
+  tingkatKelas?: number | string
+): Promise<JadwalUjianItem[]> {
+  await sleep(250);
+  return filterByTingkatKelas(dummyJadwalUjian, tingkatKelas);
+}
+
+export async function getJadwalUjianByRuang(
+  ruang?: string
+): Promise<JadwalUjianItem[]> {
+  await sleep(250);
+  return filterByRuang(dummyJadwalUjian, ruang);
+}
+
+export async function getJadwalUjianByTanggal(
+  tanggal?: string
+): Promise<JadwalUjianItem[]> {
+  await sleep(250);
+  return filterByTanggal(dummyJadwalUjian, tanggal);
+}
+
+export async function getJadwalUjianBySearch(
+  q?: string
+): Promise<JadwalUjianItem[]> {
+  await sleep(250);
+  return filterBySearch(dummyJadwalUjian, q);
+}
+
+export async function getJadwalUjianByFilters(
+  params: JadwalUjianFilterParams = {}
+): Promise<JadwalUjianItem[]> {
+  await sleep(250);
+  const filteredByTingkat = filterByTingkatKelas(
+    dummyJadwalUjian,
+    params.tingkatKelas
+  );
+  const filteredByRuang = filterByRuang(filteredByTingkat, params.ruang);
+  const filteredByTanggal = filterByTanggal(filteredByRuang, params.tanggal);
+  return filterBySearch(filteredByTanggal, params.q);
 }
