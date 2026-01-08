@@ -70,6 +70,7 @@ export const JadwalUjian = () => {
 
     // Defensive: jika selectedTingkat tidak valid angka, anggap undefined
     const tingkatKelas = Number.isFinite(tingkat) ? tingkat : undefined;
+    const ruangUjianId = selectedRuang.trim() === "" ? undefined : selectedRuang;
 
     (async () => {
       try {
@@ -79,8 +80,8 @@ export const JadwalUjian = () => {
         const data = await getJadwalUjian({
           q: debouncedSearchTerm.trim() || undefined,
           tanggal: selectedDate || undefined, // ISO input date: "YYYY-MM-DD"
-          ruang: selectedRuang || undefined,
-          tingkatKelas,
+          ruangUjianId,
+          tingkatKelasId: tingkatKelas,
         });
 
         if (seq !== requestSeq.current) return;
@@ -170,7 +171,7 @@ export const JadwalUjian = () => {
               >
                 <option value="">Semua Ruangan</option>
                 {ruangOptions.map((ruang) => (
-                  <option key={ruang.id} value={ruang.namaRuangan}>
+                  <option key={ruang.id} value={ruang.id}>
                     {ruang.namaRuangan}
                   </option>
                 ))}
