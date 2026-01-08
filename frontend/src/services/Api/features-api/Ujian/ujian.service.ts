@@ -13,6 +13,7 @@ import type {
 } from "@/types/Ujian/BuatUjian";
 import { getBankSoalByKelas } from "@/services/Api/features-api/BankSoal/banksoal.service";
 import { DUMMY_SISWA } from "@/services/Api/features-api/KelolaAkun/akunsiswa.service";
+import { getTingkatKelasById } from "@/helper/tingkatKelas/tingkatKelas";
 
 const DUMMY_GURU_PENGAWAS: GuruPengawasOption[] = [
   { id: "gr-001", nama: "Budi Santoso", nip: "198305232010011001", mapel: "Matematika" },
@@ -58,9 +59,14 @@ export async function getUjianRuangOptions(): Promise<RuangUjianOption[]> {
 }
 
 export async function getUjianBankSoalOptions(params: {
-  kelasId?: string;
+  tingkatKelasId?: number;
 }): Promise<BankSoalOption[]> {
-  const data = await getBankSoalByKelas({ kelasId: params.kelasId });
+  const tingkatKelas = getTingkatKelasById(params.tingkatKelasId);
+  const kelasId = tingkatKelas ? `kelas-${tingkatKelas}` : undefined;
+  const data = await getBankSoalByKelas({
+    tingkatKelasId: params.tingkatKelasId,
+    kelasId,
+  });
 
   return data.map((item) => ({
     id: item.id,
@@ -74,23 +80,23 @@ export async function getUjianBankSoalOptions(params: {
   }));
 }
 export async function getUjianSiswaPreview(params: {
-// Data dari server harusnya di sorting duluan berdasarkan nama nomor absen dan kelas
-
-  kelasId?: string;
+  // Data dari server harusnya di sorting duluan berdasarkan nama nomor absen dan kelas
+  tingkatKelasId?: number;
 }): Promise<SiswaPreviewItem[]> {
   await sleep(220);
-  if (!params.kelasId) return [];
+  const tingkatKelas = getTingkatKelasById(params.tingkatKelasId);
+  if (!tingkatKelas) return [];
 
-  return DUMMY_SISWA.filter((siswa) => siswa.__kelasId === params.kelasId).map(
-    (siswa) => ({
-      id: siswa.id,
-      nama: siswa.namaLengkap,
-      username: siswa.username,
-      no_absen: siswa.noAbsen,
-      kelas: siswa.kelas,
-      status_akun: siswa.statusAkun,
-    })
-  );
+  return DUMMY_SISWA.filter(
+    (siswa) => siswa.__kelasId === `kelas-${tingkatKelas}`
+  ).map((siswa) => ({
+    id: siswa.id,
+    nama: siswa.namaLengkap,
+    username: siswa.username,
+    no_absen: siswa.noAbsen,
+    kelas: siswa.kelas,
+    status_akun: siswa.statusAkun,
+  }));
 }
 
 export async function submitBuatUjian(values: BuatUjianFormValues) {

@@ -4,6 +4,7 @@ import type {
   MataPelajaranOption,
   MataPelajaranRow,
 } from "@/types/DataMaster/MataPelajaran";
+import { getTingkatKelasById } from "@/helper/tingkatKelas/tingkatKelas";
 
 const DUMMY_KELAS: KelasOption[] = [
   {
@@ -91,8 +92,9 @@ export async function getMataPelajaran(
 
   return DUMMY_MAPEL.filter((mapel) => {
     const tingkatKelas = kelasById[mapel.kelasId]?.tingkat_kelas;
+    const tingkatKelasById = getTingkatKelasById(params.tingkatKelas);
 
-    if (params.tingkatKelas && tingkatKelas !== params.tingkatKelas) {
+    if (params.tingkatKelas && tingkatKelas !== tingkatKelasById) {
       return false;
     }
 

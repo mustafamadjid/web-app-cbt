@@ -3,6 +3,7 @@ import { buildFormData } from "@/helper/FormData/BuildFormData";
 import type { JenisKelamin } from "@/types/OpsiTypes/Option";
 import type { StudentRegisterFormValues, StudentRegisterResponse } from "@/types/KelolaAkun/AkunSiswa";
 import { api, type ApiEnvelope } from "../../api";
+import { getTingkatKelasById } from "@/helper/tingkatKelas/tingkatKelas";
 
 export type BarisSiswa = {
   id: string;
@@ -23,7 +24,7 @@ export type BarisSiswa = {
 export type SiswaFilterParams = {
   q?: string;
   angkatan?: number;
-  kelasId?: string;
+  tingkatKelasId?: number;
   jenisKelamin?: JenisKelamin;
 };
 
@@ -189,11 +190,8 @@ export async function getSiswa(params: SiswaFilterParams): Promise<BarisSiswa[]>
   await sleep(350);
 
   let data = [...DUMMY_SISWA];
-  const kelasId = params.kelasId
-    ? params.kelasId.startsWith("kelas-")
-      ? params.kelasId
-      : `kelas-${params.kelasId}`
-    : undefined;
+  const tingkatKelas = getTingkatKelasById(params.tingkatKelasId);
+  const kelasId = tingkatKelas ? `kelas-${tingkatKelas}` : undefined;
 
   if (params.angkatan) {
     data = data.filter((s) => s.angkatan === params.angkatan);

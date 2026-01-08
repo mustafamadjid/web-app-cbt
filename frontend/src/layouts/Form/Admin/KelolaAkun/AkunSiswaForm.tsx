@@ -5,6 +5,7 @@ import { ImageUpload } from "@/components/features/ImageUpload/ImageUpload";
 
 import type { JenisKelamin } from "@/types/OpsiTypes/Option";
 import type { StudentRegisterFormValues } from "@/types/KelolaAkun/AkunSiswa";
+import type { TingkatKelasOption } from "@/types/DataMaster/Kelas";
 import { submitStudentRegister } from "@/services/Api/features-api/KelolaAkun/akunsiswa.service";
 import { paths } from "@/routes/paths";
 import { useNavigate } from "react-router";
@@ -57,7 +58,7 @@ export const AkunSiswaForm = () => {
     };
   }, [values.fotoProfil]);
 
-  const [kelasOptions, setKelasOptions] = useState<number[]>([]);
+  const [kelasOptions, setKelasOptions] = useState<TingkatKelasOption[]>([]);
 
   useEffect(() => {
     let active = true;
@@ -423,8 +424,11 @@ export const AkunSiswaForm = () => {
                     Pilih tingkat kelas...
                   </option>
                   {kelasOptions.map((tingkat) => (
-                    <option key={tingkat} value={String(tingkat)}>
-                      Kelas {tingkat}
+                    <option
+                      key={tingkat.id_tingkat_kelas}
+                      value={String(tingkat.id_tingkat_kelas)}
+                    >
+                      Kelas {tingkat.tingkat_kelas}
                     </option>
                   ))}
                 </select>

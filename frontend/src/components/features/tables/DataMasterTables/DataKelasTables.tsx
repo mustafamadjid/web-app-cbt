@@ -10,7 +10,7 @@ import {
 import { useNavigate } from "react-router";
 
 import { AddButton } from "@/components/common/Button/AddButton";
-import type { KelasRow } from "@/types/DataMaster/Kelas";
+import type { KelasRow, TingkatKelasOption } from "@/types/DataMaster/Kelas";
 import {
   getKelas,
   getTingkatKelasOptions,
@@ -33,7 +33,7 @@ export const DataKelasTables: React.FC = () => {
   const [kataKunci, setKataKunci] = useState("");
   const [tingkatKelas, setTingkatKelas] = useState("");
 
-  const [opsiTingkat, setOpsiTingkat] = useState<number[]>([]);
+  const [opsiTingkat, setOpsiTingkat] = useState<TingkatKelasOption[]>([]);
   const [daftarKelas, setDaftarKelas] = useState<KelasRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -184,8 +184,11 @@ export const DataKelasTables: React.FC = () => {
               >
                 <option value="">Semua</option>
                 {opsiTingkat.map((tingkat) => (
-                  <option key={tingkat} value={String(tingkat)}>
-                    {tingkat}
+                  <option
+                    key={tingkat.id_tingkat_kelas}
+                    value={String(tingkat.id_tingkat_kelas)}
+                  >
+                    {tingkat.tingkat_kelas}
                   </option>
                 ))}
               </select>

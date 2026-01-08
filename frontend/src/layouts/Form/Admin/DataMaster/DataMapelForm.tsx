@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { InputField } from "@/components/common/Input/InputField";
 
 import type { MataPelajaranFormValues } from "@/types/DataMaster/MataPelajaran";
+import type { TingkatKelasOption } from "@/types/DataMaster/Kelas";
 import { getTingkatKelasOptions } from "@/services/Api/features-api/DataMaster/kelas.service";
 
 import { createSetField } from "@/helper/setField/setField";
@@ -21,7 +22,7 @@ export const DataMapelForm = () => {
   const [values, setValues] = useState<MataPelajaranFormValues>(initialValues);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [kelasOptions, setKelasOptions] = useState<number[]>([]);
+  const [kelasOptions, setKelasOptions] = useState<TingkatKelasOption[]>([]);
 
   useEffect(() => {
     let active = true;
@@ -125,8 +126,11 @@ export const DataMapelForm = () => {
 
                   {/* 2) Render hanya tingkat kelas unik */}
                   {kelasOptions.map((tingkat) => (
-                    <option key={tingkat} value={String(tingkat)}>
-                      Kelas {tingkat}
+                    <option
+                      key={tingkat.id_tingkat_kelas}
+                      value={String(tingkat.id_tingkat_kelas)}
+                    >
+                      Kelas {tingkat.tingkat_kelas}
                     </option>
                   ))}
                 </select>

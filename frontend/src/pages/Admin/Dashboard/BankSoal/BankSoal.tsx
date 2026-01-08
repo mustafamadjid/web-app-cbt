@@ -18,6 +18,7 @@ import { AddButton } from "@/components/common/Button/AddButton";
 import { BankSoalLayout } from "@/layouts/BankSoalLayout/BankSoalLayout";
 
 import type { BankSoalItem } from "@/types/DataMaster/BankSoal";
+import type { TingkatKelasOption } from "@/types/DataMaster/Kelas";
 import type { MataPelajaranOption } from "@/types/DataMaster/MataPelajaran";
 
 import {
@@ -44,13 +45,17 @@ export const BankSoal = () => {
 
   // ----- UI State -----
   const [viewMode, setViewMode] = useState<ViewMode>("ALL");
-  const [selectedTingkat, setSelectedTingkat] = useState<number | null>(null);
+  const [selectedTingkatId, setSelectedTingkatId] = useState<number | null>(
+    null
+  );
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search, 400); // Sedikit diperlambat agar lebih smooth
   const [selectedMapelId, setSelectedMapelId] = useState<string>("");
 
   // ----- Data State -----
-  const [tingkatKelasOptions, setTingkatKelasOptions] = useState<number[]>([]);
+  const [tingkatKelasOptions, setTingkatKelasOptions] = useState<
+    TingkatKelasOption[]
+  >([]);
   const [mapelOptions, setMapelOptions] = useState<MataPelajaranOption[]>([]);
   const [items, setItems] = useState<BankSoalItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -68,10 +73,10 @@ export const BankSoal = () => {
         setTingkatKelasOptions(kelas);
         if (
           kelas.length > 0 &&
-          selectedTingkat == null &&
+          selectedTingkatId == null &&
           viewMode === "BY_KELAS"
         ) {
-          setSelectedTingkat(kelas[0]);
+          setSelectedTingkatId(kelas[0].id_tingkat_kelas);
         }
       } catch (e) {
         if (mounted) setErrorMsg("Gagal memuat data tingkat kelas.");
@@ -87,12 +92,9 @@ export const BankSoal = () => {
     let mounted = true;
     (async () => {
       try {
-        const kelasIdForMapel =
-          viewMode === "BY_KELAS" && selectedTingkat != null
-            ? `kelas-${selectedTingkat}`
-            : undefined;
         const mapel = await getMataPelajaranOptions({
-          kelasId: kelasIdForMapel,
+          tingkatKelasId:
+            viewMode === "BY_KELAS" ? selectedTingkatId ?? undefined : undefined,
         });
         if (!mounted) return;
         setMapelOptions(mapel);
@@ -106,7 +108,7 @@ export const BankSoal = () => {
     return () => {
       mounted = false;
     };
-  }, [viewMode, selectedTingkat]);
+  }, [viewMode, selectedTingkatId]);
 
   // 3. Load Bank Soal Data
   useEffect(() => {
@@ -115,12 +117,9 @@ export const BankSoal = () => {
       try {
         setLoading(true);
         setErrorMsg("");
-        const kelasId =
-          viewMode === "BY_KELAS" && selectedTingkat != null
-            ? `kelas-${selectedTingkat}`
-            : undefined;
         const data = await getBankSoalByKelas({
-          kelasId,
+          tingkatKelasId:
+            viewMode === "BY_KELAS" ? selectedTingkatId ?? undefined : undefined,
           mapelId: selectedMapelId || undefined,
           q: debouncedSearch?.trim() || undefined,
         });
@@ -134,12 +133,15 @@ export const BankSoal = () => {
         if (seq === requestSeq.current) setLoading(false);
       }
     })();
-  }, [viewMode, selectedTingkat, selectedMapelId, debouncedSearch]);
+  }, [viewMode, selectedTingkatId, selectedMapelId, debouncedSearch]);
 
   const selectedKelasLabel = useMemo(() => {
-    if (selectedTingkat == null) return "";
-    return `Kelas ${selectedTingkat}`;
-  }, [selectedTingkat]);
+    const selectedKelas = tingkatKelasOptions.find(
+      (option) => option.id_tingkat_kelas === selectedTingkatId
+    );
+    if (!selectedKelas) return "";
+    return `Kelas ${selectedKelas.tingkat_kelas}`;
+  }, [selectedTingkatId, tingkatKelasOptions]);
 
   return (
     <div className="min-h-screen bg-[#ecf1ed] pb-20">
@@ -164,7 +166,7 @@ export const BankSoal = () => {
                   <button
                     onClick={() => {
                       setViewMode("ALL");
-                      setSelectedTingkat(null);
+                      setSelectedTingkatId(null);
                     }}
                     className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-bold transition-all ${
                       viewMode === "ALL"
@@ -178,8 +180,13 @@ export const BankSoal = () => {
                   <button
                     onClick={() => {
                       setViewMode("BY_KELAS");
-                      if (selectedTingkat == null && tingkatKelasOptions.length > 0)
-                        setSelectedTingkat(tingkatKelasOptions[0]);
+                      if (
+                        selectedTingkatId == null &&
+                        tingkatKelasOptions.length > 0
+                      )
+                        setSelectedTingkatId(
+                          tingkatKelasOptions[0].id_tingkat_kelas
+                        );
                     }}
                     className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-bold transition-all ${
                       viewMode === "BY_KELAS"
@@ -206,12 +213,15 @@ export const BankSoal = () => {
                       </span>
                     ) : (
                       tingkatKelasOptions.map((tingkat) => {
-                        const isActive = tingkat === selectedTingkat;
-                        const label = `Kelas ${tingkat}`;
+                        const isActive =
+                          tingkat.id_tingkat_kelas === selectedTingkatId;
+                        const label = `Kelas ${tingkat.tingkat_kelas}`;
                         return (
                           <button
-                            key={tingkat}
-                            onClick={() => setSelectedTingkat(tingkat)}
+                            key={tingkat.id_tingkat_kelas}
+                            onClick={() =>
+                              setSelectedTingkatId(tingkat.id_tingkat_kelas)
+                            }
                             className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-all border ${
                               isActive
                                 ? "bg-[#397e50] text-white border-[#397e50] shadow-md shadow-[#397e50]/20"

@@ -26,6 +26,7 @@ export const dummyJadwalUjian: JadwalUjianItem[] = [
     status_ujian: "belum_dimulai",
    
     tingkat_kelas: 10,
+    tingkat_kelas_id: 1,
     nama_kelas: "10 IPA 1",
   },
   {
@@ -40,6 +41,7 @@ export const dummyJadwalUjian: JadwalUjianItem[] = [
     status_ujian: "berlangsung",
     
     tingkat_kelas: 11,
+    tingkat_kelas_id: 2,
     nama_kelas: "11 IPA 2",
   },
   {
@@ -54,6 +56,7 @@ export const dummyJadwalUjian: JadwalUjianItem[] = [
     status_ujian: "selesai",
     
     tingkat_kelas: 12,
+    tingkat_kelas_id: 3,
     nama_kelas: "12 IPS 1",
   },
   {
@@ -67,6 +70,7 @@ export const dummyJadwalUjian: JadwalUjianItem[] = [
     status_ujian: "belum_dimulai",
     
     tingkat_kelas: 11,
+    tingkat_kelas_id: 2,
     nama_kelas: "11 IPS 2",
   },
   {
@@ -81,6 +85,7 @@ export const dummyJadwalUjian: JadwalUjianItem[] = [
     status_ujian: "belum_dimulai",
     
     tingkat_kelas: 10,
+    tingkat_kelas_id: 1,
     nama_kelas: "10 IPA 3",
   },
 ];
@@ -106,6 +111,7 @@ const buildSearchableText = (ujian: JadwalUjianItem) =>
       ujian.sesi_ujian != null ? String(ujian.sesi_ujian) : "",
       ujian.ruang_ujian ?? "",
       ujian.status_ujian ?? "",
+      ujian.tingkat_kelas_id != null ? String(ujian.tingkat_kelas_id) : "",
       ujian.tingkat_kelas != null ? String(ujian.tingkat_kelas) : "",
       ujian.nama_kelas ?? "",
     ]

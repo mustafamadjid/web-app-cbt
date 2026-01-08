@@ -14,6 +14,7 @@ import type {
   MataPelajaranOption,
   MataPelajaranRow,
 } from "@/types/DataMaster/MataPelajaran";
+import type { TingkatKelasOption } from "@/types/DataMaster/Kelas";
 import {
   getMataPelajaran,
   getMataPelajaranOptions,
@@ -39,7 +40,9 @@ export const DataMataPelajaran: React.FC = () => {
   const [tingkatTerpilih, setTingkatTerpilih] = useState("");
   const [mapelTerpilih, setMapelTerpilih] = useState("");
 
-  const [opsiTingkatKelas, setOpsiTingkatKelas] = useState<number[]>([]);
+  const [opsiTingkatKelas, setOpsiTingkatKelas] = useState<
+    TingkatKelasOption[]
+  >([]);
   const [opsiMapel, setOpsiMapel] = useState<MataPelajaranOption[]>([]);
 
   const [daftarMapel, setDaftarMapel] = useState<MataPelajaranRow[]>([]);
@@ -114,7 +117,7 @@ export const DataMataPelajaran: React.FC = () => {
 
   const kelasLabelById = useMemo(() => {
     return opsiTingkatKelas.reduce<Record<string, string>>((acc, tingkat) => {
-      acc[`kelas-${tingkat}`] = `Kelas ${tingkat}`;
+      acc[`kelas-${tingkat.tingkat_kelas}`] = `Kelas ${tingkat.tingkat_kelas}`;
       return acc;
     }, {});
   }, [opsiTingkatKelas]);
@@ -206,8 +209,11 @@ export const DataMataPelajaran: React.FC = () => {
               >
                 <option value="">Semua</option>
                 {opsiTingkatKelas.map((tingkat) => (
-                  <option key={tingkat} value={String(tingkat)}>
-                    {tingkat}
+                  <option
+                    key={tingkat.id_tingkat_kelas}
+                    value={String(tingkat.id_tingkat_kelas)}
+                  >
+                    {tingkat.tingkat_kelas}
                   </option>
                 ))}
               </select>
