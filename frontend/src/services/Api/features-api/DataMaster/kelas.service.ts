@@ -83,6 +83,8 @@ export async function getTingkatKelasOptions(): Promise<TingkatKelasOption[]> {
     {}
   );
 
+  // Ini harusnya nanit kalau sudah fetch API ga perlu sorting id
+
   return Object.values(options).sort(
     (a, b) => a.id_tingkat_kelas - b.id_tingkat_kelas
   );
@@ -122,17 +124,10 @@ export async function getKelas(
   });
 }
 
-export const TINGKAT_KELAS_BY_ID: Record<number, number> = {
-  1: 10,
-  2: 11,
-  3: 12,
-};
-
-export const getTingkatKelasById = (
+export const getTingkatKelasById =async (
   id?: number | string | null
-): number | undefined => {
-  if (id == null || id === "") return undefined;
-  const parsed = typeof id === "number" ? id : Number(id);
-  if (!Number.isFinite(parsed)) return undefined;
-  return TINGKAT_KELAS_BY_ID[parsed];
+): Promise<number | undefined> => {
+
+  const dataId = await getTingkatKelasOptions();
+  return dataId.find((item) => item.id_tingkat_kelas == id)?.tingkat_kelas
 };

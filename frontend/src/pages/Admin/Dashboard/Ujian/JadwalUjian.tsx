@@ -151,7 +151,9 @@ export const JadwalUjian = () => {
               </label>
               <select
                 value={selectedTingkatId}
-                onChange={(event) => setSelectedTingkatId(event.target.value)}
+                onChange={(event) => {
+                  setSelectedTingkatId(event.target.value);
+                }}
                 className="w-full rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-700 shadow-sm focus:border-[#397e50] focus:outline-none focus:ring-2 focus:ring-[#397e50]/20"
               >
                 <option value="">Semua Tingkat</option>

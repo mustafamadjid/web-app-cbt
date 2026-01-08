@@ -126,7 +126,6 @@ const indexDummy = (data: JadwalUjianItem[]): JadwalUjianItemIndexed[] =>
     __tglIso: formatTanggalToIso(item.tgl_ujian) ?? undefined,
   }));
 
-const dummyIndexed = indexDummy(dummyJadwalUjian);
 
 /**
  * --- Filter helpers (dummy mode only) ---
@@ -192,7 +191,10 @@ export async function getJadwalUjian(
 ): Promise<JadwalUjianItem[]> {
   if (USE_DUMMY) {
     await sleep(250);
-    const filtered = applyJadwalUjianFilters(dummyIndexed, params);
+    const filtered = applyJadwalUjianFilters(
+      indexDummy(dummyJadwalUjian),
+      params
+    );
     return stripInternal(filtered);
   }
 
