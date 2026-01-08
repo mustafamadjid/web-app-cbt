@@ -1,5 +1,6 @@
 import type { BankSoalItem } from "@/types/DataMaster/BankSoal";
 import type { MataPelajaranOption } from "@/types/DataMaster/MataPelajaran";
+import { getTingkatKelasById } from "@/services/Api/features-api/DataMaster/kelas.service";
 
 const DUMMY_MAPEL: MataPelajaranOption[] = [
   { id: "mp-bindo-10", label: "Bahasa Indonesia (Kelas 10)" },
@@ -100,9 +101,10 @@ function normalize(s: string) {
 }
 
 export async function getMataPelajaranOptions(params: {
-  kelasId?: string;
+  tingkatKelasId?: number;
 }): Promise<MataPelajaranOption[]> {
-  const { kelasId } = params;
+  const tingkatKelas = getTingkatKelasById(params.tingkatKelasId);
+  const kelasId = tingkatKelas ? `kelas-${tingkatKelas}` : undefined;
 
   // contoh: kalau mode per kelas, batasi mapel sesuai kelas (dummy sederhana pakai label)
   const filtered = !kelasId
@@ -118,16 +120,19 @@ export async function getMataPelajaranOptions(params: {
 }
 
 export async function getBankSoalByKelas(params: {
+  tingkatKelasId?: number;
   kelasId?: string;
   mapelId?: string;
   q?: string;
 }): Promise<BankSoalItem[]> {
-  const { kelasId, mapelId, q } = params;
+  const { tingkatKelasId, kelasId, mapelId, q } = params;
+  const tingkatKelas = getTingkatKelasById(tingkatKelasId);
+  const resolvedKelasId = kelasId ?? (tingkatKelas ? `kelas-${tingkatKelas}` : undefined);
 
   let result = [...DUMMY_BANKSOAL];
 
-  if (kelasId) {
-    result = result.filter((x) => x.__kelasId === kelasId);
+  if (resolvedKelasId) {
+    result = result.filter((x) => x.__kelasId === resolvedKelasId);
   }
 
   if (mapelId) {

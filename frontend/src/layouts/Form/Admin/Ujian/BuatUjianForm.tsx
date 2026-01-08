@@ -11,6 +11,7 @@ import type {
   SiswaPreviewItem,
   TipeUjian,
 } from "@/types/Ujian/BuatUjian";
+import type { TingkatKelasOption } from "@/types/DataMaster/Kelas";
 import {
   getUjianBankSoalOptions,
   getUjianGuruPengawasOptions,
@@ -21,6 +22,7 @@ import {
 } from "@/services/Api/features-api/Ujian/ujian.service";
 import { ApiError } from "@/services/Api/api";
 import { getTingkatKelasOptions } from "@/services/Api/features-api/DataMaster/kelas.service";
+import { getTingkatKelasById } from "@/services/Api/features-api/DataMaster/kelas.service";
 
 // helper
 import { createSetField } from "@/helper/setField/setField";
@@ -61,7 +63,7 @@ export const BuatUjianForm = () => {
   const [loadingBankSoal, setLoadingBankSoal] = useState(false);
   const [loadingSiswa, setLoadingSiswa] = useState(false);
 
-  const [kelasOptions, setKelasOptions] = useState<number[]>([]);
+  const [kelasOptions, setKelasOptions] = useState<TingkatKelasOption[]>([]);
   const [bankSoalOptions, setBankSoalOptions] = useState<BankSoalOption[]>([]);
   const [ruangOptions, setRuangOptions] = useState<RuangUjianOption[]>([]);
   const [guruOptions, setGuruOptions] = useState<GuruPengawasOption[]>([]);
@@ -74,10 +76,10 @@ export const BuatUjianForm = () => {
     setTouched((prev) => ({ ...prev, [name]: true }));
   };
 
-  const selectedKelasId = useMemo(
-    () => (values.kelas_id === "" ? undefined : `kelas-${values.kelas_id}`),
-    [values.kelas_id]
-  );
+  const selectedKelasId = useMemo(() => {
+    const tingkatKelas = getTingkatKelasById(values.kelas_id);
+    return tingkatKelas ? `kelas-${tingkatKelas}` : undefined;
+  }, [values.kelas_id]);
 
   const bankSoalById = useMemo(() => {
     const map = new Map(bankSoalOptions.map((x) => [String(x.id), x]));
@@ -121,7 +123,8 @@ export const BuatUjianForm = () => {
       setLoadingBankSoal(true);
       try {
         const data = await getUjianBankSoalOptions({
-          kelasId: selectedKelasId,
+          tingkatKelasId:
+            values.kelas_id === "" ? undefined : Number(values.kelas_id),
         });
         if (!active) return;
         setBankSoalOptions(data);
@@ -149,7 +152,8 @@ export const BuatUjianForm = () => {
       setLoadingSiswa(true);
       try {
         const data = await getUjianSiswaPreview({
-          kelasId: selectedKelasId,
+          tingkatKelasId:
+            values.kelas_id === "" ? undefined : Number(values.kelas_id),
         });
         if (!active) return;
         // harusnya data dari server sudah di sorting
@@ -378,8 +382,11 @@ export const BuatUjianForm = () => {
                 >
                   <option value="">Pilih tingkat kelas</option>
                   {kelasOptions.map((tingkat) => (
-                    <option key={tingkat} value={String(tingkat)}>
-                      Kelas {tingkat}
+                    <option
+                      key={tingkat.id_tingkat_kelas}
+                      value={String(tingkat.id_tingkat_kelas)}
+                    >
+                      Kelas {tingkat.tingkat_kelas}
                     </option>
                   ))}
                 </select>

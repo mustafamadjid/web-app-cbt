@@ -3,6 +3,7 @@ import { BoxJadwalUjian } from "@/components/features/Ujian/BoxJadwalUjian";
 import { getTingkatKelasOptions } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { getRuangUjian } from "@/services/Api/features-api/DataMaster/ruang-ujian.service";
 import { getJadwalUjian } from "@/services/Api/features-api/Ujian/jadwalujian.service"; // ✅ ganti ini
+import type { TingkatKelasOption } from "@/types/DataMaster/Kelas";
 import type { RuangUjianRow } from "@/types/DataMaster/RuangUjian";
 import type { JadwalUjianItem } from "@/types/Ujian/jadwalUjian";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -31,14 +32,16 @@ export const JadwalUjian = () => {
   const [daftarJadwalUjian, setDaftarJadwalUjian] = useState<JadwalUjianItem[]>(
     []
   );
-  const [tingkatKelasOptions, setTingkatKelasOptions] = useState<number[]>([]);
+  const [tingkatKelasOptions, setTingkatKelasOptions] = useState<
+    TingkatKelasOption[]
+  >([]);
   const [ruangOptions, setRuangOptions] = useState<RuangUjianRow[]>([]);
 
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebouncedValue(searchTerm, 300); // ✅ debounce
 
   const [selectedDate, setSelectedDate] = useState("");
-  const [selectedTingkat, setSelectedTingkat] = useState("");
+  const [selectedTingkatId, setSelectedTingkatId] = useState("");
   const [selectedRuang, setSelectedRuang] = useState("");
 
   const requestSeq = useRef(0);
@@ -66,7 +69,7 @@ export const JadwalUjian = () => {
     const seq = ++requestSeq.current;
 
     const tingkat =
-      selectedTingkat.trim() === "" ? undefined : Number(selectedTingkat);
+      selectedTingkatId.trim() === "" ? undefined : Number(selectedTingkatId);
 
     // Defensive: jika selectedTingkat tidak valid angka, anggap undefined
     const tingkatKelas = Number.isFinite(tingkat) ? tingkat : undefined;
@@ -95,7 +98,7 @@ export const JadwalUjian = () => {
         setLoading(false);
       }
     })();
-  }, [debouncedSearchTerm, selectedDate, selectedRuang, selectedTingkat]);
+  }, [debouncedSearchTerm, selectedDate, selectedRuang, selectedTingkatId]);
 
   const groupedJadwal = useMemo(() => {
     const grouped: Record<string, JadwalUjianItem[]> = {
@@ -147,14 +150,19 @@ export const JadwalUjian = () => {
                 Tingkat Kelas
               </label>
               <select
-                value={selectedTingkat}
-                onChange={(event) => setSelectedTingkat(event.target.value)}
+                value={selectedTingkatId}
+                onChange={(event) => {
+                  setSelectedTingkatId(event.target.value);
+                }}
                 className="w-full rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-700 shadow-sm focus:border-[#397e50] focus:outline-none focus:ring-2 focus:ring-[#397e50]/20"
               >
                 <option value="">Semua Tingkat</option>
                 {tingkatKelasOptions.map((tingkat) => (
-                  <option key={tingkat} value={tingkat}>
-                    Kelas {tingkat}
+                  <option
+                    key={tingkat.id_tingkat_kelas}
+                    value={tingkat.id_tingkat_kelas}
+                  >
+                    Kelas {tingkat.tingkat_kelas}
                   </option>
                 ))}
               </select>
