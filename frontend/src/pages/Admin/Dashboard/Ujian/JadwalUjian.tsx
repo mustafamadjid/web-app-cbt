@@ -7,44 +7,16 @@ import type { RuangUjianRow } from "@/types/DataMaster/RuangUjian";
 import type { JadwalUjianItem } from "@/types/Ujian/jadwalUjian";
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import { formatTanggalToIso } from "@/helper/dateFormatting/formatToIso";
+import { normalize } from "@/helper/normalizeString/normalizeString";
+
 const STATUS_SECTIONS = [
   { key: "belum_dimulai", label: "Belum Mulai" },
   { key: "berlangsung", label: "Berlangsung" },
   { key: "selesai", label: "Selesai" },
 ];
 
-const monthMap: Record<string, string> = {
-  januari: "01",
-  februari: "02",
-  maret: "03",
-  april: "04",
-  mei: "05",
-  juni: "06",
-  juli: "07",
-  agustus: "08",
-  september: "09",
-  oktober: "10",
-  november: "11",
-  desember: "12",
-};
 
-const normalize = (value: string) => value.toLowerCase().trim();
-
-const formatTanggalToIso = (value?: string) => {
-  if (!value) return null;
-  const parts = value.split(",").map((item) => item.trim());
-  if (parts.length < 2) return null;
-
-  const dateParts = parts[1].split(" ").filter(Boolean);
-  if (dateParts.length < 3) return null;
-
-  const [day, monthName, year] = dateParts;
-  const month = monthMap[normalize(monthName)];
-  if (!month) return null;
-
-  const paddedDay = day.padStart(2, "0");
-  return `${year}-${month}-${paddedDay}`;
-};
 
 export const JadwalUjian = () => {
   const [loading, setLoading] = useState(false);
