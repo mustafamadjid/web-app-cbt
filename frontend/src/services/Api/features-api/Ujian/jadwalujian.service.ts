@@ -5,6 +5,14 @@ import type {
   JadwalUjianItem,
 } from "@/types/Ujian/jadwalUjian";
 
+// import { api } from "@/services/api"; // ✅ aktifkan saat BE siap
+// import type { ApiEnvelope } from "@/services/api"; // kalau pakai envelope
+
+/**
+ * Dummy source data.
+ * Catatan: untuk konsisten dengan filter by ID,
+ * dummy data harus memiliki tingkat_kelas_id dan ruang_ujian_id.
+ */
 export const dummyJadwalUjian: JadwalUjianItem[] = [
   {
     id: 1,
@@ -13,8 +21,10 @@ export const dummyJadwalUjian: JadwalUjianItem[] = [
     tgl_ujian: "Senin, 12 Februari 2026",
     waktu_mulai: "07:30",
     sesi_ujian: 1,
+    
     ruang_ujian: "Ruang 101",
     status_ujian: "belum_dimulai",
+   
     tingkat_kelas: 10,
     nama_kelas: "10 IPA 1",
   },
@@ -25,8 +35,10 @@ export const dummyJadwalUjian: JadwalUjianItem[] = [
     tgl_ujian: "Senin, 12 Februari 2026",
     waktu_mulai: "10:00",
     sesi_ujian: 2,
+  
     ruang_ujian: "Ruang 102",
     status_ujian: "berlangsung",
+    
     tingkat_kelas: 11,
     nama_kelas: "11 IPA 2",
   },
@@ -37,8 +49,10 @@ export const dummyJadwalUjian: JadwalUjianItem[] = [
     tgl_ujian: "Selasa, 13 Februari 2026",
     waktu_mulai: "08:00",
     sesi_ujian: 1,
+   
     ruang_ujian: "Lab IPA",
     status_ujian: "selesai",
+    
     tingkat_kelas: 12,
     nama_kelas: "12 IPS 1",
   },
@@ -48,8 +62,10 @@ export const dummyJadwalUjian: JadwalUjianItem[] = [
     pengawas_ujian: "Bu Rina Oktavia",
     tgl_ujian: "Rabu, 14 Februari 2026",
     waktu_mulai: "09:30",
+    
     ruang_ujian: "Ruang 203",
     status_ujian: "belum_dimulai",
+    
     tingkat_kelas: 11,
     nama_kelas: "11 IPS 2",
   },
@@ -60,6 +76,10 @@ export const dummyJadwalUjian: JadwalUjianItem[] = [
     tgl_ujian: "Kamis, 15 Februari 2026",
     waktu_mulai: "13:00",
     sesi_ujian: 3,
+    
+    ruang_ujian: "Ruang 301",
+    status_ujian: "belum_dimulai",
+    
     tingkat_kelas: 10,
     nama_kelas: "10 IPA 3",
   },
@@ -67,94 +87,122 @@ export const dummyJadwalUjian: JadwalUjianItem[] = [
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+/**
+ * --- Indexing (dummy mode only) ---
+ * Precompute agar search & filter tanggal tidak rebuild/parse terus.
+ */
+type JadwalUjianItemIndexed = JadwalUjianItem & {
+  __searchText: string;
+  __tglIso?: string;
+};
+
 const buildSearchableText = (ujian: JadwalUjianItem) =>
   normalize(
     [
       ujian.nama_ujian,
-      ujian.pengawas_ujian,
+      ujian.pengawas_ujian ?? "",
       ujian.tgl_ujian,
       ujian.waktu_mulai,
-      ujian.sesi_ujian ? String(ujian.sesi_ujian) : "",
+      ujian.sesi_ujian != null ? String(ujian.sesi_ujian) : "",
       ujian.ruang_ujian ?? "",
       ujian.status_ujian ?? "",
-      ujian.tingkat_kelas ? String(ujian.tingkat_kelas) : "",
+      ujian.tingkat_kelas != null ? String(ujian.tingkat_kelas) : "",
       ujian.nama_kelas ?? "",
     ]
       .filter(Boolean)
       .join(" ")
   );
 
-const filterByTingkatKelas = (
-  data: JadwalUjianItem[],
-  tingkatKelas?: number | string
+const indexDummy = (data: JadwalUjianItem[]): JadwalUjianItemIndexed[] =>
+  data.map((item) => ({
+    ...item,
+    __searchText: buildSearchableText(item),
+    __tglIso: formatTanggalToIso(item.tgl_ujian) ?? undefined,
+  }));
+
+const dummyIndexed = indexDummy(dummyJadwalUjian);
+
+/**
+ * --- Filter helpers (dummy mode only) ---
+ * Semua filter di sini pakai ID agar konsisten dengan BE.
+ */
+
+const filterByTingkatKelasId = (
+  data: JadwalUjianItemIndexed[],
+  tingkatKelasId?: number
 ) => {
-  if (tingkatKelas === undefined || tingkatKelas === null || tingkatKelas === "")
-    return data;
-  const tingkatFilter = Number(tingkatKelas);
-  return data.filter((ujian) => ujian.tingkat_kelas === tingkatFilter);
+  if (tingkatKelasId == null) return data;
+  return data.filter((ujian) => ujian.tingkat_kelas_id === tingkatKelasId);
 };
 
-const filterByRuang = (data: JadwalUjianItem[], ruang?: string) => {
-  if (!ruang) return data;
-  return data.filter((ujian) => ujian.ruang_ujian === ruang);
+const filterByRuangUjianId = (
+  data: JadwalUjianItemIndexed[],
+  ruangUjianId?: number
+) => {
+  if (ruangUjianId == null) return data;
+  return data.filter((ujian) => ujian.ruang_ujian_id === ruangUjianId);
 };
 
-const filterByTanggal = (data: JadwalUjianItem[], tanggal?: string) => {
+const filterByTanggalIso = (
+  data: JadwalUjianItemIndexed[],
+  tanggal?: string
+) => {
   if (!tanggal) return data;
-  return data.filter((ujian) => {
-    const isoDate = formatTanggalToIso(ujian.tgl_ujian);
-    return Boolean(isoDate && isoDate === tanggal);
-  });
+  return data.filter((ujian) => ujian.__tglIso === tanggal);
 };
 
-const filterBySearch = (data: JadwalUjianItem[], q?: string) => {
+const filterBySearch = (data: JadwalUjianItemIndexed[], q?: string) => {
   const query = q ? normalize(q) : "";
   if (!query) return data;
-  return data.filter((ujian) => buildSearchableText(ujian).includes(query));
+  return data.filter((ujian) => ujian.__searchText.includes(query));
 };
 
-export async function getJadwalUjian(): Promise<JadwalUjianItem[]> {
-  await sleep(250);
-  return dummyJadwalUjian;
-}
+const applyJadwalUjianFilters = (
+  data: JadwalUjianItemIndexed[],
+  params: JadwalUjianFilterParams = {}
+) => {
+  let out = data;
+  out = filterByTingkatKelasId(out, params.tingkatKelasId);
+  out = filterByRuangUjianId(out, params.ruangUjianId);
+  out = filterByTanggalIso(out, params.tanggal);
+  out = filterBySearch(out, params.q);
+  return out;
+};
 
-export async function getJadwalUjianByTingkatKelas(
-  tingkatKelas?: number | string
-): Promise<JadwalUjianItem[]> {
-  await sleep(250);
-  return filterByTingkatKelas(dummyJadwalUjian, tingkatKelas);
-}
+const stripInternal = (items: JadwalUjianItemIndexed[]): JadwalUjianItem[] =>
+  items.map(({ __searchText, __tglIso, ...rest }) => rest);
 
-export async function getJadwalUjianByRuang(
-  ruang?: string
-): Promise<JadwalUjianItem[]> {
-  await sleep(250);
-  return filterByRuang(dummyJadwalUjian, ruang);
-}
+/**
+ * Single public API for UI layer.
+ * - Dummy mode: filter lokal
+ * - API mode: query params ke BE
+ *
+ * Ganti USE_DUMMY sesuai strategi kamu.
+ */
+const USE_DUMMY = true; // ✅ set false saat BE sudah siap
 
-export async function getJadwalUjianByTanggal(
-  tanggal?: string
-): Promise<JadwalUjianItem[]> {
-  await sleep(250);
-  return filterByTanggal(dummyJadwalUjian, tanggal);
-}
-
-export async function getJadwalUjianBySearch(
-  q?: string
-): Promise<JadwalUjianItem[]> {
-  await sleep(250);
-  return filterBySearch(dummyJadwalUjian, q);
-}
-
-export async function getJadwalUjianByFilters(
+export async function getJadwalUjian(
   params: JadwalUjianFilterParams = {}
 ): Promise<JadwalUjianItem[]> {
-  await sleep(250);
-  const filteredByTingkat = filterByTingkatKelas(
-    dummyJadwalUjian,
-    params.tingkatKelas
+  if (USE_DUMMY) {
+    await sleep(250);
+    const filtered = applyJadwalUjianFilters(dummyIndexed, params);
+    return stripInternal(filtered);
+  }
+
+  // ✅ PRODUCTION MODE (aktifkan saat BE siap)
+  // const res = await api.get<ApiEnvelope<JadwalUjianItem[]>>("/jadwal-ujian", {
+  //   params: {
+  //     q: params.q || undefined,
+  //     tanggal: params.tanggal || undefined,
+  //     tingkat_kelas_id: params.tingkatKelasId ?? undefined,
+  //     ruang_ujian_id: params.ruangUjianId ?? undefined,
+  //   },
+  // });
+  // return res.data.data;
+
+  // fallback agar TypeScript tidak error saat USE_DUMMY = false tapi api belum diaktifkan
+  throw new Error(
+    "API mode belum diaktifkan. Set USE_DUMMY=true atau aktifkan axios call."
   );
-  const filteredByRuang = filterByRuang(filteredByTingkat, params.ruang);
-  const filteredByTanggal = filterByTanggal(filteredByRuang, params.tanggal);
-  return filterBySearch(filteredByTanggal, params.q);
 }
