@@ -32,7 +32,6 @@ export const paths = {
     bank_soal: djoin("bank-soal"),
     tambah_bank_soal: djoin(join("bank-soal", "/tambah")),
 
-    // kamu belum definisikan jadwal_ujian, jadi aku tambahkan biar menu tidak hardcode
     jadwal_ujian: djoin(join("ujian", "/jadwal")),
     buat_ujian: djoin(join("ujian", "/buat-ujian")),
 
