@@ -5,8 +5,8 @@ import type {
   JadwalUjianItem,
 } from "@/types/Ujian/jadwalUjian";
 
-// import { api } from "@/services/api"; // ✅ aktifkan saat BE siap
-// import type { ApiEnvelope } from "@/services/api"; // kalau pakai envelope
+import { api } from "@/services/Api/api"; // ✅ aktifkan saat BE siap
+import type { ApiEnvelope } from "@/services/Api/api"; // kalau pakai envelope
 
 /**
  * Dummy source data.
@@ -137,7 +137,7 @@ const filterByTingkatKelasId = (
 
 const filterByRuangUjianId = (
   data: JadwalUjianItemIndexed[],
-  ruangUjianId?: number
+  ruangUjianId?: string
 ) => {
   if (ruangUjianId == null) return data;
   return data.filter((ujian) => ujian.ruang_ujian_id === ruangUjianId);
@@ -191,18 +191,15 @@ export async function getJadwalUjian(
   }
 
   // ✅ PRODUCTION MODE (aktifkan saat BE siap)
-  // const res = await api.get<ApiEnvelope<JadwalUjianItem[]>>("/jadwal-ujian", {
-  //   params: {
-  //     q: params.q || undefined,
-  //     tanggal: params.tanggal || undefined,
-  //     tingkat_kelas_id: params.tingkatKelasId ?? undefined,
-  //     ruang_ujian_id: params.ruangUjianId ?? undefined,
-  //   },
-  // });
-  // return res.data.data;
+  const queryParams: Record<string, string | number | undefined> = {
+    q: params.q || undefined,
+    tanggal: params.tanggal || undefined,
+    tingkat_kelas_id: params.tingkatKelasId ?? undefined,
+    ruang_ujian_id: params.ruangUjianId ?? undefined,
+  };
 
-  // fallback agar TypeScript tidak error saat USE_DUMMY = false tapi api belum diaktifkan
-  throw new Error(
-    "API mode belum diaktifkan. Set USE_DUMMY=true atau aktifkan axios call."
-  );
+  const res = await api<ApiEnvelope<JadwalUjianItem[]>>("/jadwal-ujian", {
+    params: queryParams,
+  });
+  return res.data;
 }
