@@ -1,6 +1,6 @@
 import type { BankSoalItem } from "@/types/DataMaster/BankSoal";
 import type { MataPelajaranOption } from "@/types/DataMaster/MataPelajaran";
-import { getTingkatKelasById } from "@/helper/tingkatKelas/tingkatKelas";
+import { getTingkatKelasById } from "@/services/Api/features-api/DataMaster/kelas.service";
 
 const DUMMY_MAPEL: MataPelajaranOption[] = [
   { id: "mp-bindo-10", label: "Bahasa Indonesia (Kelas 10)" },

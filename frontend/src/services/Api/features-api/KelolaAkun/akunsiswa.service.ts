@@ -3,7 +3,7 @@ import { buildFormData } from "@/helper/FormData/BuildFormData";
 import type { JenisKelamin } from "@/types/OpsiTypes/Option";
 import type { StudentRegisterFormValues, StudentRegisterResponse } from "@/types/KelolaAkun/AkunSiswa";
 import { api, type ApiEnvelope } from "../../api";
-import { getTingkatKelasById } from "@/helper/tingkatKelas/tingkatKelas";
+import { getTingkatKelasById } from "@/services/Api/features-api/DataMaster/kelas.service";
 
 export type BarisSiswa = {
   id: string;

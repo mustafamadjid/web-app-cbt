@@ -4,7 +4,7 @@ import type {
   MataPelajaranOption,
   MataPelajaranRow,
 } from "@/types/DataMaster/MataPelajaran";
-import { getTingkatKelasById } from "@/helper/tingkatKelas/tingkatKelas";
+import { getTingkatKelasById } from "@/services/Api/features-api/DataMaster/kelas.service";
 
 const DUMMY_KELAS: KelasOption[] = [
   {

@@ -13,7 +13,7 @@ import type {
 } from "@/types/Ujian/BuatUjian";
 import { getBankSoalByKelas } from "@/services/Api/features-api/BankSoal/banksoal.service";
 import { DUMMY_SISWA } from "@/services/Api/features-api/KelolaAkun/akunsiswa.service";
-import { getTingkatKelasById } from "@/helper/tingkatKelas/tingkatKelas";
+import { getTingkatKelasById } from "@/services/Api/features-api/DataMaster/kelas.service";
 
 const DUMMY_GURU_PENGAWAS: GuruPengawasOption[] = [
   { id: "gr-001", nama: "Budi Santoso", nip: "198305232010011001", mapel: "Matematika" },

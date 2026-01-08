@@ -22,7 +22,7 @@ import {
 } from "@/services/Api/features-api/Ujian/ujian.service";
 import { ApiError } from "@/services/Api/api";
 import { getTingkatKelasOptions } from "@/services/Api/features-api/DataMaster/kelas.service";
-import { getTingkatKelasById } from "@/helper/tingkatKelas/tingkatKelas";
+import { getTingkatKelasById } from "@/services/Api/features-api/DataMaster/kelas.service";
 
 // helper
 import { createSetField } from "@/helper/setField/setField";
