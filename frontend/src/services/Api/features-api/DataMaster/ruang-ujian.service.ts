@@ -26,3 +26,8 @@ export async function getRuangUjian(
     ruang.namaRuangan.toLowerCase().includes(q)
   );
 }
+
+export async function getRuangUjianOptions(): Promise<RuangUjianRow[]> {
+  await sleep(180);
+  return [...DUMMY_RUANG_UJIAN];
+}

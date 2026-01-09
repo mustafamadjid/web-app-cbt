@@ -146,7 +146,7 @@ export const DataKelasTables: React.FC = () => {
           <AddButton
             label="Tambah Kelas"
             onClick={() =>
-              navigate(`/dashboard/administrator/${paths.dashboard.tambah_data_master_kelas}`)
+              navigate(`${paths.dashboard.tambah_data_master_kelas}`)
             }
           />
         </div>
@@ -329,7 +329,7 @@ export const DataKelasTables: React.FC = () => {
                           title="Edit"
                           onClick={() =>
                             navigate(
-                              `/dashboard/administrator/${paths.dashboard.data_master_kelas}/id`
+                              `${paths.dashboard.data_master_kelas}/id`
                             )
                           }
                         >

@@ -171,7 +171,7 @@ export const DataMataPelajaran: React.FC = () => {
           <AddButton
             label="Tambah Mata Pelajaran"
             onClick={() =>
-              navigate(`/dashboard/administrator/${paths.dashboard.data_master_mapel}`)
+              navigate(`${paths.dashboard.tambah_data_master_mapel}`)
             }
           />
         </div>
@@ -385,7 +385,7 @@ export const DataMataPelajaran: React.FC = () => {
                             title="Edit"
                             onClick={() =>
                               navigate(
-                                "/dashboard/administrator/data-master/tambah-mapel/id"
+                                "/data-master/tambah-mapel/id"
                               )
                             }
                           >

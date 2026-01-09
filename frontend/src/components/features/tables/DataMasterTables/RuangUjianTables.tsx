@@ -120,7 +120,7 @@ export const RuangUjianTables: React.FC = () => {
           <AddButton
             label="Tambah Ruang"
             onClick={() =>
-              navigate(`/dashboard/administrator/${paths.dashboard.tambah_data_master_ruang}`)
+              navigate(`${paths.dashboard.tambah_data_master_ruang}`)
             }
           />
         </div>
@@ -272,7 +272,7 @@ export const RuangUjianTables: React.FC = () => {
                           title="Edit"
                           onClick={() =>
                             navigate(
-                              "/dashboard/administrator/data-master/tambah-ruang"
+                              "data-master/tambah-ruang"
                             )
                           }
                         >

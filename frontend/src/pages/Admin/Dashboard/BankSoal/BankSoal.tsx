@@ -148,7 +148,7 @@ export const BankSoal = () => {
       <div className="mx-auto max-w-[1600px] space-y-6 p-4 sm:p-6 lg:p-8">
         {/* === ADD BUTTON === */}
         <div className="flex justify-end">
-          <AddButton label="Buat Bank Soal" onClick={() => navigate(`/dashboard/administrator/${paths.dashboard.tambah_bank_soal}`)} />
+          <AddButton label="Buat Bank Soal" onClick={() => navigate(`${paths.dashboard.tambah_bank_soal}`)} />
         </div>
       
 

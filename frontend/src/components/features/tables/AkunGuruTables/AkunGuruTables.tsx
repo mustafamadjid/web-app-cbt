@@ -216,7 +216,7 @@ export const AkunGuruTables: React.FC = () => {
           <AddButton
             label="Tambah Akun Guru"
             onClick={() =>
-              navigate(`/dashboard/administrator/${paths.dashboard.tambah_guru}`)
+              navigate(`${paths.dashboard.tambah_guru}`)
             }
           />
         </div>

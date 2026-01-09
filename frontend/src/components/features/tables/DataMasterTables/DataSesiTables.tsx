@@ -119,7 +119,7 @@ export const DataSesiTables: React.FC = () => {
           <AddButton
             label="Tambah Sesi"
             onClick={() =>
-              navigate(`/dashboard/administrator/${paths.dashboard.tambah_data_master_sesi}`)
+              navigate(`${paths.dashboard.tambah_data_master_sesi}`)
             }
           />
         </div>
@@ -277,7 +277,7 @@ export const DataSesiTables: React.FC = () => {
                           title="Edit"
                           onClick={() =>
                             navigate(
-                              "/dashboard/administrator/data-master/tambah-sesi"
+                              "data-master/tambah-sesi"
                             )
                           }
                         >

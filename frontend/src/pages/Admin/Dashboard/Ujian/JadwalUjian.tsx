@@ -1,33 +1,34 @@
 import { BoxJadwalUjian } from "@/components/features/Ujian/BoxJadwalUjian";
-
 import { getTingkatKelasOptions } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { getRuangUjian } from "@/services/Api/features-api/DataMaster/ruang-ujian.service";
-import { getJadwalUjian } from "@/services/Api/features-api/Ujian/jadwalujian.service"; // ✅ ganti ini
+import { getJadwalUjian } from "@/services/Api/features-api/Ujian/jadwalujian.service";
 import type { TingkatKelasOption } from "@/types/DataMaster/Kelas";
 import type { RuangUjianRow } from "@/types/DataMaster/RuangUjian";
 import type { JadwalUjianItem } from "@/types/Ujian/jadwalUjian";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Search, Calendar, Layers, MapPin } from "lucide-react"; // Tambahan icon untuk filter
 
 const STATUS_SECTIONS = [
-  { key: "belum_dimulai", label: "Belum Mulai" },
-  { key: "berlangsung", label: "Berlangsung" },
-  { key: "selesai", label: "Selesai" },
+  { key: "berlangsung", label: "Berlangsung", color: "bg-emerald-500" },
+  { key: "belum_dimulai", label: "Belum Mulai", color: "bg-amber-500" },
+  { key: "selesai", label: "Selesai", color: "bg-slate-500" },
 ] as const;
+
+type StatusKey = (typeof STATUS_SECTIONS)[number]["key"];
 
 function useDebouncedValue<T>(value: T, delayMs: number) {
   const [debounced, setDebounced] = useState(value);
-
   useEffect(() => {
     const t = window.setTimeout(() => setDebounced(value), delayMs);
     return () => window.clearTimeout(t);
   }, [value, delayMs]);
-
   return debounced;
 }
 
 export const JadwalUjian = () => {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [activeTab, setActiveTab] = useState<StatusKey>("berlangsung"); // Default ke 'berlangsung'
 
   const [daftarJadwalUjian, setDaftarJadwalUjian] = useState<JadwalUjianItem[]>(
     []
@@ -38,7 +39,7 @@ export const JadwalUjian = () => {
   const [ruangOptions, setRuangOptions] = useState<RuangUjianRow[]>([]);
 
   const [searchTerm, setSearchTerm] = useState("");
-  const debouncedSearchTerm = useDebouncedValue(searchTerm, 300); // ✅ debounce
+  const debouncedSearchTerm = useDebouncedValue(searchTerm, 300);
 
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTingkatId, setSelectedTingkatId] = useState("");
@@ -46,7 +47,7 @@ export const JadwalUjian = () => {
 
   const requestSeq = useRef(0);
 
-  // Load options (kelas & ruang)
+  // Load options
   useEffect(() => {
     (async () => {
       try {
@@ -54,7 +55,6 @@ export const JadwalUjian = () => {
           getTingkatKelasOptions(),
           getRuangUjian(),
         ]);
-
         setTingkatKelasOptions(tingkatOptions);
         setRuangOptions(ruangUjianOptions);
       } catch {
@@ -64,29 +64,25 @@ export const JadwalUjian = () => {
     })();
   }, []);
 
-  // Fetch jadwal ujian (server-side filtering via query params)
+  // Fetch data
   useEffect(() => {
     const seq = ++requestSeq.current;
-
     const tingkat =
       selectedTingkatId.trim() === "" ? undefined : Number(selectedTingkatId);
-
-    // Defensive: jika selectedTingkat tidak valid angka, anggap undefined
     const tingkatKelas = Number.isFinite(tingkat) ? tingkat : undefined;
-    const ruangUjianId = selectedRuang.trim() === "" ? undefined : selectedRuang;
+    const ruangUjianId =
+      selectedRuang.trim() === "" ? undefined : selectedRuang;
 
     (async () => {
       try {
         setLoading(true);
         setErrorMsg("");
-
         const data = await getJadwalUjian({
           q: debouncedSearchTerm.trim() || undefined,
-          tanggal: selectedDate || undefined, // ISO input date: "YYYY-MM-DD"
+          tanggal: selectedDate || undefined,
           ruangUjianId,
           tingkatKelasId: tingkatKelas,
         });
-
         if (seq !== requestSeq.current) return;
         setDaftarJadwalUjian(data);
       } catch {
@@ -101,86 +97,83 @@ export const JadwalUjian = () => {
   }, [debouncedSearchTerm, selectedDate, selectedRuang, selectedTingkatId]);
 
   const groupedJadwal = useMemo(() => {
-    const grouped: Record<string, JadwalUjianItem[]> = {
+    const grouped: Record<StatusKey, JadwalUjianItem[]> = {
       belum_dimulai: [],
       berlangsung: [],
       selesai: [],
     };
-
     for (const ujian of daftarJadwalUjian) {
-      const status = ujian.status_ujian ?? "";
+      const status = ujian.status_ujian as StatusKey;
       if (grouped[status]) grouped[status].push(ujian);
     }
-
     return grouped;
   }, [daftarJadwalUjian]);
 
   return (
-    <div className="px-8 py-10">
+    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-8">
       <div className="flex flex-col gap-8">
+        {/* Header & Filter Card */}
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-semibold text-slate-600">
-                Cari Jadwal
+          <h1 className="mb-6 text-2xl font-bold text-slate-800">
+            Jadwal Ujian
+          </h1>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-sm font-semibold text-slate-600">
+                <Search size={16} /> Cari Jadwal
               </label>
               <input
                 type="text"
-                placeholder="Cari ujian, pengawas, kelas, ruangan..."
+                placeholder="Cari ujian, pengawas..."
                 value={searchTerm}
-                onChange={(event) => setSearchTerm(event.target.value)}
-                className="w-full rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-700 shadow-sm focus:border-[#397e50] focus:outline-none focus:ring-2 focus:ring-[#397e50]/20"
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm transition-all focus:border-[#397e50] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#397e50]/10"
               />
             </div>
 
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-semibold text-slate-600">
-                Tanggal Ujian
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-sm font-semibold text-slate-600">
+                <Calendar size={16} /> Tanggal
               </label>
               <input
                 type="date"
                 value={selectedDate}
-                onChange={(event) => setSelectedDate(event.target.value)}
-                className="w-full rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-700 shadow-sm focus:border-[#397e50] focus:outline-none focus:ring-2 focus:ring-[#397e50]/20"
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm transition-all focus:border-[#397e50] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#397e50]/10"
               />
             </div>
 
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-semibold text-slate-600">
-                Tingkat Kelas
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-sm font-semibold text-slate-600">
+                <Layers size={16} /> Tingkat
               </label>
               <select
                 value={selectedTingkatId}
-                onChange={(event) => {
-                  setSelectedTingkatId(event.target.value);
-                }}
-                className="w-full rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-700 shadow-sm focus:border-[#397e50] focus:outline-none focus:ring-2 focus:ring-[#397e50]/20"
+                onChange={(e) => setSelectedTingkatId(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm transition-all focus:border-[#397e50] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#397e50]/10"
               >
                 <option value="">Semua Tingkat</option>
-                {tingkatKelasOptions.map((tingkat) => (
-                  <option
-                    key={tingkat.id_tingkat_kelas}
-                    value={tingkat.id_tingkat_kelas}
-                  >
-                    Kelas {tingkat.tingkat_kelas}
+                {tingkatKelasOptions.map((t) => (
+                  <option key={t.id_tingkat_kelas} value={t.id_tingkat_kelas}>
+                    Kelas {t.tingkat_kelas}
                   </option>
                 ))}
               </select>
             </div>
 
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-semibold text-slate-600">
-                Ruang Ujian
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-sm font-semibold text-slate-600">
+                <MapPin size={16} /> Ruangan
               </label>
               <select
                 value={selectedRuang}
-                onChange={(event) => setSelectedRuang(event.target.value)}
-                className="w-full rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-700 shadow-sm focus:border-[#397e50] focus:outline-none focus:ring-2 focus:ring-[#397e50]/20"
+                onChange={(e) => setSelectedRuang(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm transition-all focus:border-[#397e50] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#397e50]/10"
               >
                 <option value="">Semua Ruangan</option>
-                {ruangOptions.map((ruang) => (
-                  <option key={ruang.id} value={ruang.id}>
-                    {ruang.namaRuangan}
+                {ruangOptions.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.namaRuangan}
                   </option>
                 ))}
               </select>
@@ -188,62 +181,75 @@ export const JadwalUjian = () => {
           </div>
         </div>
 
-        {errorMsg ? (
-          <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {errorMsg}
-          </div>
-        ) : null}
+        {/* Status Tabs Navigation */}
+        <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-slate-100 p-1.5 sm:w-fit">
+          {STATUS_SECTIONS.map((section) => {
+            const isActive = activeTab === section.key;
+            const count = groupedJadwal[section.key].length;
+            return (
+              <button
+                key={section.key}
+                onClick={() => setActiveTab(section.key)}
+                className={`
+                  flex items-center cursor-pointer gap-2 rounded-xl px-6 py-2.5 text-sm font-bold transition-all
+                  ${
+                    isActive
+                      ? "bg-white text-[#397e50] shadow-sm"
+                      : "text-slate-500 hover:bg-slate-200 hover:text-slate-700"
+                  }
+                `}
+              >
+                {section.label}
+                <span
+                  className={`
+                  ml-1 rounded-md px-1.5 py-0.5 text-2xs
+                  ${
+                    isActive
+                      ? "bg-[#397e50] text-white"
+                      : "bg-slate-200 text-slate-600"
+                  }
+                `}
+                >
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
 
-        {loading ? (
-          <div className="rounded-2xl border border-slate-200 bg-white px-4 py-6 text-center text-sm text-slate-500">
-            Memuat jadwal ujian...
-          </div>
-        ) : null}
+        {/* Content Area */}
+        <div className="min-h-[300px]">
+          {errorMsg && (
+            <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+              {errorMsg}
+            </div>
+          )}
 
-        {!loading && !errorMsg && daftarJadwalUjian.length === 0 ? (
-          <div className="rounded-2xl border border-slate-200 bg-white px-4 py-6 text-center text-sm text-slate-500">
-            Tidak ada jadwal ujian yang sesuai dengan filter.
-          </div>
-        ) : null}
-
-        {!loading && !errorMsg
-          ? STATUS_SECTIONS.map((section) => (
-              <div key={section.key} className="flex flex-col gap-4">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-slate-800">
-                    {section.label}
-                  </h2>
-                  <span className="text-sm text-slate-500">
-                    {groupedJadwal[section.key]?.length ?? 0} ujian
-                  </span>
-                </div>
-
-                <div className="flex flex-col gap-5">
-                  {(groupedJadwal[section.key] ?? []).map((ujian) => (
-                    <BoxJadwalUjian
-                      key={ujian.id}
-                      id={ujian.id}
-                      nama_ujian={ujian.nama_ujian}
-                      nama_kelas={ujian.nama_kelas}
-                      tingkat_kelas={ujian.tingkat_kelas}
-                      pengawas_ujian={ujian.pengawas_ujian}
-                      tgl_ujian={ujian.tgl_ujian}
-                      waktu_mulai={ujian.waktu_mulai}
-                      sesi_ujian={ujian.sesi_ujian}
-                      ruang_ujian={ujian.ruang_ujian}
-                      status_ujian={ujian.status_ujian}
-                    />
-                  ))}
-                </div>
-
-                {(groupedJadwal[section.key] ?? []).length === 0 ? (
-                  <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center text-sm text-slate-500">
-                    Tidak ada ujian untuk status ini.
-                  </div>
-                ) : null}
+          {loading ? (
+            <div className="flex h-40 items-center justify-center rounded-2xl border border-dashed border-slate-300 text-slate-500">
+              <div className="flex flex-col items-center gap-2">
+                <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#397e50] border-t-transparent" />
+                <span>Memuat data...</span>
               </div>
-            ))
-          : null}
+            </div>
+          ) : (
+            <div className="flex flex-col gap-5">
+              {groupedJadwal[activeTab].length > 0 ? (
+                groupedJadwal[activeTab].map((ujian) => (
+                  <BoxJadwalUjian key={ujian.id} {...ujian} />
+                ))
+              ) : (
+                <div className="flex h-40 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white text-slate-500">
+                  <p className="font-medium">Tidak ada jadwal ujian</p>
+                  <p className="text-xs">
+                    Ujian dengan status "{activeTab.replace("_", " ")}" tidak
+                    ditemukan.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
