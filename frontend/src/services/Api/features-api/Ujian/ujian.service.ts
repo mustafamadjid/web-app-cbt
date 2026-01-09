@@ -7,7 +7,6 @@ import type {
   BuatUjianFormValues,
   BuatUjianSubmitResponse,
   GuruPengawasOption,
-  RuangUjianOption,
   SesiUjianOption,
   SiswaPreviewItem,
 } from "@/types/Ujian/BuatUjian";
@@ -27,12 +26,6 @@ const DUMMY_SESI: SesiUjianOption[] = [
   { id: 3, kode: "S3", nama: "Sesi 3 (Sore)" },
 ];
 
-const DUMMY_RUANG: RuangUjianOption[] = [
-  { id: 1, nama: "Lab Komputer 1" },
-  { id: 2, nama: "Lab Komputer 2" },
-  { id: 3, nama: "Ruang Multimedia" },
-  { id: 4, nama: "Aula Utama" },
-];
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -53,10 +46,8 @@ export async function getUjianSesiOptions(): Promise<SesiUjianOption[]> {
   return [...DUMMY_SESI];
 }
 
-export async function getUjianRuangOptions(): Promise<RuangUjianOption[]> {
-  await sleep(180);
-  return [...DUMMY_RUANG];
-}
+
+
 
 export async function getUjianBankSoalOptions(params: {
   tingkatKelasId?: number;

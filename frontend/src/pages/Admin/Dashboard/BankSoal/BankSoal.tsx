@@ -368,7 +368,7 @@ export const BankSoal = () => {
               <button
                 onClick={() => {
                   setSearch("");
-                  setSelectedMapelId("");
+                  setSelectedMapelId(null);
                 }}
                 className="mt-6 text-sm font-bold text-[#397e50] hover:underline"
               >

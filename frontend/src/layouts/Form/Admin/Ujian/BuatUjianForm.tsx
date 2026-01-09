@@ -6,7 +6,6 @@ import type {
   BankSoalOption,
   BuatUjianFormValues,
   GuruPengawasOption,
-  RuangUjianOption,
   SesiUjianOption,
   SiswaPreviewItem,
   TipeUjian,
@@ -15,11 +14,13 @@ import type { TingkatKelasOption } from "@/types/DataMaster/Kelas";
 import {
   getUjianBankSoalOptions,
   getUjianGuruPengawasOptions,
-  getUjianRuangOptions,
   getUjianSesiOptions,
   getUjianSiswaPreview,
   submitBuatUjian,
 } from "@/services/Api/features-api/Ujian/ujian.service";
+
+import { getRuangUjianOptions } from "@/services/Api/features-api/DataMaster/ruang-ujian.service";
+
 import { ApiError } from "@/services/Api/api";
 import { getTingkatKelasOptions } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { getTingkatKelasById } from "@/services/Api/features-api/DataMaster/kelas.service";
@@ -27,6 +28,7 @@ import { getTingkatKelasById } from "@/services/Api/features-api/DataMaster/kela
 // helper
 import { createSetField } from "@/helper/setField/setField";
 import { calculateDuration } from "@/helper/CalculateDuration/calculateDuration";
+import type { RuangUjianRow } from "@/types/DataMaster/RuangUjian";
 
 const initialValues: BuatUjianFormValues = {
   nama_ujian: "",
@@ -53,9 +55,6 @@ const selectBaseClass =
   "w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-[#397e50] focus:ring-2 focus:ring-[#397e50] disabled:bg-slate-50 disabled:text-slate-500";
 
 
-
-
-
 export const BuatUjianForm = () => {
   const [values, setValues] = useState<BuatUjianFormValues>(initialValues);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -65,7 +64,7 @@ export const BuatUjianForm = () => {
 
   const [kelasOptions, setKelasOptions] = useState<TingkatKelasOption[]>([]);
   const [bankSoalOptions, setBankSoalOptions] = useState<BankSoalOption[]>([]);
-  const [ruangOptions, setRuangOptions] = useState<RuangUjianOption[]>([]);
+  const [ruangOptions, setRuangOptions] = useState<RuangUjianRow[]>([]);
   const [guruOptions, setGuruOptions] = useState<GuruPengawasOption[]>([]);
   const [sesiOptions, setSesiOptions] = useState<SesiUjianOption[]>([]);
   const [siswaPreview, setSiswaPreview] = useState<SiswaPreviewItem[]>([]);
@@ -97,7 +96,7 @@ export const BuatUjianForm = () => {
       try {
         const [kelas, ruang, guru, sesi] = await Promise.all([
           getTingkatKelasOptions(),
-          getUjianRuangOptions(),
+          getRuangUjianOptions(),
           getUjianGuruPengawasOptions(),
           getUjianSesiOptions(),
         ]);
@@ -582,7 +581,7 @@ export const BuatUjianForm = () => {
                   <option value="">Pilih ruang ujian</option>
                   {ruangOptions.map((ruang) => (
                     <option key={ruang.id} value={ruang.id}>
-                      {ruang.nama}
+                      {ruang.namaRuangan}
                     </option>
                   ))}
                 </select>

@@ -43,10 +43,7 @@ export type SesiUjianOption = {
   nama: string;
 };
 
-export type RuangUjianOption = {
-  id: number;
-  nama: string;
-};
+
 
 export type SiswaPreviewItem = {
   id: number;

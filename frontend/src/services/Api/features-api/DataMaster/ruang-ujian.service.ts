@@ -8,6 +8,8 @@ const DUMMY_RUANG_UJIAN: RuangUjianRow[] = [
   { id: 2, namaRuangan: "Ruang Ujian 02" },
   { id: 3, namaRuangan: "Lab Komputer" },
   { id: 4, namaRuangan: "Aula Utama" },
+  {id: 5, namaRuangan: "Lab IPA"},
+  {id: 6, namaRuangan: "Lab IPS"}
 ];
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -29,5 +31,8 @@ export async function getRuangUjian(
 
 export async function getRuangUjianOptions(): Promise<RuangUjianRow[]> {
   await sleep(180);
-  return [...DUMMY_RUANG_UJIAN];
+  
+
+  // Ini harusnya nanit kalau sudah fetch API ga perlu sorting id
+  return [...DUMMY_RUANG_UJIAN].sort((a, b) => a.id - b.id);
 }

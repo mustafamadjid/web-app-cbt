@@ -1,6 +1,6 @@
 import { BoxJadwalUjian } from "@/components/features/Ujian/BoxJadwalUjian";
 import { getTingkatKelasOptions } from "@/services/Api/features-api/DataMaster/kelas.service";
-import { getRuangUjian } from "@/services/Api/features-api/DataMaster/ruang-ujian.service";
+import { getRuangUjianOptions } from "@/services/Api/features-api/DataMaster/ruang-ujian.service";
 import { getJadwalUjian } from "@/services/Api/features-api/Ujian/jadwalujian.service";
 import type { TingkatKelasOption } from "@/types/DataMaster/Kelas";
 import type { RuangUjianRow } from "@/types/DataMaster/RuangUjian";
@@ -55,7 +55,7 @@ export const JadwalUjian = () => {
       try {
         const [tingkatOptions, ruangUjianOptions] = await Promise.all([
           getTingkatKelasOptions(),
-          getRuangUjian(),
+          getRuangUjianOptions(),
         ]);
         setTingkatKelasOptions(tingkatOptions);
         setRuangOptions(ruangUjianOptions);
@@ -145,7 +145,7 @@ export const JadwalUjian = () => {
 
             <div className="space-y-2">
               <label className="flex items-center gap-2 text-sm font-semibold text-slate-600">
-                <Layers size={16} /> Tingkat
+                <Layers size={16} /> Kelas
               </label>
               <select
                 value={selectedTingkatId ?? ""}
@@ -156,7 +156,7 @@ export const JadwalUjian = () => {
                 }
                 className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm transition-all focus:border-[#397e50] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#397e50]/10"
               >
-                <option value="">Semua Tingkat</option>
+                <option value="">Semua Kelas</option>
                 {tingkatKelasOptions.map((t) => (
                   <option key={t.id_tingkat_kelas} value={t.id_tingkat_kelas}>
                     Kelas {t.tingkat_kelas}
@@ -171,10 +171,12 @@ export const JadwalUjian = () => {
               </label>
               <select
                 value={selectedRuang ?? ""}
-                onChange={(e) =>
+                onChange={(e) => {
                   setSelectedRuang(
                     e.target.value === "" ? null : Number(e.target.value)
                   )
+                  console.log(e.target.value)
+                }
                 }
                 className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm transition-all focus:border-[#397e50] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#397e50]/10"
               >

@@ -31,6 +31,8 @@ import { TambahBankSoal } from "@/pages/Admin/Dashboard/BankSoal/TambahBankSoal"
 import { BuatUjian } from "@/pages/Admin/Dashboard/Ujian/BuatUjian";
 import { JadwalUjian } from "@/pages/Admin/Dashboard/Ujian/JadwalUjian";
 
+import { Cetak } from "@/pages/Admin/Cetak/Cetak";
+
 import { AdminLayout } from "@/layouts/MainLayout/AdminLayout/AdminLayout";
 
 import { PengaturanProfil } from "@/pages/Admin/Dashboard/Pengaturan/Pengaturan";
@@ -68,6 +70,7 @@ export const router = createBrowserRouter([
           { path: paths.dashboard.bank_soal, element: <BankSoal /> },
           { path: paths.dashboard.buat_ujian, element: <BuatUjian /> },
           {path:paths.dashboard.jadwal_ujian,element:<JadwalUjian/>}
+          ,{path:paths.dashboard.cetak,element:<Cetak/>}
         ],
       },
 

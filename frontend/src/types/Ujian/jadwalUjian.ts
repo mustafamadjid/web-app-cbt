@@ -6,7 +6,7 @@ export type JadwalUjianItem = {
     waktu_mulai: string; // Data waktu sudah diolah duluan di server
     sesi_ujian?: number ;
     ruang_ujian?: string;
-    ruang_ujian_id?: number;
+    id_ruang?: number;
     status_ujian?: string;
     tingkat_kelas?: number;
     tingkat_kelas_id?: number;

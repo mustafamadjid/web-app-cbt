@@ -23,7 +23,7 @@ export const dummyJadwalUjian: JadwalUjianItem[] = [
     sesi_ujian: 1,
     
     ruang_ujian: "Ruang 101",
-    ruang_ujian_id: 1,
+    id_ruang: 1,
     status_ujian: "belum_dimulai",
    
     tingkat_kelas: 10,
@@ -39,7 +39,7 @@ export const dummyJadwalUjian: JadwalUjianItem[] = [
     sesi_ujian: 2,
   
     ruang_ujian: "Ruang 102",
-    ruang_ujian_id: 2,
+    id_ruang: 2,
     status_ujian: "berlangsung",
     
     tingkat_kelas: 11,
@@ -55,7 +55,7 @@ export const dummyJadwalUjian: JadwalUjianItem[] = [
     sesi_ujian: 1,
    
     ruang_ujian: "Lab IPA",
-    ruang_ujian_id: 3,
+    id_ruang: 3,
     status_ujian: "selesai",
     
     tingkat_kelas: 12,
@@ -70,7 +70,7 @@ export const dummyJadwalUjian: JadwalUjianItem[] = [
     waktu_mulai: "09:30",
     
     ruang_ujian: "Ruang 203",
-    ruang_ujian_id: 2,
+    id_ruang: 2,
     status_ujian: "belum_dimulai",
     
     tingkat_kelas: 11,
@@ -86,7 +86,7 @@ export const dummyJadwalUjian: JadwalUjianItem[] = [
     sesi_ujian: 3,
     
     ruang_ujian: "Ruang 301",
-    ruang_ujian_id: 1,
+    id_ruang: 1,
     status_ujian: "belum_dimulai",
     
     tingkat_kelas: 10,
@@ -150,7 +150,7 @@ const filterByRuangUjianId = (
   ruangUjianId?: number
 ) => {
   if (ruangUjianId == null) return data;
-  return data.filter((ujian) => ujian.ruang_ujian_id === ruangUjianId);
+  return data.filter((ujian) => ujian.id_ruang === ruangUjianId);
 };
 
 const filterByTanggalIso = (
