@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 
 export type AnnouncementDoc = {
-  id?: string;
+  id?: number;
   name: string;
   url: string;
   mimeType?: string;
@@ -16,7 +16,7 @@ export type AnnouncementDoc = {
 };
 
 export type PengumumanItem = {
-  id: string;
+  id: number;
   judul: string;
   isi_pengumuman: string;
   tanggal_rilis_pengumuman: string;
@@ -26,7 +26,7 @@ export type PengumumanItem = {
 type PengumumanWidgetProps = {
   title?: string;
   items: PengumumanItem[];
-  defaultOpenId?: string;
+  defaultOpenId?: number;
   allowMultipleOpen?: boolean;
   className?: string;
 };
@@ -38,14 +38,14 @@ export const PengumumanWidget: React.FC<PengumumanWidgetProps> = ({
   allowMultipleOpen = false,
   className,
 }) => {
-  const [openIds, setOpenIds] = React.useState<Set<string>>(() => {
-    const s = new Set<string>();
-    if (defaultOpenId) s.add(defaultOpenId);
-    else if (items[0]?.id) s.add(items[0].id);
+  const [openIds, setOpenIds] = React.useState<Set<number>>(() => {
+    const s = new Set<number>();
+    if (defaultOpenId != null) s.add(defaultOpenId);
+    else if (items[0]?.id != null) s.add(items[0].id);
     return s;
   });
 
-  const toggle = (id: string) => {
+  const toggle = (id: number) => {
     setOpenIds((prev) => {
       const next = new Set(prev);
       const isOpen = next.has(id);

@@ -1,5 +1,5 @@
 export type UjianBerlangsungItem = {
-  id: string | number;
+  id: number;
   nama_ujian: string;
   mata_pelajaran: string;
   kelas: string[]; // Bisa multi kelas, misal ["X-IPA-1", "X-IPA-2"]

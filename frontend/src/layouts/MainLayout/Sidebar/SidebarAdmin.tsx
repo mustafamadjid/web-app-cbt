@@ -20,13 +20,13 @@ export const SidebarAdmin = ({
   onToggle,
   onClose,
 }: SidebarAdminProps) => {
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+  const [openGroups, setOpenGroups] = useState<Record<number, boolean>>({});
   const sidebarRef = useRef<HTMLElement | null>(null);
 
   const { pathname } = useLocation();
 
   const activeGroupMap = useMemo(() => {
-    const activeGroups: Record<string, boolean> = {};
+    const activeGroups: Record<number, boolean> = {};
 
     mainMenuItems.forEach((item) => {
       if (item.type !== "group") return;

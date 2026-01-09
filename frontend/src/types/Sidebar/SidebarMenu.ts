@@ -6,7 +6,7 @@ export type SidebarMenuItem =
   | SidebarMenuGroupItem;
 
 export interface SidebarMenuItemBase {
-  id: string;
+  id: number;
   label: string;
   icon: SidebarIconRenderer;
 }
@@ -23,7 +23,7 @@ export interface SidebarMenuGroupItem extends SidebarMenuItemBase {
 }
 
 export interface SidebarSubMenuItem {
-  id: string;
+  id: number;
   label: string;
   to: string;
   icon: SidebarIconRenderer;

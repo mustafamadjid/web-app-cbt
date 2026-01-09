@@ -1,23 +1,23 @@
 export type KelasOption = {
-  id: string;
+  id: number;
   tingkat_kelas: number;
   label: string; // label tingkat kelas
 };
 export type MataPelajaranRow = {
-  id: string;
-  kelasId: string;
+  id: number;
+  kelasId: number;
   kodeMapel: string;
   namaMapel: string;
   deskripsiMapel: string;
 };
 
 export type MataPelajaranOption = {
-  id: string;
+  id: number;
   label: string;
 };
 
 export type MataPelajaranFormValues = {
-  kelasId: string;
+  kelasId: number | "";
   kodeMapel: string;
   namaMapel: string;
   deskripsiMapel: string;
@@ -26,5 +26,5 @@ export type MataPelajaranFormValues = {
 export type MataPelajaranFilterParams = {
   q?: string;
   tingkatKelas?: number;
-  mapelId?: string;
+  mapelId?: number;
 };

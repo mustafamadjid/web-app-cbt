@@ -49,7 +49,7 @@ export const DataMataPelajaran: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
-  const [idTerpilih, setIdTerpilih] = useState<Set<string>>(new Set());
+  const [idTerpilih, setIdTerpilih] = useState<Set<number>>(new Set());
 
   const debouncedKataKunci = useDebouncedValue(kataKunci, 300);
   const requestSeq = useRef(0);
@@ -89,7 +89,7 @@ export const DataMataPelajaran: React.FC = () => {
         const data = await getMataPelajaran({
           q: debouncedKataKunci.trim() || undefined,
           tingkatKelas: tingkatTerpilih ? Number(tingkatTerpilih) : undefined,
-          mapelId: mapelTerpilih || undefined,
+          mapelId: mapelTerpilih ? Number(mapelTerpilih) : undefined,
         });
 
         if (seq !== requestSeq.current) return;
@@ -98,7 +98,7 @@ export const DataMataPelajaran: React.FC = () => {
         setIdTerpilih((prev) => {
           if (prev.size === 0) return prev;
           const ids = new Set(data.map((mapel) => mapel.id));
-          const next = new Set<string>();
+          const next = new Set<number>();
           prev.forEach((id) => {
             if (ids.has(id)) next.add(id);
           });
@@ -116,8 +116,8 @@ export const DataMataPelajaran: React.FC = () => {
   }, [debouncedKataKunci, tingkatTerpilih, mapelTerpilih]);
 
   const kelasLabelById = useMemo(() => {
-    return opsiTingkatKelas.reduce<Record<string, string>>((acc, tingkat) => {
-      acc[`kelas-${tingkat.tingkat_kelas}`] = `Kelas ${tingkat.tingkat_kelas}`;
+    return opsiTingkatKelas.reduce<Record<number, string>>((acc, tingkat) => {
+      acc[tingkat.tingkat_kelas] = `Kelas ${tingkat.tingkat_kelas}`;
       return acc;
     }, {});
   }, [opsiTingkatKelas]);
@@ -138,7 +138,7 @@ export const DataMataPelajaran: React.FC = () => {
     });
   };
 
-  const togglePilihBaris = (id: string) => {
+  const togglePilihBaris = (id: number) => {
     setIdTerpilih((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -227,7 +227,7 @@ export const DataMataPelajaran: React.FC = () => {
               >
                 <option value="">Semua</option>
                 {opsiMapel.map((mapel) => (
-                  <option key={mapel.id} value={mapel.id}>
+                  <option key={mapel.id} value={String(mapel.id)}>
                     {mapel.label}
                   </option>
                 ))}

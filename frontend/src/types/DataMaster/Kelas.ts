@@ -4,7 +4,7 @@ export type KelasFormValues = {
 };
 
 export type KelasRow = {
-  id: string;
+  id: number;
   id_tingkat_kelas: number;
   tingkat_kelas: number;
   nama_kelas: string;

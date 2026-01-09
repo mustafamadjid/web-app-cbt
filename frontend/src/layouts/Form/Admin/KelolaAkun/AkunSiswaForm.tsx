@@ -119,7 +119,7 @@ export const AkunSiswaForm = () => {
     if (!v.tanggalLahir.trim())
       errors.tanggalLahir = "Tanggal lahir wajib diisi.";
 
-    if (!v.kelasId.trim()) errors.kelasId = "Tingkat kelas wajib dipilih.";
+    if (v.kelasId === "") errors.kelasId = "Tingkat kelas wajib dipilih.";
 
     if (v.fotoProfil) {
       const maxBytes = 2 * 1024 * 1024;
@@ -415,8 +415,13 @@ export const AkunSiswaForm = () => {
                   className={`w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-[#397e50] focus:ring-2 focus:ring-[#397e50] disabled:bg-slate-50 disabled:text-slate-500 ${
                     hasError("kelasId") ? "border-rose-300 ring-rose-100" : ""
                   }`}
-                  value={values.kelasId}
-                  onChange={(e) => setField("kelasId", e.target.value)}
+                  value={values.kelasId === "" ? "" : String(values.kelasId)}
+                  onChange={(e) =>
+                    setField(
+                      "kelasId",
+                      e.target.value === "" ? "" : Number(e.target.value)
+                    )
+                  }
                   onBlur={() => onBlur("kelasId")}
                   required
                 >

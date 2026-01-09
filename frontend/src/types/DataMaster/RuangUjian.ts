@@ -3,7 +3,7 @@ export type RuangUjianFormValues = {
 };
 
 export type RuangUjianRow = {
-  id: string;
+  id: number;
   namaRuangan: string;
 };
 

@@ -71,7 +71,7 @@ export const JadwalUjian = () => {
       selectedTingkatId.trim() === "" ? undefined : Number(selectedTingkatId);
     const tingkatKelas = Number.isFinite(tingkat) ? tingkat : undefined;
     const ruangUjianId =
-      selectedRuang.trim() === "" ? undefined : selectedRuang;
+      selectedRuang.trim() === "" ? undefined : Number(selectedRuang);
 
     (async () => {
       try {
@@ -172,7 +172,7 @@ export const JadwalUjian = () => {
               >
                 <option value="">Semua Ruangan</option>
                 {ruangOptions.map((r) => (
-                  <option key={r.id} value={r.id}>
+                  <option key={r.id} value={String(r.id)}>
                     {r.namaRuangan}
                   </option>
                 ))}

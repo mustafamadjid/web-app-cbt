@@ -6,7 +6,7 @@ import { api, type ApiEnvelope } from "../../api";
 import { getTingkatKelasById } from "@/services/Api/features-api/DataMaster/kelas.service";
 
 export type BarisSiswa = {
-  id: string;
+  id: number;
   namaLengkap: string;
   username: string;
   email?: string;
@@ -30,7 +30,7 @@ export type SiswaFilterParams = {
 
 
 
-type BarisSiswaLocal = BarisSiswa & { __kelasId: string };
+type BarisSiswaLocal = BarisSiswa & { __kelasId: number };
 
 export const DUMMY_JENIS_KELAMIN: Array<{
   value: JenisKelamin;
@@ -42,8 +42,8 @@ export const DUMMY_JENIS_KELAMIN: Array<{
 
 export const DUMMY_SISWA: BarisSiswaLocal[] = [
   {
-    id: "s-0001",
-    __kelasId: "kelas-11",
+    id: 1,
+    __kelasId: 11,
     namaLengkap: "Siti Aminah",
     username: "siti.aminah",
     email: "siti.aminah@gmail.com",
@@ -58,8 +58,8 @@ export const DUMMY_SISWA: BarisSiswaLocal[] = [
     urlGambarProfil: "https://i.pravatar.cc/150?u=s-0001",
   },
   {
-    id: "s-0002",
-    __kelasId: "kelas-10",
+    id: 2,
+    __kelasId: 10,
     namaLengkap: "Raka Pratama",
     username: "raka.pratama",
     email: "",
@@ -74,8 +74,8 @@ export const DUMMY_SISWA: BarisSiswaLocal[] = [
     urlGambarProfil: "https://i.pravatar.cc/150?u=s-0002",
   },
   {
-    id: "s-0003",
-    __kelasId: "kelas-10",
+    id: 3,
+    __kelasId: 10,
     namaLengkap: "Dimas Saputra",
     username: "dimas.saputra",
     email: "dimas.saputra@mail.com",
@@ -90,8 +90,8 @@ export const DUMMY_SISWA: BarisSiswaLocal[] = [
     urlGambarProfil: "https://i.pravatar.cc/150?u=s-0003",
   },
   {
-    id: "s-0004",
-    __kelasId: "kelas-11",
+    id: 4,
+    __kelasId: 11,
     namaLengkap: "Nadya Putri",
     username: "nadya.putri",
     email: "nadya.putri@gmail.com",
@@ -106,8 +106,8 @@ export const DUMMY_SISWA: BarisSiswaLocal[] = [
     urlGambarProfil: "https://i.pravatar.cc/150?u=s-0004",
   },
   {
-    id: "s-0005",
-    __kelasId: "kelas-12",
+    id: 5,
+    __kelasId: 12,
     namaLengkap: "Bagas Wiratama",
     username: "bagas.wiratama",
     email: "bagas.wiratama@school.id",
@@ -122,8 +122,8 @@ export const DUMMY_SISWA: BarisSiswaLocal[] = [
     urlGambarProfil: "https://i.pravatar.cc/150?u=s-0005",
   },
   {
-    id: "s-0006",
-    __kelasId: "kelas-10",
+    id: 6,
+    __kelasId: 10,
     namaLengkap: "Alya Maharani",
     username: "alya.maharani",
     email: "alya.maharani@mail.com",
@@ -191,13 +191,13 @@ export async function getSiswa(params: SiswaFilterParams): Promise<BarisSiswa[]>
 
   let data = [...DUMMY_SISWA];
   const tingkatKelas = getTingkatKelasById(params.tingkatKelasId);
-  const kelasId = tingkatKelas ? `kelas-${tingkatKelas}` : undefined;
+  const kelasId = tingkatKelas ?? undefined;
 
   if (params.angkatan) {
     data = data.filter((s) => s.angkatan === params.angkatan);
   }
 
-  if (kelasId) {
+  if (kelasId != null) {
     data = data.filter((s) => s.__kelasId === kelasId);
   }
 

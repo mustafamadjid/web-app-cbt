@@ -23,7 +23,7 @@ const chevronDoubleIcon = (className: string) => (
 
 export const mainMenuItems: SidebarMenuItem[] = [
   {
-    id: "dashboard",
+    id: 1,
     type: "link",
     label: "Dashboard",
     to: paths.dashboard.home_admin,
@@ -56,7 +56,7 @@ export const mainMenuItems: SidebarMenuItem[] = [
     ),
   },
   {
-    id: "kelola-pengguna",
+    id: 2,
     type: "group",
     label: "Kelola Pengguna",
     icon: (className) => (
@@ -80,7 +80,7 @@ export const mainMenuItems: SidebarMenuItem[] = [
     ),
     children: [
       {
-        id: "akun-guru",
+        id: 201,
         label: "Akun Guru",
         to: paths.dashboard.kelola_akun_guru,
         icon: (className) => (
@@ -102,7 +102,7 @@ export const mainMenuItems: SidebarMenuItem[] = [
         ),
       },
       {
-        id: "akun-siswa",
+        id: 202,
         label: "Akun Siswa",
         to: paths.dashboard.kelola_akun_siswa,
         icon: (className) => (
@@ -126,7 +126,7 @@ export const mainMenuItems: SidebarMenuItem[] = [
     ],
   },
   {
-    id: "data-master",
+    id: 3,
     type: "group",
     label: "Data Master",
     icon: (className) => (
@@ -150,25 +150,25 @@ export const mainMenuItems: SidebarMenuItem[] = [
     ),
     children: [
       {
-        id: "data-mata-pelajaran",
+        id: 301,
         label: "Data Mata Pelajaran",
         to: paths.dashboard.data_master_mapel,
         icon: chevronDoubleIcon,
       },
       {
-        id: "data-kelas",
+        id: 302,
         label: "Data Kelas",
         to: paths.dashboard.data_master_kelas,
         icon: chevronDoubleIcon,
       },
       {
-        id: "data-ruang-ujian",
+        id: 303,
         label: "Data Ruang Ujian",
         to: paths.dashboard.data_master_ruang,
         icon: chevronDoubleIcon,
       },
       {
-        id: "data-sesi",
+        id: 304,
         label: "Data Sesi",
         to: paths.dashboard.data_master_sesi,
         icon: chevronDoubleIcon,
@@ -176,7 +176,7 @@ export const mainMenuItems: SidebarMenuItem[] = [
     ],
   },
   {
-    id: "bank-soal",
+    id: 4,
     type: "link",
     label: "Bank Soal",
     to: paths.dashboard.bank_soal,
@@ -202,7 +202,7 @@ export const mainMenuItems: SidebarMenuItem[] = [
     ),
   },
   {
-    id: "ujian",
+    id: 5,
     type: "group",
     label: "Ujian",
     icon: (className) => (
@@ -226,13 +226,13 @@ export const mainMenuItems: SidebarMenuItem[] = [
     ),
     children: [
       {
-        id: "jadwal-ujian",
+        id: 501,
         label: "Jadwal Ujian",
         to: paths.dashboard.jadwal_ujian,
         icon: chevronDoubleIcon,
       },
       {
-        id: "buat-ujian",
+        id: 502,
         label: "Buat Ujian",
         to: paths.dashboard.buat_ujian,
         icon: chevronDoubleIcon,
@@ -243,7 +243,7 @@ export const mainMenuItems: SidebarMenuItem[] = [
 
 export const footerMenuItems: SidebarMenuItem[] = [
   {
-    id: "pengaturan",
+    id: 6,
     type: "link",
     label: "Pengaturan",
     to: paths.dashboard.pengaturan,

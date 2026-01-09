@@ -3,26 +3,26 @@ import type { MataPelajaranOption } from "@/types/DataMaster/MataPelajaran";
 import { getTingkatKelasById } from "@/services/Api/features-api/DataMaster/kelas.service";
 
 const DUMMY_MAPEL: MataPelajaranOption[] = [
-  { id: "mp-bindo-10", label: "Bahasa Indonesia (Kelas 10)" },
-  { id: "mp-fisika-10", label: "Fisika (Kelas 10)" },
-  { id: "mp-mtk-11", label: "Matematika (Kelas 11)" },
-  { id: "mp-bindo-11", label: "Bahasa Indonesia (Kelas 11)" },
-  { id: "mp-ekonomi-12", label: "Ekonomi (Kelas 12)" },
+  { id: 101, label: "Bahasa Indonesia (Kelas 10)" },
+  { id: 102, label: "Fisika (Kelas 10)" },
+  { id: 103, label: "Matematika (Kelas 11)" },
+  { id: 104, label: "Bahasa Indonesia (Kelas 11)" },
+  { id: 105, label: "Ekonomi (Kelas 12)" },
 ];
 
 // Catatan: BankSoalItem kamu saat ini punya `kelas: number` + `mata_pelajaran: string`.
 // Untuk filter mapel-by-id yang rapi, idealnya ada `mapelId` di item.
 // Sementara: kita simpan `__mapelId` sebagai field tambahan lokal (tidak wajib disimpan ke DB).
 type BankSoalItemLocal = BankSoalItem & {
-  __kelasId: string;
-  __mapelId: string;
+  __kelasId: number;
+  __mapelId: number;
 };
 
 const DUMMY_BANKSOAL: BankSoalItemLocal[] = [
   {
-    id: "bs-001",
-    __kelasId: "kelas-11",
-    __mapelId: "mp-bindo-11",
+    id: 1,
+    __kelasId: 11,
+    __mapelId: 104,
     nama_banksoal: "Bank Soal Ujian Bahasa",
     guru: "Budianto",
     kelas: 11,
@@ -34,9 +34,9 @@ const DUMMY_BANKSOAL: BankSoalItemLocal[] = [
     tgl_buat: "2025-03-10",
   },
   {
-    id: "bs-002",
-    __kelasId: "kelas-10",
-    __mapelId: "mp-fisika-10",
+    id: 2,
+    __kelasId: 10,
+    __mapelId: 102,
     nama_banksoal: "Bank Soal Ujian Fisika",
     guru: "Andi",
     kelas: 10,
@@ -48,9 +48,9 @@ const DUMMY_BANKSOAL: BankSoalItemLocal[] = [
     tgl_buat: "2025-03-12",
   },
   {
-    id: "bs-003",
-    __kelasId: "kelas-10",
-    __mapelId: "mp-bindo-10",
+    id: 3,
+    __kelasId: 10,
+    __mapelId: 101,
     nama_banksoal: "Bank Soal Bahasa Indonesia - Teks",
     guru: "Budi",
     kelas: 10,
@@ -62,9 +62,9 @@ const DUMMY_BANKSOAL: BankSoalItemLocal[] = [
     tgl_buat: "2025-04-02",
   },
   {
-    id: "bs-004",
-    __kelasId: "kelas-11",
-    __mapelId: "mp-mtk-11",
+    id: 4,
+    __kelasId: 11,
+    __mapelId: 103,
     nama_banksoal: "Bank Soal Matematika - Fungsi",
     guru: "Budi",
     kelas: 11,
@@ -77,9 +77,9 @@ const DUMMY_BANKSOAL: BankSoalItemLocal[] = [
     tgl_buat: "2025-05-11",
   },
   {
-    id: "bs-005",
-    __kelasId: "kelas-12",
-    __mapelId: "mp-ekonomi-12",
+    id: 5,
+    __kelasId: 12,
+    __mapelId: 105,
     nama_banksoal: "Bank Soal Ekonomi - Pasar",
     guru: "Andi",
     kelas: 12,
@@ -104,15 +104,15 @@ export async function getMataPelajaranOptions(params: {
   tingkatKelasId?: number;
 }): Promise<MataPelajaranOption[]> {
   const tingkatKelas = getTingkatKelasById(params.tingkatKelasId);
-  const kelasId = tingkatKelas ? `kelas-${tingkatKelas}` : undefined;
+  const kelasId = tingkatKelas ?? undefined;
 
   // contoh: kalau mode per kelas, batasi mapel sesuai kelas (dummy sederhana pakai label)
   const filtered = !kelasId
     ? DUMMY_MAPEL
     : DUMMY_MAPEL.filter((m) => {
-        if (kelasId === "kelas-10") return m.label.includes("(Kelas 10)");
-        if (kelasId === "kelas-11") return m.label.includes("(Kelas 11)");
-        if (kelasId === "kelas-12") return m.label.includes("(Kelas 12)");
+        if (kelasId === 10) return m.label.includes("(Kelas 10)");
+        if (kelasId === 11) return m.label.includes("(Kelas 11)");
+        if (kelasId === 12) return m.label.includes("(Kelas 12)");
         return true;
       });
 
@@ -121,13 +121,13 @@ export async function getMataPelajaranOptions(params: {
 
 export async function getBankSoalByKelas(params: {
   tingkatKelasId?: number;
-  kelasId?: string;
-  mapelId?: string;
+  kelasId?: number;
+  mapelId?: number;
   q?: string;
 }): Promise<BankSoalItem[]> {
   const { tingkatKelasId, kelasId, mapelId, q } = params;
   const tingkatKelas = getTingkatKelasById(tingkatKelasId);
-  const resolvedKelasId = kelasId ?? (tingkatKelas ? `kelas-${tingkatKelas}` : undefined);
+  const resolvedKelasId = kelasId ?? tingkatKelas ?? undefined;
 
   let result = [...DUMMY_BANKSOAL];
 

@@ -16,22 +16,22 @@ import { DUMMY_SISWA } from "@/services/Api/features-api/KelolaAkun/akunsiswa.se
 import { getTingkatKelasById } from "@/services/Api/features-api/DataMaster/kelas.service";
 
 const DUMMY_GURU_PENGAWAS: GuruPengawasOption[] = [
-  { id: "gr-001", nama: "Budi Santoso", nip: "198305232010011001", mapel: "Matematika" },
-  { id: "gr-002", nama: "Siti Rahmawati", nip: "198912112012012002", mapel: "Bahasa Indonesia" },
-  { id: "gr-003", nama: "Dedi Pratama", nip: "198706142011021003", mapel: "Fisika" },
+  { id: 1, nama: "Budi Santoso", nip: "198305232010011001", mapel: "Matematika" },
+  { id: 2, nama: "Siti Rahmawati", nip: "198912112012012002", mapel: "Bahasa Indonesia" },
+  { id: 3, nama: "Dedi Pratama", nip: "198706142011021003", mapel: "Fisika" },
 ];
 
 const DUMMY_SESI: SesiUjianOption[] = [
-  { id: "sesi-1", kode: "S1", nama: "Sesi 1 (Pagi)" },
-  { id: "sesi-2", kode: "S2", nama: "Sesi 2 (Siang)" },
-  { id: "sesi-3", kode: "S3", nama: "Sesi 3 (Sore)" },
+  { id: 1, kode: "S1", nama: "Sesi 1 (Pagi)" },
+  { id: 2, kode: "S2", nama: "Sesi 2 (Siang)" },
+  { id: 3, kode: "S3", nama: "Sesi 3 (Sore)" },
 ];
 
 const DUMMY_RUANG: RuangUjianOption[] = [
-  { id: "ruang-01", nama: "Lab Komputer 1" },
-  { id: "ruang-02", nama: "Lab Komputer 2" },
-  { id: "ruang-03", nama: "Ruang Multimedia" },
-  { id: "ruang-04", nama: "Aula Utama" },
+  { id: 1, nama: "Lab Komputer 1" },
+  { id: 2, nama: "Lab Komputer 2" },
+  { id: 3, nama: "Ruang Multimedia" },
+  { id: 4, nama: "Aula Utama" },
 ];
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -62,7 +62,7 @@ export async function getUjianBankSoalOptions(params: {
   tingkatKelasId?: number;
 }): Promise<BankSoalOption[]> {
   const tingkatKelas = getTingkatKelasById(params.tingkatKelasId);
-  const kelasId = tingkatKelas ? `kelas-${tingkatKelas}` : undefined;
+  const kelasId = tingkatKelas ?? undefined;
   const data = await getBankSoalByKelas({
     tingkatKelasId: params.tingkatKelasId,
     kelasId,
@@ -87,16 +87,16 @@ export async function getUjianSiswaPreview(params: {
   const tingkatKelas = getTingkatKelasById(params.tingkatKelasId);
   if (!tingkatKelas) return [];
 
-  return DUMMY_SISWA.filter(
-    (siswa) => siswa.__kelasId === `kelas-${tingkatKelas}`
-  ).map((siswa) => ({
+  return DUMMY_SISWA.filter((siswa) => siswa.__kelasId === tingkatKelas).map(
+    (siswa) => ({
     id: siswa.id,
     nama: siswa.namaLengkap,
     username: siswa.username,
     no_absen: siswa.noAbsen,
     kelas: siswa.kelas,
     status_akun: siswa.statusAkun,
-  }));
+  })
+  );
 }
 
 export async function submitBuatUjian(values: BuatUjianFormValues) {

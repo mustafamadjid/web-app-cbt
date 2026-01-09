@@ -77,16 +77,18 @@ export const BuatUjianForm = () => {
   };
 
   const selectedKelasId = useMemo(() => {
-    const tingkatKelas = getTingkatKelasById(values.kelas_id);
-    return tingkatKelas ? `kelas-${tingkatKelas}` : undefined;
+    const tingkatKelas =
+      values.kelas_id === "" ? undefined : getTingkatKelasById(values.kelas_id);
+    return tingkatKelas ?? undefined;
   }, [values.kelas_id]);
 
   const bankSoalById = useMemo(() => {
-    const map = new Map(bankSoalOptions.map((x) => [String(x.id), x]));
+    const map = new Map(bankSoalOptions.map((x) => [x.id, x]));
     return map;
   }, [bankSoalOptions]);
 
-  const selectedBankSoal = bankSoalById.get(String(values.bank_soal_id));
+  const selectedBankSoal =
+    values.bank_soal_id === "" ? undefined : bankSoalById.get(values.bank_soal_id);
 
   useEffect(() => {
     let active = true;
@@ -123,8 +125,7 @@ export const BuatUjianForm = () => {
       setLoadingBankSoal(true);
       try {
         const data = await getUjianBankSoalOptions({
-          tingkatKelasId:
-            values.kelas_id === "" ? undefined : Number(values.kelas_id),
+          tingkatKelasId: values.kelas_id === "" ? undefined : values.kelas_id,
         });
         if (!active) return;
         setBankSoalOptions(data);
@@ -133,7 +134,7 @@ export const BuatUjianForm = () => {
       }
     };
 
-    if (selectedKelasId) {
+    if (selectedKelasId != null) {
       loadBankSoal();
     } else {
       setBankSoalOptions([]);
@@ -152,8 +153,7 @@ export const BuatUjianForm = () => {
       setLoadingSiswa(true);
       try {
         const data = await getUjianSiswaPreview({
-          tingkatKelasId:
-            values.kelas_id === "" ? undefined : Number(values.kelas_id),
+          tingkatKelasId: values.kelas_id === "" ? undefined : values.kelas_id,
         });
         if (!active) return;
         // harusnya data dari server sudah di sorting
@@ -163,7 +163,7 @@ export const BuatUjianForm = () => {
       }
     };
 
-    if (selectedKelasId) {
+    if (selectedKelasId != null) {
       loadSiswa();
     } else {
       setSiswaPreview([]);
@@ -411,8 +411,17 @@ export const BuatUjianForm = () => {
                       ? "border-rose-300 ring-rose-100"
                       : ""
                   }`}
-                  value={values.bank_soal_id}
-                  onChange={(e) => setField("bank_soal_id", e.target.value)}
+                  value={
+                    values.bank_soal_id === ""
+                      ? ""
+                      : String(values.bank_soal_id)
+                  }
+                  onChange={(e) =>
+                    setField(
+                      "bank_soal_id",
+                      e.target.value === "" ? "" : Number(e.target.value)
+                    )
+                  }
                   onBlur={() => onBlur("bank_soal_id")}
                   disabled={values.kelas_id === "" || loadingBankSoal}
                 >
@@ -422,7 +431,7 @@ export const BuatUjianForm = () => {
                       : "Pilih bank soal"}
                   </option>
                   {bankSoalOptions.map((bank) => (
-                    <option key={bank.id} value={bank.id}>
+                    <option key={bank.id} value={String(bank.id)}>
                       {bank.nama}
                     </option>
                   ))}
@@ -564,14 +573,23 @@ export const BuatUjianForm = () => {
                       ? "border-rose-300 ring-rose-100"
                       : ""
                   }`}
-                  value={values.ruang_ujian_id}
-                  onChange={(e) => setField("ruang_ujian_id", e.target.value)}
+                  value={
+                    values.ruang_ujian_id === ""
+                      ? ""
+                      : String(values.ruang_ujian_id)
+                  }
+                  onChange={(e) =>
+                    setField(
+                      "ruang_ujian_id",
+                      e.target.value === "" ? "" : Number(e.target.value)
+                    )
+                  }
                   onBlur={() => onBlur("ruang_ujian_id")}
                   required
                 >
                   <option value="">Pilih ruang ujian</option>
                   {ruangOptions.map((ruang) => (
-                    <option key={ruang.id} value={ruang.id}>
+                    <option key={ruang.id} value={String(ruang.id)}>
                       {ruang.nama}
                     </option>
                   ))}
@@ -595,14 +613,19 @@ export const BuatUjianForm = () => {
                   className={`${selectBaseClass} ${
                     hasError("sesi_id") ? "border-rose-300 ring-rose-100" : ""
                   }`}
-                  value={values.sesi_id}
-                  onChange={(e) => setField("sesi_id", e.target.value)}
+                  value={values.sesi_id === "" ? "" : String(values.sesi_id)}
+                  onChange={(e) =>
+                    setField(
+                      "sesi_id",
+                      e.target.value === "" ? "" : Number(e.target.value)
+                    )
+                  }
                   onBlur={() => onBlur("sesi_id")}
                   required
                 >
                   <option value="">Pilih sesi ujian</option>
                   {sesiOptions.map((sesi) => (
-                    <option key={sesi.id} value={sesi.id}>
+                    <option key={sesi.id} value={String(sesi.id)}>
                       {sesi.kode} - {sesi.nama}
                     </option>
                   ))}
@@ -626,14 +649,23 @@ export const BuatUjianForm = () => {
                       ? "border-rose-300 ring-rose-100"
                       : ""
                   }`}
-                  value={values.guru_pengawas_id}
-                  onChange={(e) => setField("guru_pengawas_id", e.target.value)}
+                  value={
+                    values.guru_pengawas_id === ""
+                      ? ""
+                      : String(values.guru_pengawas_id)
+                  }
+                  onChange={(e) =>
+                    setField(
+                      "guru_pengawas_id",
+                      e.target.value === "" ? "" : Number(e.target.value)
+                    )
+                  }
                   onBlur={() => onBlur("guru_pengawas_id")}
                   required
                 >
                   <option value="">Pilih guru pengawas</option>
                   {guruOptions.map((guru) => (
-                    <option key={guru.id} value={guru.id}>
+                    <option key={guru.id} value={String(guru.id)}>
                       {guru.nama} {guru.mapel ? `- ${guru.mapel}` : ""}
                     </option>
                   ))}

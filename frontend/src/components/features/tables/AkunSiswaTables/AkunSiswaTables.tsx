@@ -118,7 +118,7 @@ export const AkunSiswaTables: React.FC = () => {
   const [errorMsg, setErrorMsg] = useState("");
 
   // Selection / privacy tetap
-  const [idTerpilih, setIdTerpilih] = useState<Set<string>>(new Set());
+  const [idTerpilih, setIdTerpilih] = useState<Set<number>>(new Set());
   const [samarkanDataSensitif, setSamarkanDataSensitif] = useState(true);
 
   // Anti race condition
@@ -176,7 +176,7 @@ export const AkunSiswaTables: React.FC = () => {
         setIdTerpilih((prev) => {
           if (prev.size === 0) return prev;
           const ids = new Set(data.map((x) => x.id));
-          const next = new Set<string>();
+          const next = new Set<number>();
           prev.forEach((id) => {
             if (ids.has(id)) next.add(id);
           });
@@ -209,7 +209,7 @@ export const AkunSiswaTables: React.FC = () => {
     });
   };
 
-  const togglePilihBaris = (id: string) => {
+  const togglePilihBaris = (id: number) => {
     setIdTerpilih((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);

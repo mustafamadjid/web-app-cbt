@@ -11,37 +11,37 @@ import type { ApiEnvelope } from "../../api";
 
 const DUMMY_KELAS: KelasRow[] = [
   {
-    id: "kelas-10-ipa-1",
+    id: 1,
     id_tingkat_kelas: 1,
     tingkat_kelas: 10,
     nama_kelas: "X IPA 1",
   },
   {
-    id: "kelas-10-ips-1",
+    id: 2,
     id_tingkat_kelas: 1,
     tingkat_kelas: 10,
     nama_kelas: "X IPS 1",
   },
   {
-    id: "kelas-11-ipa-1",
+    id: 3,
     id_tingkat_kelas: 2,
     tingkat_kelas: 11,
     nama_kelas: "XI IPA 1",
   },
   {
-    id: "kelas-11-ips-1",
+    id: 4,
     id_tingkat_kelas: 2,
     tingkat_kelas: 11,
     nama_kelas: "XI IPS 1",
   },
   {
-    id: "kelas-12-ipa-1",
+    id: 5,
     id_tingkat_kelas: 3,
     tingkat_kelas: 12,
     nama_kelas: "XII IPA 1",
   },
   {
-    id: "kelas-12-ips-2",
+    id: 6,
     id_tingkat_kelas: 3,
     tingkat_kelas: 12,
     nama_kelas: "XII IPS 2",
@@ -124,10 +124,21 @@ export async function getKelas(
   });
 }
 
-export const getTingkatKelasById =async (
-  id?: number | string | null
-): Promise<number | undefined> => {
-
-  const dataId = await getTingkatKelasOptions();
-  return dataId.find((item) => item.id_tingkat_kelas == id)?.tingkat_kelas
+export const getTingkatKelasById = (
+  id?: number | null
+): number | undefined => {
+  if (id == null) return undefined;
+  const dataId = DUMMY_KELAS.reduce<Record<number, TingkatKelasOption>>(
+    (acc, kelas) => {
+      if (!acc[kelas.id_tingkat_kelas]) {
+        acc[kelas.id_tingkat_kelas] = {
+          id_tingkat_kelas: kelas.id_tingkat_kelas,
+          tingkat_kelas: kelas.tingkat_kelas,
+        };
+      }
+      return acc;
+    },
+    {}
+  );
+  return dataId[id]?.tingkat_kelas;
 };

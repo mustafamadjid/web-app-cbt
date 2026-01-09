@@ -38,7 +38,7 @@ export const DataKelasTables: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
-  const [idTerpilih, setIdTerpilih] = useState<Set<string>>(new Set());
+  const [idTerpilih, setIdTerpilih] = useState<Set<number>>(new Set());
 
   const debouncedKataKunci = useDebouncedValue(kataKunci, 300);
   const requestSeq = useRef(0);
@@ -82,7 +82,7 @@ export const DataKelasTables: React.FC = () => {
         setIdTerpilih((prev) => {
           if (prev.size === 0) return prev;
           const ids = new Set(data.map((kelas) => kelas.id));
-          const next = new Set<string>();
+          const next = new Set<number>();
           prev.forEach((id) => {
             if (ids.has(id)) next.add(id);
           });
@@ -114,7 +114,7 @@ export const DataKelasTables: React.FC = () => {
     });
   };
 
-  const togglePilihBaris = (id: string) => {
+  const togglePilihBaris = (id: number) => {
     setIdTerpilih((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);

@@ -8,17 +8,17 @@ import { getTingkatKelasById } from "@/services/Api/features-api/DataMaster/kela
 
 const DUMMY_KELAS: KelasOption[] = [
   {
-    id: "kelas-10",
+    id: 10,
     tingkat_kelas: 10,
     label: "Kelas 10",
   },
   {
-    id: "kelas-11",
+    id: 11,
     tingkat_kelas: 11,
     label: "Kelas 11",
   },
   {
-    id: "kelas-12",
+    id: 12,
     tingkat_kelas: 12,
     label: "Kelas 12",
   },
@@ -26,36 +26,36 @@ const DUMMY_KELAS: KelasOption[] = [
 
 const DUMMY_MAPEL: MataPelajaranRow[] = [
   {
-    id: "mapel-1",
-    kelasId: "kelas-10",
+    id: 1,
+    kelasId: 10,
     kodeMapel: "MAT-10-01",
     namaMapel: "Matematika",
     deskripsiMapel: "Aljabar dasar, geometri, dan statistika.",
   },
   {
-    id: "mapel-2",
-    kelasId: "kelas-10",
+    id: 2,
+    kelasId: 10,
     kodeMapel: "EKO-10-01",
     namaMapel: "Ekonomi",
     deskripsiMapel: "Dasar-dasar ekonomi mikro dan makro.",
   },
   {
-    id: "mapel-3",
-    kelasId: "kelas-11",
+    id: 3,
+    kelasId: 11,
     kodeMapel: "BIO-11-01",
     namaMapel: "Biologi",
     deskripsiMapel: "Sistem makhluk hidup dan genetika.",
   },
   {
-    id: "mapel-4",
-    kelasId: "kelas-11",
+    id: 4,
+    kelasId: 11,
     kodeMapel: "GEO-11-01",
     namaMapel: "Geografi",
     deskripsiMapel: "Peta, lingkungan, dan dinamika wilayah.",
   },
   {
-    id: "mapel-5",
-    kelasId: "kelas-12",
+    id: 5,
+    kelasId: 12,
     kodeMapel: "FIS-12-01",
     namaMapel: "Fisika",
     deskripsiMapel: "Listrik, gelombang, dan mekanika.",
@@ -82,7 +82,7 @@ export async function getMataPelajaran(
   await sleep(250);
   const q = params.q ? normalize(params.q) : "";
 
-  const kelasById = DUMMY_KELAS.reduce<Record<string, KelasOption>>(
+  const kelasById = DUMMY_KELAS.reduce<Record<number, KelasOption>>(
     (acc, kelas) => {
       acc[kelas.id] = kelas;
       return acc;

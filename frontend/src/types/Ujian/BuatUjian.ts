@@ -5,22 +5,22 @@ export type BuatUjianFormValues = {
   deskripsi_ujian: string;
   tipe_ujian: TipeUjian;
   kelas_id: number | "";
-  bank_soal_id: string;
+  bank_soal_id: number | "";
   jumlah_soal: number;
   tanggal_ujian: string;
   waktu_mulai: string;
   waktu_selesai: string;
   durasi_menit: number;
-  ruang_ujian_id: string;
+  ruang_ujian_id: number | "";
   acak_soal: boolean;
-  guru_pengawas_id: string;
-  sesi_id: string;
+  guru_pengawas_id: number | "";
+  sesi_id: number | "";
   token_ujian: string;
   // Nanti status dibuat default tergantung jam jadwal
 };
 
 export type BankSoalOption = {
-  id: string;
+  id: number;
   nama: string;
   mata_pelajaran?: string;
   materi?: string;
@@ -31,25 +31,25 @@ export type BankSoalOption = {
 };
 
 export type GuruPengawasOption = {
-  id: string;
+  id: number;
   nama: string;
   nip?: string;
   mapel?: string;
 };
 
 export type SesiUjianOption = {
-  id: string;
+  id: number;
   kode: string;
   nama: string;
 };
 
 export type RuangUjianOption = {
-  id: string;
+  id: number;
   nama: string;
 };
 
 export type SiswaPreviewItem = {
-  id: string;
+  id: number;
   nama: string;
   username: string;
   no_absen: number;
