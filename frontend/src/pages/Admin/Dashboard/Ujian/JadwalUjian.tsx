@@ -42,8 +42,10 @@ export const JadwalUjian = () => {
   const debouncedSearchTerm = useDebouncedValue(searchTerm, 300);
 
   const [selectedDate, setSelectedDate] = useState("");
-  const [selectedTingkatId, setSelectedTingkatId] = useState("");
-  const [selectedRuang, setSelectedRuang] = useState("");
+  const [selectedTingkatId, setSelectedTingkatId] = useState<number | null>(
+    null
+  );
+  const [selectedRuang, setSelectedRuang] = useState<number | null>(null);
 
   const requestSeq = useRef(0);
 
@@ -67,11 +69,9 @@ export const JadwalUjian = () => {
   // Fetch data
   useEffect(() => {
     const seq = ++requestSeq.current;
-    const tingkat =
-      selectedTingkatId.trim() === "" ? undefined : Number(selectedTingkatId);
-    const tingkatKelas = Number.isFinite(tingkat) ? tingkat : undefined;
-    const ruangUjianId =
-      selectedRuang.trim() === "" ? undefined : selectedRuang;
+    const tingkatKelas =
+      selectedTingkatId != null ? selectedTingkatId : undefined;
+    const ruangUjianId = selectedRuang != null ? selectedRuang : undefined;
 
     (async () => {
       try {
@@ -148,8 +148,12 @@ export const JadwalUjian = () => {
                 <Layers size={16} /> Tingkat
               </label>
               <select
-                value={selectedTingkatId}
-                onChange={(e) => setSelectedTingkatId(e.target.value)}
+                value={selectedTingkatId ?? ""}
+                onChange={(e) =>
+                  setSelectedTingkatId(
+                    e.target.value === "" ? null : Number(e.target.value)
+                  )
+                }
                 className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm transition-all focus:border-[#397e50] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#397e50]/10"
               >
                 <option value="">Semua Tingkat</option>
@@ -166,8 +170,12 @@ export const JadwalUjian = () => {
                 <MapPin size={16} /> Ruangan
               </label>
               <select
-                value={selectedRuang}
-                onChange={(e) => setSelectedRuang(e.target.value)}
+                value={selectedRuang ?? ""}
+                onChange={(e) =>
+                  setSelectedRuang(
+                    e.target.value === "" ? null : Number(e.target.value)
+                  )
+                }
                 className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm transition-all focus:border-[#397e50] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#397e50]/10"
               >
                 <option value="">Semua Ruangan</option>

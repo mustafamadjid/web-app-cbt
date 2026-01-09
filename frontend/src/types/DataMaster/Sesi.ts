@@ -4,7 +4,7 @@ export type SesiFormValues = {
 };
 
 export type SesiRow = {
-  id: string;
+  id: number;
   kodeSesi: string;
   namaSesi: string;
 };

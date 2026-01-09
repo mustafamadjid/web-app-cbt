@@ -16,7 +16,7 @@ export type StudentRegisterFormValues = {
   tempatLahir: string;
   tanggalLahir: string;
 
-  kelasId: string;
+  kelasId: number | "";
 
   fotoProfil: File | null;
 };

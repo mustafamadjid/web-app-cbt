@@ -37,8 +37,8 @@ export const DataMataPelajaran: React.FC = () => {
   const [dropdownAksiTerbuka, setDropdownAksiTerbuka] = useState(false);
   const [kataKunci, setKataKunci] = useState("");
 
-  const [tingkatTerpilih, setTingkatTerpilih] = useState("");
-  const [mapelTerpilih, setMapelTerpilih] = useState("");
+  const [tingkatTerpilih, setTingkatTerpilih] = useState<number | null>(null);
+  const [mapelTerpilih, setMapelTerpilih] = useState<number | null>(null);
 
   const [opsiTingkatKelas, setOpsiTingkatKelas] = useState<
     TingkatKelasOption[]
@@ -49,7 +49,7 @@ export const DataMataPelajaran: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
-  const [idTerpilih, setIdTerpilih] = useState<Set<string>>(new Set());
+  const [idTerpilih, setIdTerpilih] = useState<Set<number>>(new Set());
 
   const debouncedKataKunci = useDebouncedValue(kataKunci, 300);
   const requestSeq = useRef(0);
@@ -88,8 +88,8 @@ export const DataMataPelajaran: React.FC = () => {
 
         const data = await getMataPelajaran({
           q: debouncedKataKunci.trim() || undefined,
-          tingkatKelas: tingkatTerpilih ? Number(tingkatTerpilih) : undefined,
-          mapelId: mapelTerpilih || undefined,
+          tingkatKelas: tingkatTerpilih ?? undefined,
+          mapelId: mapelTerpilih ?? undefined,
         });
 
         if (seq !== requestSeq.current) return;
@@ -98,7 +98,7 @@ export const DataMataPelajaran: React.FC = () => {
         setIdTerpilih((prev) => {
           if (prev.size === 0) return prev;
           const ids = new Set(data.map((mapel) => mapel.id));
-          const next = new Set<string>();
+          const next = new Set<number>();
           prev.forEach((id) => {
             if (ids.has(id)) next.add(id);
           });
@@ -116,8 +116,8 @@ export const DataMataPelajaran: React.FC = () => {
   }, [debouncedKataKunci, tingkatTerpilih, mapelTerpilih]);
 
   const kelasLabelById = useMemo(() => {
-    return opsiTingkatKelas.reduce<Record<string, string>>((acc, tingkat) => {
-      acc[`kelas-${tingkat.tingkat_kelas}`] = `Kelas ${tingkat.tingkat_kelas}`;
+    return opsiTingkatKelas.reduce<Record<number, string>>((acc, tingkat) => {
+      acc[tingkat.tingkat_kelas] = `Kelas ${tingkat.tingkat_kelas}`;
       return acc;
     }, {});
   }, [opsiTingkatKelas]);
@@ -138,7 +138,7 @@ export const DataMataPelajaran: React.FC = () => {
     });
   };
 
-  const togglePilihBaris = (id: string) => {
+  const togglePilihBaris = (id: number) => {
     setIdTerpilih((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -151,8 +151,8 @@ export const DataMataPelajaran: React.FC = () => {
 
   const resetFilter = () => {
     setKataKunci("");
-    setTingkatTerpilih("");
-    setMapelTerpilih("");
+    setTingkatTerpilih(null);
+    setMapelTerpilih(null);
   };
 
   return (
@@ -203,15 +203,19 @@ export const DataMataPelajaran: React.FC = () => {
                 Tingkat Kelas
               </label>
               <select
-                value={tingkatTerpilih}
-                onChange={(e) => setTingkatTerpilih(e.target.value)}
+                value={tingkatTerpilih ?? ""}
+                onChange={(e) =>
+                  setTingkatTerpilih(
+                    e.target.value === "" ? null : Number(e.target.value)
+                  )
+                }
                 className="mt-1 w-full cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-[#397e50] focus:outline-none focus:ring-1 focus:ring-[#397e50]"
               >
                 <option value="">Semua</option>
                 {opsiTingkatKelas.map((tingkat) => (
                   <option
                     key={tingkat.id_tingkat_kelas}
-                    value={String(tingkat.id_tingkat_kelas)}
+                    value={tingkat.id_tingkat_kelas}
                   >
                     {tingkat.tingkat_kelas}
                   </option>
@@ -221,8 +225,12 @@ export const DataMataPelajaran: React.FC = () => {
             <div>
               <label className="text-xs font-medium text-slate-600">Mapel</label>
               <select
-                value={mapelTerpilih}
-                onChange={(e) => setMapelTerpilih(e.target.value)}
+                value={mapelTerpilih ?? ""}
+                onChange={(e) =>
+                  setMapelTerpilih(
+                    e.target.value === "" ? null : Number(e.target.value)
+                  )
+                }
                 className="mt-1 w-full cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-[#397e50] focus:outline-none focus:ring-1 focus:ring-[#397e50]"
               >
                 <option value="">Semua</option>

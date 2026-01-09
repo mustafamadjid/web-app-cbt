@@ -77,16 +77,18 @@ export const BuatUjianForm = () => {
   };
 
   const selectedKelasId = useMemo(() => {
-    const tingkatKelas = getTingkatKelasById(values.kelas_id);
-    return tingkatKelas ? `kelas-${tingkatKelas}` : undefined;
+    const tingkatKelas =
+      values.kelas_id === "" ? undefined : getTingkatKelasById(values.kelas_id);
+    return tingkatKelas ?? undefined;
   }, [values.kelas_id]);
 
   const bankSoalById = useMemo(() => {
-    const map = new Map(bankSoalOptions.map((x) => [String(x.id), x]));
+    const map = new Map(bankSoalOptions.map((x) => [x.id, x]));
     return map;
   }, [bankSoalOptions]);
 
-  const selectedBankSoal = bankSoalById.get(String(values.bank_soal_id));
+  const selectedBankSoal =
+    values.bank_soal_id === "" ? undefined : bankSoalById.get(values.bank_soal_id);
 
   useEffect(() => {
     let active = true;
@@ -123,8 +125,7 @@ export const BuatUjianForm = () => {
       setLoadingBankSoal(true);
       try {
         const data = await getUjianBankSoalOptions({
-          tingkatKelasId:
-            values.kelas_id === "" ? undefined : Number(values.kelas_id),
+          tingkatKelasId: values.kelas_id === "" ? undefined : values.kelas_id,
         });
         if (!active) return;
         setBankSoalOptions(data);
@@ -133,7 +134,7 @@ export const BuatUjianForm = () => {
       }
     };
 
-    if (selectedKelasId) {
+    if (selectedKelasId != null) {
       loadBankSoal();
     } else {
       setBankSoalOptions([]);
@@ -152,8 +153,7 @@ export const BuatUjianForm = () => {
       setLoadingSiswa(true);
       try {
         const data = await getUjianSiswaPreview({
-          tingkatKelasId:
-            values.kelas_id === "" ? undefined : Number(values.kelas_id),
+          tingkatKelasId: values.kelas_id === "" ? undefined : values.kelas_id,
         });
         if (!active) return;
         // harusnya data dari server sudah di sorting
@@ -163,7 +163,7 @@ export const BuatUjianForm = () => {
       }
     };
 
-    if (selectedKelasId) {
+    if (selectedKelasId != null) {
       loadSiswa();
     } else {
       setSiswaPreview([]);
@@ -370,7 +370,7 @@ export const BuatUjianForm = () => {
                   className={`${selectBaseClass} ${
                     hasError("kelas_id") ? "border-rose-300 ring-rose-100" : ""
                   }`}
-                  value={values.kelas_id === "" ? "" : String(values.kelas_id)}
+                  value={values.kelas_id}
                   onChange={(e) =>
                     setField(
                       "kelas_id",
@@ -384,7 +384,7 @@ export const BuatUjianForm = () => {
                   {kelasOptions.map((tingkat) => (
                     <option
                       key={tingkat.id_tingkat_kelas}
-                      value={String(tingkat.id_tingkat_kelas)}
+                      value={tingkat.id_tingkat_kelas}
                     >
                       Kelas {tingkat.tingkat_kelas}
                     </option>
@@ -412,7 +412,12 @@ export const BuatUjianForm = () => {
                       : ""
                   }`}
                   value={values.bank_soal_id}
-                  onChange={(e) => setField("bank_soal_id", e.target.value)}
+                  onChange={(e) =>
+                    setField(
+                      "bank_soal_id",
+                      e.target.value === "" ? "" : Number(e.target.value)
+                    )
+                  }
                   onBlur={() => onBlur("bank_soal_id")}
                   disabled={values.kelas_id === "" || loadingBankSoal}
                 >
@@ -565,7 +570,12 @@ export const BuatUjianForm = () => {
                       : ""
                   }`}
                   value={values.ruang_ujian_id}
-                  onChange={(e) => setField("ruang_ujian_id", e.target.value)}
+                  onChange={(e) =>
+                    setField(
+                      "ruang_ujian_id",
+                      e.target.value === "" ? "" : Number(e.target.value)
+                    )
+                  }
                   onBlur={() => onBlur("ruang_ujian_id")}
                   required
                 >
@@ -596,7 +606,12 @@ export const BuatUjianForm = () => {
                     hasError("sesi_id") ? "border-rose-300 ring-rose-100" : ""
                   }`}
                   value={values.sesi_id}
-                  onChange={(e) => setField("sesi_id", e.target.value)}
+                  onChange={(e) =>
+                    setField(
+                      "sesi_id",
+                      e.target.value === "" ? "" : Number(e.target.value)
+                    )
+                  }
                   onBlur={() => onBlur("sesi_id")}
                   required
                 >
@@ -627,7 +642,12 @@ export const BuatUjianForm = () => {
                       : ""
                   }`}
                   value={values.guru_pengawas_id}
-                  onChange={(e) => setField("guru_pengawas_id", e.target.value)}
+                  onChange={(e) =>
+                    setField(
+                      "guru_pengawas_id",
+                      e.target.value === "" ? "" : Number(e.target.value)
+                    )
+                  }
                   onBlur={() => onBlur("guru_pengawas_id")}
                   required
                 >

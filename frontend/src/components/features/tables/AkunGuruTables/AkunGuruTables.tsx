@@ -22,7 +22,7 @@ import { paths } from "@/routes/paths";
 // --- Tipe Data (Sama seperti sebelumnya) ---
 
 type BarisPengguna = {
-  id: string;
+  id: number;
   namaLengkap: string;
   email: string;
   username: string;
@@ -77,13 +77,13 @@ function samarkanNip(nip: string) {
 export const AkunGuruTables: React.FC = () => {
   const [dropdownAksiTerbuka, setDropdownAksiTerbuka] = useState(false);
   const [kataKunci, setKataKunci] = useState("");
-  const [idTerpilih, setIdTerpilih] = useState<Set<string>>(new Set());
+  const [idTerpilih, setIdTerpilih] = useState<Set<number>>(new Set());
   const [samarkanDataSensitif, setSamarkanDataSensitif] = useState(true);
 
   // Data Dummy
   const [daftarPengguna] = useState<BarisPengguna[]>([
     {
-      id: "u1",
+      id: 1,
       namaLengkap: "Neil Sims",
       email: "neil.sims@flowbite.com",
       username: "neilsims",
@@ -96,7 +96,7 @@ export const AkunGuruTables: React.FC = () => {
       urlGambarProfil: "https://i.pravatar.cc/150?u=neil",
     },
     {
-      id: "u2",
+      id: 2,
       namaLengkap: "Bonnie Green",
       email: "bonnie@flowbite.com",
       username: "bonnieg",
@@ -109,7 +109,7 @@ export const AkunGuruTables: React.FC = () => {
       urlGambarProfil: "https://i.pravatar.cc/150?u=bonnie",
     },
     {
-      id: "u3",
+      id: 3,
       namaLengkap: "Jese Leos",
       email: "jese@flowbite.com",
       username: "jeseleos",
@@ -122,7 +122,7 @@ export const AkunGuruTables: React.FC = () => {
       urlGambarProfil: "https://i.pravatar.cc/150?u=jese",
     },
     {
-      id: "u4",
+      id: 4,
       namaLengkap: "Jese Leos",
       email: "jese@flowbite.com",
       username: "jeseleos",
@@ -166,7 +166,7 @@ export const AkunGuruTables: React.FC = () => {
     });
   };
 
-  const togglePilihBaris = (id: string) => {
+  const togglePilihBaris = (id: number) => {
     setIdTerpilih((sebelumnya) => {
       const berikutnya = new Set(sebelumnya);
       if (berikutnya.has(id)) berikutnya.delete(id);

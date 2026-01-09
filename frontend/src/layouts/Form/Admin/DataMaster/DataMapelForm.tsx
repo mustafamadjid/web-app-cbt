@@ -46,7 +46,7 @@ export const DataMapelForm = () => {
   const validate = (v: MataPelajaranFormValues) => {
     const errors: Partial<Record<keyof MataPelajaranFormValues, string>> = {};
 
-    if (!v.kelasId) errors.kelasId = "Tingkat kelas wajib dipilih.";
+    if (v.kelasId === "") errors.kelasId = "Tingkat kelas wajib dipilih.";
     if (!v.kodeMapel.trim()) errors.kodeMapel = "Kode mapel wajib diisi.";
     if (!v.namaMapel.trim())
       errors.namaMapel = "Nama mata pelajaran wajib diisi.";
@@ -118,7 +118,12 @@ export const DataMapelForm = () => {
                     hasError("kelasId") ? "border-rose-300 ring-rose-100" : ""
                   }`}
                   value={values.kelasId}
-                  onChange={(e) => setField("kelasId", e.target.value)}
+                  onChange={(e) =>
+                    setField(
+                      "kelasId",
+                      e.target.value === "" ? "" : Number(e.target.value)
+                    )
+                  }
                   onBlur={() => onBlur("kelasId")}
                   required
                 >
@@ -128,7 +133,7 @@ export const DataMapelForm = () => {
                   {kelasOptions.map((tingkat) => (
                     <option
                       key={tingkat.id_tingkat_kelas}
-                      value={String(tingkat.id_tingkat_kelas)}
+                      value={tingkat.id_tingkat_kelas}
                     >
                       Kelas {tingkat.tingkat_kelas}
                     </option>

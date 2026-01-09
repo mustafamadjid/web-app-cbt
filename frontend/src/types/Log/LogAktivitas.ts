@@ -1,6 +1,6 @@
 export type UserRole = "admin" | "guru" | "siswa";
 export type AktivitasLogItem = {
-  id: string | number;
+  id: number;
   username: string;
   role: UserRole;
   aksi: string;

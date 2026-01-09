@@ -119,7 +119,7 @@ export const AkunSiswaForm = () => {
     if (!v.tanggalLahir.trim())
       errors.tanggalLahir = "Tanggal lahir wajib diisi.";
 
-    if (!v.kelasId.trim()) errors.kelasId = "Tingkat kelas wajib dipilih.";
+    if (v.kelasId === "") errors.kelasId = "Tingkat kelas wajib dipilih.";
 
     if (v.fotoProfil) {
       const maxBytes = 2 * 1024 * 1024;
@@ -416,7 +416,12 @@ export const AkunSiswaForm = () => {
                     hasError("kelasId") ? "border-rose-300 ring-rose-100" : ""
                   }`}
                   value={values.kelasId}
-                  onChange={(e) => setField("kelasId", e.target.value)}
+                  onChange={(e) =>
+                    setField(
+                      "kelasId",
+                      e.target.value === "" ? "" : Number(e.target.value)
+                    )
+                  }
                   onBlur={() => onBlur("kelasId")}
                   required
                 >
@@ -426,7 +431,7 @@ export const AkunSiswaForm = () => {
                   {kelasOptions.map((tingkat) => (
                     <option
                       key={tingkat.id_tingkat_kelas}
-                      value={String(tingkat.id_tingkat_kelas)}
+                      value={tingkat.id_tingkat_kelas}
                     >
                       Kelas {tingkat.tingkat_kelas}
                     </option>

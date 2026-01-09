@@ -1,10 +1,10 @@
 import type { SesiFilterParams, SesiRow } from "@/types/DataMaster/Sesi";
 
 const DUMMY_SESI: SesiRow[] = [
-  { id: "sesi-1", kodeSesi: "SESI-01", namaSesi: "Sesi Pagi" },
-  { id: "sesi-2", kodeSesi: "SESI-02", namaSesi: "Sesi Siang" },
-  { id: "sesi-3", kodeSesi: "SESI-03", namaSesi: "Sesi Sore" },
-  { id: "sesi-4", kodeSesi: "SESI-04", namaSesi: "Sesi Malam" },
+  { id: 1, kodeSesi: "SESI-01", namaSesi: "Sesi Pagi" },
+  { id: 2, kodeSesi: "SESI-02", namaSesi: "Sesi Siang" },
+  { id: 3, kodeSesi: "SESI-03", namaSesi: "Sesi Sore" },
+  { id: 4, kodeSesi: "SESI-04", namaSesi: "Sesi Malam" },
 ];
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));

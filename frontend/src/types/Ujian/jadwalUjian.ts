@@ -6,7 +6,7 @@ export type JadwalUjianItem = {
     waktu_mulai: string; // Data waktu sudah diolah duluan di server
     sesi_ujian?: number ;
     ruang_ujian?: string;
-    ruang_ujian_id?: string;
+    ruang_ujian_id?: number;
     status_ujian?: string;
     tingkat_kelas?: number;
     tingkat_kelas_id?: number;
@@ -17,5 +17,5 @@ export type JadwalUjianFilterParams = {
   q?: string;
   tanggal?: string; // "YYYY-MM-DD"
   tingkatKelasId?: number;
-  ruangUjianId?: string;
+  ruangUjianId?: number;
 };

@@ -18,7 +18,7 @@ import type { UjianBerlangsungItem } from "@/types/Widget/UjianBerlangsung";
 // --- DUMMY DATA ---
 const pengumuman: PengumumanItem[] = [
   {
-    id: "p1",
+    id: 1,
     judul: "Informasi Perubahan Ruangan",
     tanggal_rilis_pengumuman: "Senin, 24/11/2025",
     isi_pengumuman:
@@ -32,7 +32,7 @@ const pengumuman: PengumumanItem[] = [
     ],
   },
   {
-    id: "p2",
+    id: 2,
     judul: "Informasi Perubahan Tanggal Ujian",
     tanggal_rilis_pengumuman: "Senin, 24/11/2025",
     isi_pengumuman: "Ujian diundur ke Selasa, 25/11/2025 pukul 09:00.",

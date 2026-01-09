@@ -31,14 +31,14 @@ export const DataKelasTables: React.FC = () => {
 
   const [dropdownAksiTerbuka, setDropdownAksiTerbuka] = useState(false);
   const [kataKunci, setKataKunci] = useState("");
-  const [tingkatKelas, setTingkatKelas] = useState("");
+  const [tingkatKelas, setTingkatKelas] = useState<number | null>(null);
 
   const [opsiTingkat, setOpsiTingkat] = useState<TingkatKelasOption[]>([]);
   const [daftarKelas, setDaftarKelas] = useState<KelasRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
-  const [idTerpilih, setIdTerpilih] = useState<Set<string>>(new Set());
+  const [idTerpilih, setIdTerpilih] = useState<Set<number>>(new Set());
 
   const debouncedKataKunci = useDebouncedValue(kataKunci, 300);
   const requestSeq = useRef(0);
@@ -73,7 +73,7 @@ export const DataKelasTables: React.FC = () => {
 
         const data = await getKelas({
           q: debouncedKataKunci.trim() || undefined,
-          tingkatKelas: tingkatKelas ? Number(tingkatKelas) : undefined,
+          tingkatKelas: tingkatKelas ?? undefined,
         });
 
         if (seq !== requestSeq.current) return;
@@ -82,7 +82,7 @@ export const DataKelasTables: React.FC = () => {
         setIdTerpilih((prev) => {
           if (prev.size === 0) return prev;
           const ids = new Set(data.map((kelas) => kelas.id));
-          const next = new Set<string>();
+          const next = new Set<number>();
           prev.forEach((id) => {
             if (ids.has(id)) next.add(id);
           });
@@ -114,7 +114,7 @@ export const DataKelasTables: React.FC = () => {
     });
   };
 
-  const togglePilihBaris = (id: string) => {
+  const togglePilihBaris = (id: number) => {
     setIdTerpilih((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -127,7 +127,7 @@ export const DataKelasTables: React.FC = () => {
 
   const resetFilter = () => {
     setKataKunci("");
-    setTingkatKelas("");
+    setTingkatKelas(null);
   };
 
   return (
@@ -178,15 +178,19 @@ export const DataKelasTables: React.FC = () => {
                 Tingkat Kelas
               </label>
               <select
-                value={tingkatKelas}
-                onChange={(e) => setTingkatKelas(e.target.value)}
+                value={tingkatKelas ?? ""}
+                onChange={(e) =>
+                  setTingkatKelas(
+                    e.target.value === "" ? null : Number(e.target.value)
+                  )
+                }
                 className="mt-1 w-full cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-[#397e50] focus:outline-none focus:ring-1 focus:ring-[#397e50]"
               >
                 <option value="">Semua</option>
                 {opsiTingkat.map((tingkat) => (
                   <option
                     key={tingkat.id_tingkat_kelas}
-                    value={String(tingkat.id_tingkat_kelas)}
+                    value={tingkat.id_tingkat_kelas}
                   >
                     {tingkat.tingkat_kelas}
                   </option>
