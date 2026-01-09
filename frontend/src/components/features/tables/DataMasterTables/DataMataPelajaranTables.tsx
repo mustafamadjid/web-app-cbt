@@ -37,8 +37,8 @@ export const DataMataPelajaran: React.FC = () => {
   const [dropdownAksiTerbuka, setDropdownAksiTerbuka] = useState(false);
   const [kataKunci, setKataKunci] = useState("");
 
-  const [tingkatTerpilih, setTingkatTerpilih] = useState("");
-  const [mapelTerpilih, setMapelTerpilih] = useState("");
+  const [tingkatTerpilih, setTingkatTerpilih] = useState<number | null>(null);
+  const [mapelTerpilih, setMapelTerpilih] = useState<number | null>(null);
 
   const [opsiTingkatKelas, setOpsiTingkatKelas] = useState<
     TingkatKelasOption[]
@@ -88,8 +88,8 @@ export const DataMataPelajaran: React.FC = () => {
 
         const data = await getMataPelajaran({
           q: debouncedKataKunci.trim() || undefined,
-          tingkatKelas: tingkatTerpilih ? Number(tingkatTerpilih) : undefined,
-          mapelId: mapelTerpilih ? Number(mapelTerpilih) : undefined,
+          tingkatKelas: tingkatTerpilih ?? undefined,
+          mapelId: mapelTerpilih ?? undefined,
         });
 
         if (seq !== requestSeq.current) return;
@@ -151,8 +151,8 @@ export const DataMataPelajaran: React.FC = () => {
 
   const resetFilter = () => {
     setKataKunci("");
-    setTingkatTerpilih("");
-    setMapelTerpilih("");
+    setTingkatTerpilih(null);
+    setMapelTerpilih(null);
   };
 
   return (
@@ -203,15 +203,19 @@ export const DataMataPelajaran: React.FC = () => {
                 Tingkat Kelas
               </label>
               <select
-                value={tingkatTerpilih}
-                onChange={(e) => setTingkatTerpilih(e.target.value)}
+                value={tingkatTerpilih ?? ""}
+                onChange={(e) =>
+                  setTingkatTerpilih(
+                    e.target.value === "" ? null : Number(e.target.value)
+                  )
+                }
                 className="mt-1 w-full cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-[#397e50] focus:outline-none focus:ring-1 focus:ring-[#397e50]"
               >
                 <option value="">Semua</option>
                 {opsiTingkatKelas.map((tingkat) => (
                   <option
                     key={tingkat.id_tingkat_kelas}
-                    value={String(tingkat.id_tingkat_kelas)}
+                    value={tingkat.id_tingkat_kelas}
                   >
                     {tingkat.tingkat_kelas}
                   </option>
@@ -221,13 +225,17 @@ export const DataMataPelajaran: React.FC = () => {
             <div>
               <label className="text-xs font-medium text-slate-600">Mapel</label>
               <select
-                value={mapelTerpilih}
-                onChange={(e) => setMapelTerpilih(e.target.value)}
+                value={mapelTerpilih ?? ""}
+                onChange={(e) =>
+                  setMapelTerpilih(
+                    e.target.value === "" ? null : Number(e.target.value)
+                  )
+                }
                 className="mt-1 w-full cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-[#397e50] focus:outline-none focus:ring-1 focus:ring-[#397e50]"
               >
                 <option value="">Semua</option>
                 {opsiMapel.map((mapel) => (
-                  <option key={mapel.id} value={String(mapel.id)}>
+                  <option key={mapel.id} value={mapel.id}>
                     {mapel.label}
                   </option>
                 ))}

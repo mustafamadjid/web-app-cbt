@@ -50,7 +50,7 @@ export const BankSoal = () => {
   );
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search, 400); // Sedikit diperlambat agar lebih smooth
-  const [selectedMapelId, setSelectedMapelId] = useState<number | "">("");
+  const [selectedMapelId, setSelectedMapelId] = useState<number | null>(null);
 
   // ----- Data State -----
   const [tingkatKelasOptions, setTingkatKelasOptions] = useState<
@@ -99,10 +99,10 @@ export const BankSoal = () => {
         if (!mounted) return;
         setMapelOptions(mapel);
         if (
-          selectedMapelId !== "" &&
+          selectedMapelId != null &&
           !mapel.some((m) => m.id === selectedMapelId)
         ) {
-          setSelectedMapelId("");
+          setSelectedMapelId(null);
         }
       } catch (e) {
         if (mounted) setErrorMsg("Gagal memuat data mata pelajaran.");
@@ -123,7 +123,7 @@ export const BankSoal = () => {
         const data = await getBankSoalByKelas({
           tingkatKelasId:
             viewMode === "BY_KELAS" ? selectedTingkatId ?? undefined : undefined,
-          mapelId: selectedMapelId === "" ? undefined : selectedMapelId,
+          mapelId: selectedMapelId ?? undefined,
           q: debouncedSearch?.trim() || undefined,
         });
         if (seq !== requestSeq.current) return;
@@ -280,17 +280,17 @@ export const BankSoal = () => {
                     <BookOpen className="h-4 w-4" />
                   </div>
                   <select
-                    value={selectedMapelId === "" ? "" : String(selectedMapelId)}
+                    value={selectedMapelId ?? ""}
                     onChange={(e) =>
                       setSelectedMapelId(
-                        e.target.value === "" ? "" : Number(e.target.value)
+                        e.target.value === "" ? null : Number(e.target.value)
                       )
                     }
                     className="block w-full cursor-pointer appearance-none rounded-xl border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-8 text-sm text-gray-800 outline-none transition-all focus:border-[#397e50] focus:bg-white focus:ring-2 focus:ring-[#397e50]/20"
                   >
                     <option value="">Semua Mata Pelajaran</option>
                     {mapelOptions.map((m) => (
-                      <option key={m.id} value={String(m.id)}>
+                      <option key={m.id} value={m.id}>
                         {m.label}
                       </option>
                     ))}

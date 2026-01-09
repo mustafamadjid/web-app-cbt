@@ -98,7 +98,7 @@ export const AkunSiswaTables: React.FC = () => {
 
   // FILTERS (backend-driven)
   const [angkatan, setAngkatan] = useState<string>("");
-  const [tingkatKelasId, setTingkatKelasId] = useState<string>("");
+  const [tingkatKelasId, setTingkatKelasId] = useState<number | null>(null);
   const [jenisKelamin, setJenisKelamin] = useState<string>("");
 
   const debouncedKataKunci = useDebouncedValue(kataKunci, 300);
@@ -164,7 +164,7 @@ export const AkunSiswaTables: React.FC = () => {
         const data = await getSiswa({
           q: debouncedKataKunci.trim() || undefined,
           angkatan: angkatan ? Number(angkatan) : undefined,
-          tingkatKelasId: tingkatKelasId ? Number(tingkatKelasId) : undefined,
+          tingkatKelasId: tingkatKelasId ?? undefined,
           jenisKelamin: (jenisKelamin as JenisKelamin) || undefined,
         });
 
@@ -223,7 +223,7 @@ export const AkunSiswaTables: React.FC = () => {
   const resetFilter = () => {
     setKataKunci("");
     setAngkatan("");
-    setTingkatKelasId("");
+    setTingkatKelasId(null);
     setJenisKelamin("");
   };
 
@@ -320,15 +320,19 @@ export const AkunSiswaTables: React.FC = () => {
                 Tingkat Kelas
               </label>
               <select
-                value={tingkatKelasId}
-                onChange={(e) => setTingkatKelasId(e.target.value)}
+                value={tingkatKelasId ?? ""}
+                onChange={(e) =>
+                  setTingkatKelasId(
+                    e.target.value === "" ? null : Number(e.target.value)
+                  )
+                }
                 className="mt-1 w-full cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-[#397e50] focus:outline-none focus:ring-1 focus:ring-[#397e50]"
               >
                 <option value="">Semua</option>
                 {opsiTingkatKelas.map((tingkat) => (
                   <option
                     key={tingkat.id_tingkat_kelas}
-                    value={String(tingkat.id_tingkat_kelas)}
+                  value={tingkat.id_tingkat_kelas}
                   >
                     Kelas {tingkat.tingkat_kelas}
                   </option>

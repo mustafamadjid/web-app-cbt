@@ -370,7 +370,7 @@ export const BuatUjianForm = () => {
                   className={`${selectBaseClass} ${
                     hasError("kelas_id") ? "border-rose-300 ring-rose-100" : ""
                   }`}
-                  value={values.kelas_id === "" ? "" : String(values.kelas_id)}
+                  value={values.kelas_id}
                   onChange={(e) =>
                     setField(
                       "kelas_id",
@@ -384,7 +384,7 @@ export const BuatUjianForm = () => {
                   {kelasOptions.map((tingkat) => (
                     <option
                       key={tingkat.id_tingkat_kelas}
-                      value={String(tingkat.id_tingkat_kelas)}
+                      value={tingkat.id_tingkat_kelas}
                     >
                       Kelas {tingkat.tingkat_kelas}
                     </option>
@@ -411,11 +411,7 @@ export const BuatUjianForm = () => {
                       ? "border-rose-300 ring-rose-100"
                       : ""
                   }`}
-                  value={
-                    values.bank_soal_id === ""
-                      ? ""
-                      : String(values.bank_soal_id)
-                  }
+                  value={values.bank_soal_id}
                   onChange={(e) =>
                     setField(
                       "bank_soal_id",
@@ -431,7 +427,7 @@ export const BuatUjianForm = () => {
                       : "Pilih bank soal"}
                   </option>
                   {bankSoalOptions.map((bank) => (
-                    <option key={bank.id} value={String(bank.id)}>
+                    <option key={bank.id} value={bank.id}>
                       {bank.nama}
                     </option>
                   ))}
@@ -573,11 +569,7 @@ export const BuatUjianForm = () => {
                       ? "border-rose-300 ring-rose-100"
                       : ""
                   }`}
-                  value={
-                    values.ruang_ujian_id === ""
-                      ? ""
-                      : String(values.ruang_ujian_id)
-                  }
+                  value={values.ruang_ujian_id}
                   onChange={(e) =>
                     setField(
                       "ruang_ujian_id",
@@ -589,7 +581,7 @@ export const BuatUjianForm = () => {
                 >
                   <option value="">Pilih ruang ujian</option>
                   {ruangOptions.map((ruang) => (
-                    <option key={ruang.id} value={String(ruang.id)}>
+                    <option key={ruang.id} value={ruang.id}>
                       {ruang.nama}
                     </option>
                   ))}
@@ -613,7 +605,7 @@ export const BuatUjianForm = () => {
                   className={`${selectBaseClass} ${
                     hasError("sesi_id") ? "border-rose-300 ring-rose-100" : ""
                   }`}
-                  value={values.sesi_id === "" ? "" : String(values.sesi_id)}
+                  value={values.sesi_id}
                   onChange={(e) =>
                     setField(
                       "sesi_id",
@@ -625,7 +617,7 @@ export const BuatUjianForm = () => {
                 >
                   <option value="">Pilih sesi ujian</option>
                   {sesiOptions.map((sesi) => (
-                    <option key={sesi.id} value={String(sesi.id)}>
+                    <option key={sesi.id} value={sesi.id}>
                       {sesi.kode} - {sesi.nama}
                     </option>
                   ))}
@@ -649,11 +641,7 @@ export const BuatUjianForm = () => {
                       ? "border-rose-300 ring-rose-100"
                       : ""
                   }`}
-                  value={
-                    values.guru_pengawas_id === ""
-                      ? ""
-                      : String(values.guru_pengawas_id)
-                  }
+                  value={values.guru_pengawas_id}
                   onChange={(e) =>
                     setField(
                       "guru_pengawas_id",
@@ -665,7 +653,7 @@ export const BuatUjianForm = () => {
                 >
                   <option value="">Pilih guru pengawas</option>
                   {guruOptions.map((guru) => (
-                    <option key={guru.id} value={String(guru.id)}>
+                    <option key={guru.id} value={guru.id}>
                       {guru.nama} {guru.mapel ? `- ${guru.mapel}` : ""}
                     </option>
                   ))}

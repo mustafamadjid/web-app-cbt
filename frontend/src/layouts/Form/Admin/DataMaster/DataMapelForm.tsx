@@ -117,7 +117,7 @@ export const DataMapelForm = () => {
                   className={`w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-[#397e50] focus:ring-2 focus:ring-[#397e50] disabled:bg-slate-50 disabled:text-slate-500 ${
                     hasError("kelasId") ? "border-rose-300 ring-rose-100" : ""
                   }`}
-                  value={values.kelasId === "" ? "" : String(values.kelasId)}
+                  value={values.kelasId}
                   onChange={(e) =>
                     setField(
                       "kelasId",
@@ -133,7 +133,7 @@ export const DataMapelForm = () => {
                   {kelasOptions.map((tingkat) => (
                     <option
                       key={tingkat.id_tingkat_kelas}
-                      value={String(tingkat.id_tingkat_kelas)}
+                      value={tingkat.id_tingkat_kelas}
                     >
                       Kelas {tingkat.tingkat_kelas}
                     </option>
