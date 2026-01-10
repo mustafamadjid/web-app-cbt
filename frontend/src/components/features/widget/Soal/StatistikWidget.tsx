@@ -1,6 +1,8 @@
 import React from "react";
 import { TrendingUp } from "lucide-react";
 
+import { StatistikDonutChart } from "@/assets/SvgIcons/StatistikDonutChart";
+
 type StatistikWidgetProps = {
   title: string;
   value: number | string;
@@ -36,10 +38,6 @@ export const StatistikWidget = ({
     typeof value === "number"
       ? valueFormatter?.(value) ?? new Intl.NumberFormat("id-ID").format(value)
       : value;
-
-  const r = (donutSize - donutStroke) / 2;
-  const c = 2 * Math.PI * r;
-  const dash = (p / 100) * c;
 
   const gid = React.useId().replace(/:/g, "");
 
@@ -86,43 +84,16 @@ export const StatistikWidget = ({
           aria-label={`Progress ${p}%`}
         >
           {/* SVG Chart */}
-          <svg
-            width={donutSize}
-            height={donutSize}
-            viewBox={`0 0 ${donutSize} ${donutSize}`}
+          <StatistikDonutChart
+            size={donutSize}
+            stroke={donutStroke}
+            trackColor={trackColor}
+            gradientFrom={gradientFrom}
+            gradientTo={gradientTo}
+            percent={p}
+            id={`pw-grad-${gid}`}
             className="-rotate-90 transition-all duration-500 group-hover:scale-105"
-          >
-            <defs>
-              <linearGradient id={`pw-grad-${gid}`} x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stopColor={gradientFrom} />
-                <stop offset="100%" stopColor={gradientTo} />
-              </linearGradient>
-            </defs>
-
-            {/* Track Circle */}
-            <circle
-              cx={donutSize / 2}
-              cy={donutSize / 2}
-              r={r}
-              fill="none"
-              stroke={trackColor}
-              strokeWidth={donutStroke}
-              className="opacity-80"
-            />
-
-            {/* Progress Circle */}
-            <circle
-              cx={donutSize / 2}
-              cy={donutSize / 2}
-              r={r}
-              fill="none"
-              stroke={`url(#pw-grad-${gid})`}
-              strokeWidth={donutStroke}
-              strokeLinecap="round"
-              strokeDasharray={`${dash} ${c - dash}`}
-              className="transition-all duration-1000 ease-out"
-            />
-          </svg>
+          />
 
           {/* Center Label */}
           <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
