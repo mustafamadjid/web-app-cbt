@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { NavLink, useLocation, matchPath } from "react-router";
 
+import { SvgIcons } from "@/assets/SvgIcons/svgIcons";
+
 import type {
   SidebarMenuGroupItem,
   SidebarMenuItem,
@@ -168,27 +170,13 @@ export const SidebarAdmin = ({
             <span className="whitespace-nowrap">{groupItem.label}</span>
           </span>
 
-          <svg
-            className={[
+          {SvgIcons.chevronDown(
+            [
               "w-5 h-5 transition-transform duration-200",
               "text-white/80 group-hover:text-white",
               isGroupOpen ? "rotate-180" : "rotate-0",
-            ].join(" ")}
-            aria-hidden="true"
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="m19 9-7 7-7-7"
-            />
-          </svg>
+            ].join(" ")
+          )}
         </button>
 
         <ul
@@ -221,22 +209,7 @@ export const SidebarAdmin = ({
           ].join(" ")}
         >
           <span className="sr-only">Open sidebar</span>
-          <svg
-            className="w-6 h-6"
-            aria-hidden="true"
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeWidth="2"
-              d="M5 7h14M5 12h14M5 17h10"
-            />
-          </svg>
+          {SvgIcons.menu("w-6 h-6")}
         </button>
       )}
 
@@ -274,20 +247,7 @@ export const SidebarAdmin = ({
               className="p-2 rounded-base cursor-pointer hover:bg-white/10 focus:outline-none focus:ring-4 focus:ring-white/20 text-white"
             >
               <span className="sr-only">Close sidebar</span>
-              <svg
-                className="w-5 h-5"
-                aria-hidden="true"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-              >
-                <path
-                  d="M6 6l12 12M18 6L6 18"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
+              {SvgIcons.close("w-5 h-5")}
             </button>
           </div>
 
