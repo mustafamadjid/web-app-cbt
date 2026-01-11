@@ -7,6 +7,8 @@ import type { JadwalUjianItem } from "@/types/Ujian/jadwalUjian";
 import { Calendar, Layers } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
+
+
 type PrintJenis = "daftar-hadir" | "berita-acara" | "kartu-peserta";
 
 export const Cetak = () => {
@@ -82,9 +84,6 @@ export const Cetak = () => {
                 peserta.
               </p>
             </div>
-            <div className="rounded-xl border border-[#397e50]/20 bg-[#397e50]/10 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-[#397e50]">
-              Panel Cetak
-            </div>
           </div>
 
           <div className="mt-6 grid gap-6 md:grid-cols-2">
@@ -105,10 +104,12 @@ export const Cetak = () => {
               </label>
               <select
                 value={selectedTingkatId ?? ""}
-                onChange={(e) =>
+                onChange={(e) =>{
                   setSelectedTingkatId(
                     e.target.value === "" ? null : Number(e.target.value)
                   )
+                }
+                  
                 }
                 className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm transition-all focus:border-[#397e50] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#397e50]/10"
               >
