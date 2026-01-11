@@ -26,7 +26,7 @@ export const BoxCetakUjian = ({
     <div className="group rounded-2xl border border-[#397e50]/20 bg-white p-6 shadow-sm transition hover:border-[#397e50]/50 hover:shadow-md">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="space-y-2">
-          <span className="inline-flex items-center gap-2 rounded-full border border-[#397e50]/20 bg-[#397e50]/10 px-3 py-1 text-2xs font-semibold uppercase tracking-wide text-[#397e50]">
+          <span className="inline-flex items-center gap-2 rounded-full border border-[#397e50]/20 bg-[#397e50]/10  px-3 py-1 text-2xs font-semibold uppercase tracking-wide text-[#397e50]">
             <GraduationCap size={12} />
             Kelas {tingkat_kelas ?? "-"} {nama_kelas ? `• ${nama_kelas}` : ""}
           </span>
