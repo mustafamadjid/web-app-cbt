@@ -332,7 +332,7 @@ const AkunSiswaTables: React.FC = () => {
                 {opsiTingkatKelas.map((tingkat) => (
                   <option
                     key={tingkat.id_tingkat_kelas}
-                  value={tingkat.id_tingkat_kelas}
+                  value={tingkat.tingkat_kelas}
                   >
                     Kelas {tingkat.tingkat_kelas}
                   </option>

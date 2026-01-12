@@ -206,7 +206,24 @@ const AkunSiswaForm = () => {
 
     try {
       setSubmitting(true);
-      await submitStudentRegister(values);
+      const kelasTerpilih = daftarKelas.find(
+        (kelas) =>
+          kelas.tingkat_kelas === values.id_tingkat_kelas &&
+          kelas.nama_kelas === values.id_nama_kelas
+      );
+
+      if (!kelasTerpilih) {
+        setSubmitError("Kelas yang dipilih tidak ditemukan.");
+        return;
+      }
+
+      const payload: StudentRegisterFormValues = {
+        ...values,
+        id_tingkat_kelas: kelasTerpilih.id_tingkat_kelas,
+        id_nama_kelas: String(kelasTerpilih.id),
+      };
+
+      await submitStudentRegister(payload);
       alert("Akun siswa berhasil dibuat.");
       setTimeout(
         () =>
@@ -476,7 +493,7 @@ const AkunSiswaForm = () => {
                   {tingkatKelasOptions.map((tingkat) => (
                     <option
                       key={tingkat.id_tingkat_kelas}
-                      value={tingkat.id_tingkat_kelas}
+                      value={tingkat.tingkat_kelas}
                     >
                       Kelas {tingkat.tingkat_kelas}
                     </option>
