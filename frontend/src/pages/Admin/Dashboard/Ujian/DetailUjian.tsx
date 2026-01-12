@@ -11,6 +11,7 @@ import {
   BookAIcon
 } from "lucide-react";
 
+import PrintButton from "@/components/common/Input/PrintButton";
 import { paths } from "@/routes/paths";
 import { getTingkatKelasOptions } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { getRuangUjianOptions } from "@/services/Api/features-api/DataMaster/ruang-ujian.service";
@@ -28,8 +29,9 @@ import type {
   SesiUjianOption,
   TipeUjian,
 } from "@/types/Ujian/BuatUjian";
-import type { DetailUjianItem} from "@/types/Ujian/DetailUjian";
+import type { DetailUjianItem } from "@/types/Ujian/DetailUjian";
 
+type PrintJenis = "daftar-hadir" | "berita-acara" | "kartu-peserta";
 
 
 const tipeUjianLabel: Record<TipeUjian, string> = {
@@ -185,6 +187,13 @@ const DetailUjian = () => {
     ? statusLabelMap[detail.status_ujian] ?? detail.status_ujian
     : "Status belum tersedia";
 
+  const handlePrint = (jenis: PrintJenis) => {
+    console.info("Print", jenis, detail);
+    if (typeof window !== "undefined") {
+      window.print();
+    }
+  };
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
       {/* Header Section */}
@@ -337,6 +346,27 @@ const DetailUjian = () => {
 
             {/* Sidebar Info (Right Column) */}
             <div className="space-y-6">
+              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-slate-400">
+                  Cetak Dokumen
+                </h3>
+                <div className="flex flex-wrap gap-3">
+                  <PrintButton
+                    label="Daftar Hadir"
+                    onClick={() => handlePrint("daftar-hadir")}
+                  />
+                  <PrintButton
+                    label="Berita Acara"
+                    variant="outline"
+                    onClick={() => handlePrint("berita-acara")}
+                  />
+                  <PrintButton
+                    label="Kartu Peserta"
+                    variant="outline"
+                    onClick={() => handlePrint("kartu-peserta")}
+                  />
+                </div>
+              </div>
               {/* Kelas & Bank Soal */}
               <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                 <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-slate-400">
