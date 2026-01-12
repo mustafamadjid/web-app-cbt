@@ -1,6 +1,7 @@
-import type { JenisKelamin } from "../OpsiTypes/Option";
+import type { JenisKelamin, StatusAkun } from "../OpsiTypes/Option";
 
 export type StudentRegisterFormValues = {
+  role : "SISWA";
   namaLengkap: string;
   username: string;
   password: string;
@@ -10,16 +11,25 @@ export type StudentRegisterFormValues = {
   email?: string;
   noHp?: string;
 
-  noAbsen: string;
-  angkatan: string;
+  noAbsen: number;
+  angkatan: number;
 
   tempatLahir: string;
   tanggalLahir: string;
 
-  kelasId: number | "";
+  id_tingkat_kelas: number | "";
+  id_kelas: number | "";
 
   fotoProfil: File | null;
+
+  statusAkun: StatusAkun;
 };
+
+export type DataAkunSiswa = Omit<StudentRegisterFormValues, "fotoProfil" | "password"> &{
+  id:number;
+  urlGambarProfil:string;
+}
+
 
 export type StudentRegisterResponse = {
     id: number;

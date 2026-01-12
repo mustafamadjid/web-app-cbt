@@ -5,21 +5,23 @@ import type { StudentRegisterFormValues, StudentRegisterResponse } from "@/types
 import { api, type ApiEnvelope } from "../../api";
 import { getTingkatKelasById } from "@/services/Api/features-api/DataMaster/kelas.service";
 
-export type BarisSiswa = {
-  id: number;
-  namaLengkap: string;
-  username: string;
-  email?: string;
-  nomorHp?: string;
-  jenisKelamin: JenisKelamin;
-  statusAkun: "aktif" | "nonaktif" | "dibekukan";
-  noAbsen: number;
-  angkatan: number;
-  tempatLahir: string;
-  tanggalLahir: string; // yyyy-mm-dd
-  kelas: string;
-  urlGambarProfil: string;
-};
+import type { DataAkunSiswa } from "@/types/KelolaAkun/AkunSiswa";
+
+// export type BarisSiswa = {
+//   id: number;
+//   namaLengkap: string;
+//   username: string;
+//   email?: string;
+//   noHp?: string;
+//   jenisKelamin: JenisKelamin;
+//   statusAkun: "aktif" | "nonaktif" | "dibekukan";
+//   noAbsen: number;
+//   angkatan: number;
+//   tempatLahir: string;
+//   tanggalLahir: string; // yyyy-mm-dd
+//   kelas: string;
+//   urlGambarProfil: string;
+// };
 
 export type SiswaFilterParams = {
   q?: string;
@@ -29,9 +31,6 @@ export type SiswaFilterParams = {
 };
 
 
-
-type BarisSiswaLocal = BarisSiswa & { __kelasId: number };
-
 export const DUMMY_JENIS_KELAMIN: Array<{
   value: JenisKelamin;
   label: string;
@@ -40,14 +39,14 @@ export const DUMMY_JENIS_KELAMIN: Array<{
   { value: "PEREMPUAN", label: "Perempuan" },
 ];
 
-export const DUMMY_SISWA: BarisSiswaLocal[] = [
+export const DUMMY_SISWA: DataAkunSiswa[] = [
   {
     id: 1,
-    __kelasId: 11,
+    kelasId: 11,
     namaLengkap: "Siti Aminah",
     username: "siti.aminah",
     email: "siti.aminah@gmail.com",
-    nomorHp: "081234567890",
+    noHp: "081234567890",
     jenisKelamin: "PEREMPUAN",
     statusAkun: "aktif",
     noAbsen: 12,
@@ -63,7 +62,7 @@ export const DUMMY_SISWA: BarisSiswaLocal[] = [
     namaLengkap: "Raka Pratama",
     username: "raka.pratama",
     email: "",
-    nomorHp: "",
+    noHp: "",
     jenisKelamin: "LAKI_LAKI",
     statusAkun: "nonaktif",
     noAbsen: 7,
@@ -79,7 +78,7 @@ export const DUMMY_SISWA: BarisSiswaLocal[] = [
     namaLengkap: "Dimas Saputra",
     username: "dimas.saputra",
     email: "dimas.saputra@mail.com",
-    nomorHp: "082198765432",
+    noHp: "082198765432",
     jenisKelamin: "LAKI_LAKI",
     statusAkun: "aktif",
     noAbsen: 3,
@@ -95,7 +94,7 @@ export const DUMMY_SISWA: BarisSiswaLocal[] = [
     namaLengkap: "Nadya Putri",
     username: "nadya.putri",
     email: "nadya.putri@gmail.com",
-    nomorHp: "081355500011",
+    noHp: "081355500011",
     jenisKelamin: "PEREMPUAN",
     statusAkun: "dibekukan",
     noAbsen: 18,
@@ -111,7 +110,7 @@ export const DUMMY_SISWA: BarisSiswaLocal[] = [
     namaLengkap: "Bagas Wiratama",
     username: "bagas.wiratama",
     email: "bagas.wiratama@school.id",
-    nomorHp: "081200011122",
+    noHp: "081200011122",
     jenisKelamin: "LAKI_LAKI",
     statusAkun: "aktif",
     noAbsen: 9,
@@ -127,7 +126,7 @@ export const DUMMY_SISWA: BarisSiswaLocal[] = [
     namaLengkap: "Alya Maharani",
     username: "alya.maharani",
     email: "alya.maharani@mail.com",
-    nomorHp: "085700099988",
+    noHp: "085700099988",
     jenisKelamin: "PEREMPUAN",
     statusAkun: "aktif",
     noAbsen: 21,
@@ -213,7 +212,7 @@ export async function getSiswa(params: SiswaFilterParams): Promise<BarisSiswa[]>
           s.namaLengkap,
           s.username,
           s.email ?? "",
-          s.nomorHp ?? "",
+          s.noHp ?? "",
           s.kelas,
           String(s.noAbsen),
           String(s.angkatan),

@@ -61,7 +61,9 @@ import type {
 } from "@/types/KelolaAkun/AkunGuru";
 import type { ApiEnvelope } from "../../api";
 
-
+export type GuruFilterParams = {
+  q?: string;
+};
 // Data Dummy
 export const daftarPengguna: DataGuru[] = [
   {
