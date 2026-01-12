@@ -95,6 +95,7 @@ const dummyJadwalUjianDetail: DetailUjianItem[] = [
     tingkat_kelas: 12,
     tingkat_kelas_id: 3,
     nama_kelas: "12 IPS 1",
+
   },
   {
     id: 4,
