@@ -10,7 +10,7 @@ import type {
   SiswaPreviewItem,
   TipeUjian,
 } from "@/types/Ujian/BuatUjian";
-import type { TingkatKelasOption } from "@/types/DataMaster/Kelas";
+import type { KelasRow, TingkatKelasOption } from "@/types/DataMaster/Kelas";
 import {
   getUjianBankSoalOptions,
   getUjianGuruPengawasOptions,
@@ -22,7 +22,10 @@ import {
 import { getRuangUjianOptions } from "@/services/Api/features-api/DataMaster/ruang-ujian.service";
 
 import { ApiError } from "@/services/Api/api";
-import { getTingkatKelasOptions } from "@/services/Api/features-api/DataMaster/kelas.service";
+import {
+  getKelas,
+  getTingkatKelasOptions,
+} from "@/services/Api/features-api/DataMaster/kelas.service";
 import { getTingkatKelasById } from "@/services/Api/features-api/DataMaster/kelas.service";
 
 // helper
@@ -35,6 +38,8 @@ const initialValues: BuatUjianFormValues = {
   deskripsi_ujian: "",
   tipe_ujian: "PILIHAN_GANDA",
   kelas_id: "",
+  kelas_scope: "SEMUA",
+  kelas_detail_id: "",
   bank_soal_id: "",
   jumlah_soal: 0,
   tanggal_ujian: "",
@@ -61,8 +66,10 @@ const BuatUjianForm = () => {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [loadingBankSoal, setLoadingBankSoal] = useState(false);
   const [loadingSiswa, setLoadingSiswa] = useState(false);
+  const [loadingKelasDetail, setLoadingKelasDetail] = useState(false);
 
   const [kelasOptions, setKelasOptions] = useState<TingkatKelasOption[]>([]);
+  const [kelasDetailOptions, setKelasDetailOptions] = useState<KelasRow[]>([]);
   const [bankSoalOptions, setBankSoalOptions] = useState<BankSoalOption[]>([]);
   const [ruangOptions, setRuangOptions] = useState<RuangUjianRow[]>([]);
   const [guruOptions, setGuruOptions] = useState<GuruPengawasOption[]>([]);
@@ -80,6 +87,15 @@ const BuatUjianForm = () => {
       values.kelas_id === "" ? undefined : getTingkatKelasById(values.kelas_id);
     return tingkatKelas ?? undefined;
   }, [values.kelas_id]);
+
+  const kelasDetailById = useMemo(() => {
+    return new Map(kelasDetailOptions.map((kelas) => [kelas.id, kelas]));
+  }, [kelasDetailOptions]);
+
+  const selectedKelasDetail =
+    values.kelas_detail_id === ""
+      ? undefined
+      : kelasDetailById.get(values.kelas_detail_id);
 
   const bankSoalById = useMemo(() => {
     const map = new Map(bankSoalOptions.map((x) => [x.id, x]));
@@ -117,6 +133,40 @@ const BuatUjianForm = () => {
       active = false;
     };
   }, []);
+
+  useEffect(() => {
+    let active = true;
+    const loadKelasDetail = async () => {
+      setLoadingKelasDetail(true);
+      try {
+        const data = await getKelas({
+          tingkatKelas: values.kelas_id === "" ? undefined : values.kelas_id,
+        });
+        if (!active) return;
+        setKelasDetailOptions(data);
+      } finally {
+        if (active) setLoadingKelasDetail(false);
+      }
+    };
+
+    if (values.kelas_id !== "") {
+      loadKelasDetail();
+    } else {
+      setKelasDetailOptions([]);
+    }
+
+    setField("kelas_detail_id", "");
+
+    return () => {
+      active = false;
+    };
+  }, [values.kelas_id]);
+
+  useEffect(() => {
+    if (values.kelas_scope === "SEMUA") {
+      setField("kelas_detail_id", "");
+    }
+  }, [values.kelas_scope]);
 
   useEffect(() => {
     let active = true;
@@ -189,6 +239,20 @@ const BuatUjianForm = () => {
     setField("durasi_menit", duration);
   }, [values.waktu_mulai, values.waktu_selesai]);
 
+  const siswaPreviewFiltered = useMemo(() => {
+    if (values.kelas_scope !== "SPESIFIK") {
+      return siswaPreview;
+    }
+
+    if (!selectedKelasDetail) {
+      return [];
+    }
+
+    return siswaPreview.filter(
+      (siswa) => siswa.kelas === selectedKelasDetail.nama_kelas
+    );
+  }, [siswaPreview, values.kelas_scope, selectedKelasDetail]);
+
   const validate = (v: BuatUjianFormValues) => {
     const errors: Partial<Record<keyof BuatUjianFormValues, string>> = {};
 
@@ -197,6 +261,11 @@ const BuatUjianForm = () => {
       errors.deskripsi_ujian = "Deskripsi ujian wajib diisi.";
     if (!v.tipe_ujian) errors.tipe_ujian = "Tipe ujian wajib dipilih.";
     if (v.kelas_id === "") errors.kelas_id = "Tingkat kelas wajib dipilih.";
+    if (!v.kelas_scope)
+      errors.kelas_scope = "Cakupan kelas wajib dipilih.";
+    if (v.kelas_scope === "SPESIFIK" && v.kelas_detail_id === "") {
+      errors.kelas_detail_id = "Nama kelas wajib dipilih.";
+    }
     if (!v.bank_soal_id) errors.bank_soal_id = "Bank soal wajib dipilih.";
     if (!v.tanggal_ujian) errors.tanggal_ujian = "Tanggal ujian wajib diisi.";
     if (!v.waktu_mulai) errors.waktu_mulai = "Waktu mulai wajib diisi.";
@@ -352,11 +421,11 @@ const BuatUjianForm = () => {
             <div className="mb-4">
               <h2 className={sectionTitle}>Tingkat Kelas & Bank Soal</h2>
               <p className={helperText}>
-                Pilih tingkat kelas, bank soal, dan lihat jumlah soal otomatis.
+                Tentukan tingkat, cakupan kelas, dan bank soal ujian.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
               <div>
                 <label
                   htmlFor="kelas_id"
@@ -392,6 +461,90 @@ const BuatUjianForm = () => {
                 {hasError("kelas_id") && (
                   <p className="mt-1 text-xs text-rose-600">
                     {errors.kelas_id}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label
+                  htmlFor="kelas_scope"
+                  className="text-xs font-medium text-slate-600"
+                >
+                  Cakupan Kelas
+                </label>
+                <select
+                  id="kelas_scope"
+                  className={`${selectBaseClass} ${
+                    hasError("kelas_scope")
+                      ? "border-rose-300 ring-rose-100"
+                      : ""
+                  }`}
+                  value={values.kelas_scope}
+                  onChange={(e) =>
+                    setField(
+                      "kelas_scope",
+                      e.target.value === "SPESIFIK" ? "SPESIFIK" : "SEMUA"
+                    )
+                  }
+                  onBlur={() => onBlur("kelas_scope")}
+                  disabled={values.kelas_id === ""}
+                >
+                  <option value="SEMUA">
+                    Semua kelas di tingkat ini
+                  </option>
+                  <option value="SPESIFIK">
+                    Spesifik nama kelas
+                  </option>
+                </select>
+                {hasError("kelas_scope") && (
+                  <p className="mt-1 text-xs text-rose-600">
+                    {errors.kelas_scope}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label
+                  htmlFor="kelas_detail_id"
+                  className="text-xs font-medium text-slate-600"
+                >
+                  Nama Kelas
+                </label>
+                <select
+                  id="kelas_detail_id"
+                  className={`${selectBaseClass} ${
+                    hasError("kelas_detail_id")
+                      ? "border-rose-300 ring-rose-100"
+                      : ""
+                  }`}
+                  value={values.kelas_detail_id}
+                  onChange={(e) =>
+                    setField(
+                      "kelas_detail_id",
+                      e.target.value === "" ? "" : Number(e.target.value)
+                    )
+                  }
+                  onBlur={() => onBlur("kelas_detail_id")}
+                  disabled={
+                    values.kelas_id === "" ||
+                    values.kelas_scope !== "SPESIFIK" ||
+                    loadingKelasDetail
+                  }
+                >
+                  <option value="">
+                    {loadingKelasDetail
+                      ? "Memuat nama kelas..."
+                      : "Pilih nama kelas"}
+                  </option>
+                  {kelasDetailOptions.map((kelas) => (
+                    <option key={kelas.id} value={kelas.id}>
+                      {kelas.nama_kelas}
+                    </option>
+                  ))}
+                </select>
+                {hasError("kelas_detail_id") && (
+                  <p className="mt-1 text-xs text-rose-600">
+                    {errors.kelas_detail_id}
                   </p>
                 )}
               </div>
@@ -438,7 +591,7 @@ const BuatUjianForm = () => {
                 )}
               </div>
 
-              <div>
+              <div className="lg:col-start-3">
                 <InputField
                   id="jumlah_soal"
                   type="number"
@@ -726,11 +879,13 @@ const BuatUjianForm = () => {
                 <div>
                   <h2 className={sectionTitle}>Preview Daftar Siswa</h2>
                   <p className={helperText}>
-                    Siswa terdaftar berdasarkan tingkat kelas yang dipilih.
+                    {values.kelas_scope === "SPESIFIK"
+                      ? "Siswa terdaftar berdasarkan tingkat dan nama kelas yang dipilih."
+                      : "Siswa terdaftar berdasarkan tingkat kelas yang dipilih."}
                   </p>
                 </div>
                 <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
-                  {siswaPreview.length} siswa
+                  {siswaPreviewFiltered.length} siswa
                 </span>
               </div>
 
@@ -740,19 +895,36 @@ const BuatUjianForm = () => {
                 </p>
               )}
 
-              {values.kelas_id !== "" && loadingSiswa && (
-                <p className="text-sm text-slate-500">Memuat data siswa...</p>
-              )}
-
               {values.kelas_id !== "" &&
-                !loadingSiswa &&
-                siswaPreview.length === 0 && (
+                values.kelas_scope === "SPESIFIK" &&
+                values.kelas_detail_id === "" && (
                   <p className="text-sm text-slate-500">
-                    Belum ada siswa pada tingkat kelas ini.
+                    Pilih nama kelas untuk melihat daftar siswa.
                   </p>
                 )}
 
-              {siswaPreview.length > 0 && (
+              {values.kelas_id !== "" &&
+                loadingSiswa &&
+                (values.kelas_scope !== "SPESIFIK" ||
+                  values.kelas_detail_id !== "") && (
+                  <p className="text-sm text-slate-500">
+                    Memuat data siswa...
+                  </p>
+                )}
+
+              {values.kelas_id !== "" &&
+                !loadingSiswa &&
+                (values.kelas_scope !== "SPESIFIK" ||
+                  values.kelas_detail_id !== "") &&
+                siswaPreviewFiltered.length === 0 && (
+                  <p className="text-sm text-slate-500">
+                    {values.kelas_scope === "SPESIFIK"
+                      ? "Belum ada siswa pada kelas ini."
+                      : "Belum ada siswa pada tingkat kelas ini."}
+                  </p>
+                )}
+
+              {siswaPreviewFiltered.length > 0 && (
                 <div className="max-h-64 overflow-y-auto rounded-lg border border-slate-200">
                   <table className="w-full text-left text-xs text-slate-600">
                     <thead className="bg-slate-50 text-[11px] uppercase text-slate-400">
@@ -764,7 +936,7 @@ const BuatUjianForm = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {siswaPreview.map((siswa) => (
+                      {siswaPreviewFiltered.map((siswa) => (
                         <tr
                           key={siswa.id}
                           className="border-t border-slate-100"
@@ -856,6 +1028,7 @@ const BuatUjianForm = () => {
                 setTouched({});
                 setSubmitError(null);
                 setBankSoalOptions([]);
+                setKelasDetailOptions([]);
                 setSiswaPreview([]);
               }}
             >
