@@ -5,12 +5,15 @@ import ImageUpload from "@/components/features/ImageUpload/ImageUpload";
 
 import type { JenisKelamin } from "@/types/OpsiTypes/Option";
 import type { StudentRegisterFormValues } from "@/types/KelolaAkun/AkunSiswa";
-import type { TingkatKelasOption } from "@/types/DataMaster/Kelas";
+import type { KelasRow, TingkatKelasOption } from "@/types/DataMaster/Kelas";
 import { submitStudentRegister } from "@/services/Api/features-api/KelolaAkun/akunsiswa.service";
 import { paths } from "@/routes/paths";
 import { useNavigate } from "react-router";
 import { ApiError } from "@/services/Api/api";
-import { getTingkatKelasOptions } from "@/services/Api/features-api/DataMaster/kelas.service";
+import {
+  getKelas,
+  getTingkatKelasOptions,
+} from "@/services/Api/features-api/DataMaster/kelas.service";
 
 import { createSetField } from "@/helper/setField/setField";
 import {
@@ -24,6 +27,7 @@ import {
 } from "@/helper/validate/validateForm";
 
 const initialValues: StudentRegisterFormValues = {
+  role: "SISWA",
   namaLengkap: "",
   username: "",
   password: "",
@@ -34,7 +38,8 @@ const initialValues: StudentRegisterFormValues = {
   angkatan: "",
   tempatLahir: "",
   tanggalLahir: "",
-  kelasId: "",
+  id_tingkat_kelas: "",
+  id_nama_kelas: "",
   fotoProfil: null,
 };
 
@@ -67,20 +72,50 @@ const AkunSiswaForm = () => {
     };
   }, [values.fotoProfil]);
 
-  const [kelasOptions, setKelasOptions] = useState<TingkatKelasOption[]>([]);
+  const [tingkatKelasOptions, setTingkatKelasOptions] = useState<
+    TingkatKelasOption[]
+  >([]);
+  const [daftarKelas, setDaftarKelas] = useState<KelasRow[]>([]);
+  const [namaKelasOptions, setNamaKelasOptions] = useState<KelasRow[]>([]);
 
   useEffect(() => {
     let active = true;
     const loadKelas = async () => {
-      const data = await getTingkatKelasOptions();
+      const [tingkat, kelas] = await Promise.all([
+        getTingkatKelasOptions(),
+        getKelas(),
+      ]);
       if (!active) return;
-      setKelasOptions(data);
+      setTingkatKelasOptions(tingkat);
+      setDaftarKelas(kelas);
     };
     loadKelas();
     return () => {
       active = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (values.id_tingkat_kelas === "") {
+      setNamaKelasOptions([]);
+      if (values.id_nama_kelas !== "") {
+        setValues((prev) => ({ ...prev, id_nama_kelas: "" }));
+      }
+      return;
+    }
+
+    const filtered = daftarKelas.filter(
+      (kelas) => kelas.tingkat_kelas === values.id_tingkat_kelas
+    );
+    setNamaKelasOptions(filtered);
+
+    const isValid = filtered.some(
+      (kelas) => kelas.nama_kelas === values.id_nama_kelas
+    );
+    if (!isValid && values.id_nama_kelas !== "") {
+      setValues((prev) => ({ ...prev, id_nama_kelas: "" }));
+    }
+  }, [daftarKelas, values.id_nama_kelas, values.id_tingkat_kelas, setValues]);
 
   const setField = createSetField(setValues);
 
@@ -131,7 +166,8 @@ const AkunSiswaForm = () => {
     ],
     tempatLahir: [requiredString("Tempat lahir wajib diisi.")],
     tanggalLahir: [requiredString("Tanggal lahir wajib diisi.")],
-    kelasId: [requiredValue("Tingkat kelas wajib dipilih.")],
+    id_tingkat_kelas: [requiredValue("Tingkat kelas wajib dipilih.")],
+    id_nama_kelas: [requiredValue("Nama kelas wajib dipilih.")],
     fotoProfil: [
       fileMaxSize(2 * 1024 * 1024, "Ukuran foto maksimal 2MB."),
       fileTypeStartsWith("image/", "File harus berupa gambar."),
@@ -157,7 +193,8 @@ const AkunSiswaForm = () => {
       angkatan: true,
       tempatLahir: true,
       tanggalLahir: true,
-      kelasId: true,
+      id_tingkat_kelas: true,
+      id_nama_kelas: true,
       fotoProfil: true,
     });
 
@@ -169,7 +206,24 @@ const AkunSiswaForm = () => {
 
     try {
       setSubmitting(true);
-      await submitStudentRegister(values);
+      const kelasTerpilih = daftarKelas.find(
+        (kelas) =>
+          kelas.tingkat_kelas === values.id_tingkat_kelas &&
+          kelas.nama_kelas === values.id_nama_kelas
+      );
+
+      if (!kelasTerpilih) {
+        setSubmitError("Kelas yang dipilih tidak ditemukan.");
+        return;
+      }
+
+      const payload: StudentRegisterFormValues = {
+        ...values,
+        id_tingkat_kelas: kelasTerpilih.id_tingkat_kelas,
+        id_nama_kelas: String(kelasTerpilih.id),
+      };
+
+      await submitStudentRegister(payload);
       alert("Akun siswa berhasil dibuat.");
       setTimeout(
         () =>
@@ -408,48 +462,90 @@ const AkunSiswaForm = () => {
                 )}
               </div>
 
-              {/* Kelas (select native) */}
-              <div className="md:col-span-2">
+              {/* Tingkat Kelas */}
+              <div>
                 <label
-                  htmlFor="kelasId"
+                  htmlFor="id_tingkat_kelas"
                   className="text-xs font-medium text-slate-600"
                 >
                   Tingkat Kelas
                 </label>
                 <select
-                  id="kelasId"
+                  id="id_tingkat_kelas"
                   className={`w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-[#397e50] focus:ring-2 focus:ring-[#397e50] disabled:bg-slate-50 disabled:text-slate-500 ${
-                    hasError("kelasId") ? "border-rose-300 ring-rose-100" : ""
+                    hasError("id_tingkat_kelas")
+                      ? "border-rose-300 ring-rose-100"
+                      : ""
                   }`}
-                  value={values.kelasId}
+                  value={values.id_tingkat_kelas}
                   onChange={(e) =>
                     setField(
-                      "kelasId",
+                      "id_tingkat_kelas",
                       e.target.value === "" ? "" : Number(e.target.value)
                     )
                   }
-                  onBlur={() => onBlur("kelasId")}
+                  onBlur={() => onBlur("id_tingkat_kelas")}
                   required
                 >
                   <option value="" disabled>
                     Pilih tingkat kelas...
                   </option>
-                  {kelasOptions.map((tingkat) => (
+                  {tingkatKelasOptions.map((tingkat) => (
                     <option
                       key={tingkat.id_tingkat_kelas}
-                      value={tingkat.id_tingkat_kelas}
+                      value={tingkat.tingkat_kelas}
                     >
                       Kelas {tingkat.tingkat_kelas}
                     </option>
                   ))}
                 </select>
-
                 <p className="mt-1 text-xs text-slate-500">
                   Tingkat kelas akan diambil dari Data Master.
                 </p>
+                {hasError("id_tingkat_kelas") && (
+                  <p className="mt-1 text-xs text-rose-600">
+                    {errors.id_tingkat_kelas}
+                  </p>
+                )}
+              </div>
 
-                {hasError("kelasId") && (
-                  <p className="mt-1 text-xs text-rose-600">{errors.kelasId}</p>
+              {/* Nama Kelas */}
+              <div>
+                <label
+                  htmlFor="id_nama_kelas"
+                  className="text-xs font-medium text-slate-600"
+                >
+                  Nama Kelas
+                </label>
+                <select
+                  id="id_nama_kelas"
+                  className={`w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-[#397e50] focus:ring-2 focus:ring-[#397e50] disabled:bg-slate-50 disabled:text-slate-500 ${
+                    hasError("id_nama_kelas")
+                      ? "border-rose-300 ring-rose-100"
+                      : ""
+                  }`}
+                  value={values.id_nama_kelas}
+                  onChange={(e) => setField("id_nama_kelas", e.target.value)}
+                  onBlur={() => onBlur("id_nama_kelas")}
+                  required
+                  disabled={values.id_tingkat_kelas === ""}
+                >
+                  <option value="" disabled>
+                    Pilih nama kelas...
+                  </option>
+                  {namaKelasOptions.map((kelas) => (
+                    <option key={kelas.id} value={kelas.nama_kelas}>
+                      {kelas.nama_kelas}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-xs text-slate-500">
+                  Nama kelas mengikuti tingkat yang dipilih.
+                </p>
+                {hasError("id_nama_kelas") && (
+                  <p className="mt-1 text-xs text-rose-600">
+                    {errors.id_nama_kelas}
+                  </p>
                 )}
               </div>
             </div>
