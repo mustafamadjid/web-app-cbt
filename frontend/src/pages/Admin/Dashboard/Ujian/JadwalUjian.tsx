@@ -2,6 +2,7 @@ import BoxJadwalUjian from "@/components/features/Ujian/BoxJadwalUjian";
 import { getTingkatKelasOptions } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { getRuangUjianOptions } from "@/services/Api/features-api/DataMaster/ruang-ujian.service";
 import { getJadwalUjian } from "@/services/Api/features-api/Ujian/jadwalujian.service";
+import { paths } from "@/routes/paths";
 import type { TingkatKelasOption } from "@/types/DataMaster/Kelas";
 import type { RuangUjianRow } from "@/types/DataMaster/RuangUjian";
 import type { JadwalUjianItem } from "@/types/Ujian/jadwalUjian";
@@ -174,10 +175,8 @@ const JadwalUjian = () => {
                 onChange={(e) => {
                   setSelectedRuang(
                     e.target.value === "" ? null : Number(e.target.value)
-                  )
-                  console.log(e.target.value)
-                }
-                }
+                  );
+                }}
                 className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm transition-all focus:border-[#397e50] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#397e50]/10"
               >
                 <option value="">Semua Ruangan</option>
@@ -246,7 +245,14 @@ const JadwalUjian = () => {
             <div className="flex flex-col gap-5">
               {groupedJadwal[activeTab].length > 0 ? (
                 groupedJadwal[activeTab].map((ujian) => (
-                  <BoxJadwalUjian key={ujian.id} {...ujian} />
+                  <BoxJadwalUjian
+                    key={ujian.id}
+                    {...ujian}
+                    linkJadwal={paths.dashboard.detail_ujian.replace(
+                      ":id",
+                      String(ujian.id)
+                    )}
+                  />
                 ))
               ) : (
                 <div className="flex h-40 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white text-slate-500">

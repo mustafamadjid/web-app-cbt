@@ -33,6 +33,7 @@ export const paths = {
     tambah_bank_soal: djoin(join("bank-soal", "/tambah")),
 
     jadwal_ujian: djoin(join("ujian", "/jadwal")),
+    detail_ujian: djoin(join("ujian", "/jadwal/:id")),
     buat_ujian: djoin(join("ujian", "/buat-ujian")),
     hasil_ujian: djoin(join("ujian", "/hasil")),
 
