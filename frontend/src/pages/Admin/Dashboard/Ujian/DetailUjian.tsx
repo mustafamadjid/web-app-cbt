@@ -6,9 +6,11 @@ import {
   MapPin,
   ShieldCheck,
   BookOpen,
-  Layers,
   ArrowLeft,
-  BookAIcon
+  BookAIcon,
+  Hash,
+  Layout,
+  AlertCircle,
 } from "lucide-react";
 
 import PrintButton from "@/components/common/Input/PrintButton";
@@ -21,6 +23,7 @@ import {
   getUjianSesiOptions,
 } from "@/services/Api/features-api/Ujian/ujian.service";
 import { getJadwalUjianDetail } from "@/services/Api/features-api/Ujian/jadwalujian.service";
+
 import type { TingkatKelasOption } from "@/types/DataMaster/Kelas";
 import type { RuangUjianRow } from "@/types/DataMaster/RuangUjian";
 import type {
@@ -29,10 +32,7 @@ import type {
   SesiUjianOption,
   TipeUjian,
 } from "@/types/Ujian/BuatUjian";
-import type { DetailUjianItem } from "@/types/Ujian/DetailUjian";
-
-type PrintJenis = "daftar-hadir" | "berita-acara" | "kartu-peserta";
-
+import type { DetailUjianItem, PrintJenis } from "@/types/Ujian/DetailUjian";
 
 const tipeUjianLabel: Record<TipeUjian, string> = {
   PILIHAN_GANDA: "Pilihan Ganda",
@@ -66,7 +66,6 @@ const DetailUjian = () => {
   const [sesiOptions, setSesiOptions] = useState<SesiUjianOption[]>([]);
   const [bankSoalOptions, setBankSoalOptions] = useState<BankSoalOption[]>([]);
 
-  // ... (Keep existing useEffect & logic for options and detail fetching)
   useEffect(() => {
     let active = true;
     const loadOptions = async () => {
@@ -127,14 +126,18 @@ const DetailUjian = () => {
   useEffect(() => {
     let active = true;
     const loadBankSoal = async () => {
-      if (!detail || detail.kelas_id === "") {
+      if (!detail || !detail.kelas_id) {
         setBankSoalOptions([]);
         return;
       }
-      const data = await getUjianBankSoalOptions({
-        tingkatKelasId: detail.kelas_id,
-      });
-      if (active) setBankSoalOptions(data);
+      try {
+        const data = await getUjianBankSoalOptions({
+          tingkatKelasId: detail.kelas_id,
+        });
+        if (active) setBankSoalOptions(data);
+      } catch {
+        if (active) setBankSoalOptions([]);
+      }
     };
     loadBankSoal();
     return () => {
@@ -143,7 +146,7 @@ const DetailUjian = () => {
   }, [detail]);
 
   const kelasLabel = useMemo(() => {
-    if (!detail || detail.kelas_id === "") return "-";
+    if (!detail?.kelas_id) return "-";
     const kelas = kelasOptions.find(
       (item) => item.id_tingkat_kelas === detail.kelas_id
     );
@@ -151,8 +154,7 @@ const DetailUjian = () => {
   }, [detail, kelasOptions]);
 
   const guruLabel = useMemo(() => {
-    if (!detail || detail.guru_pengawas_id === "")
-      return detail?.pengawas_ujian ?? "-";
+    if (!detail?.guru_pengawas_id) return detail?.pengawas_ujian ?? "-";
     const guru = guruOptions.find(
       (item) => item.id === detail.guru_pengawas_id
     );
@@ -160,15 +162,14 @@ const DetailUjian = () => {
   }, [detail, guruOptions]);
 
   const sesiLabel = useMemo(() => {
-    if (!detail || detail.sesi_id === "")
+    if (!detail?.sesi_id)
       return detail?.sesi_ujian ? `Sesi ${detail.sesi_ujian}` : "-";
     const sesi = sesiOptions.find((item) => item.id === detail.sesi_id);
     return sesi ? `${sesi.kode} - ${sesi.nama}` : `Sesi #${detail.sesi_id}`;
   }, [detail, sesiOptions]);
 
   const ruangLabel = useMemo(() => {
-    if (!detail || detail.ruang_ujian_id === "")
-      return detail?.ruang_ujian ?? "-";
+    if (!detail?.ruang_ujian_id) return detail?.ruang_ujian ?? "-";
     const ruang = ruangOptions.find(
       (item) => item.id === detail.ruang_ujian_id
     );
@@ -176,28 +177,25 @@ const DetailUjian = () => {
   }, [detail, ruangOptions]);
 
   const bankSoalLabel = useMemo(() => {
-    if (!detail || detail.bank_soal_id === "") return "-";
+    if (!detail?.bank_soal_id) return "-";
     const bank = bankSoalOptions.find(
       (item) => item.id === detail.bank_soal_id
     );
     return bank ? bank.nama : `Bank Soal #${detail.bank_soal_id}`;
   }, [detail, bankSoalOptions]);
 
-  const detailStatusLabel = detail?.status_ujian
-    ? statusLabelMap[detail.status_ujian] ?? detail.status_ujian
-    : "Status belum tersedia";
-
   const handlePrint = (jenis: PrintJenis) => {
-    console.info("Print", jenis, detail);
-    if (typeof window !== "undefined") {
-      window.print();
-    }
+    if (typeof window !== "undefined") window.print();
   };
+
+  const statusLabel = detail?.status_ujian
+    ? statusLabelMap[detail.status_ujian]
+    : "Tidak Diketahui";
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-      {/* Header Section */}
-      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      {/* 1. Header Section */}
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 pb-6">
         <div>
           <Link
             to={paths.dashboard.jadwal_ujian}
@@ -210,169 +208,161 @@ const DetailUjian = () => {
             Kembali ke Jadwal
           </Link>
           <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">
-            {detail?.nama_ujian ?? "Detail Ujian"}
+            {detail?.nama_ujian ?? "Memuat Detail..."}
           </h1>
-          <p className="text-sm text-slate-500">ID Ujian: #{ujianId}</p>
+          <div className="mt-1 flex items-center gap-3 text-sm text-slate-500">
+            <span className="flex items-center gap-1.5 font-medium">
+              <Hash size={14} className="text-slate-400" /> ID: {ujianId}
+            </span>
+            <span className="text-slate-300">|</span>
+            <span className="font-semibold text-[#397e50]">
+              {detail ? tipeUjianLabel[detail.tipe_ujian] : "-"}
+            </span>
+          </div>
         </div>
 
         {!loading && detail && (
           <div
-            className={`inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm font-bold uppercase tracking-wider ${
+            className={`inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-bold uppercase tracking-wider ${
               statusColorMap[detail.status_ujian] || statusColorMap.selesai
             }`}
           >
             <span
-              className={`h-2 w-2 rounded-full ${
+              className={`h-2.5 w-2.5 rounded-full ${
                 detail.status_ujian === "berlangsung"
                   ? "animate-pulse bg-emerald-500"
                   : "bg-current"
               }`}
             />
-            {detailStatusLabel}
+            {statusLabel}
           </div>
         )}
       </div>
 
       {loading ? (
-        <div className="flex min-h-[400px] flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-white p-12 text-slate-400">
+        <div className="flex min-h-[400px] flex-col items-center justify-center rounded-3xl border border-slate-200 bg-white p-12 text-slate-400">
           <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#397e50] border-t-transparent" />
-          <p className="mt-4 font-medium">Menyiapkan detail informasi...</p>
+          <p className="mt-4 font-medium">Sinkronisasi data ujian...</p>
         </div>
       ) : errorMsg ? (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center">
-          <p className="font-semibold text-red-700">{errorMsg}</p>
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-red-100 bg-red-50 p-10 text-center">
+          <AlertCircle size={40} className="mb-3 text-red-500" />
+          <p className="text-lg font-semibold text-red-700">{errorMsg}</p>
+          <Link
+            to={paths.dashboard.jadwal_ujian}
+            className="mt-4 text-sm font-bold text-red-600 underline"
+          >
+            Kembali
+          </Link>
         </div>
       ) : (
         detail && (
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-            {/* Main Info Card (Left Column) */}
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+            {/* Main Column (Left) */}
             <div className="lg:col-span-2 space-y-6">
-              <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                <div className="border-b border-slate-100 bg-slate-50/50 px-6 py-4">
-                  <h2 className="flex items-center gap-2 font-bold text-slate-800">
-                    <BookOpen size={18} className="text-[#397e50]" />
-                    Informasi Umum
-                  </h2>
+              {/* Deskripsi */}
+              <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                <div className="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center gap-2 font-bold text-slate-800 text-sm">
+                  <BookOpen size={16} className="text-[#397e50]" />
+                  Deskripsi Ujian
                 </div>
                 <div className="p-6">
-                  <div className="grid gap-6 sm:grid-cols-2">
-                    <div className="space-y-1">
-                      <p className="text-2xs font-bold uppercase tracking-widest text-slate-400">
-                        Nama Ujian
-                      </p>
-                      <p className="text-lg font-bold text-slate-800">
-                        {detail.nama_ujian}
-                      </p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-2xs font-bold uppercase tracking-widest text-slate-400">
-                        Tipe Ujian
-                      </p>
-                      <p className="text-lg font-medium text-slate-700">
-                        {tipeUjianLabel[detail.tipe_ujian]}
-                      </p>
-                    </div>
-                    <div className="sm:col-span-2 space-y-1">
-                      <p className="text-2xs font-bold uppercase tracking-widest text-slate-400">
-                        Deskripsi
-                      </p>
-                      <p className="text-sm leading-relaxed text-slate-600">
-                        {detail.deskripsi_ujian || "Tidak ada deskripsi."}
-                      </p>
-                    </div>
-                  </div>
+                  <p className="text-sm leading-relaxed text-slate-600">
+                    {detail.deskripsi_ujian ||
+                      "Tidak ada deskripsi tambahan untuk ujian ini."}
+                  </p>
                 </div>
               </div>
 
-              {/* Layout Grid for Sub-Cards */}
+              {/* Grid Sub-Info */}
               <div className="grid gap-6 sm:grid-cols-2">
-                {/* Jadwal Card */}
                 <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                  <div className="mb-4 flex items-center gap-2 border-b border-slate-50 pb-3 font-bold text-slate-800">
-                    <Calendar size={18} className="text-[#397e50]" />
-                    Jadwal Pelaksanaan
+                  <div className="mb-4 flex items-center gap-2 border-b border-slate-50 pb-3 font-bold text-slate-800 text-sm uppercase tracking-wide">
+                    <Calendar size={16} className="text-[#397e50]" />
+                    Waktu
                   </div>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-slate-500">Tanggal</span>
-                      <span className="text-sm font-bold text-slate-700">
-                        {detail.tanggal_ujian || detail.tgl_ujian || "-"}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-slate-500">Tanggal</span>
+                      <span className="font-bold text-slate-700">
+                        {detail.tanggal_ujian || detail.tgl_ujian}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-slate-500">Waktu</span>
-                      <span className="text-sm font-bold text-slate-700">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-slate-500">Jam</span>
+                      <span className="font-bold text-slate-700">
                         {detail.waktu_mulai} - {detail.waktu_selesai}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-slate-500">Durasi</span>
-                      <span className="rounded bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-600">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-slate-500">Durasi</span>
+                      <span className="font-bold text-[#397e50]">
                         {detail.durasi_menit} Menit
                       </span>
                     </div>
                   </div>
                 </div>
 
-                {/* Ruangan Card */}
                 <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                  <div className="mb-4 flex items-center gap-2 border-b border-slate-50 pb-3 font-bold text-slate-800">
-                    <MapPin size={18} className="text-[#397e50]" />
-                    Lokasi & Pengawas
+                  <div className="mb-4 flex items-center gap-2 border-b border-slate-50 pb-3 font-bold text-slate-800 text-sm uppercase tracking-wide">
+                    <MapPin size={16} className="text-[#397e50]" />
+                    Lokasi
                   </div>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-slate-500">Ruangan</span>
-                      <span className="text-sm font-bold text-[#397e50]">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-slate-500">Ruangan</span>
+                      <span className="font-bold text-[#397e50]">
                         {ruangLabel}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-slate-500">Sesi</span>
-                      <span className="text-sm font-bold text-slate-700">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-slate-500">Sesi</span>
+                      <span className="font-bold text-slate-700">
                         {sesiLabel}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-slate-500">Pengawas</span>
-                      <span className="text-sm font-bold text-slate-700">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-slate-500">Pengawas</span>
+                      <span className="font-bold text-slate-700">
                         {guruLabel}
                       </span>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* Sidebar Info (Right Column) */}
-            <div className="space-y-6">
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-slate-400">
-                  Cetak Dokumen
-                </h3>
-                <div className="flex flex-wrap gap-3">
+              {/* 4. Action Section (PRINT BUTTONS REVISED POSITION) */}
+              <div className="rounded-2xl p-5">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                   <PrintButton
                     label="Daftar Hadir"
+                    className="flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-[#397e50] text-xs font-bold text-white transition hover:bg-[#2d633f]"
                     onClick={() => handlePrint("daftar-hadir")}
                   />
                   <PrintButton
                     label="Berita Acara"
                     variant="outline"
+                    className="flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white text-xs font-bold text-slate-600 transition hover:bg-slate-50"
                     onClick={() => handlePrint("berita-acara")}
                   />
                   <PrintButton
                     label="Kartu Peserta"
                     variant="outline"
+                    className="flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white text-xs font-bold text-slate-600 transition hover:bg-slate-50"
                     onClick={() => handlePrint("kartu-peserta")}
                   />
                 </div>
               </div>
-              {/* Kelas & Bank Soal */}
+            </div>
+
+            {/* Sidebar (Right) */}
+            <div className="space-y-6">
+              {/* Target Akademik */}
               <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-slate-400">
-                  Kurikulum & Soal
+                <h3 className="mb-5 text-2xs font-bold uppercase tracking-[0.15em] text-slate-400">
+                  Target Akademik
                 </h3>
-                <div className="space-y-5">
+                <div className="space-y-6">
                   <div className="flex items-start gap-3">
                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-[#397e50]">
                       <GraduationCap size={18} />
@@ -381,47 +371,48 @@ const DetailUjian = () => {
                       <p className="text-2xs font-bold uppercase text-slate-400">
                         Kelas
                       </p>
-                      <p className="text-sm font-bold text-slate-700">
-                        {kelasLabel} - {detail.nama_kelas}
+                      <p className="text-xs font-bold text-slate-800 leading-tight">
+                        {kelasLabel}
+                      </p>
+                      <p className="text-2xs text-slate-500">
+                        {detail.nama_kelas}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-green-800">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
                       <BookAIcon size={18} />
                     </div>
                     <div>
                       <p className="text-2xs font-bold uppercase text-slate-400">
                         Bank Soal
                       </p>
-                      <p className="text-sm font-bold text-slate-700">
+                      <p className="text-xs font-bold text-slate-800 leading-tight">
                         {bankSoalLabel}
                       </p>
-                      <p className="text-xs text-slate-500">
-                        {detail.jumlah_soal} Butir Soal
-                      </p>
+                      <div className="mt-1 inline-flex items-center gap-1 rounded bg-blue-100/50 px-1.5 py-0.5 text-[9px] font-bold text-blue-700">
+                        <Layout size={10} /> {detail.jumlah_soal} SOAL
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Keamanan */}
-              <div className="rounded-2xl border border-[#397e50]/20 bg-emerald-50/30 p-6 shadow-sm">
-                <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-emerald-700">
-                  Konfigurasi & Keamanan
+              {/* Keamanan & Token */}
+              <div className="rounded-2xl border border-emerald-100 bg-emerald-50/20 p-6">
+                <h3 className="mb-5 text-2xs font-bold uppercase tracking-[0.15em] text-emerald-800/60">
+                  Sistem & Keamanan
                 </h3>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <ShieldCheck size={18} className="text-[#397e50]" />
-                    <span className="text-sm font-medium text-slate-700">
-                      {detail.acak_soal ? "Soal Diacak" : "Urutan Tetap"}
-                    </span>
+                <div className="space-y-5">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-slate-600">
+                    <ShieldCheck size={16} className="text-[#397e50]" />
+                    {detail.acak_soal ? "Soal Diacak" : "Urutan Statis"}
                   </div>
-                  <div className="rounded-xl border border-[#397e50]/20 bg-white p-3 text-center">
-                    <p className="text-2xs font-bold uppercase text-slate-400">
-                      Token Ujian
+                  <div className="rounded-xl border border-white bg-white p-5 text-center shadow-sm">
+                    <p className="mb-2 text-[9px] font-bold uppercase tracking-widest text-slate-400">
+                      Token Akses
                     </p>
-                    <p className="text-xl font-mono font-black tracking-widest text-[#397e50]">
+                    <p className="text-2xl font-mono font-black tracking-[0.2em] text-[#397e50]">
                       {detail.token_ujian || "------"}
                     </p>
                   </div>
