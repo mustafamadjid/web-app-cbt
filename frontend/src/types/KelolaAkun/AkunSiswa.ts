@@ -12,7 +12,7 @@ export type StudentRegisterFormValues = {
   noHp?: string;
 
   noAbsen: number;
-  angkatan: number;
+  angkatan: number  ;
 
   tempatLahir: string;
   tanggalLahir: string;

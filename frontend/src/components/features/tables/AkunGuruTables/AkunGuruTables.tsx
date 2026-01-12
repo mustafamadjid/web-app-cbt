@@ -308,7 +308,9 @@ const AkunGuruTables: React.FC = () => {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                       <p>role</p>
+                        <span className="text-xs font-semibold text-slate-500 text-center">
+                          {p.role}
+                        </span>
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">

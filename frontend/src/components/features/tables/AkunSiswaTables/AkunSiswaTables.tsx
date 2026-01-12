@@ -265,7 +265,7 @@ const AkunSiswaTables: React.FC = () => {
           <AddButton
             label="Tambah Akun Siswa"
             onClick={() =>
-              navigate(`/dashboard/administrator/${paths.dashboard.tambah_siswa}`)
+              navigate(`${paths.dashboard.tambah_siswa}`)
             }
           />
         </div>

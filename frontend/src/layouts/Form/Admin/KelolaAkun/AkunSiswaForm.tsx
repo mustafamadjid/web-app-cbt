@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router";
 
 import InputField from "@/components/common/Input/InputField";
 import ImageUpload from "@/components/features/ImageUpload/ImageUpload";
@@ -6,9 +7,9 @@ import ImageUpload from "@/components/features/ImageUpload/ImageUpload";
 import type { JenisKelamin } from "@/types/OpsiTypes/Option";
 import type { StudentRegisterFormValues } from "@/types/KelolaAkun/AkunSiswa";
 import type { KelasRow, TingkatKelasOption } from "@/types/DataMaster/Kelas";
+
 import { submitStudentRegister } from "@/services/Api/features-api/KelolaAkun/akunsiswa.service";
 import { paths } from "@/routes/paths";
-import { useNavigate } from "react-router";
 import { ApiError } from "@/services/Api/api";
 import {
   getKelas,
@@ -20,11 +21,16 @@ import {
   createValidator,
   fileMaxSize,
   fileTypeStartsWith,
-  matchesPattern,
   minLength,
   requiredString,
   requiredValue,
 } from "@/helper/validate/validateForm";
+
+/**
+ * Catatan penting:
+ * - Kamu minta tetap pakai number untuk field numeric: noAbsen, angkatan, id_tingkat_kelas.
+ * - Karena InputField biasanya mengembalikan string, kita konversi dengan aman di onChange.
+ */
 
 const initialValues: StudentRegisterFormValues = {
   role: "SISWA",
@@ -34,17 +40,27 @@ const initialValues: StudentRegisterFormValues = {
   jenisKelamin: "LAKI_LAKI",
   email: "",
   noHp: "",
-  noAbsen: "",
-  angkatan: "",
+  noAbsen: 0,
+  angkatan: 0,
   tempatLahir: "",
   tanggalLahir: "",
-  id_tingkat_kelas: "",
-  id_nama_kelas: "",
+  id_tingkat_kelas: 0, // 0 = belum pilih
+  id_nama_kelas: "", // string id kelas
   fotoProfil: null,
+  statusAkun: "aktif",
 };
 
 const sectionTitle = "text-sm font-semibold text-slate-800";
 const helperText = "text-xs text-slate-500";
+
+/** Konversi input string menjadi integer. Kalau invalid, pertahankan nilai sebelumnya. */
+function toIntOrPrev(prev: number, raw: string): number {
+  const s = String(raw ?? "").trim();
+  if (s === "") return 0; // reset
+  if (!/^\d+$/.test(s)) return prev; // tolak selain digit
+  const n = Number(s);
+  return Number.isSafeInteger(n) ? n : prev;
+}
 
 const AkunSiswaForm = () => {
   const navigate = useNavigate();
@@ -52,7 +68,11 @@ const AkunSiswaForm = () => {
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [values, setValues] =
     useState<StudentRegisterFormValues>(initialValues);
-  const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+  // Lebih aman kalau touched mengikuti key form (bukan string bebas)
+  const [touched, setTouched] = useState<
+    Partial<Record<keyof StudentRegisterFormValues, boolean>>
+  >({});
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const [fotoUrl, setFotoUrl] = useState<string>("");
@@ -96,7 +116,7 @@ const AkunSiswaForm = () => {
   }, []);
 
   useEffect(() => {
-    if (values.id_tingkat_kelas === "") {
+    if (!values.id_tingkat_kelas) {
       setNamaKelasOptions([]);
       if (values.id_nama_kelas !== "") {
         setValues((prev) => ({ ...prev, id_nama_kelas: "" }));
@@ -115,7 +135,7 @@ const AkunSiswaForm = () => {
     if (!isValid && values.id_nama_kelas !== "") {
       setValues((prev) => ({ ...prev, id_nama_kelas: "" }));
     }
-  }, [daftarKelas, values.id_nama_kelas, values.id_tingkat_kelas, setValues]);
+  }, [daftarKelas, values.id_nama_kelas, values.id_tingkat_kelas]);
 
   const setField = createSetField(setValues);
 
@@ -148,26 +168,41 @@ const AkunSiswaForm = () => {
           : "No HP tidak valid (gunakan angka, 8-16 digit).";
       },
     ],
+
+    // ===== numeric: noAbsen =====
     noAbsen: [
-      requiredString("No absen wajib diisi."),
-      matchesPattern(/^\d+$/, "No absen harus berupa angka.", { trim: true }),
       (value) => {
-        if (!value.trim() || !/^\d+$/.test(value.trim())) return null;
-        return parseInt(value.trim(), 10) <= 0
-          ? "No absen minimal 1."
-          : null;
+        if (!Number.isInteger(value) || value <= 0) {
+          return "No absen wajib diisi dan harus angka > 0.";
+        }
+        return null;
       },
     ],
+
+    // ===== numeric: angkatan (4 digit + range) =====
     angkatan: [
-      requiredString("Angkatan wajib diisi."),
-      matchesPattern(/^\d{4}$/, "Angkatan harus 4 digit (contoh: 2025).", {
-        trim: true,
-      }),
+      (value) => {
+        if (!Number.isInteger(value))
+          return "Angkatan harus berupa angka bulat.";
+        const currentYear = new Date().getFullYear();
+        if (value < 2000 || value > currentYear) return "Angkatan tidak valid.";
+        if (value < 1000 || value > 9999)
+          return "Angkatan harus 4 digit angka.";
+        return null;
+      },
     ],
+
     tempatLahir: [requiredString("Tempat lahir wajib diisi.")],
     tanggalLahir: [requiredString("Tanggal lahir wajib diisi.")],
-    id_tingkat_kelas: [requiredValue("Tingkat kelas wajib dipilih.")],
+
+    // ===== select numeric: id_tingkat_kelas =====
+    id_tingkat_kelas: [
+      (value) => (value && value > 0 ? null : "Tingkat kelas wajib dipilih."),
+    ],
+
+    // ===== select string: id_nama_kelas =====
     id_nama_kelas: [requiredValue("Nama kelas wajib dipilih.")],
+
     fotoProfil: [
       fileMaxSize(2 * 1024 * 1024, "Ukuran foto maksimal 2MB."),
       fileTypeStartsWith("image/", "File harus berupa gambar."),
@@ -206,10 +241,12 @@ const AkunSiswaForm = () => {
 
     try {
       setSubmitting(true);
+
+      // FIX: cari kelas berdasarkan id_tingkat_kelas (number) dan id kelas (string)
       const kelasTerpilih = daftarKelas.find(
         (kelas) =>
-          kelas.tingkat_kelas === values.id_tingkat_kelas &&
-          kelas.nama_kelas === values.id_nama_kelas
+          kelas.id_tingkat_kelas === values.id_tingkat_kelas &&
+          String(kelas.id) === values.id_nama_kelas
       );
 
       if (!kelasTerpilih) {
@@ -219,6 +256,7 @@ const AkunSiswaForm = () => {
 
       const payload: StudentRegisterFormValues = {
         ...values,
+        // Pastikan konsisten dengan yang ditemukan
         id_tingkat_kelas: kelasTerpilih.id_tingkat_kelas,
         id_nama_kelas: String(kelasTerpilih.id),
       };
@@ -235,6 +273,8 @@ const AkunSiswaForm = () => {
     } catch (error) {
       if (error instanceof ApiError) {
         setSubmitError(error.message);
+      } else {
+        setSubmitError("Terjadi kesalahan saat menyimpan data.");
       }
     } finally {
       setSubmitting(false);
@@ -246,10 +286,10 @@ const AkunSiswaForm = () => {
     onBlur("fotoProfil");
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
+
   return (
     <div className="min-h-screen w-full py-8">
       <div className="mx-auto w-full max-w-5xl px-4">
-        {/* Header + Progress */}
         <div className="mb-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
@@ -342,7 +382,6 @@ const AkunSiswaForm = () => {
                 )}
               </div>
 
-              {/* Jenis Kelamin (select native) */}
               <div>
                 <label
                   htmlFor="jenisKelamin"
@@ -427,8 +466,13 @@ const AkunSiswaForm = () => {
                   id="noAbsen"
                   type="text"
                   label="No Absen"
-                  value={values.noAbsen}
-                  onChange={(v) => setField("noAbsen", v)}
+                  value={values.noAbsen ? String(values.noAbsen) : ""}
+                  onChange={(v) => {
+                    setValues((prev) => ({
+                      ...prev,
+                      noAbsen: toIntOrPrev(prev.noAbsen, v),
+                    }));
+                  }}
                   onBlur={() => onBlur("noAbsen")}
                   placeholder="Contoh: 12"
                   inputClassName={
@@ -446,8 +490,13 @@ const AkunSiswaForm = () => {
                   id="angkatan"
                   type="text"
                   label="Angkatan"
-                  value={values.angkatan}
-                  onChange={(v) => setField("angkatan", v)}
+                  value={values.angkatan ? String(values.angkatan) : ""}
+                  onChange={(v) => {
+                    setValues((prev) => ({
+                      ...prev,
+                      angkatan: toIntOrPrev(prev.angkatan, v),
+                    }));
+                  }}
                   onBlur={() => onBlur("angkatan")}
                   placeholder="Contoh: 2025"
                   inputClassName={
@@ -478,30 +527,32 @@ const AkunSiswaForm = () => {
                       : ""
                   }`}
                   value={values.id_tingkat_kelas}
-                  onChange={(e) =>
-                    setField(
-                      "id_tingkat_kelas",
-                      e.target.value === "" ? "" : Number(e.target.value)
-                    )
-                  }
+                  onChange={(e) => {
+                    const n = Number(e.target.value);
+                    setField("id_tingkat_kelas", Number.isFinite(n) ? n : 0);
+                  }}
                   onBlur={() => onBlur("id_tingkat_kelas")}
                   required
                 >
-                  <option value="" disabled>
+                  <option value={0} disabled>
                     Pilih tingkat kelas...
                   </option>
+
+                  {/* FIX: value harus id_tingkat_kelas (bukan tingkat_kelas) */}
                   {tingkatKelasOptions.map((tingkat) => (
                     <option
                       key={tingkat.id_tingkat_kelas}
-                      value={tingkat.tingkat_kelas}
+                      value={tingkat.id_tingkat_kelas}
                     >
                       Kelas {tingkat.tingkat_kelas}
                     </option>
                   ))}
                 </select>
+
                 <p className="mt-1 text-xs text-slate-500">
                   Tingkat kelas akan diambil dari Data Master.
                 </p>
+
                 {hasError("id_tingkat_kelas") && (
                   <p className="mt-1 text-xs text-rose-600">
                     {errors.id_tingkat_kelas}
@@ -528,7 +579,7 @@ const AkunSiswaForm = () => {
                   onChange={(e) => setField("id_nama_kelas", e.target.value)}
                   onBlur={() => onBlur("id_nama_kelas")}
                   required
-                  disabled={values.id_tingkat_kelas === ""}
+                  disabled={!values.id_tingkat_kelas}
                 >
                   <option value="" disabled>
                     Pilih nama kelas...
@@ -605,7 +656,7 @@ const AkunSiswaForm = () => {
             </div>
           </div>
 
-          {/* FOTO PROFIL (pakai komponen ImageUpload) */}
+          {/* FOTO PROFIL */}
           <div>
             <ImageUpload
               ref={fileInputRef}
@@ -667,9 +718,10 @@ const AkunSiswaForm = () => {
 
                 <button
                   type="submit"
-                  className="rounded-lg bg-[#397e50] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-600 cursor-pointer"
+                  disabled={submitting}
+                  className="rounded-lg bg-[#397e50] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-600 cursor-pointer disabled:opacity-70"
                 >
-                  Tambah Siswa
+                  {submitting ? "Menyimpan..." : "Tambah Siswa"}
                 </button>
               </div>
             </div>
