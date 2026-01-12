@@ -1,4 +1,4 @@
-import { LayoutDashboard } from "lucide-react";
+import React, {Suspense} from "react";
 
 // Widgets
 import { StatistikWidget } from "@/components/features/widget/Soal/StatistikWidget";

@@ -41,7 +41,6 @@ export const PengumumanWidget: React.FC<PengumumanWidgetProps> = ({
   const [openIds, setOpenIds] = React.useState<Set<number>>(() => {
     const s = new Set<number>();
     if (defaultOpenId != null) s.add(defaultOpenId);
-    else if (items[0]?.id != null) s.add(items[0].id);
     return s;
   });
 
@@ -179,64 +178,68 @@ function AnnouncementRow({
       </button>
 
       {/* Accordion Content */}
-      <div
-        className={[
-          "grid transition-[grid-template-rows] duration-300 ease-out",
-          isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
-        ].join(" ")}
-      >
-        <div className="overflow-hidden">
-          <div className="border-t border-gray-100 px-4 py-4">
-            {/* Isi Pengumuman */}
-            <div className="prose-sm text-sm leading-relaxed text-gray-600 whitespace-pre-wrap">
-              {item.isi_pengumuman}
-            </div>
-
-            {/* Dokumen Section */}
-            {docs.length > 0 && (
-              <div className="mt-5">
-                <div className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gray-400">
-                  <Paperclip className="h-3.5 w-3.5" />
-                  Lampiran Dokumen
-                </div>
-
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                  {docs.map((d, idx) => (
-                    <a
-                      key={d.id ?? `${d.url}-${idx}`}
-                      href={d.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className={[
-                        "group/doc flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50/50 p-2.5 transition-all",
-                        "hover:border-[#397e50]/50 hover:bg-[#397e50]/5 hover:shadow-sm",
-                      ].join(" ")}
-                      title={d.name}
-                    >
-                      {/* Icon Container */}
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-white text-[#397e50] shadow-sm ring-1 ring-gray-100 group-hover/doc:ring-[#397e50]/20">
-                        <FileText className="h-4 w-4" />
-                      </div>
-
-                      {/* File Info */}
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-xs font-bold text-gray-700 group-hover/doc:text-[#397e50]">
-                          {d.name}
-                        </p>
-                        {d.sizeLabel && (
-                          <p className="mt-0.5 text-2xs text-gray-500">
-                            {d.sizeLabel}
-                          </p>
-                        )}
-                      </div>
-                    </a>
-                  ))}
-                </div>
+      {isOpen && (
+        <div
+          className={[
+            "grid transition-[grid-template-rows] duration-300 ease-out",
+            isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+          ].join(" ")}
+        >
+          <div className="overflow-hidden">
+            <div className="border-t border-gray-100 px-4 py-4">
+              {/* Isi Pengumuman */}
+              <div className="prose-sm text-sm leading-relaxed text-gray-600 whitespace-pre-wrap">
+                <p className="text-xs text-gray-600 line-clamp-2">
+                  {item.isi_pengumuman}
+                </p>
               </div>
-            )}
+
+              {/* Dokumen Section */}
+              {docs.length > 0 && (
+                <div className="mt-5">
+                  <div className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gray-400">
+                    <Paperclip className="h-3.5 w-3.5" />
+                    Lampiran Dokumen
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    {docs.map((d, idx) => (
+                      <a
+                        key={d.id ?? `${d.url}-${idx}`}
+                        href={d.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className={[
+                          "group/doc flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50/50 p-2.5 transition-all",
+                          "hover:border-[#397e50]/50 hover:bg-[#397e50]/5 hover:shadow-sm",
+                        ].join(" ")}
+                        title={d.name}
+                      >
+                        {/* Icon Container */}
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-white text-[#397e50] shadow-sm ring-1 ring-gray-100 group-hover/doc:ring-[#397e50]/20">
+                          <FileText className="h-4 w-4" />
+                        </div>
+
+                        {/* File Info */}
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-xs font-bold text-gray-700 group-hover/doc:text-[#397e50]">
+                            {d.name}
+                          </p>
+                          {d.sizeLabel && (
+                            <p className="mt-0.5 text-2xs text-gray-500">
+                              {d.sizeLabel}
+                            </p>
+                          )}
+                        </div>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </article>
   );
 }
