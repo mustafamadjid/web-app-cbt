@@ -1,6 +1,7 @@
 import type { StatusAkun,JenisKelamin } from "../OpsiTypes/Option";
 
 export type TeacherRegisterFormValues = {
+  role?:string
   namaLengkap: string;
   email: string;
   username: string;
