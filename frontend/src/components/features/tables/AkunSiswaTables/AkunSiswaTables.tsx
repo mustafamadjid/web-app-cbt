@@ -468,7 +468,7 @@ const AkunSiswaTables: React.FC = () => {
             <tbody className="divide-y divide-slate-200">
               {siswaTersaring.length > 0 ? (
                 siswaTersaring.map((s) => {
-                  const hpRaw = (s.nomorHp ?? "").trim();
+                  const hpRaw = (s.noHp ?? "").trim();
                   const emailRaw = (s.email ?? "").trim();
 
                   const hpTampil = !hpRaw
