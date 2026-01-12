@@ -38,6 +38,9 @@ const dummyJadwalUjianDetail: DetailUjianItem[] = [
     sesi_ujian: 1,
     token_ujian: "MAT-UTS-2026",
     status_ujian: "belum_dimulai",
+    started: 0,
+    pembuat_username: "guru_sri",
+    pengawas_username: "guru_sri",
     tingkat_kelas: 10,
     tingkat_kelas_id: 1,
     nama_kelas: "10 IPA 1",
@@ -65,6 +68,9 @@ const dummyJadwalUjianDetail: DetailUjianItem[] = [
     sesi_ujian: 2,
     token_ujian: "BIN-2026-02",
     status_ujian: "berlangsung",
+    started: 1,
+    pembuat_username: "guru_sri",
+    pengawas_username: "guru_sri",
     tingkat_kelas: 11,
     tingkat_kelas_id: 2,
     nama_kelas: "11 IPA 2",
@@ -92,6 +98,9 @@ const dummyJadwalUjianDetail: DetailUjianItem[] = [
     sesi_ujian: 1,
     token_ujian: "IPA-EX-13",
     status_ujian: "selesai",
+    started: 1,
+    pembuat_username: "guru_raka",
+    pengawas_username: "guru_raka",
     tingkat_kelas: 12,
     tingkat_kelas_id: 3,
     nama_kelas: "12 IPS 1",
@@ -119,6 +128,9 @@ const dummyJadwalUjianDetail: DetailUjianItem[] = [
     sesi_id: 2,
     token_ujian: "BING-2026",
     status_ujian: "belum_dimulai",
+    started: 0,
+    pembuat_username: "guru_sri",
+    pengawas_username: "guru_rina",
     tingkat_kelas: 11,
     tingkat_kelas_id: 2,
     nama_kelas: "11 IPS 2",
@@ -146,6 +158,9 @@ const dummyJadwalUjianDetail: DetailUjianItem[] = [
     sesi_ujian: 3,
     token_ujian: "SEJ-2026",
     status_ujian: "belum_dimulai",
+    started: 0,
+    pembuat_username: "guru_raka",
+    pengawas_username: "guru_dedi",
     tingkat_kelas: 10,
     tingkat_kelas_id: 1,
     nama_kelas: "10 IPA 3",
@@ -159,10 +174,15 @@ export const dummyJadwalUjian: JadwalUjianItem[] = dummyJadwalUjianDetail.map(
     pengawas_ujian: item.pengawas_ujian,
     tgl_ujian: item.tgl_ujian,
     waktu_mulai: item.waktu_mulai,
+    waktu_selesai: item.waktu_selesai,
+    tanggal_ujian: item.tanggal_ujian,
     sesi_ujian: item.sesi_ujian,
     ruang_ujian: item.ruang_ujian,
     id_ruang: item.id_ruang,
     status_ujian: item.status_ujian,
+    started: item.started,
+    pembuat_username: item.pembuat_username,
+    pengawas_username: item.pengawas_username,
     tingkat_kelas: item.tingkat_kelas,
     tingkat_kelas_id: item.tingkat_kelas_id,
     nama_kelas: item.nama_kelas,
@@ -180,6 +200,44 @@ type JadwalUjianItemIndexed = JadwalUjianItem & {
   __tglIso?: string;
 };
 
+const resolveStatus = (ujian: JadwalUjianItem, now: Date) => {
+  const isoDate = formatTanggalToIso(ujian.tgl_ujian);
+  if (!isoDate || !ujian.waktu_mulai) {
+    return ujian.status_ujian ?? "belum_dimulai";
+  }
+
+  const start = new Date(`${isoDate}T${ujian.waktu_mulai}:00`);
+  const end = ujian.waktu_selesai
+    ? new Date(`${isoDate}T${ujian.waktu_selesai}:00`)
+    : start;
+
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+    return ujian.status_ujian ?? "belum_dimulai";
+  }
+
+  const isStarted = ujian.started === 1;
+
+  if (now > end) {
+    return isStarted ? "selesai" : "dibatalkan";
+  }
+
+  if (now >= start && now <= end) {
+    return isStarted ? "berlangsung" : "belum_dimulai";
+  }
+
+  return isStarted ? "berlangsung" : "belum_dimulai";
+};
+
+export const applyUjianStatus = (
+  items: JadwalUjianItem[],
+  now: Date = new Date()
+) => {
+  return items.map((ujian) => ({
+    ...ujian,
+    status_ujian: resolveStatus(ujian, now),
+  }));
+};
+
 const buildSearchableText = (ujian: JadwalUjianItem) =>
   normalize(
     [
@@ -190,6 +248,7 @@ const buildSearchableText = (ujian: JadwalUjianItem) =>
       ujian.sesi_ujian != null ? String(ujian.sesi_ujian) : "",
       ujian.ruang_ujian ?? "",
       ujian.status_ujian ?? "",
+      ujian.started != null ? String(ujian.started) : "",
       ujian.tingkat_kelas_id != null ? String(ujian.tingkat_kelas_id) : "",
       ujian.tingkat_kelas != null ? String(ujian.tingkat_kelas) : "",
       ujian.nama_kelas ?? "",
@@ -274,7 +333,7 @@ export async function getJadwalUjian(
       indexDummy(dummyJadwalUjian),
       params
     );
-    return stripInternal(filtered);
+    return applyUjianStatus(stripInternal(filtered));
   }
 
   // ✅ PRODUCTION MODE (aktifkan saat BE siap)
@@ -288,7 +347,7 @@ export async function getJadwalUjian(
   const res = await api<ApiEnvelope<JadwalUjianItem[]>>("/jadwal-ujian", {
     params: queryParams,
   });
-  return res.data;
+  return applyUjianStatus(res.data);
 }
 
 export async function getJadwalUjianDetail(

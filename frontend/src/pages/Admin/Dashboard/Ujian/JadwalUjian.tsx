@@ -1,7 +1,11 @@
 import BoxJadwalUjian from "@/components/features/Ujian/BoxJadwalUjian";
+import { useAuth } from "@/contexts/AuthContext";
 import { getTingkatKelasOptions } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { getRuangUjianOptions } from "@/services/Api/features-api/DataMaster/ruang-ujian.service";
-import { getJadwalUjian } from "@/services/Api/features-api/Ujian/jadwalujian.service";
+import {
+  applyUjianStatus,
+  getJadwalUjian,
+} from "@/services/Api/features-api/Ujian/jadwalujian.service";
 import { paths } from "@/routes/paths";
 import type { TingkatKelasOption } from "@/types/DataMaster/Kelas";
 import type { RuangUjianRow } from "@/types/DataMaster/RuangUjian";
@@ -13,6 +17,7 @@ const STATUS_SECTIONS = [
   { key: "berlangsung", label: "Berlangsung", color: "bg-emerald-500" },
   { key: "belum_dimulai", label: "Belum Mulai", color: "bg-amber-500" },
   { key: "selesai", label: "Selesai", color: "bg-slate-500" },
+  { key: "dibatalkan", label: "Dibatalkan", color: "bg-rose-500" },
 ] as const;
 
 type StatusKey = (typeof STATUS_SECTIONS)[number]["key"];
@@ -27,6 +32,7 @@ function useDebouncedValue<T>(value: T, delayMs: number) {
 }
 
 const JadwalUjian = () => {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [activeTab, setActiveTab] = useState<StatusKey>("berlangsung"); // Default ke 'berlangsung'
@@ -102,6 +108,7 @@ const JadwalUjian = () => {
       belum_dimulai: [],
       berlangsung: [],
       selesai: [],
+      dibatalkan: [],
     };
     for (const ujian of daftarJadwalUjian) {
       const status = ujian.status_ujian as StatusKey;
@@ -109,6 +116,36 @@ const JadwalUjian = () => {
     }
     return grouped;
   }, [daftarJadwalUjian]);
+
+  const canControlUjian = (ujian: JadwalUjianItem) => {
+    if (!user) return false;
+    if (user.role === "ADMIN") return true;
+    if (user.role !== "GURU") return false;
+    return (
+      ujian.pembuat_username === user.username ||
+      ujian.pengawas_username === user.username
+    );
+  };
+
+  const handleStartUjian = (id: number) => {
+    setDaftarJadwalUjian((prev) =>
+      applyUjianStatus(
+        prev.map((ujian) =>
+          ujian.id === id ? { ...ujian, started: 1 } : ujian
+        )
+      )
+    );
+  };
+
+  const handleCancelUjian = (id: number) => {
+    setDaftarJadwalUjian((prev) =>
+      applyUjianStatus(
+        prev.map((ujian) =>
+          ujian.id === id ? { ...ujian, started: 0 } : ujian
+        )
+      )
+    );
+  };
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-8">
@@ -248,6 +285,9 @@ const JadwalUjian = () => {
                   <BoxJadwalUjian
                     key={ujian.id}
                     {...ujian}
+                    onStart={handleStartUjian}
+                    onCancel={handleCancelUjian}
+                    canControl={canControlUjian(ujian)}
                     linkJadwal={paths.dashboard.detail_ujian.replace(
                       ":id",
                       String(ujian.id)

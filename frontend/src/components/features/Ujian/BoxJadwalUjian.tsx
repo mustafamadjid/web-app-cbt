@@ -22,10 +22,17 @@ const statusConfig: Record<string, { label: string; color: string }> = {
     label: "Selesai",
     color: "bg-slate-100 text-slate-600 border-slate-200",
   },
+  dibatalkan: {
+    label: "Dibatalkan",
+    color: "bg-rose-100 text-rose-700 border-rose-200",
+  },
 };
 
 type BoxJadwalUjianProps = JadwalUjianItem & {
   linkJadwal?: string;
+  onStart?: (id: number) => void;
+  onCancel?: (id: number) => void;
+  canControl?: boolean;
 };
 
 const BoxJadwalUjian = ({
@@ -38,7 +45,12 @@ const BoxJadwalUjian = ({
   status_ujian,
   tingkat_kelas,
   nama_kelas,
+  started,
+  id,
   linkJadwal = "",
+  onStart,
+  onCancel,
+  canControl = false,
 }: BoxJadwalUjianProps) => {
   const status = status_ujian
     ? statusConfig[status_ujian]
@@ -71,11 +83,41 @@ const BoxJadwalUjian = ({
             </div>
           </div>
 
-          <span
-            className={`rounded-full border px-3 py-1 text-[11px] font-bold uppercase tracking-wider ${status.color}`}
-          >
-            {status.label}
-          </span>
+          <div className="flex flex-wrap items-center gap-2">
+            {canControl ? (
+              <>
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    onStart?.(id);
+                  }}
+                  disabled={started === 1}
+                  className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-emerald-700 transition hover:border-emerald-300 hover:bg-emerald-100 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400"
+                >
+                  Mulai Ujian
+                </button>
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    onCancel?.(id);
+                  }}
+                  disabled={started === 0}
+                  className="rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-rose-700 transition hover:border-rose-300 hover:bg-rose-100 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400"
+                >
+                  Batalkan
+                </button>
+              </>
+            ) : null}
+            <span
+              className={`rounded-full border px-3 py-1 text-[11px] font-bold uppercase tracking-wider ${status.color}`}
+            >
+              {status.label}
+            </span>
+          </div>
         </div>
 
         {/* Info Grid Section */}
