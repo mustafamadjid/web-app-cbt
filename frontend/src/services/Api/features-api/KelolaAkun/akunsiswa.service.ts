@@ -6,6 +6,7 @@ import type {
   StudentRegisterResponse,
 } from "@/types/KelolaAkun/AkunSiswa";
 import { api, type ApiEnvelope } from "../../api";
+import { getKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
 
 import type { DataAkunSiswa } from "@/types/KelolaAkun/AkunSiswa";
 
@@ -43,8 +44,8 @@ export const DUMMY_SISWA: DataAkunSiswa[] = [
     angkatan: 2025,
     tempatLahir: "Bandung",
     tanggalLahir: "2008-01-31",
-    id_tingkat_kelas: 11,
-    id_nama_kelas: "XI IPA 1",
+    id_tingkat_kelas: 2,
+    id_nama_kelas: "3",
     urlGambarProfil: "https://i.pravatar.cc/150?u=s-0001",
   },
   {
@@ -60,8 +61,8 @@ export const DUMMY_SISWA: DataAkunSiswa[] = [
     angkatan: 2024,
     tempatLahir: "Jakarta",
     tanggalLahir: "2009-08-12",
-    id_tingkat_kelas: 10,
-    id_nama_kelas: "X IPS 1",
+    id_tingkat_kelas: 1,
+    id_nama_kelas: "2",
     urlGambarProfil: "https://i.pravatar.cc/150?u=s-0002",
   },
   {
@@ -77,8 +78,8 @@ export const DUMMY_SISWA: DataAkunSiswa[] = [
     angkatan: 2025,
     tempatLahir: "Surabaya",
     tanggalLahir: "2009-02-20",
-    id_tingkat_kelas: 10,
-    id_nama_kelas: "X IPA 1",
+    id_tingkat_kelas: 1,
+    id_nama_kelas: "1",
     urlGambarProfil: "https://i.pravatar.cc/150?u=s-0003",
   },
   {
@@ -94,8 +95,8 @@ export const DUMMY_SISWA: DataAkunSiswa[] = [
     angkatan: 2023,
     tempatLahir: "Semarang",
     tanggalLahir: "2008-11-05",
-    id_tingkat_kelas: 11,
-    id_nama_kelas: "XI IPS 1",
+    id_tingkat_kelas: 2,
+    id_nama_kelas: "4",
     urlGambarProfil: "https://i.pravatar.cc/150?u=s-0004",
   },
   {
@@ -111,8 +112,8 @@ export const DUMMY_SISWA: DataAkunSiswa[] = [
     angkatan: 2024,
     tempatLahir: "Depok",
     tanggalLahir: "2007-06-14",
-    id_tingkat_kelas: 12,
-    id_nama_kelas: "XII IPS 2",
+    id_tingkat_kelas: 3,
+    id_nama_kelas: "6",
     urlGambarProfil: "https://i.pravatar.cc/150?u=s-0005",
   },
   {
@@ -128,8 +129,8 @@ export const DUMMY_SISWA: DataAkunSiswa[] = [
     angkatan: 2025,
     tempatLahir: "Bogor",
     tanggalLahir: "2009-09-01",
-    id_tingkat_kelas: 10,
-    id_nama_kelas: "X IPS 1",
+    id_tingkat_kelas: 1,
+    id_nama_kelas: "2",
     urlGambarProfil: "https://i.pravatar.cc/150?u=s-0006",
   },
 ];
@@ -187,6 +188,14 @@ export async function getSiswa(
   await sleep(350);
 
   let data = [...DUMMY_SISWA];
+  const daftarKelas = await getKelas();
+  const kelasById = daftarKelas.reduce<Record<string, string>>(
+    (acc, kelas) => {
+      acc[String(kelas.id)] = kelas.nama_kelas;
+      return acc;
+    },
+    {}
+  );
 
   if (params.angkatan) {
     data = data.filter((s) => s.angkatan === params.angkatan);
@@ -203,13 +212,14 @@ export async function getSiswa(
   if (params.q) {
     const q = normalize(params.q);
     data = data.filter((s) => {
+      const kelasLabel = kelasById[s.id_nama_kelas] ?? "-";
       const hay = normalize(
         [
           s.namaLengkap,
           s.username,
           s.email ?? "",
           s.noHp ?? "",
-          s.id_nama_kelas,
+          kelasLabel,
           String(s.noAbsen),
           String(s.angkatan),
           s.tempatLahir,
@@ -223,6 +233,6 @@ export async function getSiswa(
 
   return data.map((s) => ({
     ...s,
-    kelas: s.id_nama_kelas,
+    kelas: kelasById[s.id_nama_kelas] ?? "-",
   }));
 }

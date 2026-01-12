@@ -105,12 +105,12 @@ const AkunSiswaForm = () => {
     }
 
     const filtered = daftarKelas.filter(
-      (kelas) => kelas.tingkat_kelas === values.id_tingkat_kelas
+      (kelas) => kelas.id_tingkat_kelas === values.id_tingkat_kelas
     );
     setNamaKelasOptions(filtered);
 
     const isValid = filtered.some(
-      (kelas) => kelas.nama_kelas === values.id_nama_kelas
+      (kelas) => String(kelas.id) === values.id_nama_kelas
     );
     if (!isValid && values.id_nama_kelas !== "") {
       setValues((prev) => ({ ...prev, id_nama_kelas: "" }));
@@ -534,7 +534,7 @@ const AkunSiswaForm = () => {
                     Pilih nama kelas...
                   </option>
                   {namaKelasOptions.map((kelas) => (
-                    <option key={kelas.id} value={kelas.nama_kelas}>
+                    <option key={kelas.id} value={String(kelas.id)}>
                       {kelas.nama_kelas}
                     </option>
                   ))}
