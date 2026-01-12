@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Search,
   Eye,
@@ -19,6 +19,7 @@ import { useNavigate } from "react-router";
 import type { StatusAkun} from "@/types/OpsiTypes/Option";
 import type { DataGuru } from "@/types/KelolaAkun/AkunGuru";
 import { paths } from "@/routes/paths";
+import { GetAllGuru } from "@/services/Api/features-api/KelolaAkun/akunguru.service";
 
 // --- Helper Functions ---
 const getStatusBadge = (status: StatusAkun) => {
@@ -65,79 +66,26 @@ const AkunGuruTables: React.FC = () => {
   const [idTerpilih, setIdTerpilih] = useState<Set<number>>(new Set());
   const [samarkanDataSensitif, setSamarkanDataSensitif] = useState(true);
 
-  // Data Dummy
-  const [daftarPengguna] = useState<DataGuru[]>([
-    {
-      id: 1,
-      namaLengkap: "Neil Sims",
-      email: "neil.sims@flowbite.com",
-      username: "neilsims",
-      noHp: "081234567890",
-      jenisKelamin: "LAKI_LAKI",
-      statusAkun: "aktif",
-      nip: "198701012010121001",
-      jabatan: "Guru Matematika",
-      bidangStudi: "Sains & Teknologi",
-      urlGambarProfil: "https://i.pravatar.cc/150?u=neil",
-      role: "ADMIN",
-    },
-    {
-      id: 2,
-      namaLengkap: "Bonnie Green",
-      email: "bonnie@flowbite.com",
-      username: "bonnieg",
-      noHp: "082233445566",
-      jenisKelamin: "PEREMPUAN",
-      statusAkun: "nonaktif",
-      nip: "199002022011112002",
-      jabatan: "Guru Bahasa Inggris",
-      bidangStudi: "Bahasa",
-      urlGambarProfil: "https://i.pravatar.cc/150?u=bonnie",
-      role: "GURU",
-    },
-    {
-      id: 3,
-      namaLengkap: "Jese Leos",
-      email: "jese@flowbite.com",
-      username: "jeseleos",
-      noHp: "085677889900",
-      jenisKelamin: "LAKI_LAKI",
-      statusAkun: "dibekukan",
-      nip: "199505052015051005",
-      jabatan: "Guru Olahraga",
-      bidangStudi: "PJOK",
-      urlGambarProfil: "https://i.pravatar.cc/150?u=jese",
-      role: "GURU",
-    },
-    {
-      id: 4,
-      namaLengkap: "Jese Leos",
-      email: "jese@flowbite.com",
-      username: "jeseleos",
-      noHp: "085677889900",
-      jenisKelamin: "LAKI_LAKI",
-      statusAkun: "dibekukan",
-      nip: "199505052015051005",
-      jabatan: "Guru Olahraga",
-      bidangStudi: "PJOK",
-      urlGambarProfil: "https://i.pravatar.cc/150?u=jese",
-      role: "ADMIN",
-    },
-  ]);
+  const [daftarPengguna, setDaftarPengguna] = useState<DataGuru[]>([]);
 
-  const penggunaTersaring = useMemo(() => {
-    const q = kataKunci.trim().toLowerCase();
-    if (!q) return daftarPengguna;
+  useEffect(() => {
+    let aktif = true;
 
-    return daftarPengguna.filter((p) => {
-      return (
-        p.namaLengkap.toLowerCase().includes(q) ||
-        p.email.toLowerCase().includes(q) ||
-        p.nip.includes(q) ||
-        p.username.toLowerCase().includes(q)
-      );
-    });
-  }, [kataKunci, daftarPengguna]);
+    const fetchGuru = async () => {
+      const data = await GetAllGuru({ q: kataKunci });
+      if (aktif) {
+        setDaftarPengguna(data);
+      }
+    };
+
+    fetchGuru();
+
+    return () => {
+      aktif = false;
+    };
+  }, [kataKunci]);
+
+  const penggunaTersaring = daftarPengguna;
 
   const semuaTerlihatTerpilih =
     penggunaTersaring.length > 0 &&
