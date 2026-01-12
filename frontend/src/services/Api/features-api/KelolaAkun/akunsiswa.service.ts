@@ -1,27 +1,18 @@
 import { buildFormData } from "@/helper/FormData/BuildFormData";
 
 import type { JenisKelamin } from "@/types/OpsiTypes/Option";
-import type { StudentRegisterFormValues, StudentRegisterResponse } from "@/types/KelolaAkun/AkunSiswa";
+import type {
+  StudentRegisterFormValues,
+  StudentRegisterResponse,
+} from "@/types/KelolaAkun/AkunSiswa";
 import { api, type ApiEnvelope } from "../../api";
-import { getTingkatKelasById } from "@/services/Api/features-api/DataMaster/kelas.service";
+import { getKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
 
 import type { DataAkunSiswa } from "@/types/KelolaAkun/AkunSiswa";
 
-// export type BarisSiswa = {
-//   id: number;
-//   namaLengkap: string;
-//   username: string;
-//   email?: string;
-//   noHp?: string;
-//   jenisKelamin: JenisKelamin;
-//   statusAkun: "aktif" | "nonaktif" | "dibekukan";
-//   noAbsen: number;
-//   angkatan: number;
-//   tempatLahir: string;
-//   tanggalLahir: string; // yyyy-mm-dd
-//   kelas: string;
-//   urlGambarProfil: string;
-// };
+export type BarisSiswa = DataAkunSiswa & {
+  kelas: string;
+};
 
 export type SiswaFilterParams = {
   q?: string;
@@ -42,7 +33,7 @@ export const DUMMY_JENIS_KELAMIN: Array<{
 export const DUMMY_SISWA: DataAkunSiswa[] = [
   {
     id: 1,
-    kelasId: 11,
+    role: "SISWA",
     namaLengkap: "Siti Aminah",
     username: "siti.aminah",
     email: "siti.aminah@gmail.com",
@@ -53,12 +44,13 @@ export const DUMMY_SISWA: DataAkunSiswa[] = [
     angkatan: 2025,
     tempatLahir: "Bandung",
     tanggalLahir: "2008-01-31",
-    kelas: "XI IPA 1",
+    id_tingkat_kelas: 2,
+    id_nama_kelas: "3",
     urlGambarProfil: "https://i.pravatar.cc/150?u=s-0001",
   },
   {
     id: 2,
-    __kelasId: 10,
+    role: "SISWA",
     namaLengkap: "Raka Pratama",
     username: "raka.pratama",
     email: "",
@@ -69,12 +61,13 @@ export const DUMMY_SISWA: DataAkunSiswa[] = [
     angkatan: 2024,
     tempatLahir: "Jakarta",
     tanggalLahir: "2009-08-12",
-    kelas: "X IPS 1",
+    id_tingkat_kelas: 1,
+    id_nama_kelas: "2",
     urlGambarProfil: "https://i.pravatar.cc/150?u=s-0002",
   },
   {
     id: 3,
-    __kelasId: 10,
+    role: "SISWA",
     namaLengkap: "Dimas Saputra",
     username: "dimas.saputra",
     email: "dimas.saputra@mail.com",
@@ -85,12 +78,13 @@ export const DUMMY_SISWA: DataAkunSiswa[] = [
     angkatan: 2025,
     tempatLahir: "Surabaya",
     tanggalLahir: "2009-02-20",
-    kelas: "X IPA 1",
+    id_tingkat_kelas: 1,
+    id_nama_kelas: "1",
     urlGambarProfil: "https://i.pravatar.cc/150?u=s-0003",
   },
   {
     id: 4,
-    __kelasId: 11,
+    role: "SISWA",
     namaLengkap: "Nadya Putri",
     username: "nadya.putri",
     email: "nadya.putri@gmail.com",
@@ -101,12 +95,13 @@ export const DUMMY_SISWA: DataAkunSiswa[] = [
     angkatan: 2023,
     tempatLahir: "Semarang",
     tanggalLahir: "2008-11-05",
-    kelas: "XI IPS 1",
+    id_tingkat_kelas: 2,
+    id_nama_kelas: "4",
     urlGambarProfil: "https://i.pravatar.cc/150?u=s-0004",
   },
   {
     id: 5,
-    __kelasId: 12,
+    role: "SISWA",
     namaLengkap: "Bagas Wiratama",
     username: "bagas.wiratama",
     email: "bagas.wiratama@school.id",
@@ -117,12 +112,13 @@ export const DUMMY_SISWA: DataAkunSiswa[] = [
     angkatan: 2024,
     tempatLahir: "Depok",
     tanggalLahir: "2007-06-14",
-    kelas: "XII IPA 2",
+    id_tingkat_kelas: 3,
+    id_nama_kelas: "6",
     urlGambarProfil: "https://i.pravatar.cc/150?u=s-0005",
   },
   {
     id: 6,
-    __kelasId: 10,
+    role: "SISWA",
     namaLengkap: "Alya Maharani",
     username: "alya.maharani",
     email: "alya.maharani@mail.com",
@@ -133,7 +129,8 @@ export const DUMMY_SISWA: DataAkunSiswa[] = [
     angkatan: 2025,
     tempatLahir: "Bogor",
     tanggalLahir: "2009-09-01",
-    kelas: "X IPS 1",
+    id_tingkat_kelas: 1,
+    id_nama_kelas: "2",
     urlGambarProfil: "https://i.pravatar.cc/150?u=s-0006",
   },
 ];
@@ -185,19 +182,27 @@ export async function getJenisKelaminOptions(): Promise<
   return DUMMY_JENIS_KELAMIN;
 }
 
-export async function getSiswa(params: SiswaFilterParams): Promise<BarisSiswa[]> {
+export async function getSiswa(
+  params: SiswaFilterParams
+): Promise<BarisSiswa[]> {
   await sleep(350);
 
   let data = [...DUMMY_SISWA];
-  const tingkatKelas = getTingkatKelasById(params.tingkatKelasId);
-  const kelasId = tingkatKelas ?? undefined;
+  const daftarKelas = await getKelas();
+  const kelasById = daftarKelas.reduce<Record<string, string>>(
+    (acc, kelas) => {
+      acc[String(kelas.id)] = kelas.nama_kelas;
+      return acc;
+    },
+    {}
+  );
 
   if (params.angkatan) {
     data = data.filter((s) => s.angkatan === params.angkatan);
   }
 
-  if (kelasId != null) {
-    data = data.filter((s) => s.__kelasId === kelasId);
+  if (params.tingkatKelasId != null) {
+    data = data.filter((s) => s.id_tingkat_kelas === params.tingkatKelasId);
   }
 
   if (params.jenisKelamin) {
@@ -207,13 +212,14 @@ export async function getSiswa(params: SiswaFilterParams): Promise<BarisSiswa[]>
   if (params.q) {
     const q = normalize(params.q);
     data = data.filter((s) => {
+      const kelasLabel = kelasById[s.id_nama_kelas] ?? "-";
       const hay = normalize(
         [
           s.namaLengkap,
           s.username,
           s.email ?? "",
           s.noHp ?? "",
-          s.kelas,
+          kelasLabel,
           String(s.noAbsen),
           String(s.angkatan),
           s.tempatLahir,
@@ -225,6 +231,8 @@ export async function getSiswa(params: SiswaFilterParams): Promise<BarisSiswa[]>
     });
   }
 
-  // strip internal field sebelum return
-  return data.map(({ __kelasId, ...rest }) => rest);
+  return data.map((s) => ({
+    ...s,
+    kelas: kelasById[s.id_nama_kelas] ?? "-",
+  }));
 }
