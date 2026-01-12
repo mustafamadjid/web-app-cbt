@@ -1,6 +1,6 @@
-import { BuatUjianForm } from "@/layouts/Form/Admin/Ujian/BuatUjianForm"
+import BuatUjianForm from "@/layouts/Form/Admin/Ujian/BuatUjianForm";
 
-export const BuatUjian = () => {
+const BuatUjian = () => {
     return (
         <>
             <div>
@@ -10,3 +10,5 @@ export const BuatUjian = () => {
     )
 }
 
+
+export default BuatUjian;

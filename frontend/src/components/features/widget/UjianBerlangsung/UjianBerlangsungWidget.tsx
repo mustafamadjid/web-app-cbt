@@ -18,7 +18,7 @@ type UjianBerlangsungWidgetProps = {
   maxHeightClassName?: string;
 };
 
-export const UjianBerlangsungWidget: React.FC<UjianBerlangsungWidgetProps> = ({
+const UjianBerlangsungWidget: React.FC<UjianBerlangsungWidgetProps> = ({
   items,
   className,
   maxHeightClassName = "max-h-[500px]",
@@ -195,3 +195,5 @@ const ActiveExamCard = ({ item }: { item: UjianBerlangsungItem }) => {
     </div>
   );
 };
+
+export default UjianBerlangsungWidget;

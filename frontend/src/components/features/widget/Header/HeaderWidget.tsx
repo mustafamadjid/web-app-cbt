@@ -15,7 +15,7 @@ type HeaderProps = {
   onSettingsClick?: () => void;
 };
 
-export const Header: React.FC<HeaderProps> = ({
+const Header: React.FC<HeaderProps> = ({
   title = "Dashboard",
   userName,
   roleLabel,
@@ -123,3 +123,5 @@ export const Header: React.FC<HeaderProps> = ({
     </header>
   );
 };
+
+export default Header;

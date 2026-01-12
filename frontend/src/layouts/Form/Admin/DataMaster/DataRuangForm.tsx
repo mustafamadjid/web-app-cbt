@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import { InputField } from "@/components/common/Input/InputField";
+import InputField from "@/components/common/Input/InputField";
 
 import type { RuangUjianFormValues } from "@/types/DataMaster/RuangUjian";
 
@@ -13,7 +13,7 @@ const initialValues: RuangUjianFormValues = {
 const sectionTitle = "text-sm font-semibold text-slate-800";
 const helperText = "text-xs text-slate-500";
 
-export const DataRuangForm = () => {
+const DataRuangForm = () => {
   const [values, setValues] = useState<RuangUjianFormValues>(initialValues);
   const [touched, setTouched] = useState<
     Record<keyof RuangUjianFormValues, boolean>
@@ -142,3 +142,5 @@ export const DataRuangForm = () => {
     </div>
   );
 };
+
+export default DataRuangForm;

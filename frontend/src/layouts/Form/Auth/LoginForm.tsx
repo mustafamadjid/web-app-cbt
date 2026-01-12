@@ -5,17 +5,17 @@ import { useLogin } from "../../../hooks/Auth/useLogin";
 import "../../../index.css";
 
 // UI
-import { Spinner } from "@/components/ui/spinner";
+import Spinner from "@/components/ui/spinner";
 
 // Components
-import { LoginInputField } from "../../../components/common/Input/Auth/LoginInputField";
+import LoginInputField from "../../../components/common/Input/Auth/LoginInputField";
 
 // Props Types
 type LoginFormProps = {
   onSuccess: () => void;
 };
 
-export const LoginForm = ({ onSuccess }: LoginFormProps) => {
+const LoginForm = ({ onSuccess }: LoginFormProps) => {
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const { login, loading, error } = useLogin();
@@ -115,3 +115,5 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
     </>
   );
 };
+
+export default LoginForm;

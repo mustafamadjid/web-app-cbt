@@ -1,13 +1,13 @@
 import React, {Suspense} from "react";
 
 // Widgets
-import { StatistikWidget } from "@/components/features/widget/Soal/StatistikWidget";
-import { SimpleStatWidget } from "@/components/features/widget/Soal/StatistikWidgetSimpler";
+import StatistikWidget from "@/components/features/widget/Soal/StatistikWidget";
+import SimpleStatWidget from "@/components/features/widget/Soal/StatistikWidgetSimpler";
 import { PengumumanWidget } from "@/components/features/widget/Pengumuman/PengumumanWidget";
-import { JadwalUjianWidget } from "@/components/features/widget/JadwalUjian/JadwalUjian";
-import { LogAktivitasWidget } from "@/components/features/widget/LogAktivitas/LogAktivitasWidget";
-import { TotalSiswaGuruWidget } from "@/components/features/widget/StatistikPengguna/TotalSiswaGuruWidget";
-import { UjianBerlangsungWidget } from "@/components/features/widget/UjianBerlangsung/UjianBerlangsungWidget";
+import JadwalUjianWidget from "@/components/features/widget/JadwalUjian/JadwalUjian";
+import LogAktivitasWidget from "@/components/features/widget/LogAktivitas/LogAktivitasWidget";
+import TotalSiswaGuruWidget from "@/components/features/widget/StatistikPengguna/TotalSiswaGuruWidget";
+import UjianBerlangsungWidget from "@/components/features/widget/UjianBerlangsung/UjianBerlangsungWidget";
 
 // Types
 import type { PengumumanItem } from "@/components/features/widget/Pengumuman/PengumumanWidget";

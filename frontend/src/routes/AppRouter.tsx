@@ -4,38 +4,38 @@ import { paths } from "./paths";
 // Components
 
 // Login Page
-import { LoginPage } from "../pages/Auth/LoginPage";
+import LoginPage from "../pages/Auth/LoginPage";
 
 // Header
-import { HeaderLayout } from "@/layouts/MainLayout/HeaderLayout/HeaderLayout";
+import HeaderLayout from "@/layouts/MainLayout/HeaderLayout/HeaderLayout";
 
 // Dashboard Admin
 import { Home } from "@/pages/Admin/Dashboard/Home";
-import { KelolaAkunGuru } from "@/pages/Admin/Dashboard/KelolaAkun/AkunGuru";
+import KelolaAkunGuru from "@/pages/Admin/Dashboard/KelolaAkun/AkunGuru";
 import { KelolaAkunSiswa } from "@/pages/Admin/Dashboard/KelolaAkun/AkunSiswa";
-import { TambahGuru } from "@/pages/Admin/Dashboard/KelolaAkun/TambahAkun/TambahGuru";
-import { TambahSiswa } from "@/pages/Admin/Dashboard/KelolaAkun/TambahAkun/TambahSiswa";
+import TambahGuru from "@/pages/Admin/Dashboard/KelolaAkun/TambahAkun/TambahGuru";
+import TambahSiswa from "@/pages/Admin/Dashboard/KelolaAkun/TambahAkun/TambahSiswa";
 
-import { MataPelajaran } from "@/pages/Admin/Dashboard/DataMaster/MataPelajaran";
-import { DataKelas } from "@/pages/Admin/Dashboard/DataMaster/DataKelas";
-import { RuangUjian } from "@/pages/Admin/Dashboard/DataMaster/RuangUjian";
-import { DataSesi } from "@/pages/Admin/Dashboard/DataMaster/DataSesi";
-import { TambahMataPelajaran } from "@/pages/Admin/Dashboard/DataMaster/TambahDataMaster/TambahMapel";
-import { TambahKelas } from "@/pages/Admin/Dashboard/DataMaster/TambahDataMaster/TambahKelas";
-import { TambahRuang } from "@/pages/Admin/Dashboard/DataMaster/TambahDataMaster/TambahRuangUjian";
-import { TambahSesi } from "@/pages/Admin/Dashboard/DataMaster/TambahDataMaster/TambahSesi";
+import MataPelajaran from "@/pages/Admin/Dashboard/DataMaster/MataPelajaran";
+import DataKelas from "@/pages/Admin/Dashboard/DataMaster/DataKelas";
+import RuangUjian from "@/pages/Admin/Dashboard/DataMaster/RuangUjian";
+import DataSesi from "@/pages/Admin/Dashboard/DataMaster/DataSesi";
+import TambahMataPelajaran from "@/pages/Admin/Dashboard/DataMaster/TambahDataMaster/TambahMapel";
+import TambahKelas from "@/pages/Admin/Dashboard/DataMaster/TambahDataMaster/TambahKelas";
+import TambahRuang from "@/pages/Admin/Dashboard/DataMaster/TambahDataMaster/TambahRuangUjian";
+import TambahSesi from "@/pages/Admin/Dashboard/DataMaster/TambahDataMaster/TambahSesi";
 
-import { BankSoal } from "@/pages/Admin/Dashboard/BankSoal/BankSoal";
-import { TambahBankSoal } from "@/pages/Admin/Dashboard/BankSoal/TambahBankSoal";
+import BankSoal from "@/pages/Admin/Dashboard/BankSoal/BankSoal";
+import TambahBankSoal from "@/pages/Admin/Dashboard/BankSoal/TambahBankSoal";
 
-import { BuatUjian } from "@/pages/Admin/Dashboard/Ujian/BuatUjian";
-import { JadwalUjian } from "@/pages/Admin/Dashboard/Ujian/JadwalUjian";
+import BuatUjian from "@/pages/Admin/Dashboard/Ujian/BuatUjian";
+import JadwalUjian from "@/pages/Admin/Dashboard/Ujian/JadwalUjian";
 
-import { Cetak } from "@/pages/Admin/Cetak/Cetak";
+import Cetak from "@/pages/Admin/Cetak/Cetak";
 
-import { AdminLayout } from "@/layouts/MainLayout/AdminLayout/AdminLayout";
+import AdminLayout from "@/layouts/MainLayout/AdminLayout/AdminLayout";
 
-import { PengaturanProfil } from "@/pages/Admin/Dashboard/Pengaturan/Pengaturan";
+import PengaturanProfil from "@/pages/Admin/Dashboard/Pengaturan/Pengaturan";
 
 export const router = createBrowserRouter([
   // Login Page

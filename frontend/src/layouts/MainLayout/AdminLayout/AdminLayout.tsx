@@ -1,11 +1,11 @@
 // AdminLayout.tsx
 import { useEffect, useState } from "react";
 import { Outlet } from "react-router";
-import { SidebarAdmin } from "@/layouts/MainLayout/Sidebar/SidebarAdmin";
+import SidebarAdmin from "@/layouts/MainLayout/Sidebar/SidebarAdmin";
 
 const STORAGE_KEY = "admin_sidebar_open";
 
-export function AdminLayout() {
+function AdminLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   // restore preference
@@ -49,3 +49,5 @@ export function AdminLayout() {
     </div>
   );
 }
+
+export default AdminLayout;

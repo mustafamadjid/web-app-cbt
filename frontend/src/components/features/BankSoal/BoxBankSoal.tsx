@@ -1,6 +1,6 @@
 import React from "react";
 
-import { SvgIcons } from "@/assets/SvgIcons/svgIcons";
+import SvgIcons from "@/assets/SvgIcons/svgIcons";
 
 import type { BankSoalItem } from "@/types/DataMaster/BankSoal";
 
@@ -36,7 +36,7 @@ const kelasLabelClass = (k?: number | string) => {
 };
 
 
-export const BoxBankSoal: React.FC<BoxBankSoalProps> = ({
+const BoxBankSoal: React.FC<BoxBankSoalProps> = ({
   nama_banksoal = "Bank Soal",
   guru = "-",
   mata_pelajaran = "-",
@@ -169,3 +169,5 @@ export const BoxBankSoal: React.FC<BoxBankSoalProps> = ({
     </div>
   );
 };
+
+export default BoxBankSoal;

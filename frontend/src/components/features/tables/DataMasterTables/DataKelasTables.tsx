@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router";
 
-import { AddButton } from "@/components/common/Button/AddButton";
+import AddButton from "@/components/common/Button/AddButton";
 import type { KelasRow, TingkatKelasOption } from "@/types/DataMaster/Kelas";
 import {
   getKelas,
@@ -26,7 +26,7 @@ function useDebouncedValue<T>(value: T, delayMs = 300) {
   return debounced;
 }
 
-export const DataKelasTables: React.FC = () => {
+const DataKelasTables: React.FC = () => {
   const navigate = useNavigate();
 
   const [dropdownAksiTerbuka, setDropdownAksiTerbuka] = useState(false);
@@ -385,3 +385,5 @@ export const DataKelasTables: React.FC = () => {
     </div>
   );
 };
+
+export default DataKelasTables;

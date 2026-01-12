@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router";
 
-import { AddButton } from "@/components/common/Button/AddButton";
+import AddButton from "@/components/common/Button/AddButton";
 import type { SesiRow } from "@/types/DataMaster/Sesi";
 import { getSesi } from "@/services/Api/features-api/DataMaster/sesi.service";
 import { paths } from "@/routes/paths";
@@ -23,7 +23,7 @@ function useDebouncedValue<T>(value: T, delayMs = 300) {
   return debounced;
 }
 
-export const DataSesiTables: React.FC = () => {
+const DataSesiTables: React.FC = () => {
   const navigate = useNavigate();
 
   const [dropdownAksiTerbuka, setDropdownAksiTerbuka] = useState(false);
@@ -329,3 +329,5 @@ export const DataSesiTables: React.FC = () => {
     </div>
   );
 };
+
+export default DataSesiTables;

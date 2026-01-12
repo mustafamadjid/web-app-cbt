@@ -13,9 +13,9 @@ import {
   AlertCircle,
 } from "lucide-react";
 
-import { AddButton } from "@/components/common/Button/AddButton";
+import AddButton from "@/components/common/Button/AddButton";
 
-import { BankSoalLayout } from "@/layouts/BankSoalLayout/BankSoalLayout";
+import BankSoalLayout from "@/layouts/BankSoalLayout/BankSoalLayout";
 
 import type { BankSoalItem } from "@/types/DataMaster/BankSoal";
 import type { TingkatKelasOption } from "@/types/DataMaster/Kelas";
@@ -40,7 +40,7 @@ function useDebouncedValue<T>(value: T, delayMs = 300) {
 
 type ViewMode = "ALL" | "BY_KELAS";
 
-export const BankSoal = () => {
+const BankSoal = () => {
   const navigate = useNavigate();
 
   // ----- UI State -----
@@ -389,3 +389,5 @@ export const BankSoal = () => {
     </div>
   );
 };
+
+export default BankSoal;

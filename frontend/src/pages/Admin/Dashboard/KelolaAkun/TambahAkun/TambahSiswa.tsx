@@ -1,6 +1,6 @@
-import { AkunSiswaForm } from "@/layouts/Form/Admin/KelolaAkun/AkunSiswaForm"
+import AkunSiswaForm from "@/layouts/Form/Admin/KelolaAkun/AkunSiswaForm";
 
-export const TambahSiswa = () => {
+const TambahSiswa = () => {
     return (
       <>
         <div className="p-0">
@@ -12,3 +12,5 @@ export const TambahSiswa = () => {
       </>
     );
 }
+
+export default TambahSiswa;

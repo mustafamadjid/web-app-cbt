@@ -13,7 +13,7 @@ type InputFieldProps = {
   required?: boolean;
 };
 
-export const InputField = ({
+const InputField = ({
   id,
   type,
   value,
@@ -62,3 +62,5 @@ export const InputField = ({
     </>
   );
 };
+
+export default InputField;

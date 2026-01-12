@@ -14,7 +14,7 @@ const variantStyles: Record<NonNullable<PrintButtonProps["variant"]>, string> = 
     "border border-[#397e50] text-[#397e50] hover:bg-[#397e50]/10 focus-visible:ring-[#397e50]/20",
 };
 
-export const PrintButton = ({
+const PrintButton = ({
   label,
   onClick,
   variant = "primary",
@@ -31,3 +31,5 @@ export const PrintButton = ({
     </button>
   );
 };
+
+export default PrintButton;

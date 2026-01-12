@@ -1,4 +1,4 @@
-import { BoxJadwalUjian } from "@/components/features/Ujian/BoxJadwalUjian";
+import BoxJadwalUjian from "@/components/features/Ujian/BoxJadwalUjian";
 import { getTingkatKelasOptions } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { getRuangUjianOptions } from "@/services/Api/features-api/DataMaster/ruang-ujian.service";
 import { getJadwalUjian } from "@/services/Api/features-api/Ujian/jadwalujian.service";
@@ -25,7 +25,7 @@ function useDebouncedValue<T>(value: T, delayMs: number) {
   return debounced;
 }
 
-export const JadwalUjian = () => {
+const JadwalUjian = () => {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [activeTab, setActiveTab] = useState<StatusKey>("berlangsung"); // Default ke 'berlangsung'
@@ -264,3 +264,5 @@ export const JadwalUjian = () => {
     </div>
   );
 };
+
+export default JadwalUjian;

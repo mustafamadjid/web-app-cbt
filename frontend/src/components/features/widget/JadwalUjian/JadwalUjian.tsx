@@ -20,7 +20,7 @@ type JadwalUjianProps = {
   lihatSemuaTo?: string;
 };
 
-export const JadwalUjianWidget: React.FC<JadwalUjianProps> = ({
+const JadwalUjianWidget: React.FC<JadwalUjianProps> = ({
   title = "Jadwal Ujian",
   items,
   className,
@@ -153,3 +153,5 @@ export const JadwalUjianWidget: React.FC<JadwalUjianProps> = ({
     </section>
   );
 };
+
+export default JadwalUjianWidget;

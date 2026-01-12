@@ -13,7 +13,7 @@ import {
   XCircle,
   Trash,
 } from "lucide-react";
-import { AddButton } from "@/components/common/Button/AddButton";
+import AddButton from "@/components/common/Button/AddButton";
 import { useNavigate } from "react-router";
 
 import type { StatusAkun,JenisKelamin } from "@/types/OpsiTypes/Option";
@@ -74,7 +74,7 @@ function samarkanNip(nip: string) {
 }
 
 // --- Komponen Utama ---
-export const AkunGuruTables: React.FC = () => {
+const AkunGuruTables: React.FC = () => {
   const [dropdownAksiTerbuka, setDropdownAksiTerbuka] = useState(false);
   const [kataKunci, setKataKunci] = useState("");
   const [idTerpilih, setIdTerpilih] = useState<Set<number>>(new Set());
@@ -419,3 +419,5 @@ export const AkunGuruTables: React.FC = () => {
     </div>
   );
 };
+
+export default AkunGuruTables;

@@ -1,7 +1,9 @@
-export const BankSoalForm = () => {
+const BankSoalForm = () => {
     return (
         <>
         
         </>
     )
 }
+
+export default BankSoalForm;

@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router";
 
-import { AddButton } from "@/components/common/Button/AddButton";
+import AddButton from "@/components/common/Button/AddButton";
 import type {
   MataPelajaranOption,
   MataPelajaranRow,
@@ -31,7 +31,7 @@ function useDebouncedValue<T>(value: T, delayMs = 300) {
   return debounced;
 }
 
-export const DataMataPelajaran: React.FC = () => {
+const DataMataPelajaran: React.FC = () => {
   const navigate = useNavigate();
 
   const [dropdownAksiTerbuka, setDropdownAksiTerbuka] = useState(false);
@@ -446,3 +446,5 @@ export const DataMataPelajaran: React.FC = () => {
     </div>
   );
 };
+
+export default DataMataPelajaran;

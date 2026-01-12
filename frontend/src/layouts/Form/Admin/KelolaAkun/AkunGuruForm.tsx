@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 
-import { InputField } from "@/components/common/Input/InputField";
-import { ImageUpload } from "@/components/features/ImageUpload/ImageUpload";
+import InputField from "@/components/common/Input/InputField";
+import ImageUpload from "@/components/features/ImageUpload/ImageUpload";
 
 import type { TeacherRegisterFormValues } from "@/types/KelolaAkun/AkunGuru";
 import type { JenisKelamin } from "@/types/OpsiTypes/Option";
@@ -29,7 +29,7 @@ const initialValues: TeacherRegisterFormValues = {
 const sectionTitle = "text-sm font-semibold text-slate-800";
 const helperText = "text-xs text-slate-500";
 
-export const AkunGuruForm = () => {
+const AkunGuruForm = () => {
   const navigate = useNavigate();
 
   const [values, setValues] =
@@ -464,3 +464,5 @@ export const AkunGuruForm = () => {
     </div>
   );
 };
+
+export default AkunGuruForm;

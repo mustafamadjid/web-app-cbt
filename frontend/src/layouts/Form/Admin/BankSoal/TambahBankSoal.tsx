@@ -1,8 +1,10 @@
 
-export const TambahBankSoalForm = () => {
+const TambahBankSoalForm = () => {
     return (
         <>
         
         </>
     )
 }
+
+export default TambahBankSoalForm;
