@@ -31,6 +31,21 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+// Hanya untuk mode development
+function getDebugAuthUser(): { username: string; role: string } | null {
+  if (!import.meta.env.DEV) return null;
+  const raw = localStorage.getItem("debug:auth");
+  if (!raw) return null;
+
+  try {
+    const parsed = JSON.parse(raw) as { username?: string; role?: string };
+    if (!parsed.username || !parsed.role) return null;
+    return { username: parsed.username, role: parsed.role };
+  } catch {
+    return null;
+  }
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [status, setStatus] = useState<AuthStatus>("loading");
@@ -43,6 +58,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const boot = async () => {
     setStatus("loading");
+
+    // Hanya untuk development
+    const debugUser = getDebugAuthUser();
+    if (debugUser) {
+      setUser(debugUser);
+      setStatus("authenticated");
+      return; // stop: ini mock total
+
+      // Jalankan di console browser
+      // localStorage.setItem("debug:auth", JSON.stringify({ username: "dev", role: "ADMIN" }))
+    }
     try {
       // Catatan: kalau access token belum ada, /me kemungkinan 401.
       // Wrapper api() akan mencoba refresh otomatis jika 401 (karena interceptor-like logic ada di wrapper).
