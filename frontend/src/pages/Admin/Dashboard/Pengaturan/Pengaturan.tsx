@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { PengaturanProfilForm } from "@/layouts/Form/Admin/PengaturanProfil/PengaturanProfilForm";
+import PengaturanProfilForm from "@/layouts/Form/Admin/PengaturanProfil/PengaturanProfilForm";
 
 // import BackupRestoreForm from "..."; // contoh
 
@@ -10,7 +10,7 @@ type TabItem = {
   label: string;
 };
 
-export const PengaturanProfil = () => {
+const PengaturanProfil = () => {
   const [activeTab, setActiveTab] = useState<TabKey>("profil");
 
   const tabs: TabItem[] = useMemo(
@@ -79,3 +79,5 @@ function TabButton({ label, isActive, onClick }: TabButtonProps) {
     </>
   );
 }
+
+export default PengaturanProfil;

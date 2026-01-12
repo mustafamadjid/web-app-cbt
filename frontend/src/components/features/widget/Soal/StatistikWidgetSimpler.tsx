@@ -11,7 +11,7 @@ type SimpleStatWidgetProps = {
   trendColorClassName?: string;
 };
 
-export const SimpleStatWidget = ({
+const SimpleStatWidget = ({
   title,
   value,
   trendText,
@@ -96,3 +96,5 @@ export const SimpleStatWidget = ({
     </div>
   );
 };
+
+export default SimpleStatWidget;

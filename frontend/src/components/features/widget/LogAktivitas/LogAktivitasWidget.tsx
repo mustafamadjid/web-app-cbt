@@ -109,7 +109,7 @@ function aksiMeta(aksi: string) {
   };
 }
 
-export const LogAktivitasWidget = ({
+const LogAktivitasWidget = ({
   title = "Log Aktivitas",
   items,
   className,
@@ -254,3 +254,5 @@ export const LogAktivitasWidget = ({
     </section>
   );
 };
+
+export default LogAktivitasWidget;

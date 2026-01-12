@@ -12,7 +12,7 @@ type BoxCetakUjianProps = JadwalUjianItem & {
   actions?: ReactNode;
 };
 
-export const BoxCetakUjian = ({
+const BoxCetakUjian = ({
   nama_ujian,
   pengawas_ujian,
   tgl_ujian,
@@ -194,3 +194,5 @@ export const BoxCetakUjian = ({
 //     </div>
 //   );
 // };
+
+export default BoxCetakUjian;

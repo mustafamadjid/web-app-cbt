@@ -6,7 +6,7 @@ type AddButtonProps = {
   onClick: () => void;
 };
 
-export const AddButton = ({ className,label = "Tambah", onClick }: AddButtonProps) => {
+const AddButton = ({ className,label = "Tambah", onClick }: AddButtonProps) => {
   return (
     <>
       <button
@@ -23,3 +23,5 @@ export const AddButton = ({ className,label = "Tambah", onClick }: AddButtonProp
     </>
   );
 };
+
+export default AddButton;

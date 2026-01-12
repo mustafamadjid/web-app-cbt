@@ -1,7 +1,7 @@
 import React from "react";
 import { TrendingUp } from "lucide-react";
 
-import { StatistikDonutChart } from "@/assets/SvgIcons/StatistikDonutChart";
+import StatistikDonutChart from "@/assets/SvgIcons/StatistikDonutChart";
 
 type StatistikWidgetProps = {
   title: string;
@@ -18,7 +18,7 @@ type StatistikWidgetProps = {
   gradientTo?: string;
 };
 
-export const StatistikWidget = ({
+const StatistikWidget = ({
   title,
   value,
   footerText,
@@ -113,3 +113,5 @@ export const StatistikWidget = ({
 function clamp(n: number, min: number, max: number) {
   return Math.max(min, Math.min(max, n));
 }
+
+export default StatistikWidget;

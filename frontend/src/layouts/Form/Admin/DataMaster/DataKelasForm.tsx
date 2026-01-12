@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import { InputField } from "@/components/common/Input/InputField";
+import InputField from "@/components/common/Input/InputField";
 
 import type { KelasFormValues } from "@/types/DataMaster/Kelas";
 import { submitKelasResponse } from "@/services/Api/features-api/DataMaster/kelas.service";
@@ -16,7 +16,7 @@ const initialValues: KelasFormValues = {
 const sectionTitle = "text-sm font-semibold text-slate-800";
 const helperText = "text-xs text-slate-500";
 
-export const DataKelasForm = () => {
+const DataKelasForm = () => {
   const [values, setValues] = useState<KelasFormValues>(initialValues);
   const [touched, setTouched] = useState<
     Record<keyof KelasFormValues, boolean>
@@ -195,3 +195,5 @@ export const DataKelasForm = () => {
     </div>
   );
 };
+
+export default DataKelasForm;

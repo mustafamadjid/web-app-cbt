@@ -1,5 +1,5 @@
-import { BoxCetakUjian } from "@/components/features/Ujian/BoxCetakUjian";
-import { PrintButton } from "@/components/common/Input/PrintButton";
+import BoxCetakUjian from "@/components/features/Ujian/BoxCetakUjian";
+import PrintButton from "@/components/common/Input/PrintButton";
 import { getTingkatKelasOptions } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { getJadwalUjian } from "@/services/Api/features-api/Ujian/jadwalujian.service";
 import type { TingkatKelasOption } from "@/types/DataMaster/Kelas";
@@ -11,7 +11,7 @@ import { useEffect, useRef, useState } from "react";
 
 type PrintJenis = "daftar-hadir" | "berita-acara" | "kartu-peserta";
 
-export const Cetak = () => {
+const Cetak = () => {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [daftarUjian, setDaftarUjian] = useState<JadwalUjianItem[]>([]);
@@ -183,3 +183,5 @@ export const Cetak = () => {
     </div>
   );
 };
+
+export default Cetak;

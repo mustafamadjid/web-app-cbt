@@ -8,7 +8,7 @@ type TotalSiswaGuruWidgetProps = TotalSiswaGuru & {
   className?: string;
 };
 
-export const TotalSiswaGuruWidget: React.FC<TotalSiswaGuruWidgetProps> = ({
+const TotalSiswaGuruWidget: React.FC<TotalSiswaGuruWidgetProps> = ({
   title = "Statistik Pengguna",
   totalSiswa,
   totalGuru,
@@ -96,3 +96,5 @@ export const TotalSiswaGuruWidget: React.FC<TotalSiswaGuruWidgetProps> = ({
     </section>
   );
 };
+
+export default TotalSiswaGuruWidget;

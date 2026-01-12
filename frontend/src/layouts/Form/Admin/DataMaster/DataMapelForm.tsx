@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { InputField } from "@/components/common/Input/InputField";
+import InputField from "@/components/common/Input/InputField";
 
 import type { MataPelajaranFormValues } from "@/types/DataMaster/MataPelajaran";
 import type { TingkatKelasOption } from "@/types/DataMaster/Kelas";
@@ -18,7 +18,7 @@ const initialValues: MataPelajaranFormValues = {
 const sectionTitle = "text-sm font-semibold text-slate-800";
 const helperText = "text-xs text-slate-500";
 
-export const DataMapelForm = () => {
+const DataMapelForm = () => {
   const [values, setValues] = useState<MataPelajaranFormValues>(initialValues);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -245,3 +245,5 @@ export const DataMapelForm = () => {
     </div>
   );
 };
+
+export default DataMapelForm;

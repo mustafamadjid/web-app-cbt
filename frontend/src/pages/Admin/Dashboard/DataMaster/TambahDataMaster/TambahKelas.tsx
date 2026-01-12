@@ -1,10 +1,12 @@
-import { DataKelasForm } from "@/layouts/Form/Admin/DataMaster/DataKelasForm";
+import DataKelasForm from "@/layouts/Form/Admin/DataMaster/DataKelasForm";
 
 
-export const TambahKelas = () => {
+const TambahKelas = () => {
     return (
         <>
         <DataKelasForm/>";
         </>
     )
 };
+
+export default TambahKelas;

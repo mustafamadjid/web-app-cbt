@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { NavLink, useLocation, matchPath } from "react-router";
 
-import { SvgIcons } from "@/assets/SvgIcons/svgIcons";
+import SvgIcons from "@/assets/SvgIcons/svgIcons";
 
 import type {
   SidebarMenuGroupItem,
@@ -17,7 +17,7 @@ type SidebarAdminProps = {
   onOpen: () => void;
 };
 
-export const SidebarAdmin = ({
+const SidebarAdmin = ({
   isOpen,
   onToggle,
   onClose,
@@ -288,3 +288,5 @@ export const SidebarAdmin = ({
     </>
   );
 };
+
+export default SidebarAdmin;

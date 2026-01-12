@@ -14,7 +14,7 @@ import {
   XCircle,
 } from "lucide-react";
 
-import { AddButton } from "@/components/common/Button/AddButton";
+import AddButton from "@/components/common/Button/AddButton";
 import type { StatusAkun, JenisKelamin } from "@/types/OpsiTypes/Option";
 import { useNavigate } from "react-router";
 import type { TingkatKelasOption } from "@/types/DataMaster/Kelas";
@@ -90,7 +90,7 @@ function useDebouncedValue<T>(value: T, delayMs = 300) {
 }
 
 /** ===== Component ===== */
-export const AkunSiswaTables: React.FC = () => {
+const AkunSiswaTables: React.FC = () => {
   const navigate = useNavigate();
 
   const [dropdownAksiTerbuka, setDropdownAksiTerbuka] = useState(false);
@@ -622,3 +622,5 @@ export const AkunSiswaTables: React.FC = () => {
     </div>
   );
 };
+
+export default AkunSiswaTables;

@@ -19,7 +19,7 @@ type ImageUploadProps = {
   onClick?: () => void;
 };
 
-export const ImageUpload = forwardRef<HTMLInputElement, ImageUploadProps>(
+const ImageUpload = forwardRef<HTMLInputElement, ImageUploadProps>(
   (
     {
       sectionTitle = "Gambar",
@@ -117,3 +117,5 @@ export const ImageUpload = forwardRef<HTMLInputElement, ImageUploadProps>(
     </>
   );
 });
+
+export default ImageUpload;

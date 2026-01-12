@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router";
 
-import { AddButton } from "@/components/common/Button/AddButton";
+import AddButton from "@/components/common/Button/AddButton";
 import type { RuangUjianRow } from "@/types/DataMaster/RuangUjian";
 import { getRuangUjian } from "@/services/Api/features-api/DataMaster/ruang-ujian.service";
 import { paths } from "@/routes/paths";
@@ -23,7 +23,7 @@ function useDebouncedValue<T>(value: T, delayMs = 300) {
   return debounced;
 }
 
-export const RuangUjianTables: React.FC = () => {
+const RuangUjianTables: React.FC = () => {
   const navigate = useNavigate();
 
   const [dropdownAksiTerbuka, setDropdownAksiTerbuka] = useState(false);
@@ -324,3 +324,5 @@ export const RuangUjianTables: React.FC = () => {
     </div>
   );
 };
+
+export default RuangUjianTables;

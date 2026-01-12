@@ -39,7 +39,7 @@ const labelBase = "text-xs font-medium text-slate-600";
 const sectionTitle = "text-sm font-semibold text-slate-800";
 const helperText = "text-xs text-slate-500";
 
-export const EditAkunGuruForm= () => {
+const EditAkunGuruForm= () => {
   const [values, setValues] =
     useState<TeacherEditFormValues>(initialValues);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -549,3 +549,5 @@ export const EditAkunGuruForm= () => {
   );
 }
 
+
+export default EditAkunGuruForm;

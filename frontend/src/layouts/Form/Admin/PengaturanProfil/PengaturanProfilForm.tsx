@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 
-import { ImageUpload } from "@/components/features/ImageUpload/ImageUpload";
-import { InputField } from "@/components/common/Input/InputField";
+import ImageUpload from "@/components/features/ImageUpload/ImageUpload";
+import InputField from "@/components/common/Input/InputField";
 
 import type { ProfilSekolahFormValues } from "@/types/ProfilSekolah/ProfilSekolah";
 
@@ -22,7 +22,7 @@ const initialValues: ProfilSekolahFormValues = {
 const sectionTitle = "text-sm font-semibold text-slate-800";
 const helperText = "text-xs text-slate-500";
 
-export const PengaturanProfilForm = () => {
+const PengaturanProfilForm = () => {
   const [values, setValues] = useState<ProfilSekolahFormValues>(initialValues);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [logoUrl, setLogoUrl] = useState<string>("");
@@ -337,3 +337,5 @@ export const PengaturanProfilForm = () => {
     </div>
   );
 };
+
+export default PengaturanProfilForm;

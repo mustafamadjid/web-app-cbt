@@ -1,5 +1,5 @@
 
-import { AkunSiswaTables } from "@/components/features/tables/AkunSiswaTables/AkunSiswaTables";
+import AkunSiswaTables from "@/components/features/tables/AkunSiswaTables/AkunSiswaTables";
 
 
 export const dummyHeaderUser = {

@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router";
-import { LoginForm } from "../../layouts/Form/Auth/LoginForm";
+import LoginForm from "../../layouts/Form/Auth/LoginForm";
 
-export const LoginPage = () => {
+const LoginPage = () => {
   const navigate = useNavigate();
 
   return (
@@ -43,3 +43,5 @@ export const LoginPage = () => {
     </>
   );
 };
+
+export default LoginPage;

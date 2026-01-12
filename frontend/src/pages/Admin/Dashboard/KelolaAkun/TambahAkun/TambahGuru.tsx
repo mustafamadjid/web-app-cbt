@@ -1,6 +1,6 @@
-import { AkunGuruForm } from "@/layouts/Form/Admin/KelolaAkun/AkunGuruForm";
+import AkunGuruForm from "@/layouts/Form/Admin/KelolaAkun/AkunGuruForm";
 
-export const TambahGuru = () => {
+const TambahGuru = () => {
     return (
       <>
         <div className="p-0">
@@ -12,3 +12,5 @@ export const TambahGuru = () => {
       </>
     );
 }
+
+export default TambahGuru;

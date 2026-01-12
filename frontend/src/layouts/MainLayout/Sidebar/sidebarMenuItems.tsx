@@ -1,7 +1,7 @@
 import { paths } from "@/routes/paths";
 import type { SidebarMenuItem } from "../../../types/Sidebar/SidebarMenu";
 
-import { SvgIcons } from "@/assets/SvgIcons/svgIcons";
+import SvgIcons from "@/assets/SvgIcons/svgIcons";
 
 export const mainMenuItems: SidebarMenuItem[] = [
   {

@@ -1,6 +1,6 @@
 
 
-import { BoxBankSoal } from "@/components/features/BankSoal/BoxBankSoal";
+import BoxBankSoal from "@/components/features/BankSoal/BoxBankSoal";
 
 import type { BankSoalItem } from "@/types/DataMaster/BankSoal";
 
@@ -16,7 +16,7 @@ type BankSoalLayoutProps = {
   className?: string;
 };
 
-export const BankSoalLayout: React.FC<BankSoalLayoutProps> = ({
+const BankSoalLayout: React.FC<BankSoalLayoutProps> = ({
   items,
   onPreview,
   onKelola,
@@ -84,3 +84,5 @@ export const BankSoalLayout: React.FC<BankSoalLayoutProps> = ({
     </div>
   );
 };
+
+export default BankSoalLayout;

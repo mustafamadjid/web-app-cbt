@@ -1,6 +1,6 @@
-import { TambahBankSoalForm } from "@/layouts/Form/Admin/BankSoal/TambahBankSoal";
+import TambahBankSoalForm from "@/layouts/Form/Admin/BankSoal/TambahBankSoal";
 
-export const TambahBankSoal = () => {
+const TambahBankSoal = () => {
     return (
         <>
         <div>
@@ -9,3 +9,5 @@ export const TambahBankSoal = () => {
         </>
     );
 }
+
+export default TambahBankSoal;

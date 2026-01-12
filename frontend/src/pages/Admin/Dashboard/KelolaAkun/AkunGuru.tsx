@@ -1,7 +1,7 @@
-import { AkunGuruTables } from "@/components/features/tables/AkunGuruTables/AkunGuruTables";
+import AkunGuruTables from "@/components/features/tables/AkunGuruTables/AkunGuruTables";
 
 
-export const KelolaAkunGuru = () => {
+const KelolaAkunGuru = () => {
 
   return (
     <>
@@ -11,3 +11,5 @@ export const KelolaAkunGuru = () => {
     </>
   );
 };
+
+export default KelolaAkunGuru;

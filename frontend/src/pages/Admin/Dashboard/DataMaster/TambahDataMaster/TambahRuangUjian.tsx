@@ -1,9 +1,11 @@
-import { DataRuangForm } from "@/layouts/Form/Admin/DataMaster/DataRuangForm";
+import DataRuangForm from "@/layouts/Form/Admin/DataMaster/DataRuangForm";
 
-export const TambahRuang = () => {
+const TambahRuang = () => {
     return (
         <>
            <DataRuangForm/>
         </>
     );
 }
+
+export default TambahRuang;

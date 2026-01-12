@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 
-import { InputField } from "@/components/common/Input/InputField";
+import InputField from "@/components/common/Input/InputField";
 
 import type {
   BankSoalOption,
@@ -55,7 +55,7 @@ const selectBaseClass =
   "w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-[#397e50] focus:ring-2 focus:ring-[#397e50] disabled:bg-slate-50 disabled:text-slate-500";
 
 
-export const BuatUjianForm = () => {
+const BuatUjianForm = () => {
   const [values, setValues] = useState<BuatUjianFormValues>(initialValues);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -874,3 +874,5 @@ export const BuatUjianForm = () => {
     </div>
   );
 };
+
+export default BuatUjianForm;

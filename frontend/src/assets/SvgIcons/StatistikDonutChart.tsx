@@ -10,7 +10,7 @@ type StatistikDonutChartProps = {
   className?: string;
 };
 
-export const StatistikDonutChart = ({
+const StatistikDonutChart = ({
   size,
   stroke,
   trackColor,
@@ -62,3 +62,5 @@ export const StatistikDonutChart = ({
     </svg>
   );
 };
+
+export default StatistikDonutChart;

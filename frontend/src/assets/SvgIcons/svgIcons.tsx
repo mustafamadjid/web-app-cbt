@@ -1,4 +1,4 @@
-export const SvgIcons = {
+const SvgIcons = {
   dashboard: (className: string) => (
     <svg
       className={className}
@@ -278,3 +278,5 @@ export const SvgIcons = {
     </svg>
   ),
 } as const;
+
+export default SvgIcons;

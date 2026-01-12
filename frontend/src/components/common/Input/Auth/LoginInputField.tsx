@@ -13,7 +13,7 @@ type LoginInputFieldProps = {
   required?: boolean;
 };
 
-export const LoginInputField = ({
+const LoginInputField = ({
   id,
   label,
   type = "text",
@@ -65,3 +65,5 @@ export const LoginInputField = ({
     </div>
   );
 };
+
+export default LoginInputField;

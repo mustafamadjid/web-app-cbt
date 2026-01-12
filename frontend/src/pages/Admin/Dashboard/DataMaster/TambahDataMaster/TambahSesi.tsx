@@ -1,9 +1,11 @@
-import { DataSesiForm } from "@/layouts/Form/Admin/DataMaster/DataSesiForm";
+import DataSesiForm from "@/layouts/Form/Admin/DataMaster/DataSesiForm";
 
-export const TambahSesi = () => {
+const TambahSesi = () => {
     return (
         <>
            <DataSesiForm/>
         </>
     );
 }
+
+export default TambahSesi;

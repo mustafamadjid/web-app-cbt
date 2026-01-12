@@ -9,7 +9,7 @@ type SearchBarProps = {
     onChange: (value: string) => void;   
 }
 
-export const SearchBar = ({value, label = "Cari", onChange}: SearchBarProps)=>{
+const SearchBar = ({value, label = "Cari", onChange}: SearchBarProps)=>{
     return (
       <>
         <div className="relative">
@@ -40,3 +40,5 @@ export const SearchBar = ({value, label = "Cari", onChange}: SearchBarProps)=>{
       </>
     );
 }
+
+export default SearchBar;

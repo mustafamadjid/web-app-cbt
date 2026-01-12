@@ -28,7 +28,7 @@ type BoxJadwalUjianProps = JadwalUjianItem & {
   linkJadwal?: string;
 };
 
-export const BoxJadwalUjian = ({
+const BoxJadwalUjian = ({
   nama_ujian,
   pengawas_ujian,
   tgl_ujian,
@@ -118,3 +118,5 @@ export const BoxJadwalUjian = ({
     </Link>
   );
 };
+
+export default BoxJadwalUjian;

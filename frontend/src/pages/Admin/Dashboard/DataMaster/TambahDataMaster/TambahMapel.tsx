@@ -1,9 +1,11 @@
-import { DataMapelForm } from "@/layouts/Form/Admin/DataMaster/DataMapelForm";
+import DataMapelForm from "@/layouts/Form/Admin/DataMaster/DataMapelForm";
 
-export const TambahMataPelajaran = () => {
+const TambahMataPelajaran = () => {
     return (
         <>
         <DataMapelForm/>
         </>
     )
 };
+
+export default TambahMataPelajaran;

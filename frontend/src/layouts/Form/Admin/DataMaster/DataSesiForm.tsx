@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import { InputField } from "@/components/common/Input/InputField";
+import InputField from "@/components/common/Input/InputField";
 
 import type { SesiFormValues } from "@/types/DataMaster/Sesi";
 
@@ -14,7 +14,7 @@ const initialValues: SesiFormValues = {
 const sectionTitle = "text-sm font-semibold text-slate-800";
 const helperText = "text-xs text-slate-500";
 
-export const DataSesiForm = () => {
+const DataSesiForm = () => {
   const [values, setValues] = useState<SesiFormValues>(initialValues);
   const [touched, setTouched] = useState<Record<keyof SesiFormValues, boolean>>(
     {
@@ -168,3 +168,5 @@ export const DataSesiForm = () => {
     </div>
   );
 };
+
+export default DataSesiForm;
