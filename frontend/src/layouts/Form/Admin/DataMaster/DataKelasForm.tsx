@@ -7,6 +7,13 @@ import { submitKelasResponse } from "@/services/Api/features-api/DataMaster/kela
 import { ApiError } from "@/services/Api/api";
 
 import { createSetField } from "@/helper/setField/setField";
+import {
+  createValidator,
+  integerNumber,
+  minNumber,
+  requiredString,
+  requiredValue,
+} from "@/helper/validate/validateForm";
 
 const initialValues: KelasFormValues = {
   tingkat_kelas: "",
@@ -31,20 +38,14 @@ const DataKelasForm = () => {
     setTouched((prev) => ({ ...prev, [name]: true }));
   };
 
-  const validate = (v: KelasFormValues) => {
-    const errors: Partial<Record<keyof KelasFormValues, string>> = {};
-
-    if (v.tingkat_kelas === "")
-      errors.tingkat_kelas = "Tingkat kelas wajib diisi.";
-    else if (!Number.isInteger(v.tingkat_kelas))
-      errors.tingkat_kelas = "Tingkat kelas harus bilangan bulat.";
-    else if (v.tingkat_kelas < 1)
-      errors.tingkat_kelas = "Tingkat kelas tidak valid.";
-
-    if (!v.nama_kelas.trim()) errors.nama_kelas = "Nama kelas wajib diisi.";
-
-    return errors;
-  };
+  const validate = createValidator<KelasFormValues>({
+    tingkat_kelas: [
+      requiredValue("Tingkat kelas wajib diisi."),
+      integerNumber("Tingkat kelas harus bilangan bulat."),
+      minNumber(1, "Tingkat kelas tidak valid."),
+    ],
+    nama_kelas: [requiredString("Nama kelas wajib diisi.")],
+  });
 
   const errors = validate(values);
   const hasError = (name: keyof KelasFormValues) =>

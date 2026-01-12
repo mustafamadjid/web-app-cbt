@@ -13,6 +13,15 @@ import { ApiError } from "@/services/Api/api";
 import { getTingkatKelasOptions } from "@/services/Api/features-api/DataMaster/kelas.service";
 
 import { createSetField } from "@/helper/setField/setField";
+import {
+  createValidator,
+  fileMaxSize,
+  fileTypeStartsWith,
+  matchesPattern,
+  minLength,
+  requiredString,
+  requiredValue,
+} from "@/helper/validate/validateForm";
 
 const initialValues: StudentRegisterFormValues = {
   namaLengkap: "",
@@ -79,58 +88,55 @@ const AkunSiswaForm = () => {
     setTouched((prev) => ({ ...prev, [name]: true }));
   };
 
-  const validate = (v: StudentRegisterFormValues) => {
-    const errors: Partial<Record<keyof StudentRegisterFormValues, string>> = {};
-
-    if (!v.namaLengkap.trim()) errors.namaLengkap = "Nama lengkap wajib diisi.";
-    if (!v.username.trim()) errors.username = "Username wajib diisi.";
-    if (!v.password.trim()) errors.password = "Password wajib diisi.";
-    if (v.password && v.password.length < 8)
-      errors.password = "Password minimal 8 karakter.";
-
-    if (!v.jenisKelamin) errors.jenisKelamin = "Jenis kelamin wajib dipilih.";
-
-    if (v.email && v.email.trim() && !/^\S+@\S+\.\S+$/.test(v.email.trim())) {
-      errors.email = "Format email tidak valid.";
-    }
-
-    if (v.noHp && v.noHp.trim()) {
-      const cleaned = v.noHp.trim().replace(/\s+/g, "");
-      if (!/^[0-9+]{8,16}$/.test(cleaned)) {
-        errors.noHp = "No HP tidak valid (gunakan angka, 8-16 digit).";
-      }
-    }
-
-    if (!v.noAbsen.trim()) {
-      errors.noAbsen = "No absen wajib diisi.";
-    } else if (!/^\d+$/.test(v.noAbsen.trim())) {
-      errors.noAbsen = "No absen harus berupa angka.";
-    } else if (parseInt(v.noAbsen.trim(), 10) <= 0) {
-      errors.noAbsen = "No absen minimal 1.";
-    }
-
-    if (!v.angkatan.trim()) {
-      errors.angkatan = "Angkatan wajib diisi.";
-    } else if (!/^\d{4}$/.test(v.angkatan.trim())) {
-      errors.angkatan = "Angkatan harus 4 digit (contoh: 2025).";
-    }
-
-    if (!v.tempatLahir.trim()) errors.tempatLahir = "Tempat lahir wajib diisi.";
-    if (!v.tanggalLahir.trim())
-      errors.tanggalLahir = "Tanggal lahir wajib diisi.";
-
-    if (v.kelasId === "") errors.kelasId = "Tingkat kelas wajib dipilih.";
-
-    if (v.fotoProfil) {
-      const maxBytes = 2 * 1024 * 1024;
-      if (v.fotoProfil.size > maxBytes)
-        errors.fotoProfil = "Ukuran foto maksimal 2MB.";
-      if (!v.fotoProfil.type.startsWith("image/"))
-        errors.fotoProfil = "File harus berupa gambar.";
-    }
-
-    return errors;
-  };
+  const validate = createValidator<StudentRegisterFormValues>({
+    namaLengkap: [requiredString("Nama lengkap wajib diisi.")],
+    username: [requiredString("Username wajib diisi.")],
+    password: [
+      requiredString("Password wajib diisi."),
+      minLength(8, "Password minimal 8 karakter."),
+    ],
+    jenisKelamin: [requiredValue("Jenis kelamin wajib dipilih.")],
+    email: [
+      (value) => {
+        if (!value || !value.trim()) return null;
+        return /^\S+@\S+\.\S+$/.test(value.trim())
+          ? null
+          : "Format email tidak valid.";
+      },
+    ],
+    noHp: [
+      (value) => {
+        if (!value || !value.trim()) return null;
+        const cleaned = value.trim().replace(/\s+/g, "");
+        return /^[0-9+]{8,16}$/.test(cleaned)
+          ? null
+          : "No HP tidak valid (gunakan angka, 8-16 digit).";
+      },
+    ],
+    noAbsen: [
+      requiredString("No absen wajib diisi."),
+      matchesPattern(/^\d+$/, "No absen harus berupa angka.", { trim: true }),
+      (value) => {
+        if (!value.trim() || !/^\d+$/.test(value.trim())) return null;
+        return parseInt(value.trim(), 10) <= 0
+          ? "No absen minimal 1."
+          : null;
+      },
+    ],
+    angkatan: [
+      requiredString("Angkatan wajib diisi."),
+      matchesPattern(/^\d{4}$/, "Angkatan harus 4 digit (contoh: 2025).", {
+        trim: true,
+      }),
+    ],
+    tempatLahir: [requiredString("Tempat lahir wajib diisi.")],
+    tanggalLahir: [requiredString("Tanggal lahir wajib diisi.")],
+    kelasId: [requiredValue("Tingkat kelas wajib dipilih.")],
+    fotoProfil: [
+      fileMaxSize(2 * 1024 * 1024, "Ukuran foto maksimal 2MB."),
+      fileTypeStartsWith("image/", "File harus berupa gambar."),
+    ],
+  });
 
   const errors = validate(values);
   const hasError = (name: keyof StudentRegisterFormValues) =>

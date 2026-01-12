@@ -7,6 +7,11 @@ import type { TingkatKelasOption } from "@/types/DataMaster/Kelas";
 import { getTingkatKelasOptions } from "@/services/Api/features-api/DataMaster/kelas.service";
 
 import { createSetField } from "@/helper/setField/setField";
+import {
+  createValidator,
+  requiredString,
+  requiredValue,
+} from "@/helper/validate/validateForm";
 
 const initialValues: MataPelajaranFormValues = {
   kelasId: "",
@@ -43,18 +48,12 @@ const DataMapelForm = () => {
     setTouched((prev) => ({ ...prev, [name]: true }));
   };
 
-  const validate = (v: MataPelajaranFormValues) => {
-    const errors: Partial<Record<keyof MataPelajaranFormValues, string>> = {};
-
-    if (v.kelasId === "") errors.kelasId = "Tingkat kelas wajib dipilih.";
-    if (!v.kodeMapel.trim()) errors.kodeMapel = "Kode mapel wajib diisi.";
-    if (!v.namaMapel.trim())
-      errors.namaMapel = "Nama mata pelajaran wajib diisi.";
-    if (!v.deskripsiMapel.trim())
-      errors.deskripsiMapel = "Deskripsi mata pelajaran wajib diisi.";
-
-    return errors;
-  };
+  const validate = createValidator<MataPelajaranFormValues>({
+    kelasId: [requiredValue("Tingkat kelas wajib dipilih.")],
+    kodeMapel: [requiredString("Kode mapel wajib diisi.")],
+    namaMapel: [requiredString("Nama mata pelajaran wajib diisi.")],
+    deskripsiMapel: [requiredString("Deskripsi mata pelajaran wajib diisi.")],
+  });
 
   const errors = validate(values);
   const hasError = (name: keyof MataPelajaranFormValues) =>

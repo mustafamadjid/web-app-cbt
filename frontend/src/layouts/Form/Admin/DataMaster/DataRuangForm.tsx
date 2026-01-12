@@ -5,6 +5,7 @@ import InputField from "@/components/common/Input/InputField";
 import type { RuangUjianFormValues } from "@/types/DataMaster/RuangUjian";
 
 import { createSetField } from "@/helper/setField/setField";
+import { createValidator, requiredString } from "@/helper/validate/validateForm";
 
 const initialValues: RuangUjianFormValues = {
   nama_ruangan_ujian: "",
@@ -29,16 +30,17 @@ const DataRuangForm = () => {
 
   const normalizeNama = (s: string) => s.trim().replace(/\s+/g, " ");
 
-  const validate = (v: RuangUjianFormValues) => {
-    const errors: Partial<Record<keyof RuangUjianFormValues, string>> = {};
-
-    if (!v.nama_ruangan_ujian.trim())
-      errors.nama_ruangan_ujian = "Nama ruangan ujian wajib diisi.";
-    else if (normalizeNama(v.nama_ruangan_ujian).length < 2)
-      errors.nama_ruangan_ujian = "Nama ruangan ujian terlalu pendek.";
-
-    return errors;
-  };
+  const validate = createValidator<RuangUjianFormValues>({
+    nama_ruangan_ujian: [
+      requiredString("Nama ruangan ujian wajib diisi."),
+      (value) => {
+        if (!value.trim()) return null;
+        return normalizeNama(value).length < 2
+          ? "Nama ruangan ujian terlalu pendek."
+          : null;
+      },
+    ],
+  });
 
   const errors = validate(values);
   const hasError = (name: keyof RuangUjianFormValues) =>

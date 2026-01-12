@@ -31,6 +31,11 @@ import { getTingkatKelasById } from "@/services/Api/features-api/DataMaster/kela
 // helper
 import { createSetField } from "@/helper/setField/setField";
 import { calculateDuration } from "@/helper/CalculateDuration/calculateDuration";
+import {
+  createValidator,
+  requiredString,
+  requiredValue,
+} from "@/helper/validate/validateForm";
 import type { RuangUjianRow } from "@/types/DataMaster/RuangUjian";
 
 const initialValues: BuatUjianFormValues = {
@@ -253,34 +258,33 @@ const BuatUjianForm = () => {
     );
   }, [siswaPreview, values.kelas_scope, selectedKelasDetail]);
 
-  const validate = (v: BuatUjianFormValues) => {
-    const errors: Partial<Record<keyof BuatUjianFormValues, string>> = {};
-
-    if (!v.nama_ujian.trim()) errors.nama_ujian = "Nama ujian wajib diisi.";
-    if (!v.deskripsi_ujian.trim())
-      errors.deskripsi_ujian = "Deskripsi ujian wajib diisi.";
-    if (!v.tipe_ujian) errors.tipe_ujian = "Tipe ujian wajib dipilih.";
-    if (v.kelas_id === "") errors.kelas_id = "Tingkat kelas wajib dipilih.";
-    if (!v.kelas_scope)
-      errors.kelas_scope = "Cakupan kelas wajib dipilih.";
-    if (v.kelas_scope === "SPESIFIK" && v.kelas_detail_id === "") {
-      errors.kelas_detail_id = "Nama kelas wajib dipilih.";
-    }
-    if (!v.bank_soal_id) errors.bank_soal_id = "Bank soal wajib dipilih.";
-    if (!v.tanggal_ujian) errors.tanggal_ujian = "Tanggal ujian wajib diisi.";
-    if (!v.waktu_mulai) errors.waktu_mulai = "Waktu mulai wajib diisi.";
-    if (!v.waktu_selesai) errors.waktu_selesai = "Waktu selesai wajib diisi.";
-    if (v.waktu_mulai && v.waktu_selesai && v.durasi_menit <= 0) {
-      errors.waktu_selesai = "Waktu selesai harus setelah waktu mulai.";
-    }
-    if (!v.ruang_ujian_id) errors.ruang_ujian_id = "Ruang ujian wajib dipilih.";
-    if (!v.guru_pengawas_id)
-      errors.guru_pengawas_id = "Guru pengawas wajib dipilih.";
-    if (!v.sesi_id) errors.sesi_id = "Sesi ujian wajib dipilih.";
-    if (!v.token_ujian.trim()) errors.token_ujian = "Token ujian wajib diisi.";
-
-    return errors;
-  };
+  const validate = createValidator<BuatUjianFormValues>({
+    nama_ujian: [requiredString("Nama ujian wajib diisi.")],
+    deskripsi_ujian: [requiredString("Deskripsi ujian wajib diisi.")],
+    tipe_ujian: [requiredValue("Tipe ujian wajib dipilih.")],
+    kelas_id: [requiredValue("Tingkat kelas wajib dipilih.")],
+    kelas_scope: [requiredValue("Cakupan kelas wajib dipilih.")],
+    kelas_detail_id: [
+      (value, values) =>
+        values.kelas_scope === "SPESIFIK" && value === ""
+          ? "Nama kelas wajib dipilih."
+          : null,
+    ],
+    bank_soal_id: [requiredValue("Bank soal wajib dipilih.")],
+    tanggal_ujian: [requiredString("Tanggal ujian wajib diisi.")],
+    waktu_mulai: [requiredString("Waktu mulai wajib diisi.")],
+    waktu_selesai: [
+      requiredString("Waktu selesai wajib diisi."),
+      (_, values) =>
+        values.waktu_mulai && values.waktu_selesai && values.durasi_menit <= 0
+          ? "Waktu selesai harus setelah waktu mulai."
+          : null,
+    ],
+    ruang_ujian_id: [requiredValue("Ruang ujian wajib dipilih.")],
+    guru_pengawas_id: [requiredValue("Guru pengawas wajib dipilih.")],
+    sesi_id: [requiredValue("Sesi ujian wajib dipilih.")],
+    token_ujian: [requiredString("Token ujian wajib diisi.")],
+  });
 
   const errors = validate(values);
   const hasError = (name: keyof BuatUjianFormValues) =>
