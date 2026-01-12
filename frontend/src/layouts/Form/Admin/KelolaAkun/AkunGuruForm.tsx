@@ -11,6 +11,15 @@ import { useNavigate } from "react-router";
 import { paths } from "@/routes/paths";
 
 import { createSetField } from "@/helper/setField/setField";
+import {
+  createValidator,
+  emailFormat,
+  fileMaxSize,
+  fileTypeStartsWith,
+  minLength,
+  requiredString,
+  requiredValue,
+} from "@/helper/validate/validateForm";
 
 const initialValues: TeacherRegisterFormValues = {
   namaLengkap: "",
@@ -58,34 +67,27 @@ const AkunGuruForm = () => {
     setTouched((prev) => ({ ...prev, [name]: true }));
   };
 
-  const validate = (v: TeacherRegisterFormValues) => {
-    const errors: Partial<Record<keyof TeacherRegisterFormValues, string>> = {};
-
-    if (!v.namaLengkap.trim()) errors.namaLengkap = "Nama lengkap wajib diisi.";
-    if (!v.email.trim()) errors.email = "Email wajib diisi.";
-    if (v.email && !/^\S+@\S+\.\S+$/.test(v.email))
-      errors.email = "Format email tidak valid.";
-    if (!v.username.trim()) errors.username = "Username wajib diisi.";
-    if (!v.password.trim()) errors.password = "Password wajib diisi.";
-    if (v.password && v.password.length < 8)
-      errors.password = "Password minimal 8 karakter.";
-    if (!v.noHp.trim()) errors.noHp = "Nomor HP wajib diisi.";
-    if (!v.nip.trim()) errors.nip = "NIP wajib diisi.";
-    if (!v.jabatan.trim()) errors.jabatan = "Jabatan wajib diisi.";
-    if (!v.bidangStudi.trim()) errors.bidangStudi = "Bidang studi wajib diisi.";
-
-    if (!v.jenisKelamin) errors.jenisKelamin = "Jenis kelamin wajib dipilih.";
-
-    if (v.fotoProfil) {
-      const maxBytes = 2 * 1024 * 1024;
-      if (v.fotoProfil.size > maxBytes)
-        errors.fotoProfil = "Ukuran foto maksimal 2MB.";
-      if (!v.fotoProfil.type.startsWith("image/"))
-        errors.fotoProfil = "File harus berupa gambar.";
-    }
-
-    return errors;
-  };
+  const validate = createValidator<TeacherRegisterFormValues>({
+    namaLengkap: [requiredString("Nama lengkap wajib diisi.")],
+    email: [
+      requiredString("Email wajib diisi."),
+      emailFormat("Format email tidak valid."),
+    ],
+    username: [requiredString("Username wajib diisi.")],
+    password: [
+      requiredString("Password wajib diisi."),
+      minLength(8, "Password minimal 8 karakter."),
+    ],
+    noHp: [requiredString("Nomor HP wajib diisi.")],
+    nip: [requiredString("NIP wajib diisi.")],
+    jabatan: [requiredString("Jabatan wajib diisi.")],
+    bidangStudi: [requiredString("Bidang studi wajib diisi.")],
+    jenisKelamin: [requiredValue("Jenis kelamin wajib dipilih.")],
+    fotoProfil: [
+      fileMaxSize(2 * 1024 * 1024, "Ukuran foto maksimal 2MB."),
+      fileTypeStartsWith("image/", "File harus berupa gambar."),
+    ],
+  });
 
   const errors = validate(values);
   const hasError = (name: keyof TeacherRegisterFormValues) =>

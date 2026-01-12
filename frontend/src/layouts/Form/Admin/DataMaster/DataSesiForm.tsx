@@ -5,6 +5,7 @@ import InputField from "@/components/common/Input/InputField";
 import type { SesiFormValues } from "@/types/DataMaster/Sesi";
 
 import { createSetField } from "@/helper/setField/setField";
+import { createValidator, requiredString } from "@/helper/validate/validateForm";
 
 const initialValues: SesiFormValues = {
   kode_sesi: "",
@@ -31,15 +32,10 @@ const DataSesiForm = () => {
 
   const normalizeText = (text: string) => text.trim().replace(/\s+/g, " ");
 
-  const validate = (v: SesiFormValues) => {
-    const errors: Partial<Record<keyof SesiFormValues, string>> = {};
-
-    if (!v.kode_sesi.trim()) errors.kode_sesi = "Kode sesi wajib diisi.";
-
-    if (!v.nama_sesi.trim()) errors.nama_sesi = "Nama sesi wajib diisi.";
-
-    return errors;
-  };
+  const validate = createValidator<SesiFormValues>({
+    kode_sesi: [requiredString("Kode sesi wajib diisi.")],
+    nama_sesi: [requiredString("Nama sesi wajib diisi.")],
+  });
 
   const errors = validate(values);
   const hasError = (name: keyof SesiFormValues) =>

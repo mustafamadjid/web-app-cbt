@@ -6,6 +6,13 @@ import InputField from "@/components/common/Input/InputField";
 import type { ProfilSekolahFormValues } from "@/types/ProfilSekolah/ProfilSekolah";
 
 import { createSetField } from "@/helper/setField/setField";
+import {
+  createValidator,
+  emailFormat,
+  fileMaxSize,
+  fileTypeStartsWith,
+  requiredString,
+} from "@/helper/validate/validateForm";
 
 const initialValues: ProfilSekolahFormValues = {
   nama_sekolah: "",
@@ -49,34 +56,23 @@ const PengaturanProfilForm = () => {
     setTouched((prev) => ({ ...prev, [name]: true }));
   };
 
-  const validate = (v: ProfilSekolahFormValues) => {
-    const errors: Partial<Record<keyof ProfilSekolahFormValues, string>> = {};
-
-    if (!v.nama_sekolah.trim())
-      errors.nama_sekolah = "Nama sekolah wajib diisi.";
-    if (!v.alamat_sekolah.trim())
-      errors.alamat_sekolah = "Alamat sekolah wajib diisi.";
-    if (!v.no_telp_sekolah.trim())
-      errors.no_telp_sekolah = "Nomor telepon sekolah wajib diisi.";
-    if (!v.email_sekolah.trim())
-      errors.email_sekolah = "Email sekolah wajib diisi.";
-    if (v.email_sekolah && !/^\S+@\S+\.\S+$/.test(v.email_sekolah))
-      errors.email_sekolah = "Format email tidak valid.";
-    if (!v.kepala_sekolah.trim())
-      errors.kepala_sekolah = "Nama kepala sekolah wajib diisi.";
-    if (!v.wakil_kepala_sekolah.trim())
-      errors.wakil_kepala_sekolah = "Nama wakil kepala sekolah wajib diisi.";
-
-    if (v.logo_sekolah) {
-      const maxBytes = 2 * 1024 * 1024;
-      if (v.logo_sekolah.size > maxBytes)
-        errors.logo_sekolah = "Ukuran logo maksimal 2MB.";
-      if (!v.logo_sekolah.type.startsWith("image/"))
-        errors.logo_sekolah = "File harus berupa gambar.";
-    }
-
-    return errors;
-  };
+  const validate = createValidator<ProfilSekolahFormValues>({
+    nama_sekolah: [requiredString("Nama sekolah wajib diisi.")],
+    alamat_sekolah: [requiredString("Alamat sekolah wajib diisi.")],
+    no_telp_sekolah: [requiredString("Nomor telepon sekolah wajib diisi.")],
+    email_sekolah: [
+      requiredString("Email sekolah wajib diisi."),
+      emailFormat("Format email tidak valid."),
+    ],
+    kepala_sekolah: [requiredString("Nama kepala sekolah wajib diisi.")],
+    wakil_kepala_sekolah: [
+      requiredString("Nama wakil kepala sekolah wajib diisi."),
+    ],
+    logo_sekolah: [
+      fileMaxSize(2 * 1024 * 1024, "Ukuran logo maksimal 2MB."),
+      fileTypeStartsWith("image/", "File harus berupa gambar."),
+    ],
+  });
 
   const errors = validate(values);
   const hasError = (name: keyof ProfilSekolahFormValues) =>
