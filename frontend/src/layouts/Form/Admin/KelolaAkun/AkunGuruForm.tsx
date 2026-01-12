@@ -22,6 +22,7 @@ import {
 } from "@/helper/validate/validateForm";
 
 const initialValues: TeacherRegisterFormValues = {
+  role:"guru",
   namaLengkap: "",
   email: "",
   username: "",
@@ -68,6 +69,7 @@ const AkunGuruForm = () => {
   };
 
   const validate = createValidator<TeacherRegisterFormValues>({
+    role:[requiredString("Role wajib diisi.")],
     namaLengkap: [requiredString("Nama lengkap wajib diisi.")],
     email: [
       requiredString("Email wajib diisi."),
@@ -87,6 +89,7 @@ const AkunGuruForm = () => {
       fileMaxSize(2 * 1024 * 1024, "Ukuran foto maksimal 2MB."),
       fileTypeStartsWith("image/", "File harus berupa gambar."),
     ],
+    
   });
 
   const errors = validate(values);
@@ -286,6 +289,36 @@ const AkunGuruForm = () => {
                 {hasError("jenisKelamin") && (
                   <p className="mt-1 text-xs text-rose-600">
                     {errors.jenisKelamin}
+                  </p>
+                )}
+              </div>
+
+              {/* Role */}
+              <div>
+                <label
+                  className="text-xs font-medium text-slate-600"
+                  htmlFor="jenisKelamin"
+                >
+                  Role Akun
+                </label>
+                <select
+                  id="role"
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-[#397e50] focus:ring-2 focus:ring-[#397e50] disabled:bg-slate-50 disabled:text-slate-500"
+
+                  value={values.role}
+                  onChange={(e) =>
+                    setField("role", e.target.value)
+                  }
+                  onBlur={() => onBlur("role")}
+                  required
+                >
+                  <option value="GURU">Guru</option>
+                  <option value="ADMIN">Admin</option>
+                  
+                </select>
+                {hasError("role") && (
+                  <p className="mt-1 text-xs text-rose-600">
+                    {errors.role}
                   </p>
                 )}
               </div>

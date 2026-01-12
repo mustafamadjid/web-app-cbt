@@ -1,7 +1,7 @@
 import type { StatusAkun,JenisKelamin } from "../OpsiTypes/Option";
 
 export type TeacherRegisterFormValues = {
-  role?:string
+  role:string
   namaLengkap: string;
   email: string;
   username: string;
@@ -14,5 +14,10 @@ export type TeacherRegisterFormValues = {
   bidangStudi: string;
   fotoProfil: File | null;
 };
+
+export type DataGuru = Omit<TeacherRegisterFormValues, "fotoProfil" | "password"> &{
+  id:number;
+  urlGambarProfil:string;
+}
 
 export type TeacherRegisterResponse = { id: number };

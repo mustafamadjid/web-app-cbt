@@ -50,11 +50,73 @@
 //   });
 // }
 
+
 import { api } from "../../api";
 import { buildFormData } from "@/helper/FormData/BuildFormData";
 
-import type { TeacherRegisterFormValues,TeacherRegisterResponse } from "@/types/KelolaAkun/AkunGuru";
+import type { DataGuru, TeacherRegisterFormValues,TeacherRegisterResponse } from "@/types/KelolaAkun/AkunGuru";
 import type { ApiEnvelope } from "../../api";
+import { useState } from "react";
+
+ // Data Dummy
+  export const daftarPengguna : DataGuru[] =[
+    {
+      id: 1,
+      namaLengkap: "Neil Sims",
+      email: "neil.sims@flowbite.com",
+      username: "neilsims",
+      noHp: "081234567890",
+      jenisKelamin: "LAKI_LAKI",
+      statusAkun: "aktif",
+      nip: "198701012010121001",
+      jabatan: "Guru Matematika",
+      bidangStudi: "Sains & Teknologi",
+      urlGambarProfil: "https://i.pravatar.cc/150?u=neil",
+      role: "ADMIN",
+    },
+    {
+      id: 2,
+      namaLengkap: "Bonnie Green",
+      email: "bonnie@flowbite.com",
+      username: "bonnieg",
+      noHp: "082233445566",
+      jenisKelamin: "PEREMPUAN",
+      statusAkun: "nonaktif",
+      nip: "199002022011112002",
+      jabatan: "Guru Bahasa Inggris",
+      bidangStudi: "Bahasa",
+      urlGambarProfil: "https://i.pravatar.cc/150?u=bonnie",
+      role: "GURU",
+    },
+    {
+      id: 3,
+      namaLengkap: "Jese Leos",
+      email: "jese@flowbite.com",
+      username: "jeseleos",
+      noHp: "085677889900",
+      jenisKelamin: "LAKI_LAKI",
+      statusAkun: "dibekukan",
+      nip: "199505052015051005",
+      jabatan: "Guru Olahraga",
+      bidangStudi: "PJOK",
+      urlGambarProfil: "https://i.pravatar.cc/150?u=jese",
+      role: "GURU",
+    },
+    {
+      id: 4,
+      namaLengkap: "Jese Leos",
+      email: "jese@flowbite.com",
+      username: "jeseleos",
+      noHp: "085677889900",
+      jenisKelamin: "LAKI_LAKI",
+      statusAkun: "dibekukan",
+      nip: "199505052015051005",
+      jabatan: "Guru Olahraga",
+      bidangStudi: "PJOK",
+      urlGambarProfil: "https://i.pravatar.cc/150?u=jese",
+      role: "ADMIN",
+    },
+  ];
 
 
 export async function submitTeacherRegister(values: TeacherRegisterFormValues) {
@@ -82,4 +144,8 @@ export async function submitTeacherRegister(values: TeacherRegisterFormValues) {
   );
 
   return res.data;
+}
+
+export async function GetAllGuru() {
+  
 }

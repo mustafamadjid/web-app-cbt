@@ -16,24 +16,9 @@ import {
 import AddButton from "@/components/common/Button/AddButton";
 import { useNavigate } from "react-router";
 
-import type { StatusAkun,JenisKelamin } from "@/types/OpsiTypes/Option";
+import type { StatusAkun} from "@/types/OpsiTypes/Option";
+import type { DataGuru } from "@/types/KelolaAkun/AkunGuru";
 import { paths } from "@/routes/paths";
-
-// --- Tipe Data (Sama seperti sebelumnya) ---
-
-type BarisPengguna = {
-  id: number;
-  namaLengkap: string;
-  email: string;
-  username: string;
-  nomorHp: string;
-  jenisKelamin: JenisKelamin;
-  statusAkun: StatusAkun;
-  nip: string;
-  jabatan: string;
-  bidangStudi: string;
-  urlGambarProfil: string;
-};
 
 // --- Helper Functions ---
 const getStatusBadge = (status: StatusAkun) => {
@@ -81,58 +66,62 @@ const AkunGuruTables: React.FC = () => {
   const [samarkanDataSensitif, setSamarkanDataSensitif] = useState(true);
 
   // Data Dummy
-  const [daftarPengguna] = useState<BarisPengguna[]>([
+  const [daftarPengguna] = useState<DataGuru[]>([
     {
       id: 1,
       namaLengkap: "Neil Sims",
       email: "neil.sims@flowbite.com",
       username: "neilsims",
-      nomorHp: "081234567890",
+      noHp: "081234567890",
       jenisKelamin: "LAKI_LAKI",
       statusAkun: "aktif",
       nip: "198701012010121001",
       jabatan: "Guru Matematika",
       bidangStudi: "Sains & Teknologi",
       urlGambarProfil: "https://i.pravatar.cc/150?u=neil",
+      role: "ADMIN",
     },
     {
       id: 2,
       namaLengkap: "Bonnie Green",
       email: "bonnie@flowbite.com",
       username: "bonnieg",
-      nomorHp: "082233445566",
+      noHp: "082233445566",
       jenisKelamin: "PEREMPUAN",
       statusAkun: "nonaktif",
       nip: "199002022011112002",
       jabatan: "Guru Bahasa Inggris",
       bidangStudi: "Bahasa",
       urlGambarProfil: "https://i.pravatar.cc/150?u=bonnie",
+      role: "GURU",
     },
     {
       id: 3,
       namaLengkap: "Jese Leos",
       email: "jese@flowbite.com",
       username: "jeseleos",
-      nomorHp: "085677889900",
+      noHp: "085677889900",
       jenisKelamin: "LAKI_LAKI",
       statusAkun: "dibekukan",
       nip: "199505052015051005",
       jabatan: "Guru Olahraga",
       bidangStudi: "PJOK",
       urlGambarProfil: "https://i.pravatar.cc/150?u=jese",
+      role: "GURU",
     },
     {
       id: 4,
       namaLengkap: "Jese Leos",
       email: "jese@flowbite.com",
       username: "jeseleos",
-      nomorHp: "085677889900",
+      noHp: "085677889900",
       jenisKelamin: "LAKI_LAKI",
       statusAkun: "dibekukan",
       nip: "199505052015051005",
       jabatan: "Guru Olahraga",
       bidangStudi: "PJOK",
       urlGambarProfil: "https://i.pravatar.cc/150?u=jese",
+      role: "ADMIN",
     },
   ]);
 
@@ -215,9 +204,7 @@ const AkunGuruTables: React.FC = () => {
           </button>
           <AddButton
             label="Tambah Akun Guru"
-            onClick={() =>
-              navigate(`${paths.dashboard.tambah_guru}`)
-            }
+            onClick={() => navigate(`${paths.dashboard.tambah_guru}`)}
           />
         </div>
       </div>
@@ -297,8 +284,12 @@ const AkunGuruTables: React.FC = () => {
                 <th scope="col" className="px-6 py-3 font-semibold">
                   Jabatan
                 </th>
+
                 <th scope="col" className="px-6 py-3 font-semibold">
                   Status
+                </th>
+                <th scope="col" className="px-6 py-3 font-semibold">
+                  Role Akun
                 </th>
                 <th scope="col" className="px-6 py-3 text-right font-semibold">
                   Aksi
@@ -351,8 +342,8 @@ const AkunGuruTables: React.FC = () => {
                         </span>
                         <span className="text-xs text-slate-500">
                           {samarkanDataSensitif
-                            ? samarkanNomorHp(p.nomorHp)
-                            : p.nomorHp}
+                            ? samarkanNomorHp(p.noHp)
+                            : p.noHp}
                         </span>
                       </div>
                     </td>
@@ -366,6 +357,11 @@ const AkunGuruTables: React.FC = () => {
                     </td>
                     <td className="px-6 py-4">
                       {getStatusBadge(p.statusAkun)}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                       <p>role</p>
+                      </div>
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
