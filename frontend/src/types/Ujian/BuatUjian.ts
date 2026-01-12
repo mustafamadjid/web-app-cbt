@@ -5,6 +5,8 @@ export type BuatUjianFormValues = {
   deskripsi_ujian: string;
   tipe_ujian: TipeUjian;
   kelas_id: number | "";
+  kelas_scope: "SEMUA" | "SPESIFIK";
+  kelas_detail_id: number | "";
   bank_soal_id: number | "";
   jumlah_soal: number;
   tanggal_ujian: string;
