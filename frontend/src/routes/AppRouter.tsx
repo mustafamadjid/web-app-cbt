@@ -30,7 +30,7 @@ import TambahBankSoal from "@/pages/Admin/Dashboard/BankSoal/TambahBankSoal";
 
 import BuatUjian from "@/pages/Admin/Dashboard/Ujian/BuatUjian";
 import JadwalUjian from "@/pages/Admin/Dashboard/Ujian/JadwalUjian";
-import DetailUjian from "@/pages/Admin/Dashboard/Ujian/DetailUjian";
+import DetailUjian from "@/pages/Admin/Dashboard/Ujian/DetailUjian/DetailUjian";
 
 import Cetak from "@/pages/Admin/Cetak/Cetak";
 
