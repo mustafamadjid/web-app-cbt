@@ -111,3 +111,20 @@ export const fileTypeStartsWith = (
   return (value) =>
     value && !value.type.startsWith(prefix) ? message : null;
 };
+
+export const fileDocxOnly = (
+  message: string
+): ValidationRule<File | null, Record<string, unknown>> => {
+  const DOCX_MIME =
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+
+  return (value) => {
+    if (!value) return null;
+
+    const nameOk = /\.docx$/i.test(value.name);
+    const typeOk = value.type === DOCX_MIME;
+
+    // Banyak kasus: type kosong, jadi fallback ke ekstensi
+    return typeOk || nameOk ? null : message;
+  };
+};

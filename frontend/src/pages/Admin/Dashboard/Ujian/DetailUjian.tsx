@@ -53,6 +53,9 @@ const statusColorMap: Record<string, string> = {
 };
 
 const DetailUjian = () => {
+  // TODO : Saat sudah integrasi dengan API, maka cukup panggil service detail ujian dengan param id
+  // TODO : Hanya cukup detail const [detail, setDetail] = useState<DetailUjianItem | null>(null);
+
   const params = useParams();
   const ujianId = Number(params.id);
 

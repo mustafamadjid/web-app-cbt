@@ -37,6 +37,7 @@ import Cetak from "@/pages/Admin/Cetak/Cetak";
 import AdminLayout from "@/layouts/MainLayout/AdminLayout/AdminLayout";
 
 import PengaturanProfil from "@/pages/Admin/Dashboard/Pengaturan/Pengaturan";
+import HasilUjian from "@/pages/Admin/Dashboard/Ujian/HasilUjian";
 
 export const router = createBrowserRouter([
   // Login Page
@@ -72,6 +73,7 @@ export const router = createBrowserRouter([
           { path: paths.dashboard.buat_ujian, element: <BuatUjian /> },
           { path: paths.dashboard.jadwal_ujian, element: <JadwalUjian /> },
           { path: paths.dashboard.detail_ujian, element: <DetailUjian /> },
+          {path:paths.dashboard.hasil_ujian, element: <HasilUjian />},
           { path: paths.dashboard.cetak, element: <Cetak /> },
         ],
       },

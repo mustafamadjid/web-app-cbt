@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 
 import InputField from "@/components/common/Input/InputField";
-import ImageUpload from "@/components/features/ImageUpload/ImageUpload";
+import ImageUpload from "@/components/features/Upload/ImageUpload";
 
 import type { JenisKelamin } from "@/types/OpsiTypes/Option";
 import type { StudentRegisterFormValues } from "@/types/KelolaAkun/AkunSiswa";

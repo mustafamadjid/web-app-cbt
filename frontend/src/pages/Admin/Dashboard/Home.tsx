@@ -1,4 +1,4 @@
-import React, {Suspense} from "react";
+
 
 // Widgets
 import StatistikWidget from "@/components/features/widget/Soal/StatistikWidget";
@@ -133,11 +133,11 @@ export const Home = () => {
   return (
     <div className="min-h-screen bg-[#ecf1ed]  pb-20">
       <div className="mx-auto max-w-[1920px] space-y-8 p-4 sm:p-6 lg:p-8">
-      
         {/* === TOP STATS (GRID 4 KOLOM) === */}
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {/* Card 1: Total User (Card Spesial) */}
-          <div className="h-full">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
+     
+          {/* Card 1: Total User (Dibuat Lebih Lebar) */}
+          <div className="h-full sm:col-span-2 lg:col-span-2">
             <TotalSiswaGuruWidget
               totalGuru={24}
               totalSiswa={450}
@@ -145,8 +145,8 @@ export const Home = () => {
             />
           </div>
 
-          {/* Card 2: Statistik Ujian (Donut) */}
-          <div className="h-full">
+          {/* Card 2: Statistik Ujian */}
+          <div className="h-full lg:col-span-1">
             <StatistikWidget
               title="Total Ujian Terlaksana"
               value={4}
@@ -157,8 +157,8 @@ export const Home = () => {
             />
           </div>
 
-          {/* Card 3: Bank Soal (Simple) */}
-          <div className="h-full">
+          {/* Card 3: Bank Soal */}
+          <div className="h-full lg:col-span-1">
             <SimpleStatWidget
               title="Total Bank Soal"
               value="1,240"
@@ -168,8 +168,8 @@ export const Home = () => {
             />
           </div>
 
-          {/* Card 4: Mata Pelajaran (Simple) */}
-          <div className="h-full">
+          {/* Card 4: Mata Pelajaran */}
+          <div className="h-full lg:col-span-1">
             <SimpleStatWidget
               title="Mata Pelajaran Aktif"
               value="18"

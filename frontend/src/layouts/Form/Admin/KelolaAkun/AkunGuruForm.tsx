@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 
 import InputField from "@/components/common/Input/InputField";
-import ImageUpload from "@/components/features/ImageUpload/ImageUpload";
+import ImageUpload from "@/components/features/Upload/ImageUpload";
 
 import type { TeacherRegisterFormValues } from "@/types/KelolaAkun/AkunGuru";
 import type { JenisKelamin } from "@/types/OpsiTypes/Option";
@@ -22,7 +22,7 @@ import {
 } from "@/helper/validate/validateForm";
 
 const initialValues: TeacherRegisterFormValues = {
-  role:"guru",
+  role: "guru",
   namaLengkap: "",
   email: "",
   username: "",
@@ -69,7 +69,7 @@ const AkunGuruForm = () => {
   };
 
   const validate = createValidator<TeacherRegisterFormValues>({
-    role:[requiredString("Role wajib diisi.")],
+    role: [requiredString("Role wajib diisi.")],
     namaLengkap: [requiredString("Nama lengkap wajib diisi.")],
     email: [
       requiredString("Email wajib diisi."),
@@ -89,7 +89,6 @@ const AkunGuruForm = () => {
       fileMaxSize(2 * 1024 * 1024, "Ukuran foto maksimal 2MB."),
       fileTypeStartsWith("image/", "File harus berupa gambar."),
     ],
-    
   });
 
   const errors = validate(values);
@@ -304,22 +303,16 @@ const AkunGuruForm = () => {
                 <select
                   id="role"
                   className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-[#397e50] focus:ring-2 focus:ring-[#397e50] disabled:bg-slate-50 disabled:text-slate-500"
-
                   value={values.role}
-                  onChange={(e) =>
-                    setField("role", e.target.value)
-                  }
+                  onChange={(e) => setField("role", e.target.value)}
                   onBlur={() => onBlur("role")}
                   required
                 >
                   <option value="GURU">Guru</option>
                   <option value="ADMIN">Admin</option>
-                  
                 </select>
                 {hasError("role") && (
-                  <p className="mt-1 text-xs text-rose-600">
-                    {errors.role}
-                  </p>
+                  <p className="mt-1 text-xs text-rose-600">{errors.role}</p>
                 )}
               </div>
 

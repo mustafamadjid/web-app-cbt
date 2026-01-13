@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 
-import ImageUpload from "@/components/features/ImageUpload/ImageUpload";
+import ImageUpload from "@/components/features/Upload/ImageUpload";
 import InputField from "@/components/common/Input/InputField";
 
 import type { ProfilSekolahFormValues } from "@/types/ProfilSekolah/ProfilSekolah";
