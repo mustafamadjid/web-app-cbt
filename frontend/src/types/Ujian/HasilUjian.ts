@@ -4,3 +4,4 @@ export type StatistikUjian = {
     rata_rata:number
     jumlah_peserta:number
 }
+

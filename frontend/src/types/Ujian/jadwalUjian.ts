@@ -10,7 +10,7 @@ export type JadwalUjianItem = {
     ruang_ujian?: string;
     id_ruang?: number;
     status_ujian: string;
-    started: 0 | 1;
+    started?: 0 | 1;
     pembuat_username?: string;
     pengawas_username?: string;
     tingkat_kelas?: number;
