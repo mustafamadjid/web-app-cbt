@@ -1,14 +1,36 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import BoxHasilUjian from "@/components/features/Ujian/BoxHasilUjian";
-import { getHasilUjianList } from "@/services/Api/features-api/Ujian/hasilUjian.service";
+import {
+  getHasilUjianList,
+} from "@/services/Api/features-api/Ujian/hasilUjian.service";
+import { getTingkatKelasOptions } from "@/services/Api/features-api/DataMaster/kelas.service";
 import type { JadwalUjianItem } from "@/types/Ujian/jadwalUjian";
 import { paths } from "@/routes/paths";
+import type { TingkatKelasOption } from "@/types/DataMaster/Kelas";
+import { Layers } from "lucide-react";
 
 const HasilUjian = () => {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [daftarUjian, setDaftarUjian] = useState<JadwalUjianItem[]>([]);
+  const [tingkatKelasOptions, setTingkatKelasOptions] = useState<
+    TingkatKelasOption[]
+  >([]);
+  const [selectedTingkatId, setSelectedTingkatId] = useState<number | null>(
+    null
+  );
   const requestSeq = useRef(0);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const options = await getTingkatKelasOptions();
+        setTingkatKelasOptions(options);
+      } catch {
+        setTingkatKelasOptions([]);
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     const seq = ++requestSeq.current;
@@ -16,7 +38,9 @@ const HasilUjian = () => {
       try {
         setLoading(true);
         setErrorMsg("");
-        const data = await getHasilUjianList();
+        const data = await getHasilUjianList({
+          tingkatKelasId: selectedTingkatId ?? undefined,
+        });
         if (seq !== requestSeq.current) return;
         setDaftarUjian(data);
       } catch {
@@ -28,7 +52,7 @@ const HasilUjian = () => {
         setLoading(false);
       }
     })();
-  }, []);
+  }, [selectedTingkatId]);
 
   const daftarSelesai = useMemo(
     () => daftarUjian.filter((ujian) => ujian.status_ujian === "selesai"),
@@ -49,6 +73,32 @@ const HasilUjian = () => {
             <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
               Total selesai: {daftarSelesai.length}
             </span>
+          </div>
+          <div className="mt-6 grid gap-4 sm:max-w-xs">
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-sm font-semibold text-slate-600">
+                <Layers size={16} /> Kelas
+              </label>
+              <select
+                value={selectedTingkatId ?? ""}
+                onChange={(e) =>
+                  setSelectedTingkatId(
+                    e.target.value === "" ? null : Number(e.target.value)
+                  )
+                }
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm transition-all focus:border-[#397e50] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#397e50]/10"
+              >
+                <option value="">Semua Kelas</option>
+                {tingkatKelasOptions.map((tingkat) => (
+                  <option
+                    key={tingkat.id_tingkat_kelas}
+                    value={tingkat.id_tingkat_kelas}
+                  >
+                    Kelas {tingkat.tingkat_kelas}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
 
