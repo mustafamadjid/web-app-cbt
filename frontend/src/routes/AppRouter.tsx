@@ -38,8 +38,8 @@ import AdminLayout from "@/layouts/MainLayout/AdminLayout/AdminLayout";
 
 import PengaturanProfil from "@/pages/Admin/Dashboard/Pengaturan/Pengaturan";
 import HasilUjian from "@/pages/Admin/Dashboard/Ujian/HasilUjian";
-import HasilUjianDetail from "@/pages/Admin/Dashboard/Ujian/HasilUjianDetail";
-import HasilUjianSiswaDetail from "@/pages/Admin/Dashboard/Ujian/HasilUjianSiswaDetail";
+import HasilUjianDetail from "@/pages/Admin/Dashboard/Ujian/DetailHasilUjian/HasilUjianDetail";
+import HasilUjianSiswaDetail from "@/pages/Admin/Dashboard/Ujian/DetailHasilUjian/HasilUjianSiswaDetail";
 
 export const router = createBrowserRouter([
   // Login Page
