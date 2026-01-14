@@ -254,14 +254,31 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 const USE_DUMMY = true; // ✅ set false saat BE sudah siap
 
-export async function getHasilUjianList(): Promise<JadwalUjianItem[]> {
+export type HasilUjianFilterParams = {
+  tingkatKelasId?: number;
+};
+
+const filterByTingkatKelasId = (
+  data: JadwalUjianItem[],
+  tingkatKelasId?: number
+) => {
+  if (tingkatKelasId == null) return data;
+  return data.filter((ujian) => ujian.tingkat_kelas_id === tingkatKelasId);
+};
+
+export async function getHasilUjianList(
+  params: HasilUjianFilterParams = {}
+): Promise<JadwalUjianItem[]> {
   if (USE_DUMMY) {
     await sleep(200);
-    return dummyHasilUjianList;
+    return filterByTingkatKelasId(dummyHasilUjianList, params.tingkatKelasId);
   }
 
   const res = await api<ApiEnvelope<JadwalUjianItem[]>>("/ujian/hasil", {
     method: "GET",
+    params: {
+      tingkat_kelas_id: params.tingkatKelasId ?? undefined,
+    },
   });
   return res.data;
 }
