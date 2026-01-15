@@ -7,7 +7,8 @@ import { getTingkatKelasOptions } from "@/services/Api/features-api/DataMaster/k
 import type { JadwalUjianItem } from "@/types/Ujian/jadwalUjian";
 import { paths } from "@/routes/paths";
 import type { TingkatKelasOption } from "@/types/DataMaster/Kelas";
-import { Layers } from "lucide-react";
+import { tahunOption } from "@/helper/TahunOption/TahunOption";
+import { Calendar, Layers } from "lucide-react";
 
 const HasilUjian = () => {
   const [loading, setLoading] = useState(false);
@@ -16,18 +17,25 @@ const HasilUjian = () => {
   const [tingkatKelasOptions, setTingkatKelasOptions] = useState<
     TingkatKelasOption[]
   >([]);
+  const [tahunOptions, setTahunOptions] = useState<string[]>([]);
   const [selectedTingkatId, setSelectedTingkatId] = useState<number | null>(
     null
   );
+  const [selectedTahun, setSelectedTahun] = useState<string | null>(null);
   const requestSeq = useRef(0);
 
   useEffect(() => {
     (async () => {
       try {
-        const options = await getTingkatKelasOptions();
+        const [options, tahunOptionsData] = await Promise.all([
+          getTingkatKelasOptions(),
+          tahunOption(),
+        ]);
         setTingkatKelasOptions(options);
+        setTahunOptions(tahunOptionsData);
       } catch {
         setTingkatKelasOptions([]);
+        setTahunOptions([]);
       }
     })();
   }, []);
@@ -40,6 +48,7 @@ const HasilUjian = () => {
         setErrorMsg("");
         const data = await getHasilUjianList({
           tingkatKelasId: selectedTingkatId ?? undefined,
+          tahun: selectedTahun ?? undefined,
         });
         if (seq !== requestSeq.current) return;
         setDaftarUjian(data);
@@ -52,7 +61,7 @@ const HasilUjian = () => {
         setLoading(false);
       }
     })();
-  }, [selectedTingkatId]);
+  }, [selectedTingkatId, selectedTahun]);
 
   const daftarSelesai = useMemo(
     () => daftarUjian.filter((ujian) => ujian.status_ujian === "selesai"),
@@ -74,7 +83,7 @@ const HasilUjian = () => {
               Total selesai: {daftarSelesai.length}
             </span>
           </div>
-          <div className="mt-6 grid gap-4 sm:max-w-xs">
+          <div className="mt-6 grid gap-4 sm:max-w-md sm:grid-cols-2">
             <div className="space-y-2">
               <label className="flex items-center gap-2 text-sm font-semibold text-slate-600">
                 <Layers size={16} /> Kelas
@@ -95,6 +104,27 @@ const HasilUjian = () => {
                     value={tingkat.id_tingkat_kelas}
                   >
                     Kelas {tingkat.tingkat_kelas}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-sm font-semibold text-slate-600">
+                <Calendar size={16} /> Tahun
+              </label>
+              <select
+                value={selectedTahun ?? ""}
+                onChange={(e) =>
+                  setSelectedTahun(
+                    e.target.value === "" ? null : String(e.target.value)
+                  )
+                }
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm transition-all focus:border-[#397e50] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#397e50]/10"
+              >
+                <option value="">Semua Tahun</option>
+                {tahunOptions.map((tahun) => (
+                  <option key={tahun} value={tahun}>
+                    {tahun}
                   </option>
                 ))}
               </select>

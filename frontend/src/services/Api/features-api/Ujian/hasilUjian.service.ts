@@ -256,6 +256,7 @@ const USE_DUMMY = true; // ✅ set false saat BE sudah siap
 
 export type HasilUjianFilterParams = {
   tingkatKelasId?: number;
+  tahun?: string;
 };
 
 const filterByTingkatKelasId = (
@@ -266,18 +267,27 @@ const filterByTingkatKelasId = (
   return data.filter((ujian) => ujian.tingkat_kelas_id === tingkatKelasId);
 };
 
+const filterByTahun = (data: JadwalUjianItem[], tahun?: string) => {
+  if (!tahun) return data;
+  return data.filter((ujian) => ujian.tanggal_ujian?.startsWith(`${tahun}-`));
+};
+
 export async function getHasilUjianList(
   params: HasilUjianFilterParams = {}
 ): Promise<JadwalUjianItem[]> {
   if (USE_DUMMY) {
     await sleep(200);
-    return filterByTingkatKelasId(dummyHasilUjianList, params.tingkatKelasId);
+    return filterByTahun(
+      filterByTingkatKelasId(dummyHasilUjianList, params.tingkatKelasId),
+      params.tahun
+    );
   }
 
   const res = await api<ApiEnvelope<JadwalUjianItem[]>>("/ujian/hasil", {
     method: "GET",
     params: {
       tingkat_kelas_id: params.tingkatKelasId ?? undefined,
+      tahun: params.tahun ?? undefined,
     },
   });
   return res.data;
