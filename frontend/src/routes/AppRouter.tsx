@@ -8,6 +8,7 @@ import LoginPage from "../pages/Auth/LoginPage";
 
 // Header
 import HeaderLayout from "@/layouts/MainLayout/HeaderLayout/HeaderLayout";
+import ProtectedRoute from "@/routes/ProtectedRoute";
 
 // Dashboard Admin
 import { Home } from "@/pages/Admin/Dashboard/Home";
@@ -49,80 +50,96 @@ export const router = createBrowserRouter([
   },
   {
     path: "/dashboard/administrator",
-    element: <AdminLayout />,
+    element: <ProtectedRoute allowedRoles={["ADMIN"]} />,
     children: [
       {
-        element: <HeaderLayout />,
+        element: <AdminLayout />,
         children: [
-          { index: true, element: <Home /> },
           {
-            path: paths.dashboard.kelola_akun_guru,
-            element: <KelolaAkunGuru />,
+            element: <HeaderLayout />,
+            children: [
+              { index: true, element: <Home /> },
+              {
+                path: paths.dashboard.kelola_akun_guru,
+                element: <KelolaAkunGuru />,
+              },
+              {
+                path: paths.dashboard.kelola_akun_siswa,
+                element: <KelolaAkunSiswa />,
+              },
+              {
+                path: paths.dashboard.data_master_mapel,
+                element: <MataPelajaran />,
+              },
+              {
+                path: paths.dashboard.data_master_kelas,
+                element: <DataKelas />,
+              },
+              {
+                path: paths.dashboard.data_master_ruang,
+                element: <RuangUjian />,
+              },
+              {
+                path: paths.dashboard.pengaturan,
+                element: <PengaturanProfil />,
+              },
+              { path: paths.dashboard.data_master_sesi, element: <DataSesi /> },
+              { path: paths.dashboard.bank_soal, element: <BankSoal /> },
+              { path: paths.dashboard.buat_ujian, element: <BuatUjian /> },
+              { path: paths.dashboard.jadwal_ujian, element: <JadwalUjian /> },
+              { path: paths.dashboard.detail_ujian, element: <DetailUjian /> },
+              { path: paths.dashboard.hasil_ujian, element: <HasilUjian /> },
+              {
+                path: paths.dashboard.hasil_ujian_detail,
+                element: <HasilUjianDetail />,
+              },
+              {
+                path: paths.dashboard.hasil_ujian_siswa_detail,
+                element: <HasilUjianSiswaDetail />,
+              },
+              { path: paths.dashboard.cetak, element: <Cetak /> },
+            ],
+          },
+          { path: paths.dashboard.tambah_guru, element: <TambahGuru /> },
+          { path: paths.dashboard.tambah_siswa, element: <TambahSiswa /> },
+          {
+            path: paths.dashboard.tambah_data_master_mapel,
+            element: <TambahMataPelajaran />,
           },
           {
-            path: paths.dashboard.kelola_akun_siswa,
-            element: <KelolaAkunSiswa />,
+            path: paths.dashboard.tambah_data_master_kelas,
+            element: <TambahKelas />,
           },
           {
-            path: paths.dashboard.data_master_mapel,
-            element: <MataPelajaran />,
-          },
-          { path: paths.dashboard.data_master_kelas, element: <DataKelas /> },
-          { path: paths.dashboard.data_master_ruang, element: <RuangUjian /> },
-          { path: paths.dashboard.pengaturan, element: <PengaturanProfil /> },
-          { path: paths.dashboard.data_master_sesi, element: <DataSesi /> },
-          { path: paths.dashboard.bank_soal, element: <BankSoal /> },
-          { path: paths.dashboard.buat_ujian, element: <BuatUjian /> },
-          { path: paths.dashboard.jadwal_ujian, element: <JadwalUjian /> },
-          { path: paths.dashboard.detail_ujian, element: <DetailUjian /> },
-          { path: paths.dashboard.hasil_ujian, element: <HasilUjian /> },
-          {
-            path: paths.dashboard.hasil_ujian_detail,
-            element: <HasilUjianDetail />,
+            path: paths.dashboard.tambah_data_master_ruang,
+            element: <TambahRuang />,
           },
           {
-            path: paths.dashboard.hasil_ujian_siswa_detail,
-            element: <HasilUjianSiswaDetail />,
+            path: paths.dashboard.tambah_data_master_sesi,
+            element: <TambahSesi />,
           },
-          { path: paths.dashboard.cetak, element: <Cetak /> },
+          {
+            path: paths.dashboard.tambah_bank_soal,
+            element: <TambahBankSoal />,
+          },
         ],
-      },
-
-      { path: paths.dashboard.tambah_guru, element: <TambahGuru /> },
-      { path: paths.dashboard.tambah_siswa, element: <TambahSiswa /> },
-      {
-        path: paths.dashboard.tambah_data_master_mapel,
-        element: <TambahMataPelajaran />,
-      },
-      {
-        path: paths.dashboard.tambah_data_master_kelas,
-        element: <TambahKelas />,
-      },
-      {
-        path: paths.dashboard.tambah_data_master_ruang,
-        element: <TambahRuang />,
-      },
-      {
-        path: paths.dashboard.tambah_data_master_sesi,
-        element: <TambahSesi />,
-      },
-      {
-        path: paths.dashboard.tambah_bank_soal,
-        element: <TambahBankSoal />,
       },
     ],
   },
   {
     path: "/dashboard/guru",
-    element: <AdminLayout />,
+    element: <ProtectedRoute allowedRoles={["GURU"]} />,
     children: [
       {
-        element: <HeaderLayout />,
+        element: <AdminLayout />,
         children: [
-          { index: true, element: <Home /> },
+          {
+            element: <HeaderLayout />,
+            children: [{ index: true, element: <Home /> }],
+          },
 
-        ]
-      }
-    ]
-  }
+        ],
+      },
+    ],
+  },
 ]);
