@@ -35,7 +35,7 @@ import DetailUjian from "@/pages/Admin/Dashboard/Ujian/DetailUjian/DetailUjian";
 
 import Cetak from "@/pages/Admin/Cetak/Cetak";
 
-import TemplateLayout from "@/layouts/MainLayout/TemplateLayout/TemplateLayout";
+import TemplateLayout from "@/layouts/MainLayout/TemplateLayout/AdminLayout";
 
 import PengaturanProfil from "@/pages/Admin/Dashboard/Pengaturan/Pengaturan";
 import HasilUjian from "@/pages/Admin/Dashboard/Ujian/HasilUjian";

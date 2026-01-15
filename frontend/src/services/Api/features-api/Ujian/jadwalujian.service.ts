@@ -165,6 +165,36 @@ const dummyJadwalUjianDetail: DetailUjianItem[] = [
     tingkat_kelas_id: 1,
     nama_kelas: "10 IPA 3",
   },
+  {
+    id: 6,
+    nama_ujian: "Ujian Matematika XII",
+    deskripsi_ujian: "Ujian akhir bab geometri dan trigonometri.",
+    tipe_ujian: "ESSAY",
+    kelas_id: 2,
+    bank_soal_id: 4,
+    jumlah_soal: 18,
+    tanggal_ujian: "2025-02-16",
+    tgl_ujian: "Jumat, 16 Februari 2026",
+    waktu_mulai: "15:00",
+    waktu_selesai: "16:30",
+    durasi_menit: 90,
+    ruang_ujian_id: 2,
+    ruang_ujian: "Ruang 203",
+    id_ruang: 2,
+    acak_soal: false,
+    guru_pengawas_id: 2,
+    pengawas_ujian: "Bu Rina Oktavia",
+    sesi_id: 4,
+    sesi_ujian: 4,
+    token_ujian: "MAT-2026",
+    status_ujian: "belum_dimulai",
+    started: 0,
+    pembuat_username: "guru_sri",
+    pengawas_username: "guru_rina",
+    tingkat_kelas: 11,
+    tingkat_kelas_id: 2,
+    nama_kelas: "11 IPS 2",
+  }
 ];
 
 export const dummyJadwalUjian: JadwalUjianItem[] = dummyJadwalUjianDetail.map(
@@ -294,6 +324,12 @@ const filterByTanggalIso = (
   return data.filter((ujian) => ujian.__tglIso === tanggal);
 };
 
+const filterByTahun = (data: JadwalUjianItemIndexed[], tahun?: string) => {
+  if (!tahun) return data;
+  return data.filter((ujian) => ujian.tanggal_ujian?.startsWith(`${tahun}-`));
+};
+
+
 const filterBySearch = (data: JadwalUjianItemIndexed[], q?: string) => {
   const query = q ? normalize(q) : "";
   if (!query) return data;
@@ -304,11 +340,13 @@ const applyJadwalUjianFilters = (
   data: JadwalUjianItemIndexed[],
   params: JadwalUjianFilterParams = {}
 ) => {
+  const tahun = params.tahun ? String(params.tahun) : undefined;
   let out = data;
   out = filterByTingkatKelasId(out, params.tingkatKelasId);
   out = filterByRuangUjianId(out, params.ruangUjianId);
   out = filterByTanggalIso(out, params.tanggal);
   out = filterBySearch(out, params.q);
+  out = filterByTahun(out, tahun);
   return out;
 };
 
@@ -342,6 +380,7 @@ export async function getJadwalUjian(
     tanggal: params.tanggal || undefined,
     tingkat_kelas_id: params.tingkatKelasId ?? undefined,
     ruang_ujian_id: params.ruangUjianId ?? undefined,
+    tahun: params.tahun ?? undefined,
   };
 
   const res = await api<ApiEnvelope<JadwalUjianItem[]>>("/jadwal-ujian", {

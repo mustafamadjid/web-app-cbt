@@ -6,12 +6,15 @@ import {
   applyUjianStatus,
   getJadwalUjian,
 } from "@/services/Api/features-api/Ujian/jadwalujian.service";
+
+import { tahunOption } from "@/helper/TahunOption/TahunOption";
+
 import { paths } from "@/routes/paths";
 import type { TingkatKelasOption } from "@/types/DataMaster/Kelas";
 import type { RuangUjianRow } from "@/types/DataMaster/RuangUjian";
 import type { JadwalUjianItem } from "@/types/Ujian/jadwalUjian";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Search, Calendar, Layers, MapPin } from "lucide-react"; // Tambahan icon untuk filter
+import { Search, Calendar, Layers, MapPin, CalendarRange } from "lucide-react"; // Tambahan icon untuk filter
 
 const STATUS_SECTIONS = [
   { key: "berlangsung", label: "Berlangsung", color: "bg-emerald-500" },
@@ -45,6 +48,8 @@ const JadwalUjian = () => {
   >([]);
   const [ruangOptions, setRuangOptions] = useState<RuangUjianRow[]>([]);
 
+  const [tahunOptions, setTahunOptions] = useState<string[]>([]);
+
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebouncedValue(searchTerm, 300);
 
@@ -54,21 +59,26 @@ const JadwalUjian = () => {
   );
   const [selectedRuang, setSelectedRuang] = useState<number | null>(null);
 
+  const [selectedTahun, setSelectedTahun] = useState<string | null>(null);
+
   const requestSeq = useRef(0);
 
   // Load options
   useEffect(() => {
     (async () => {
       try {
-        const [tingkatOptions, ruangUjianOptions] = await Promise.all([
+        const [tingkatOptions, ruangUjianOptions,tahunOptions] = await Promise.all([
           getTingkatKelasOptions(),
           getRuangUjianOptions(),
+          tahunOption(),
         ]);
         setTingkatKelasOptions(tingkatOptions);
         setRuangOptions(ruangUjianOptions);
+        setTahunOptions(tahunOptions);
       } catch {
         setTingkatKelasOptions([]);
         setRuangOptions([]);
+        setTahunOptions([]);
       }
     })();
   }, []);
@@ -89,6 +99,7 @@ const JadwalUjian = () => {
           tanggal: selectedDate || undefined,
           ruangUjianId,
           tingkatKelasId: tingkatKelas,
+          tahun: selectedTahun || undefined,
         });
         if (seq !== requestSeq.current) return;
         setDaftarJadwalUjian(data);
@@ -101,7 +112,7 @@ const JadwalUjian = () => {
         setLoading(false);
       }
     })();
-  }, [debouncedSearchTerm, selectedDate, selectedRuang, selectedTingkatId]);
+  }, [debouncedSearchTerm, selectedDate, selectedRuang, selectedTingkatId, selectedTahun]);
 
   const groupedJadwal = useMemo(() => {
     const grouped: Record<StatusKey, JadwalUjianItem[]> = {
@@ -171,7 +182,7 @@ const JadwalUjian = () => {
 
             <div className="space-y-2">
               <label className="flex items-center gap-2 text-sm font-semibold text-slate-600">
-                <Calendar size={16} /> Tanggal
+                <CalendarRange size={16} /> Tanggal
               </label>
               <input
                 type="date"
@@ -179,6 +190,30 @@ const JadwalUjian = () => {
                 onChange={(e) => setSelectedDate(e.target.value)}
                 className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm transition-all focus:border-[#397e50] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#397e50]/10"
               />
+            </div>
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-sm font-semibold text-slate-600">
+                <Calendar size={16} /> Tahun
+              </label>
+              <select
+              
+                value={selectedTahun ?? ""}
+                onChange={(e) =>{
+                  setSelectedTahun(
+                    e.target.value === "" ? null : String(e.target.value)
+                  );
+                }
+                  
+                }
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm transition-all focus:border-[#397e50] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#397e50]/10"
+              >
+                <option value="">Semua Tahun</option>
+                {tahunOptions.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="space-y-2">

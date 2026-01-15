@@ -23,4 +23,5 @@ export type JadwalUjianFilterParams = {
   tanggal?: string; // "YYYY-MM-DD"
   tingkatKelasId?: number;
   ruangUjianId?: number;
+  tahun?: string | number;
 };
