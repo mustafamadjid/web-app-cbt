@@ -1,20 +1,16 @@
-"use client";
-
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import {
   Search,
-
   Filter,
   Layers,
   LayoutGrid,
   BookOpen,
-  XCircle,
-  AlertCircle,
+  X,
+  ChevronDown,
 } from "lucide-react";
 
 import AddButton from "@/components/common/Button/AddButton";
-
 import BankSoalLayout from "@/layouts/BankSoalLayout/BankSoalLayout";
 
 import type { BankSoalItem } from "@/types/DataMaster/BankSoal";
@@ -28,7 +24,7 @@ import {
 import { getTingkatKelasOptions } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { paths } from "@/routes/paths";
 
-// Util: Debounce
+// Util: Debounce (Tetap sama)
 function useDebouncedValue<T>(value: T, delayMs = 300) {
   const [debounced, setDebounced] = useState(value);
   useEffect(() => {
@@ -49,7 +45,7 @@ const BankSoal = () => {
     null
   );
   const [search, setSearch] = useState("");
-  const debouncedSearch = useDebouncedValue(search, 400); // Sedikit diperlambat agar lebih smooth
+  const debouncedSearch = useDebouncedValue(search, 400);
   const [selectedMapelId, setSelectedMapelId] = useState<number | null>(null);
 
   // ----- Data State -----
@@ -71,13 +67,6 @@ const BankSoal = () => {
         const kelas = await getTingkatKelasOptions();
         if (!mounted) return;
         setTingkatKelasOptions(kelas);
-        if (
-          kelas.length > 0 &&
-          selectedTingkatId == null &&
-          viewMode === "BY_KELAS"
-        ) {
-          setSelectedTingkatId(kelas[0].id_tingkat_kelas);
-        }
       } catch (e) {
         if (mounted) setErrorMsg("Gagal memuat data tingkat kelas.");
       }
@@ -94,7 +83,9 @@ const BankSoal = () => {
       try {
         const mapel = await getMataPelajaranOptions({
           tingkatKelasId:
-            viewMode === "BY_KELAS" ? selectedTingkatId ?? undefined : undefined,
+            viewMode === "BY_KELAS"
+              ? selectedTingkatId ?? undefined
+              : undefined,
         });
         if (!mounted) return;
         setMapelOptions(mapel);
@@ -122,7 +113,9 @@ const BankSoal = () => {
         setErrorMsg("");
         const data = await getBankSoalByKelas({
           tingkatKelasId:
-            viewMode === "BY_KELAS" ? selectedTingkatId ?? undefined : undefined,
+            viewMode === "BY_KELAS"
+              ? selectedTingkatId ?? undefined
+              : undefined,
           mapelId: selectedMapelId ?? undefined,
           q: debouncedSearch?.trim() || undefined,
         });
@@ -130,7 +123,7 @@ const BankSoal = () => {
         setItems(data);
       } catch (e) {
         if (seq !== requestSeq.current) return;
-        setErrorMsg("Gagal memuat data bank soal. Silakan coba lagi.");
+        setErrorMsg("Gagal memuat data bank soal.");
         setItems([]);
       } finally {
         if (seq === requestSeq.current) setLoading(false);
@@ -138,214 +131,168 @@ const BankSoal = () => {
     })();
   }, [viewMode, selectedTingkatId, selectedMapelId, debouncedSearch]);
 
-  const selectedKelasLabel = useMemo(() => {
-    const selectedKelas = tingkatKelasOptions.find(
-      (option) => option.id_tingkat_kelas === selectedTingkatId
-    );
-    if (!selectedKelas) return "";
-    return `Kelas ${selectedKelas.tingkat_kelas}`;
-  }, [selectedTingkatId, tingkatKelasOptions]);
+  // Helper untuk mengubah kelas (Logic penggabungan ViewMode & TingkatID)
+  const handleTingkatChange = (value: string) => {
+    if (value === "ALL") {
+      setViewMode("ALL");
+      setSelectedTingkatId(null);
+    } else {
+      setViewMode("BY_KELAS");
+      setSelectedTingkatId(Number(value));
+    }
+  };
+
+  const isFiltering =
+    search !== "" || selectedMapelId !== null || viewMode === "BY_KELAS";
 
   return (
-    <div className="min-h-screen bg-[#ecf1ed] pb-20">
-      <div className="mx-auto max-w-[1600px] space-y-6 p-4 sm:p-6 lg:p-8">
-        {/* === ADD BUTTON === */}
-        <div className="flex justify-end">
-          <AddButton label="Buat Bank Soal" onClick={() => navigate(`${paths.dashboard.tambah_bank_soal}`)} />
+    <div className="min-h-screen bg-[#F8F9FA] pb-20">
+      <div className="mx-auto max-w-[1600px] space-y-8 p-6 lg:p-8">
+        {/* === HEADER SECTION === */}
+        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Bank Soal</h1>
+            <p className="text-sm text-gray-500 mt-1">
+              Kelola dan atur kumpulan soal ujian sekolah.
+            </p>
+          </div>
+          <AddButton
+            label="Buat Bank Soal"
+            onClick={() => navigate(`${paths.dashboard.tambah_bank_soal}`)}
+          />
         </div>
-      
 
-        {/* === FILTER & CONTROL PANEL === */}
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition-all hover:shadow-md">
-          {/* Top Bar: View Mode & Search */}
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-            {/* Left: View Mode Tabs */}
-            <div className="flex flex-col gap-4 w-full lg:w-auto">
-              <div>
-                <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-gray-500">
-                  Mode Tampilan
-                </label>
-                <div className="inline-flex rounded-xl bg-gray-100 p-1">
-                  <button
-                    onClick={() => {
-                      setViewMode("ALL");
-                      setSelectedTingkatId(null);
-                    }}
-                    className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-bold transition-all ${
-                      viewMode === "ALL"
-                        ? "bg-white text-[#397e50] shadow-sm"
-                        : "text-gray-500 hover:text-gray-700 hover:bg-gray-200/50"
-                    }`}
-                  >
-                    <Layers className="h-4 w-4" />
-                    Semua Data
-                  </button>
-                  <button
-                    onClick={() => {
-                      setViewMode("BY_KELAS");
-                      if (
-                        selectedTingkatId == null &&
-                        tingkatKelasOptions.length > 0
-                      )
-                        setSelectedTingkatId(
-                          tingkatKelasOptions[0].id_tingkat_kelas
-                        );
-                    }}
-                    className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-bold transition-all ${
-                      viewMode === "BY_KELAS"
-                        ? "bg-white text-[#397e50] shadow-sm"
-                        : "text-gray-500 hover:text-gray-700 hover:bg-gray-200/50"
-                    }`}
-                  >
-                    <LayoutGrid className="h-4 w-4" />
-                    Filter Tingkat Kelas
-                  </button>
-                </div>
+        {/* === MINIMALIST TOOLBAR === */}
+        {/* Menggunakan sticky agar tetap terlihat saat scroll jika konten panjang */}
+        <div className="sticky top-4 z-20 flex flex-col gap-3 rounded-2xl bg-white p-2 shadow-sm ring-1 ring-gray-200/70 sm:flex-row sm:items-center">
+          {/* 1. Search Bar (Flexible width) */}
+          <div className="relative flex-1 group">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-gray-400 group-focus-within:text-[#397e50] transition-colors">
+              <Search className="h-5 w-5" />
+            </div>
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Cari judul, materi, atau kode..."
+              className="block w-full rounded-xl border-none bg-transparent py-3 pl-10 pr-10 text-sm font-medium text-gray-800 placeholder:text-gray-400 focus:ring-0"
+            />
+            {search && (
+              <button
+                onClick={() => setSearch("")}
+                className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-rose-500 transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+
+          {/* Divider Vertical (Desktop Only) */}
+          <div className="hidden h-8 w-px bg-gray-200 sm:block" />
+
+          {/* 2. Filter Controls Wrapper */}
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            {/* Filter: Tingkat Kelas (Gabungan ViewMode & Dropdown) */}
+            <div className="relative min-w-[180px]">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+                {viewMode === "ALL" ? (
+                  <Layers className="h-4 w-4" />
+                ) : (
+                  <LayoutGrid className="h-4 w-4" />
+                )}
               </div>
-
-              {/* Kelas Chips (Only visible in BY_KELAS mode) */}
-              {viewMode === "BY_KELAS" && (
-                <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                  <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-gray-500">
-                    Pilih Tingkat Kelas
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    {tingkatKelasOptions.length === 0 ? (
-                      <span className="text-sm italic text-gray-400">
-                        Data tingkat kelas tidak tersedia.
-                      </span>
-                    ) : (
-                      tingkatKelasOptions.map((tingkat) => {
-                        const isActive =
-                          tingkat.id_tingkat_kelas === selectedTingkatId;
-                        const label = `Kelas ${tingkat.tingkat_kelas}`;
-                        return (
-                          <button
-                            key={tingkat.id_tingkat_kelas}
-                            onClick={() =>
-                              setSelectedTingkatId(tingkat.id_tingkat_kelas)
-                            }
-                            className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-all border ${
-                              isActive
-                                ? "bg-[#397e50] text-white border-[#397e50] shadow-md shadow-[#397e50]/20"
-                                : "bg-white text-gray-600 border-gray-200 hover:border-[#397e50] hover:text-[#397e50]"
-                            }`}
-                          >
-                            {label}
-                          </button>
-                        );
-                      })
-                    )}
-                  </div>
-                </div>
-              )}
+              <select
+                value={
+                  viewMode === "ALL"
+                    ? "ALL"
+                    : selectedTingkatId?.toString() ?? ""
+                }
+                onChange={(e) => handleTingkatChange(e.target.value)}
+                className="block w-full cursor-pointer appearance-none rounded-xl border-none bg-gray-50 py-2.5 pl-9 pr-8 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:ring-2 focus:ring-[#397e50]/20 transition-all"
+              >
+                <option value="ALL">Semua Kelas</option>
+                <optgroup label="Pilih Tingkat">
+                  {tingkatKelasOptions.map((t) => (
+                    <option key={t.id_tingkat_kelas} value={t.id_tingkat_kelas}>
+                      Kelas {t.tingkat_kelas}
+                    </option>
+                  ))}
+                </optgroup>
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400">
+                <ChevronDown className="h-3.5 w-3.5" />
+              </div>
             </div>
 
-            {/* Right: Search & Mapel Filter */}
-            <div className="flex flex-col gap-4 w-full lg:w-[450px]">
-              {/* Search Box */}
-              <div>
-                <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-gray-500">
-                  Pencarian
-                </label>
-                <div className="group relative">
-                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
-                    <Search className="h-4 w-4" />
-                  </div>
-                  <input
-                    type="text"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Cari judul, materi, atau kode..."
-                    className="block w-full rounded-xl border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-10 text-sm text-gray-800 outline-none transition-all placeholder:text-gray-400 focus:border-[#397e50] focus:bg-white focus:ring-2 focus:ring-[#397e50]/20"
-                  />
-                  {search && (
-                    <button
-                      onClick={() => setSearch("")}
-                      className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-rose-500"
-                    >
-                      <XCircle className="h-4 w-4" />
-                    </button>
-                  )}
-                </div>
+            {/* Filter: Mata Pelajaran */}
+            <div className="relative min-w-[200px]">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+                <BookOpen className="h-4 w-4" />
               </div>
-
-              {/* Mapel Dropdown */}
-              <div>
-                <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-gray-500">
-                  Mata Pelajaran
-                </label>
-                <div className="relative">
-                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
-                    <BookOpen className="h-4 w-4" />
-                  </div>
-                  <select
-                    value={selectedMapelId ?? ""}
-                    onChange={(e) =>
-                      setSelectedMapelId(
-                        e.target.value === "" ? null : Number(e.target.value)
-                      )
-                    }
-                    className="block w-full cursor-pointer appearance-none rounded-xl border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-8 text-sm text-gray-800 outline-none transition-all focus:border-[#397e50] focus:bg-white focus:ring-2 focus:ring-[#397e50]/20"
-                  >
-                    <option value="">Semua Mata Pelajaran</option>
-                    {mapelOptions.map((m) => (
-                      <option key={m.id} value={m.id}>
-                        {m.label}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400">
-                    <Filter className="h-3.5 w-3.5" />
-                  </div>
-                </div>
+              <select
+                value={selectedMapelId ?? ""}
+                onChange={(e) =>
+                  setSelectedMapelId(
+                    e.target.value === "" ? null : Number(e.target.value)
+                  )
+                }
+                className="block w-full cursor-pointer appearance-none rounded-xl border-none bg-gray-50 py-2.5 pl-9 pr-8 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:ring-2 focus:ring-[#397e50]/20 transition-all"
+              >
+                <option value="">Semua Mapel</option>
+                {mapelOptions.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.label}
+                  </option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400">
+                <Filter className="h-3 w-3" />
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Status Bar */}
-          {(loading || items.length > 0 || errorMsg) && (
-            <div className="mt-5 border-t border-gray-100 pt-4 flex items-center justify-between text-xs text-gray-500">
-              <div className="flex items-center gap-2">
-                {loading && (
-                  <span className="flex items-center gap-2 text-[#397e50] font-medium animate-pulse">
-                    <span className="h-2 w-2 rounded-full bg-[#397e50]" />
-                    Sedang memuat data...
-                  </span>
-                )}
-                {!loading && !errorMsg && (
-                  <span>
-                    Menampilkan{" "}
-                    <strong className="text-gray-800">{items.length}</strong>{" "}
-                    bank soal
-                    {viewMode === "BY_KELAS" && selectedKelasLabel && (
-                      <>
-                        {" "}
-                        untuk{" "}
-                        <span className="font-bold text-[#397e50]">
-                          {selectedKelasLabel}
-                        </span>
-                      </>
-                    )}
-                  </span>
-                )}
+        {/* === STATUS & COUNT INDICATOR === */}
+        <div className="flex items-center justify-between px-1">
+          <div className="flex items-center gap-2 text-sm text-gray-500">
+            {loading ? (
+              <span className="flex items-center gap-2 text-[#397e50] animate-pulse">
+                <span className="h-2 w-2 rounded-full bg-[#397e50]" />
+                Memuat data...
+              </span>
+            ) : (
+              <>
+                <span className="font-medium text-gray-900">
+                  {items.length}
+                </span>{" "}
+                Soal ditemukan
                 {errorMsg && (
-                  <span className="flex items-center gap-1 text-rose-600 font-medium">
-                    <AlertCircle className="h-3.5 w-3.5" />
-                    {errorMsg}
-                  </span>
+                  <span className="text-rose-500 ml-2">• {errorMsg}</span>
                 )}
-              </div>
-            </div>
+              </>
+            )}
+          </div>
+
+          {/* Reset Button (Only visible if filtering) */}
+          {isFiltering && !loading && (
+            <button
+              onClick={() => {
+                setSearch("");
+                handleTingkatChange("ALL");
+                setSelectedMapelId(null);
+              }}
+              className="text-xs font-semibold text-[#397e50] hover:text-[#2c633f] hover:underline"
+            >
+              Reset Filter
+            </button>
           )}
         </div>
 
         {/* === CONTENT GRID === */}
         <div className="relative min-h-[300px]">
           {loading && items.length === 0 ? (
-            // Loading State (Skeleton sederhana)
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {[1, 2, 3].map((i) => (
+              {[1, 2, 3, 4, 5, 6].map((i) => (
                 <div
                   key={i}
                   className="h-64 rounded-2xl bg-gray-200 animate-pulse"
@@ -353,30 +300,18 @@ const BankSoal = () => {
               ))}
             </div>
           ) : !loading && items.length === 0 ? (
-            // Empty State
-            <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-gray-300 bg-white py-20 text-center">
-              <div className="mb-4 rounded-full bg-gray-50 p-4">
+            <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-gray-300 bg-gray-50/50 py-24 text-center">
+              <div className="mb-4 rounded-full bg-white p-4 shadow-sm ring-1 ring-gray-100">
                 <Search className="h-8 w-8 text-gray-300" />
               </div>
-              <h3 className="text-lg font-bold text-gray-800">
-                Tidak ada data ditemukan
+              <h3 className="text-lg font-bold text-gray-900">
+                Data tidak ditemukan
               </h3>
-              <p className="max-w-md text-sm text-gray-500 mt-1">
-                Coba ubah kata kunci pencarian, filter mata pelajaran, atau
-                pilih kelas yang berbeda.
+              <p className="max-w-md text-sm text-gray-500 mt-2">
+                Kami tidak dapat menemukan bank soal dengan filter tersebut.
               </p>
-              <button
-                onClick={() => {
-                  setSearch("");
-                  setSelectedMapelId(null);
-                }}
-                className="mt-6 text-sm font-bold text-[#397e50] hover:underline"
-              >
-                Reset Filter
-              </button>
             </div>
           ) : (
-            // Data Grid
             <BankSoalLayout
               items={items}
               onPreview={(item) => navigate(`/banksoal/preview/${item.id}`)}

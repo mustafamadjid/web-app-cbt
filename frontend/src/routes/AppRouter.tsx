@@ -49,7 +49,7 @@ export const router = createBrowserRouter([
     element: <LoginPage />,
   },
   {
-    path: "/dashboard/administrator",
+    path: "/dashboard",
     element: <ProtectedRoute allowedRoles={["ADMIN"]} />,
     children: [
       {
@@ -135,7 +135,32 @@ export const router = createBrowserRouter([
         children: [
           {
             element: <HeaderLayout />,
-            children: [{ index: true, element: <Home /> }],
+            children: [
+              { index: true, element: <Home /> },
+              { path: paths.dashboard.bank_soal_guru, element: <BankSoal /> },
+              { path: paths.dashboard.buat_ujian_guru, element: <BuatUjian /> },
+              {
+                path: paths.dashboard.jadwal_ujian_guru,
+                element: <JadwalUjian />,
+              },
+              {
+                path: paths.dashboard.detail_ujian_guru,
+                element: <DetailUjian />,
+              },
+              {
+                path: paths.dashboard.hasil_ujian_guru,
+                element: <HasilUjian />,
+              },
+              {
+                path: paths.dashboard.hasil_ujian_detail_guru,
+                element: <HasilUjianDetail />,
+              },
+              {
+                path: paths.dashboard.hasil_ujian_siswa_detail_guru,
+                element: <HasilUjianSiswaDetail />,
+              },
+              { path: paths.dashboard.cetak_guru, element: <Cetak /> },
+            ],
           },
         ],
       },

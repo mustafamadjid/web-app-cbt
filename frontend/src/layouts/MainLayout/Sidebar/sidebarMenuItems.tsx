@@ -9,6 +9,7 @@ const SISWA_ONLY: Role[] = ["SISWA"];
 
 
 export const mainMenuItems: SidebarMenuItem[] = [
+  // ADMIN MENU
   {
     id: 1,
     type: "link",
@@ -18,16 +19,6 @@ export const mainMenuItems: SidebarMenuItem[] = [
     icon: SvgIcons.dashboard,
     roles: ADMIN_ONLY,
   },
-  {
-    id: 101,
-    type: "link",
-    label: "Dashboard",
-    to: paths.dashboard.home_admin,
-    end: true,
-    icon: SvgIcons.dashboard,
-    roles: GURU_ONLY,
-  },
-
   {
     id: 2,
     type: "group",
@@ -135,6 +126,56 @@ export const mainMenuItems: SidebarMenuItem[] = [
     end: true,
     icon: SvgIcons.print,
     roles: ADMIN_ONLY,
+  },
+
+  // GURU Menu
+  {
+    id: 101,
+    type: "link",
+    label: "Dashboard",
+    to: paths.dashboard.home_guru,
+    end: true,
+    icon: SvgIcons.dashboard,
+    roles: GURU_ONLY,
+  },
+  {
+    id: 4,
+    type: "link",
+    label: "Bank Soal",
+    to: paths.dashboard.bank_soal_guru,
+    end: true,
+    icon: SvgIcons.bankSoal,
+    roles: GURU_ONLY,
+  },
+  {
+    id: 5,
+    type: "group",
+    label: "Ujian",
+    icon: SvgIcons.book,
+    roles: GURU_ONLY,
+    children: [
+      {
+        id: 501,
+        label: "Buat Ujian",
+        to: paths.dashboard.buat_ujian_guru,
+        icon: SvgIcons.chevronDouble,
+        roles: GURU_ONLY,
+      },
+      {
+        id: 502,
+        label: "Jadwal Ujian",
+        to: paths.dashboard.jadwal_ujian_guru,
+        icon: SvgIcons.chevronDouble,
+        roles: GURU_ONLY,
+      },
+      {
+        id: 503,
+        label: "Hasil Ujian",
+        to: paths.dashboard.hasil_ujian_guru,
+        icon: SvgIcons.chevronDouble,
+        roles: GURU_ONLY,
+      },
+    ],
   },
 ];
 
