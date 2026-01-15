@@ -102,8 +102,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await api<void>("/auth/logout", { method: "POST" });
     } catch (e) {
-      // Jangan bikin logout gagal hanya karena backend error.
-      // Tapi tetap penting untuk logging kalau Anda mau.
       const err = e as ApiError;
       console.warn("Logout error:", err.status, err.message);
     } finally {

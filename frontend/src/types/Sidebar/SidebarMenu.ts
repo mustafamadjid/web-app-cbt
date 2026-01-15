@@ -1,6 +1,8 @@
 import type React from "react";
 export type SidebarIconRenderer = (className: string) => React.JSX.Element;
 
+export type Role = "ADMIN" | "GURU" | "SISWA";
+
 export type SidebarMenuItem =
   | SidebarMenuLinkItem
   | SidebarMenuGroupItem;
@@ -9,6 +11,7 @@ export interface SidebarMenuItemBase {
   id: number;
   label: string;
   icon: SidebarIconRenderer;
+  roles?: Role[];
 }
 
 export interface SidebarMenuLinkItem extends SidebarMenuItemBase {
@@ -27,4 +30,5 @@ export interface SidebarSubMenuItem {
   label: string;
   to: string;
   icon: SidebarIconRenderer;
+  roles?: Role[];
 }

@@ -1,7 +1,7 @@
 // AdminLayout.tsx
 import { useEffect, useState } from "react";
 import { Outlet } from "react-router";
-import SidebarAdmin from "@/layouts/MainLayout/Sidebar/SidebarAdmin";
+import Sidebar from "@/layouts/MainLayout/Sidebar/Sidebar";
 
 const STORAGE_KEY = "admin_sidebar_open";
 
@@ -30,14 +30,13 @@ function AdminLayout() {
 
   return (
     <div className="min-h-screen bg-[#ecf1ed]">
-      <SidebarAdmin
+      <Sidebar
         isOpen={isSidebarOpen}
         onToggle={() => setIsSidebarOpen((v) => !v)}
         onClose={() => setIsSidebarOpen(false)}
         onOpen={() => setIsSidebarOpen(true)}
       />
 
-      
       <main
         className={[
           "min-h-screen min-w-0 transition-[margin] duration-200 ease-out",

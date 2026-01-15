@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { NavLink, useLocation, matchPath } from "react-router";
 
+import { filterMenuByRole } from "@/helper/FilterMenuSidebar/sidebarMenuFilter";
+import type { Role} from "../../../types/Sidebar/SidebarMenu";
+import { useAuth } from "@/contexts/AuthContext";
+
 import SvgIcons from "@/assets/SvgIcons/svgIcons";
 
 import type {
@@ -10,38 +14,51 @@ import type {
 } from "../../../types/Sidebar/SidebarMenu";
 import { footerMenuItems, mainMenuItems } from "./sidebarMenuItems";
 
-type SidebarAdminProps = {
+type SidebarProps = {
   isOpen: boolean;
   onToggle: () => void;
   onClose: () => void;
   onOpen: () => void;
 };
 
-const SidebarAdmin = ({
-  isOpen,
-  onToggle,
-  onClose,
-}: SidebarAdminProps) => {
+
+const Sidebar = ({ isOpen, onToggle, onClose }: SidebarProps) => {
+  const { user } = useAuth();
+  const role = (user?.role ?? "SISWA") as Role;
+
+
   const [openGroups, setOpenGroups] = useState<Record<number, boolean>>({});
   const sidebarRef = useRef<HTMLElement | null>(null);
 
   const { pathname } = useLocation();
 
-  const activeGroupMap = useMemo(() => {
-    const activeGroups: Record<number, boolean> = {};
+  
+const filteredMainMenuItems = useMemo(
+  () => filterMenuByRole(mainMenuItems, role),
+  [role]
+);
 
-    mainMenuItems.forEach((item) => {
-      if (item.type !== "group") return;
+const filteredFooterMenuItems = useMemo(
+  () => filterMenuByRole(footerMenuItems, role),
+  [role]
+);
 
-      const hasActiveChild = item.children.some((child) =>
-        matchPath({ path: child.to, end: false }, pathname)
-      );
+ const activeGroupMap = useMemo(() => {
+   const activeGroups: Record<number, boolean> = {};
 
-      if (hasActiveChild) activeGroups[item.id] = true;
-    });
+   filteredMainMenuItems.forEach((item) => {
+     if (item.type !== "group") return;
 
-    return activeGroups;
-  }, [pathname]);
+     const hasActiveChild = item.children.some((child) =>
+       matchPath({ path: child.to, end: false }, pathname)
+     );
+
+     if (hasActiveChild) activeGroups[item.id] = true;
+   });
+
+   return activeGroups;
+ }, [pathname, filteredMainMenuItems]);
+
 
   useEffect(() => {
     if (Object.keys(activeGroupMap).length === 0) return;
@@ -59,7 +76,6 @@ const SidebarAdmin = ({
   useEffect(() => {
     if (!isOpen) return;
 
-    
     const mql = window.matchMedia("(max-width: 639px)");
 
     const onMouseDown = (e: MouseEvent) => {
@@ -78,7 +94,6 @@ const SidebarAdmin = ({
     return () => document.removeEventListener("mousedown", onMouseDown);
   }, [isOpen, onClose]);
 
- 
   const navItemClass = ({ isActive }: { isActive: boolean }) =>
     [
       "flex items-center px-2 py-2 rounded-base group transition-colors cursor-pointer",
@@ -274,13 +289,13 @@ const SidebarAdmin = ({
             </div>
 
             <ul className="space-y-2 font-medium flex flex-col gap-3 py-4">
-              {mainMenuItems.map((item) => renderMenuItem(item))}
+              {filteredMainMenuItems.map((item) => renderMenuItem(item))}
             </ul>
           </div>
 
           <div className="shrink-0 mt-4 border-t border-white/10 pt-4">
             <ul className="space-y-2 font-medium">
-              {footerMenuItems.map((item) => renderMenuItem(item))}
+              {filteredFooterMenuItems.map((item) => renderMenuItem(item))}
             </ul>
           </div>
         </div>
@@ -289,4 +304,4 @@ const SidebarAdmin = ({
   );
 };
 
-export default SidebarAdmin;
+export default Sidebar;
