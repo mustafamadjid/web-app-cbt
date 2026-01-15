@@ -112,4 +112,17 @@ export const router = createBrowserRouter([
       },
     ],
   },
+  {
+    path: "/dashboard/guru",
+    element: <AdminLayout />,
+    children: [
+      {
+        element: <HeaderLayout />,
+        children: [
+          { index: true, element: <Home /> },
+
+        ]
+      }
+    ]
+  }
 ]);

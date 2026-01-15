@@ -26,7 +26,7 @@ const UjianBerlangsungWidget: React.FC<UjianBerlangsungWidgetProps> = ({
   return (
     <section
       className={[
-        "relative flex flex-col overflow-hidden rounded-xl bg-white",
+        "relative flex flex-col overflow-y-scroll rounded-xl bg-white",
         "border border-gray-200 shadow-sm transition-all duration-300",
         "hover:shadow-lg hover:shadow-[#397e50]/5",
         className ?? "",

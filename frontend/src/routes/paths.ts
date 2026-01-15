@@ -2,6 +2,9 @@ const join = (base: string, path: string) =>
   `${base}${path.startsWith("/") ? path : `/${path}`}`;
 
 const DASHBOARD_ADMIN = "/dashboard/administrator";
+const DASHBOARD_GURU = "/dashboard/guru";
+const DASHBOARD_SISWA = "/dashboard/siswa";
+
 
 const djoin = (path: string) => join(DASHBOARD_ADMIN, path);
 
@@ -13,6 +16,9 @@ export const paths = {
 
   dashboard: {
     home_admin: DASHBOARD_ADMIN,
+    home_guru: DASHBOARD_GURU,
+    home_siswa: DASHBOARD_SISWA,
+
 
     kelola_akun_siswa: djoin(join("kelola-akun", "/siswa")),
     kelola_akun_guru: djoin(join("kelola-akun", "/guru")),

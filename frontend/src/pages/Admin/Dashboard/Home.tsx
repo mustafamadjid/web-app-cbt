@@ -1,5 +1,4 @@
 
-
 // Widgets
 import StatistikWidget from "@/components/features/widget/Soal/StatistikWidget";
 import SimpleStatWidget from "@/components/features/widget/Soal/StatistikWidgetSimpler";
@@ -14,6 +13,8 @@ import type { PengumumanItem } from "@/components/features/widget/Pengumuman/Pen
 import type { JadwalUjianItem } from "@/types/Ujian/jadwalUjian";
 import type { AktivitasLogItem } from "@/types/Log/LogAktivitas";
 import type { UjianBerlangsungItem } from "@/types/Widget/UjianBerlangsung";
+import type { Role } from "@/types/Sidebar/SidebarMenu";
+import { useAuth } from "@/contexts/AuthContext";
 
 // --- DUMMY DATA ---
 const pengumuman: PengumumanItem[] = [
@@ -130,23 +131,32 @@ export const dummyUjianBerlangsung: UjianBerlangsungItem[] = [
 ];
 
 export const Home = () => {
+  const {user} = useAuth(); 
+  const role = (user?.role ?? "SISWA") as Role;
+
+
   return (
     <div className="min-h-screen bg-[#ecf1ed]  pb-20">
       <div className="mx-auto max-w-[1920px] space-y-8 p-4 sm:p-6 lg:p-8">
         {/* === TOP STATS (GRID 4 KOLOM) === */}
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
-     
           {/* Card 1: Total User (Dibuat Lebih Lebar) */}
-          <div className="h-full sm:col-span-2 lg:col-span-2">
-            <TotalSiswaGuruWidget
-              totalGuru={24}
-              totalSiswa={450}
-              className="h-full"
-            />
-          </div>
+          {role === "ADMIN" && (
+            <div className="h-full sm:col-span-2 lg:col-span-2">
+              <TotalSiswaGuruWidget
+                totalGuru={24}
+                totalSiswa={450}
+                className="h-full"
+              />
+            </div>
+          )}
 
           {/* Card 2: Statistik Ujian */}
-          <div className="h-full lg:col-span-1">
+          <div
+            className={`h-full  ${
+              role === "ADMIN" ? "lg:col-span-1" : "lg:col-span-3"
+            }`}
+          >
             <StatistikWidget
               title="Total Ujian Terlaksana"
               value={4}
@@ -183,7 +193,11 @@ export const Home = () => {
         {/* === MAIN CONTENT === */}
         <div className="grid gap-6 lg:grid-cols-12 items-stretch">
           {/* LEFT COLUMN */}
-          <div className="flex flex-col gap-6 lg:col-span-7 xl:col-span-8 h-full min-h-0">
+          <div
+            className={`flex flex-col gap-6 xl:col-span-8 h-full min-h-0 lg:col-span-6 ${
+              role === "ADMIN" ? "" : "lg:h-300"
+            }`}
+          >
             <PengumumanWidget
               title="Papan Pengumuman"
               items={pengumuman}
@@ -204,12 +218,14 @@ export const Home = () => {
               maxHeightClassName="h-full"
             />
 
-            <LogAktivitasWidget
-              items={dummyAktivitas}
-              lihatSemuaTo="/log-aktivitas"
-              className="flex-1 min-h-0"
-              maxHeightClassName="h-full"
-            />
+            {role === "ADMIN" && (
+              <LogAktivitasWidget
+                items={dummyAktivitas}
+                lihatSemuaTo="/log-aktivitas"
+                className="flex-1 min-h-0"
+                maxHeightClassName="h-full"
+              />
+            )}
           </div>
         </div>
       </div>

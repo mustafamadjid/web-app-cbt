@@ -75,10 +75,6 @@ const BoxJadwalUjian = ({
               <h3 className="text-xl font-extrabold text-slate-800 leading-tight transition-colors group-hover:text-[#397e50]">
                 {nama_ujian}
               </h3>
-              <div className="flex items-center gap-2 text-slate-500">
-                <User size={14} className="text-[#397e50]" />
-                <span className="text-sm font-semibold">{pengawas_ujian}</span>
-              </div>
             </div>
 
             <span
@@ -89,12 +85,20 @@ const BoxJadwalUjian = ({
           </div>
 
           {/* Info Grid: Flat & Clean */}
-          <div className="grid grid-cols-2 gap-4 rounded-xl border border-slate-50 bg-slate-50/50 p-4 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-4 rounded-xl border border-slate-50 bg-slate-50/50 p-4 sm:grid-cols-5">
             <div className="space-y-1">
               <p className="flex items-center gap-1.5 text-2xs font-bold uppercase tracking-wider text-slate-400">
                 <Calendar size={12} className="text-[#397e50]" /> Tanggal
               </p>
               <p className="text-sm font-bold text-slate-700">{tgl_ujian}</p>
+            </div>
+            <div className="space-y-1">
+              <p className="flex items-center gap-1.5 text-2xs font-bold uppercase tracking-wider text-slate-400">
+                <User size={12} className="text-[#397e50]" /> Pengawas Ujian
+              </p>
+              <p className="text-sm font-bold text-slate-700">
+                {pengawas_ujian}
+              </p>
             </div>
             <div className="space-y-1">
               <p className="flex items-center gap-1.5 text-2xs font-bold uppercase tracking-wider text-slate-400">

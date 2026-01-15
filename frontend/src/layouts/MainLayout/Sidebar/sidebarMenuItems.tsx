@@ -19,6 +19,16 @@ export const mainMenuItems: SidebarMenuItem[] = [
     roles: ADMIN_ONLY,
   },
   {
+    id: 101,
+    type: "link",
+    label: "Dashboard",
+    to: paths.dashboard.home_admin,
+    end: true,
+    icon: SvgIcons.dashboard,
+    roles: GURU_ONLY,
+  },
+
+  {
     id: 2,
     type: "group",
     label: "Kelola Pengguna",
