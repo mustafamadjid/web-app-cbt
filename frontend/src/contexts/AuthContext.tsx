@@ -9,25 +9,9 @@ import React, {
 import { api, ApiError } from "@/services/Api/api";
 import { authToken } from "@/services/auth/token";
 
-type User = {
-  username: string;
-  role: string;
-};
+import type { User,AuthContextValue,AuthStatus,LoginPayload } from "@/types/Auth/Auth";
 
-type AuthStatus = "loading" | "authenticated" | "guest";
 
-type LoginPayload = {
-  username: string;
-  password: string;
-};
-
-type AuthContextValue = {
-  user: User | null;
-  status: AuthStatus;
-  login: (payload: LoginPayload) => Promise<void>;
-  logout: () => Promise<void>;
-  refetchMe: () => Promise<void>;
-};
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
