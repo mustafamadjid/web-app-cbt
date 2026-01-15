@@ -35,7 +35,7 @@ import DetailUjian from "@/pages/Admin/Dashboard/Ujian/DetailUjian/DetailUjian";
 
 import Cetak from "@/pages/Admin/Cetak/Cetak";
 
-import AdminLayout from "@/layouts/MainLayout/AdminLayout/AdminLayout";
+import TemplateLayout from "@/layouts/MainLayout/TemplateLayout/TemplateLayout";
 
 import PengaturanProfil from "@/pages/Admin/Dashboard/Pengaturan/Pengaturan";
 import HasilUjian from "@/pages/Admin/Dashboard/Ujian/HasilUjian";
@@ -53,7 +53,7 @@ export const router = createBrowserRouter([
     element: <ProtectedRoute allowedRoles={["ADMIN"]} />,
     children: [
       {
-        element: <AdminLayout />,
+        element: <TemplateLayout />,
         children: [
           {
             element: <HeaderLayout />,
@@ -131,13 +131,12 @@ export const router = createBrowserRouter([
     element: <ProtectedRoute allowedRoles={["GURU"]} />,
     children: [
       {
-        element: <AdminLayout />,
+        element: <TemplateLayout />,
         children: [
           {
             element: <HeaderLayout />,
             children: [{ index: true, element: <Home /> }],
           },
-
         ],
       },
     ],
