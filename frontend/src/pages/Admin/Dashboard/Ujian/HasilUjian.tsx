@@ -9,8 +9,11 @@ import { paths } from "@/routes/paths";
 import type { TingkatKelasOption } from "@/types/DataMaster/Kelas";
 import { tahunOption } from "@/helper/TahunOption/TahunOption";
 import { Calendar, Layers } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const HasilUjian = () => {
+  const {user} = useAuth();
+
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [daftarUjian, setDaftarUjian] = useState<JadwalUjianItem[]>([]);
@@ -155,7 +158,7 @@ const HasilUjian = () => {
             <BoxHasilUjian
               key={ujian.id}
               {...ujian}
-              linkHasil={paths.dashboard.hasil_ujian_detail.replace(
+              linkHasil={user?.role === "ADMIN"? paths.dashboard.hasil_ujian_detail : paths.dashboard.hasil_ujian_detail_guru.replace(
                 ":id",
                 String(ujian.id)
               )}
