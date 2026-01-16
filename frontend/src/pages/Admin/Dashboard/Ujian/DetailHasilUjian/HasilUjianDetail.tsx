@@ -21,6 +21,7 @@ import {
 } from "@/services/Api/features-api/Ujian/hasilUjian.service";
 import type { HasilUjianSiswa } from "@/types/Ujian/HasilUjian";
 import { paths } from "@/routes/paths";
+import { useAuth } from "@/contexts/AuthContext";
 
 // --- KOMPONEN WIDGET FLAT (NO SHADOW, NO BG DECOR) ---
 const StatWidget = ({
@@ -60,6 +61,8 @@ const StatWidget = ({
 };
 
 const HasilUjianDetail = () => {
+  const {user} = useAuth();
+
   const { id } = useParams();
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -308,7 +311,7 @@ const HasilUjianDetail = () => {
 
                     <td className="px-6 py-4 text-right">
                       <Link
-                        to={paths.dashboard.hasil_ujian_siswa_detail
+                        to={user?.role === "ADMIN"? paths.dashboard.hasil_ujian_siswa_detail : paths.dashboard.hasil_ujian_siswa_detail_guru
                           .replace(":id", String(ujianId))
                           .replace(":siswaId", String(siswa.id))}
                         className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-400 transition-colors hover:border-[#397e50] hover:bg-[#397e50] hover:text-white"
