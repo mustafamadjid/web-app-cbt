@@ -42,6 +42,7 @@ import HasilUjian from "@/pages/Admin/Dashboard/Ujian/HasilUjian";
 import HasilUjianDetail from "@/pages/Admin/Dashboard/Ujian/DetailHasilUjian/HasilUjianDetail";
 import HasilUjianSiswaDetail from "@/pages/Admin/Dashboard/Ujian/DetailHasilUjian/HasilUjianSiswaDetail";
 import HomeSiswa from "@/pages/Siswa/HomeSiswa";
+import UjianSiswa from "@/pages/Siswa/Ujian/UjianSiswa/UjianSiswa";
 
 export const router = createBrowserRouter([
   // Login Page
@@ -178,6 +179,7 @@ export const router = createBrowserRouter([
             element: <HeaderLayout />,
             children: [
               { index: true, element: <HomeSiswa /> },
+              {path:paths.dashboard.ujian_siswa, element:<UjianSiswa/>}
               
             ],
           },
