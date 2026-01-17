@@ -41,6 +41,7 @@ import PengaturanProfil from "@/pages/Admin/Dashboard/Pengaturan/Pengaturan";
 import HasilUjian from "@/pages/Admin/Dashboard/Ujian/HasilUjian";
 import HasilUjianDetail from "@/pages/Admin/Dashboard/Ujian/DetailHasilUjian/HasilUjianDetail";
 import HasilUjianSiswaDetail from "@/pages/Admin/Dashboard/Ujian/DetailHasilUjian/HasilUjianSiswaDetail";
+import HomeSiswa from "@/pages/Siswa/HomeSiswa";
 
 export const router = createBrowserRouter([
   // Login Page
@@ -160,6 +161,24 @@ export const router = createBrowserRouter([
                 element: <HasilUjianSiswaDetail />,
               },
               { path: paths.dashboard.cetak_guru, element: <Cetak /> },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    path: "/dashboard/siswa",
+    element: <ProtectedRoute allowedRoles={["SISWA"]} />,
+    children: [
+      {
+        element: <TemplateLayout />,
+        children: [
+          {
+            element: <HeaderLayout />,
+            children: [
+              { index: true, element: <HomeSiswa /> },
+              
             ],
           },
         ],

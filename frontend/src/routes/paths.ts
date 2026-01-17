@@ -8,6 +8,7 @@ const DASHBOARD_SISWA = "/dashboard/siswa";
 
 const djoinAdmin = (path: string) => join(DASHBOARD_ADMIN, path);
 const djoinGuru = (path: string) => join(DASHBOARD_GURU, path);
+const djoinSiswa = (path: string) => join(DASHBOARD_SISWA, path);
 
 
 export const paths = {
@@ -65,5 +66,10 @@ export const paths = {
 
 
     pengaturan: djoinAdmin("pengaturan"),
+
+    ujian_siswa : djoinSiswa("ujian"),
+    hasil_ujian_siswa : djoinSiswa(join("ujian", "/hasil")),
+
+
   },
 } as const;

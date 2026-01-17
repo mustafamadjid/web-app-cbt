@@ -177,6 +177,41 @@ export const mainMenuItems: SidebarMenuItem[] = [
       },
     ],
   },
+
+  // MENU SISWA
+  {
+    id: 102,
+    type: "link",
+    label: "Dashboard",
+    to: paths.dashboard.home_siswa,
+    end: true,
+    icon: SvgIcons.dashboard,
+    roles: SISWA_ONLY,
+  },
+  {
+    id: 10,
+    type: "group",
+    label: "Ujian",
+    icon: SvgIcons.book,
+    roles:SISWA_ONLY,
+    children: [
+      {
+        id: 1001,
+        label: "Mulai Ujian",
+        to: paths.dashboard.ujian_siswa,
+        icon: SvgIcons.chevronDouble,
+        roles:SISWA_ONLY,
+      },
+      {
+        id: 1002,
+        label: "Hasil Ujian",
+        to: paths.dashboard.hasil_ujian_siswa,
+        icon: SvgIcons.chevronDouble,
+        roles:SISWA_ONLY,
+      },
+      
+    ],
+  },
 ];
 
 export const footerMenuItems: SidebarMenuItem[] = [
