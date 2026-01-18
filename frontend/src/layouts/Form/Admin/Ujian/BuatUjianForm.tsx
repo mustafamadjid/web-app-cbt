@@ -33,6 +33,7 @@ import { createSetField } from "@/helper/setField/setField";
 import { calculateDuration } from "@/helper/CalculateDuration/calculateDuration";
 import {
   createValidator,
+  minNumber,
   requiredString,
   requiredValue,
 } from "@/helper/validate/validateForm";
@@ -42,19 +43,19 @@ const initialValues: BuatUjianFormValues = {
   nama_ujian: "",
   deskripsi_ujian: "",
   tipe_ujian: "PILIHAN_GANDA",
-  kelas_id: "",
+  kelas_id: 0,
   kelas_scope: "SEMUA",
-  kelas_detail_id: "",
-  bank_soal_id: "",
+  kelas_detail_id: 0,
+  bank_soal_id: 0,
   jumlah_soal: 0,
   tanggal_ujian: "",
   waktu_mulai: "",
   waktu_selesai: "",
   durasi_menit: 0,
-  ruang_ujian_id: "",
+  ruang_ujian_id: 0,
   acak_soal: true,
-  guru_pengawas_id: "",
-  sesi_id: "",
+  guru_pengawas_id: 0,
+  sesi_id: 0,
   token_ujian: "",
 };
 
@@ -89,7 +90,7 @@ const BuatUjianForm = () => {
 
   const selectedKelasId = useMemo(() => {
     const tingkatKelas =
-      values.kelas_id === "" ? undefined : getTingkatKelasById(values.kelas_id);
+      values.kelas_id === 0 ? undefined : getTingkatKelasById(values.kelas_id);
     return tingkatKelas ?? undefined;
   }, [values.kelas_id]);
 
@@ -98,7 +99,7 @@ const BuatUjianForm = () => {
   }, [kelasDetailOptions]);
 
   const selectedKelasDetail =
-    values.kelas_detail_id === ""
+    values.kelas_detail_id === 0
       ? undefined
       : kelasDetailById.get(values.kelas_detail_id);
 
@@ -108,7 +109,7 @@ const BuatUjianForm = () => {
   }, [bankSoalOptions]);
 
   const selectedBankSoal =
-    values.bank_soal_id === "" ? undefined : bankSoalById.get(values.bank_soal_id);
+    values.bank_soal_id === 0 ? undefined : bankSoalById.get(values.bank_soal_id);
 
   useEffect(() => {
     let active = true;
@@ -145,7 +146,7 @@ const BuatUjianForm = () => {
       setLoadingKelasDetail(true);
       try {
         const data = await getKelas({
-          tingkatKelas: values.kelas_id === "" ? undefined : values.kelas_id,
+          tingkatKelas: values.kelas_id === 0 ? undefined : values.kelas_id,
         });
         if (!active) return;
         setKelasDetailOptions(data);
@@ -154,13 +155,13 @@ const BuatUjianForm = () => {
       }
     };
 
-    if (values.kelas_id !== "") {
+    if (values.kelas_id !== 0) {
       loadKelasDetail();
     } else {
       setKelasDetailOptions([]);
     }
 
-    setField("kelas_detail_id", "");
+    setField("kelas_detail_id", 0);
 
     return () => {
       active = false;
@@ -169,7 +170,7 @@ const BuatUjianForm = () => {
 
   useEffect(() => {
     if (values.kelas_scope === "SEMUA") {
-      setField("kelas_detail_id", "");
+      setField("kelas_detail_id", 0);
     }
   }, [values.kelas_scope]);
 
@@ -179,7 +180,7 @@ const BuatUjianForm = () => {
       setLoadingBankSoal(true);
       try {
         const data = await getUjianBankSoalOptions({
-          tingkatKelasId: values.kelas_id === "" ? undefined : values.kelas_id,
+          tingkatKelasId: values.kelas_id === 0 ? undefined : values.kelas_id,
         });
         if (!active) return;
         setBankSoalOptions(data);
@@ -192,7 +193,7 @@ const BuatUjianForm = () => {
       loadBankSoal();
     } else {
       setBankSoalOptions([]);
-      setField("bank_soal_id", "");
+      setField("bank_soal_id", 0);
       setField("jumlah_soal", 0);
     }
 
@@ -207,7 +208,7 @@ const BuatUjianForm = () => {
       setLoadingSiswa(true);
       try {
         const data = await getUjianSiswaPreview({
-          tingkatKelasId: values.kelas_id === "" ? undefined : values.kelas_id,
+          tingkatKelasId: values.kelas_id === 0 ? undefined : values.kelas_id,
         });
         if (!active) return;
         // harusnya data dari server sudah di sorting
@@ -262,15 +263,15 @@ const BuatUjianForm = () => {
     nama_ujian: [requiredString("Nama ujian wajib diisi.")],
     deskripsi_ujian: [requiredString("Deskripsi ujian wajib diisi.")],
     tipe_ujian: [requiredValue("Tipe ujian wajib dipilih.")],
-    kelas_id: [requiredValue("Tingkat kelas wajib dipilih.")],
+    kelas_id: [minNumber(1, "Tingkat kelas wajib dipilih.")],
     kelas_scope: [requiredValue("Cakupan kelas wajib dipilih.")],
     kelas_detail_id: [
       (value, values) =>
-        values.kelas_scope === "SPESIFIK" && value === ""
+        values.kelas_scope === "SPESIFIK" && value === 0
           ? "Nama kelas wajib dipilih."
           : null,
     ],
-    bank_soal_id: [requiredValue("Bank soal wajib dipilih.")],
+    bank_soal_id: [minNumber(1, "Bank soal wajib dipilih.")],
     tanggal_ujian: [requiredString("Tanggal ujian wajib diisi.")],
     waktu_mulai: [requiredString("Waktu mulai wajib diisi.")],
     waktu_selesai: [
@@ -280,9 +281,9 @@ const BuatUjianForm = () => {
           ? "Waktu selesai harus setelah waktu mulai."
           : null,
     ],
-    ruang_ujian_id: [requiredValue("Ruang ujian wajib dipilih.")],
-    guru_pengawas_id: [requiredValue("Guru pengawas wajib dipilih.")],
-    sesi_id: [requiredValue("Sesi ujian wajib dipilih.")],
+    ruang_ujian_id: [minNumber(1, "Ruang ujian wajib dipilih.")],
+    guru_pengawas_id: [minNumber(1, "Guru pengawas wajib dipilih.")],
+    sesi_id: [minNumber(1, "Sesi ujian wajib dipilih.")],
     token_ujian: [requiredString("Token ujian wajib diisi.")],
   });
 
@@ -444,15 +445,12 @@ const BuatUjianForm = () => {
                   }`}
                   value={values.kelas_id}
                   onChange={(e) =>
-                    setField(
-                      "kelas_id",
-                      e.target.value === "" ? "" : Number(e.target.value)
-                    )
+                    setField("kelas_id", Number(e.target.value))
                   }
                   onBlur={() => onBlur("kelas_id")}
                   required
                 >
-                  <option value="">Pilih tingkat kelas</option>
+                  <option value={0}>Pilih tingkat kelas</option>
                   {kelasOptions.map((tingkat) => (
                     <option
                       key={tingkat.id_tingkat_kelas}
@@ -491,7 +489,7 @@ const BuatUjianForm = () => {
                     )
                   }
                   onBlur={() => onBlur("kelas_scope")}
-                  disabled={values.kelas_id === ""}
+                  disabled={values.kelas_id === 0}
                 >
                   <option value="SEMUA">
                     Semua kelas di tingkat ini
@@ -523,19 +521,16 @@ const BuatUjianForm = () => {
                   }`}
                   value={values.kelas_detail_id}
                   onChange={(e) =>
-                    setField(
-                      "kelas_detail_id",
-                      e.target.value === "" ? "" : Number(e.target.value)
-                    )
+                    setField("kelas_detail_id", Number(e.target.value))
                   }
                   onBlur={() => onBlur("kelas_detail_id")}
                   disabled={
-                    values.kelas_id === "" ||
+                    values.kelas_id === 0 ||
                     values.kelas_scope !== "SPESIFIK" ||
                     loadingKelasDetail
                   }
                 >
-                  <option value="">
+                  <option value={0}>
                     {loadingKelasDetail
                       ? "Memuat nama kelas..."
                       : "Pilih nama kelas"}
@@ -569,15 +564,12 @@ const BuatUjianForm = () => {
                   }`}
                   value={values.bank_soal_id}
                   onChange={(e) =>
-                    setField(
-                      "bank_soal_id",
-                      e.target.value === "" ? "" : Number(e.target.value)
-                    )
+                    setField("bank_soal_id", Number(e.target.value))
                   }
                   onBlur={() => onBlur("bank_soal_id")}
-                  disabled={values.kelas_id === "" || loadingBankSoal}
+                  disabled={values.kelas_id === 0 || loadingBankSoal}
                 >
-                  <option value="">
+                  <option value={0}>
                     {loadingBankSoal
                       ? "Memuat bank soal..."
                       : "Pilih bank soal"}
@@ -727,15 +719,12 @@ const BuatUjianForm = () => {
                   }`}
                   value={values.ruang_ujian_id}
                   onChange={(e) =>
-                    setField(
-                      "ruang_ujian_id",
-                      e.target.value === "" ? "" : Number(e.target.value)
-                    )
+                    setField("ruang_ujian_id", Number(e.target.value))
                   }
                   onBlur={() => onBlur("ruang_ujian_id")}
                   required
                 >
-                  <option value="">Pilih ruang ujian</option>
+                  <option value={0}>Pilih ruang ujian</option>
                   {ruangOptions.map((ruang) => (
                     <option key={ruang.id} value={ruang.id}>
                       {ruang.namaRuangan}
@@ -763,15 +752,12 @@ const BuatUjianForm = () => {
                   }`}
                   value={values.sesi_id}
                   onChange={(e) =>
-                    setField(
-                      "sesi_id",
-                      e.target.value === "" ? "" : Number(e.target.value)
-                    )
+                    setField("sesi_id", Number(e.target.value))
                   }
                   onBlur={() => onBlur("sesi_id")}
                   required
                 >
-                  <option value="">Pilih sesi ujian</option>
+                  <option value={0}>Pilih sesi ujian</option>
                   {sesiOptions.map((sesi) => (
                     <option key={sesi.id} value={sesi.id}>
                       {sesi.kode} - {sesi.nama}
@@ -799,15 +785,12 @@ const BuatUjianForm = () => {
                   }`}
                   value={values.guru_pengawas_id}
                   onChange={(e) =>
-                    setField(
-                      "guru_pengawas_id",
-                      e.target.value === "" ? "" : Number(e.target.value)
-                    )
+                    setField("guru_pengawas_id", Number(e.target.value))
                   }
                   onBlur={() => onBlur("guru_pengawas_id")}
                   required
                 >
-                  <option value="">Pilih guru pengawas</option>
+                  <option value={0}>Pilih guru pengawas</option>
                   {guruOptions.map((guru) => (
                     <option key={guru.id} value={guru.id}>
                       {guru.nama} {guru.mapel ? `- ${guru.mapel}` : ""}
@@ -893,33 +876,33 @@ const BuatUjianForm = () => {
                 </span>
               </div>
 
-              {values.kelas_id === "" && (
+              {values.kelas_id === 0 && (
                 <p className="text-sm text-slate-500">
                   Pilih tingkat kelas untuk melihat daftar siswa.
                 </p>
               )}
 
-              {values.kelas_id !== "" &&
+              {values.kelas_id !== 0 &&
                 values.kelas_scope === "SPESIFIK" &&
-                values.kelas_detail_id === "" && (
+                values.kelas_detail_id === 0 && (
                   <p className="text-sm text-slate-500">
                     Pilih nama kelas untuk melihat daftar siswa.
                   </p>
                 )}
 
-              {values.kelas_id !== "" &&
+              {values.kelas_id !== 0 &&
                 loadingSiswa &&
                 (values.kelas_scope !== "SPESIFIK" ||
-                  values.kelas_detail_id !== "") && (
+                  values.kelas_detail_id !== 0) && (
                   <p className="text-sm text-slate-500">
                     Memuat data siswa...
                   </p>
                 )}
 
-              {values.kelas_id !== "" &&
+              {values.kelas_id !== 0 &&
                 !loadingSiswa &&
                 (values.kelas_scope !== "SPESIFIK" ||
-                  values.kelas_detail_id !== "") &&
+                  values.kelas_detail_id !== 0) &&
                 siswaPreviewFiltered.length === 0 && (
                   <p className="text-sm text-slate-500">
                     {values.kelas_scope === "SPESIFIK"
