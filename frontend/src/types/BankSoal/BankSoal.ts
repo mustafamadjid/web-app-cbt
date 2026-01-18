@@ -16,6 +16,7 @@ export type BankSoalItem = {
 
 export type SoalUjianItem = {
     id_soal: number;
+    nomor_urut_soal: number;
     tipe_soal:TipeUjian;
     pertanyaan: string;
     urlGambar?:string;

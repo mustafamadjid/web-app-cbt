@@ -1,4 +1,7 @@
+import React from "react";
+
 import type { SoalUjianItem } from "@/types/BankSoal/BankSoal";
+import type { TipeUjian } from "@/types/Ujian/BuatUjian";
 
 type SoalLayoutUser = {
   nama: string;
@@ -43,24 +46,41 @@ const SoalLayout: React.FC<SoalLayoutProps> = ({
     { key: "opsi_e", label: "E", value: soal.opsi_e },
   ].filter((option) => Boolean(option.value));
 
+  const tipeSoal = (label: TipeUjian) => {
+    if (label === "PILIHAN_GANDA") {
+      return "Pilihan Ganda";
+    }
+    if (label === "ESSAY") {
+      return "Essay";
+    }
+    return "-";
+  };
+
+  const canBack = Boolean(onBack);
+  const canPrev = Boolean(onPrev);
+  const canNext = Boolean(onNext);
+
   return (
-    <div className={["w-full min-h-screen bg-slate-50", className].join(" ")}
-    >
+    <div className={["w-full min-h-screen bg-slate-50", className].join(" ")}>
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-6">
         <header className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
           <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={onBack}
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-lg text-[#397e50] transition hover:border-[#397e50]"
+              disabled={!canBack}
+              className={[
+                "flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-lg text-[#397e50] transition",
+                canBack
+                  ? "cursor-pointer hover:border-[#397e50]"
+                  : "cursor-not-allowed opacity-50",
+              ].join(" ")}
               aria-label="Kembali"
             >
               ←
             </button>
             <div>
-              <p className="text-sm font-semibold text-slate-800">
-                {title}
-              </p>
+              <p className="text-sm font-semibold text-slate-800">{title}</p>
               <p className="text-xs text-slate-400">Bank Soal</p>
             </div>
           </div>
@@ -75,6 +95,7 @@ const SoalLayout: React.FC<SoalLayoutProps> = ({
                   <p className="text-[11px] text-slate-400">{user.kelas}</p>
                 )}
               </div>
+
               <div className="h-9 w-9 overflow-hidden rounded-full border border-slate-200">
                 {user.avatarUrl ? (
                   <img
@@ -106,7 +127,7 @@ const SoalLayout: React.FC<SoalLayoutProps> = ({
             <div className="space-y-4">
               <div>
                 <p className="text-xs uppercase tracking-wide text-slate-400">
-                  {soal.tipe_soal || "Teks"}
+                  {tipeSoal(soal.tipe_soal)}
                 </p>
                 <p className="mt-2 text-sm leading-relaxed text-slate-600">
                   {soal.pertanyaan}
@@ -127,9 +148,12 @@ const SoalLayout: React.FC<SoalLayoutProps> = ({
                 <p className="text-xs font-semibold text-slate-400">
                   Pilihan Jawaban
                 </p>
+
                 <div className="space-y-2">
                   {options.map((option) => {
                     const isSelected = selectedOption === option.label;
+                    const isClickable = Boolean(option.value && onSelectOption);
+
                     return (
                       <button
                         key={option.key}
@@ -137,11 +161,15 @@ const SoalLayout: React.FC<SoalLayoutProps> = ({
                         onClick={() =>
                           option.value && onSelectOption?.(option.label)
                         }
+                        disabled={!isClickable}
                         className={[
                           "flex w-full items-start gap-3 rounded-xl border px-4 py-3 text-left text-sm transition",
                           isSelected
                             ? "border-[#397e50] bg-[#397e50]/10 text-[#397e50]"
                             : "border-slate-200 text-slate-600 hover:border-[#397e50]",
+                          isClickable
+                            ? "cursor-pointer"
+                            : "cursor-not-allowed opacity-50",
                         ].join(" ")}
                       >
                         <span
@@ -167,14 +195,25 @@ const SoalLayout: React.FC<SoalLayoutProps> = ({
             <button
               type="button"
               onClick={onPrev}
-              className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-500 transition hover:border-[#397e50] hover:text-[#397e50]"
+              disabled={!canPrev}
+              className={[
+                "rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-500 transition",
+                canPrev
+                  ? "cursor-pointer hover:border-[#397e50] hover:text-[#397e50]"
+                  : "cursor-not-allowed opacity-50",
+              ].join(" ")}
             >
               Sebelumnya
             </button>
+
             <button
               type="button"
               onClick={onNext}
-              className="rounded-lg bg-[#397e50] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#326f45]"
+              disabled={!canNext}
+              className={[
+                "rounded-lg bg-[#397e50] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#326f45]",
+                canNext ? "cursor-pointer" : "cursor-not-allowed opacity-50",
+              ].join(" ")}
             >
               Selanjutnya
             </button>
