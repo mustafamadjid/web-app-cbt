@@ -217,7 +217,7 @@ const BankSoal = () => {
           <button
             type="button"
             onClick={() => setActiveSection("ALL")}
-            className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+            className={`rounded-full px-4 py-2 text-sm font-semibold transition cursor-pointer ${
               activeSection === "ALL"
                 ? "bg-[#397e50] text-white shadow-sm"
                 : "bg-white text-gray-700 ring-1 ring-gray-200 hover:bg-gray-50"
@@ -228,7 +228,7 @@ const BankSoal = () => {
           <button
             type="button"
             onClick={() => setActiveSection("MY")}
-            className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+            className={`rounded-full px-4 py-2 text-sm font-semibold transition cursor-pointer ${
               activeSection === "MY"
                 ? "bg-[#397e50] text-white shadow-sm"
                 : "bg-white text-gray-700 ring-1 ring-gray-200 hover:bg-gray-50"
