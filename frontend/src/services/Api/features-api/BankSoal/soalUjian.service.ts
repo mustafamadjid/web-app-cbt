@@ -13,7 +13,7 @@ const dummySoalUjian: Record<number, SoalUjianResponse> = {
     soal: [
       {
         id_soal: 101,
-        tipe_soal: "Teks pendek",
+        tipe_soal: "PILIHAN_GANDA",
         pertanyaan:
           "Fenomena banjir di kota besar disebabkan oleh berkurangnya daerah resapan air, meningkatnya pembangunan, serta kebiasaan masyarakat membuang sampah sembarangan. Ketika curah hujan tinggi, air tidak dapat terserap dengan baik sehingga meluap dan menggenangi permukaan jalan maupun permukiman. Apa gagasan utama paragraf tersebut?",
         opsi_a:

@@ -1,3 +1,5 @@
+import type { TipeUjian } from "../Ujian/BuatUjian";
+
 export type BankSoalItem = {
     id: number;
     guru?: string;
@@ -14,7 +16,7 @@ export type BankSoalItem = {
 
 export type SoalUjianItem = {
     id_soal: number;
-    tipe_soal:string;
+    tipe_soal:TipeUjian;
     pertanyaan: string;
     urlGambar?:string;
     bobot?:string;
