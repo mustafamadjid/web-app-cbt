@@ -19,6 +19,7 @@ import type { MataPelajaranOption } from "@/types/DataMaster/MataPelajaran";
 
 import {
   getBankSoalByKelas,
+  getBankSoalByGuru,
   getMataPelajaranOptions,
 } from "@/services/Api/features-api/BankSoal/banksoal.service";
 import { getTingkatKelasOptions } from "@/services/Api/features-api/DataMaster/kelas.service";
@@ -56,10 +57,14 @@ const BankSoal = () => {
   >([]);
   const [mapelOptions, setMapelOptions] = useState<MataPelajaranOption[]>([]);
   const [items, setItems] = useState<BankSoalItem[]>([]);
+  const [myItems, setMyItems] = useState<BankSoalItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingMyItems, setLoadingMyItems] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string>("");
+  const [myErrorMsg, setMyErrorMsg] = useState<string>("");
 
   const requestSeq = useRef(0);
+  const requestMySeq = useRef(0);
 
   // 1. Load Kelas Options
   useEffect(() => {
@@ -132,6 +137,40 @@ const BankSoal = () => {
       }
     })();
   }, [viewMode, selectedTingkatId, selectedMapelId, debouncedSearch]);
+
+  // 4. Load Bank Soal "Soal Saya"
+  useEffect(() => {
+    const seq = ++requestMySeq.current;
+    (async () => {
+      if (!user?.id) {
+        setMyItems([]);
+        setMyErrorMsg("");
+        return;
+      }
+
+      try {
+        setLoadingMyItems(true);
+        setMyErrorMsg("");
+        const data = await getBankSoalByGuru({
+          idGuru: user.id,
+          tingkatKelasId:
+            viewMode === "BY_KELAS"
+              ? (selectedTingkatId ?? undefined)
+              : undefined,
+          mapelId: selectedMapelId ?? undefined,
+          q: debouncedSearch?.trim() || undefined,
+        });
+        if (seq !== requestMySeq.current) return;
+        setMyItems(data);
+      } catch (e) {
+        if (seq !== requestMySeq.current) return;
+        setMyErrorMsg("Gagal memuat data soal saya.");
+        setMyItems([]);
+      } finally {
+        if (seq === requestMySeq.current) setLoadingMyItems(false);
+      }
+    })();
+  }, [user?.id, viewMode, selectedTingkatId, selectedMapelId, debouncedSearch]);
 
   // Helper untuk mengubah kelas (Logic penggabungan ViewMode & TingkatID)
   const handleTingkatChange = (value: string) => {
@@ -262,7 +301,69 @@ const BankSoal = () => {
           </div>
         </div>
 
-        {/* === STATUS & COUNT INDICATOR === */}
+        {/* === SOAL SAYA SECTION === */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between px-1">
+            <h2 className="text-lg font-bold text-gray-900">Soal Saya</h2>
+          </div>
+          <div className="flex items-center justify-between px-1">
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              {loadingMyItems ? (
+                <span className="flex items-center gap-2 text-[#397e50] animate-pulse">
+                  <span className="h-2 w-2 rounded-full bg-[#397e50]" />
+                  Memuat data soal saya...
+                </span>
+              ) : (
+                <>
+                  <span className="font-medium text-gray-900">
+                    {myItems.length}
+                  </span>{" "}
+                  Soal saya ditemukan
+                  {myErrorMsg && (
+                    <span className="text-rose-500 ml-2">• {myErrorMsg}</span>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+
+          <div className="relative min-h-[220px]">
+            {loadingMyItems && myItems.length === 0 ? (
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {[1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="h-64 rounded-2xl bg-gray-200 animate-pulse"
+                  />
+                ))}
+              </div>
+            ) : !loadingMyItems && myItems.length === 0 ? (
+              <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-gray-300 bg-gray-50/50 py-16 text-center">
+                <div className="mb-4 rounded-full bg-white p-4 shadow-sm ring-1 ring-gray-100">
+                  <Search className="h-8 w-8 text-gray-300" />
+                </div>
+                <h3 className="text-base font-bold text-gray-900">
+                  Soal saya belum tersedia
+                </h3>
+                <p className="max-w-md text-sm text-gray-500 mt-2">
+                  Bank soal yang kamu buat akan tampil di sini.
+                </p>
+              </div>
+            ) : (
+              <BankSoalLayout
+                items={myItems}
+                onKelola={(item) => navigate(getDetailPath(item.id))}
+                onPreview={(item) => navigate(getDetailPath(item.id))}
+                onHapus={(item) => console.log("Hapus", item.id)}
+              />
+            )}
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between px-1">
+          <h2 className="text-lg font-bold text-gray-900">Semua Bank Soal</h2>
+        </div>
+
         <div className="flex items-center justify-between px-1">
           <div className="flex items-center gap-2 text-sm text-gray-500">
             {loading ? (
