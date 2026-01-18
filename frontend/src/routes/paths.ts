@@ -53,6 +53,7 @@ export const paths = {
 
     bank_soal_guru: djoinGuru("bank-soal"),
     tambah_bank_soal_guru: djoinGuru(join("bank-soal", "/tambah")),
+    preview_bank_soal_guru: djoinGuru(join("bank-soal", "/:id")),
 
     jadwal_ujian_guru: djoinGuru(join("ujian", "/jadwal")),
     detail_ujian_guru: djoinGuru(join("ujian", "/jadwal/:id")),
