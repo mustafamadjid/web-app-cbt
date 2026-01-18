@@ -119,6 +119,34 @@ const DetailBankSoal = () => {
   }
 
   const currentSoal = soalUjian.soal[currentIndex];
+  const questionNavigator = (
+    <div className="space-y-3">
+      <p className="text-xs font-semibold text-slate-400">
+        Nomor Urut Soal
+      </p>
+      <div className="flex flex-wrap gap-2">
+        {soalUjian.soal.map((soal, index) => {
+          const isActive = index === currentIndex;
+          return (
+            <button
+              key={soal.id_soal}
+              type="button"
+              onClick={() => setCurrentIndex(index)}
+              className={[
+                "flex h-10 w-10 items-center justify-center rounded-lg border text-sm font-semibold transition",
+                isActive
+                  ? "border-[#397e50] bg-[#397e50] text-white"
+                  : "border-slate-200 text-slate-500 hover:border-[#397e50] hover:text-[#397e50]",
+              ].join(" ")}
+              aria-label={`Soal nomor ${soal.nomor_urut_soal}`}
+            >
+              {soal.nomor_urut_soal}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
 
   return (
     <SoalLayout
@@ -127,6 +155,7 @@ const DetailBankSoal = () => {
       totalSoal={totalSoal}
       sisaWaktu={soalUjian.sisaWaktu}
       soal={currentSoal}
+      questionNavigator={questionNavigator}
       selectedOption={selectedOptions[currentSoal.id_soal]}
       onSelectOption={(value) => handleSelectOption(currentSoal.id_soal, value)}
       onPrev={handlePrev}

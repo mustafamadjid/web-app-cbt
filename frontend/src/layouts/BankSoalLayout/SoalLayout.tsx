@@ -16,6 +16,7 @@ type SoalLayoutProps = {
   sisaWaktu: string;
   soal: SoalUjianItem;
   user?: SoalLayoutUser;
+  questionNavigator?: React.ReactNode;
   selectedOption?: string;
   onSelectOption?: (value: string) => void;
   onPrev?: () => void;
@@ -31,6 +32,7 @@ const SoalLayout: React.FC<SoalLayoutProps> = ({
   sisaWaktu,
   soal,
   user,
+  questionNavigator,
   selectedOption,
   onSelectOption,
   onPrev,
@@ -62,7 +64,7 @@ const SoalLayout: React.FC<SoalLayoutProps> = ({
 
   return (
     <div className={["w-full min-h-screen bg-slate-50", className].join(" ")}>
-      <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-6">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 md:px-6">
         <header className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
           <div className="flex items-center gap-3">
             <button
@@ -113,7 +115,13 @@ const SoalLayout: React.FC<SoalLayoutProps> = ({
           )}
         </header>
 
-        <section className="flex min-h-[640px] flex-col justify-between gap-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        {questionNavigator && (
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:p-5">
+            {questionNavigator}
+          </div>
+        )}
+
+        <section className="flex min-h-[680px] flex-col justify-between gap-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
           <div className="space-y-6">
             <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
               <p className="text-sm font-semibold text-slate-700">
