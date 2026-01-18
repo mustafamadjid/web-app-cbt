@@ -2,6 +2,7 @@ import type { TipeUjian } from "../Ujian/BuatUjian";
 
 export type BankSoalItem = {
     id: number;
+    id_guru:number;
     guru?: string;
     nama_banksoal?: string;
     mata_pelajaran?: string;
