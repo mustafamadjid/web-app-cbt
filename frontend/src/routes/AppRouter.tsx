@@ -28,6 +28,7 @@ import TambahSesi from "@/pages/Admin/Dashboard/DataMaster/TambahDataMaster/Tamb
 
 import BankSoal from "@/pages/Admin/Dashboard/BankSoal/BankSoal";
 import TambahBankSoal from "@/pages/Admin/Dashboard/BankSoal/TambahBankSoal";
+import DetailBankSoal from "@/pages/Admin/Dashboard/BankSoal/DetailBankSoal";
 
 import BuatUjian from "@/pages/Admin/Dashboard/Ujian/BuatUjian";
 import JadwalUjian from "@/pages/Admin/Dashboard/Ujian/JadwalUjian";
@@ -98,6 +99,10 @@ export const router = createBrowserRouter([
               },
               { path: paths.dashboard.data_master_sesi, element: <DataSesi /> },
               { path: paths.dashboard.bank_soal, element: <BankSoal /> },
+              {
+                path: paths.dashboard.preview_bank_soal,
+                element: <DetailBankSoal />,
+              },
               { path: paths.dashboard.buat_ujian, element: <BuatUjian /> },
               { path: paths.dashboard.jadwal_ujian, element: <JadwalUjian /> },
               { path: paths.dashboard.detail_ujian, element: <DetailUjian /> },
@@ -151,6 +156,10 @@ export const router = createBrowserRouter([
             children: [
               { index: true, element: <Home /> },
               { path: paths.dashboard.bank_soal_guru, element: <BankSoal /> },
+              {
+                path: paths.dashboard.preview_bank_soal_guru,
+                element: <DetailBankSoal />,
+              },
               { path: paths.dashboard.buat_ujian_guru, element: <BuatUjian /> },
               {
                 path: paths.dashboard.jadwal_ujian_guru,

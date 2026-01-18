@@ -23,6 +23,7 @@ import {
 } from "@/services/Api/features-api/BankSoal/banksoal.service";
 import { getTingkatKelasOptions } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { paths } from "@/routes/paths";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Util: Debounce (Tetap sama)
 function useDebouncedValue<T>(value: T, delayMs = 300) {
@@ -38,6 +39,7 @@ type ViewMode = "ALL" | "BY_KELAS";
 
 const BankSoal = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   // ----- UI State -----
   const [viewMode, setViewMode] = useState<ViewMode>("ALL");
@@ -144,6 +146,14 @@ const BankSoal = () => {
 
   const isFiltering =
     search !== "" || selectedMapelId !== null || viewMode === "BY_KELAS";
+
+  const detailPathTemplate =
+    user?.role === "GURU"
+      ? paths.dashboard.preview_bank_soal_guru
+      : paths.dashboard.preview_bank_soal;
+
+  const getDetailPath = (id: number) =>
+    detailPathTemplate.replace(":id", String(id));
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] pb-20">
@@ -314,8 +324,8 @@ const BankSoal = () => {
           ) : (
             <BankSoalLayout
               items={items}
-              onPreview={(item) => navigate(`/banksoal/preview/${item.id}`)}
-              onKelola={(item) => navigate(`${paths.dashboard.preview_bank_soal}/${item.id}`)}
+              onKelola={(item) => navigate(getDetailPath(item.id))}
+              onPreview={(item) => navigate(getDetailPath(item.id))}
               onHapus={(item) => console.log("Hapus", item.id)}
             />
           )}
