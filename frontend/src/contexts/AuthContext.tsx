@@ -16,15 +16,23 @@ import type { User,AuthContextValue,AuthStatus,LoginPayload } from "@/types/Auth
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 // Hanya untuk mode development
-function getDebugAuthUser(): { username: string; role: string } | null {
+function getDebugAuthUser(): {
+  id?: number;
+  username: string;
+  role: string;
+} | null {
   if (!import.meta.env.DEV) return null;
   const raw = localStorage.getItem("debug:auth");
   if (!raw) return null;
 
   try {
-    const parsed = JSON.parse(raw) as { username?: string; role?: string };
+    const parsed = JSON.parse(raw) as {
+      id?: number;
+      username?: string;
+      role?: string;
+    };
     if (!parsed.username || !parsed.role) return null;
-    return { username: parsed.username, role: parsed.role };
+    return { id: parsed.id, username: parsed.username, role: parsed.role };
   } catch {
     return null;
   }
@@ -36,7 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refetchMe = async () => {
     const me = await api<User>("/auth/me", { method: "GET" });
-    setUser({ username: me.username, role: me.role });
+    setUser({ id: me.id, username: me.username, role: me.role });
     setStatus("authenticated");
   };
 

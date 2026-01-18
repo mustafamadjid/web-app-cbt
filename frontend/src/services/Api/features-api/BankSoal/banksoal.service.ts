@@ -21,6 +21,7 @@ type BankSoalItemLocal = BankSoalItem & {
 const DUMMY_BANKSOAL: BankSoalItemLocal[] = [
   {
     id: 1,
+    id_guru: 101,
     __kelasId: 11,
     __mapelId: 104,
     nama_banksoal: "Bank Soal Ujian Bahasa",
@@ -35,6 +36,7 @@ const DUMMY_BANKSOAL: BankSoalItemLocal[] = [
   },
   {
     id: 2,
+    id_guru: 102,
     __kelasId: 10,
     __mapelId: 102,
     nama_banksoal: "Bank Soal Ujian Fisika",
@@ -49,6 +51,7 @@ const DUMMY_BANKSOAL: BankSoalItemLocal[] = [
   },
   {
     id: 3,
+    id_guru: 103,
     __kelasId: 10,
     __mapelId: 101,
     nama_banksoal: "Bank Soal Bahasa Indonesia - Teks",
@@ -63,6 +66,7 @@ const DUMMY_BANKSOAL: BankSoalItemLocal[] = [
   },
   {
     id: 4,
+    id_guru: 103,
     __kelasId: 11,
     __mapelId: 103,
     nama_banksoal: "Bank Soal Matematika - Fungsi",
@@ -78,6 +82,7 @@ const DUMMY_BANKSOAL: BankSoalItemLocal[] = [
   },
   {
     id: 5,
+    id_guru: 102,
     __kelasId: 12,
     __mapelId: 105,
     nama_banksoal: "Bank Soal Ekonomi - Pasar",
@@ -98,6 +103,58 @@ const DUMMY_BANKSOAL: BankSoalItemLocal[] = [
 // =====================
 function normalize(s: string) {
   return s.toLowerCase().trim();
+}
+
+type BankSoalFilterParams = {
+  tingkatKelasId?: number;
+  kelasId?: number;
+  mapelId?: number;
+  q?: string;
+  idGuru?: number;
+};
+
+function filterBankSoal(params: BankSoalFilterParams) {
+  const { tingkatKelasId, kelasId, mapelId, q, idGuru } = params;
+  const tingkatKelas = getTingkatKelasById(tingkatKelasId);
+  const resolvedKelasId = kelasId ?? tingkatKelas ?? undefined;
+
+  let result = [...DUMMY_BANKSOAL];
+
+  if (resolvedKelasId) {
+    result = result.filter((x) => x.__kelasId === resolvedKelasId);
+  }
+
+  if (mapelId) {
+    result = result.filter((x) => x.__mapelId === mapelId);
+  }
+
+  if (idGuru) {
+    result = result.filter((x) => x.id_guru === idGuru);
+  }
+
+  if (q && normalize(q).length > 0) {
+    const nq = normalize(q);
+    result = result.filter((x) => {
+      const haystack = normalize(
+        [
+          x.nama_banksoal,
+          x.mata_pelajaran,
+          x.materi,
+          x.deskripsi,
+          String(x.kelas),
+          x.tgl_buat,
+        ]
+          .filter(Boolean)
+          .join(" "),
+      );
+      return haystack.includes(nq);
+    });
+  }
+
+  // sort terbaru dulu
+  result.sort((a, b) => (b.tgl_buat ?? "").localeCompare(a.tgl_buat ?? ""));
+
+  return result;
 }
 
 export async function getMataPelajaranOptions(params: {
@@ -125,43 +182,32 @@ export async function getBankSoalByKelas(params: {
   mapelId?: number;
   q?: string;
 }): Promise<BankSoalItem[]> {
-  const { tingkatKelasId, kelasId, mapelId, q } = params;
-  const tingkatKelas = getTingkatKelasById(tingkatKelasId);
-  const resolvedKelasId = kelasId ?? tingkatKelas ?? undefined;
-
-  let result = [...DUMMY_BANKSOAL];
-
-  if (resolvedKelasId) {
-    result = result.filter((x) => x.__kelasId === resolvedKelasId);
-  }
-
-  if (mapelId) {
-    result = result.filter((x) => x.__mapelId === mapelId);
-  }
-
-  if (q && normalize(q).length > 0) {
-    const nq = normalize(q);
-    result = result.filter((x) => {
-      const haystack = normalize(
-        [
-          x.nama_banksoal,
-          x.mata_pelajaran,
-          x.materi,
-          x.deskripsi,
-          String(x.kelas),
-          x.tgl_buat,
-        ]
-          .filter(Boolean)
-          .join(" "),
-      );
-      return haystack.includes(nq);
-    });
-  }
-
-  // sort terbaru dulu
-  result.sort((a, b) => (b.tgl_buat ?? "").localeCompare(a.tgl_buat ?? ""));
+  const result = filterBankSoal(params);
 
   // balikin tanpa field internal
+  const stripped: BankSoalItem[] = result.map(
+    ({ __kelasId, __mapelId, ...rest }) => rest,
+  );
+
+  return new Promise((resolve) => setTimeout(() => resolve(stripped), 350));
+}
+
+export async function getBankSoalByGuru(params: {
+  idGuru?: number;
+  tingkatKelasId?: number;
+  kelasId?: number;
+  mapelId?: number;
+  q?: string;
+}): Promise<BankSoalItem[]> {
+  if (!params.idGuru) {
+    return new Promise((resolve) => setTimeout(() => resolve([]), 200));
+  }
+
+  const result = filterBankSoal({
+    ...params,
+    idGuru: params.idGuru,
+  });
+
   const stripped: BankSoalItem[] = result.map(
     ({ __kelasId, __mapelId, ...rest }) => rest,
   );
