@@ -1,25 +1,23 @@
 import React from "react";
-import { Navigate, Outlet, useLocation } from "react-router";
+import { Navigate, Outlet } from "react-router";
 
 import Spinner from "@/components/ui/spinner";
 import { useAuth } from "@/contexts/AuthContext";
 import { paths } from "@/routes/paths";
 import type { Role } from "@/types/Sidebar/SidebarMenu";
 
-type ProtectedRouteProps = {
-  allowedRoles?: Role[];
+type PublicOnlyRouteProps = {
   children?: React.ReactNode;
 };
 
-const roleHomeMap: Record<Role, string> = {
+const roleHomeMap: Partial<Record<Role, string>> = {
   ADMIN: paths.dashboard.home_admin,
   GURU: paths.dashboard.home_guru,
   SISWA: paths.dashboard.home_siswa,
 };
 
-const ProtectedRoute = ({ allowedRoles, children }: ProtectedRouteProps) => {
+const PublicOnlyRoute = ({ children }: PublicOnlyRouteProps) => {
   const { status, user } = useAuth();
-  const location = useLocation();
 
   if (status === "loading") {
     return (
@@ -29,26 +27,18 @@ const ProtectedRoute = ({ allowedRoles, children }: ProtectedRouteProps) => {
     );
   }
 
-  if (status === "guest") {
-    return (
-      <Navigate
-        to={paths.public.login}
-        replace
-        state={{ from: location }}
-      />
-    );
-  }
+  if (status === "authenticated") {
+    const role = user?.role as Role | undefined;
 
-  
+   
+    const fallback =
+      (role && roleHomeMap[role]) ?? paths.dashboard.home_admin ?? "/";
 
-  const role = user?.role as Role | undefined;
-
-  if (allowedRoles && role && !allowedRoles.includes(role)) {
-    const fallback = roleHomeMap[role] ?? paths.public.login;
     return <Navigate to={fallback} replace />;
   }
 
+ 
   return <>{children ?? <Outlet />}</>;
 };
 
-export default ProtectedRoute;
+export default PublicOnlyRoute;

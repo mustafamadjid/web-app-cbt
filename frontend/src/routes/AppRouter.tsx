@@ -43,12 +43,23 @@ import HasilUjianDetail from "@/pages/Admin/Dashboard/Ujian/DetailHasilUjian/Has
 import HasilUjianSiswaDetail from "@/pages/Admin/Dashboard/Ujian/DetailHasilUjian/HasilUjianSiswaDetail";
 import HomeSiswa from "@/pages/Siswa/HomeSiswa";
 import UjianSiswa from "@/pages/Siswa/Ujian/UjianSiswa/UjianSiswa";
+import PublicOnlyRoute from "./PublicOnlyRoute";
 
 export const router = createBrowserRouter([
   // Login Page
   {
     path: paths.public.login,
-    element: <LoginPage />,
+    element: <PublicOnlyRoute/>,
+    children : [
+      {
+        index:true,
+        element:<LoginPage/>
+      }
+    ]
+  },
+  {
+    path:"/",
+    element:<ProtectedRoute allowedRoles={["ADMIN","GURU","SISWA"]}/>
   },
   {
     path: "/dashboard/administrator",
