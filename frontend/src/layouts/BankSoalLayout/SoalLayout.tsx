@@ -116,7 +116,7 @@ const SoalLayout: React.FC<SoalLayoutProps> = ({
         </header>
 
         {questionNavigator && (
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:p-5">
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:p-5 ">
             {questionNavigator}
           </div>
         )}

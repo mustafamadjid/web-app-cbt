@@ -133,7 +133,7 @@ const DetailBankSoal = () => {
               type="button"
               onClick={() => setCurrentIndex(index)}
               className={[
-                "flex h-10 w-10 items-center justify-center rounded-lg border text-sm font-semibold transition",
+                "flex h-10 cursor-pointer w-10 items-center justify-center rounded-lg border text-sm font-semibold transition",
                 isActive
                   ? "border-[#397e50] bg-[#397e50] text-white"
                   : "border-slate-200 text-slate-500 hover:border-[#397e50] hover:text-[#397e50]",
