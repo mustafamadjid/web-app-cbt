@@ -4,19 +4,19 @@ export type BuatUjianFormValues = {
   nama_ujian: string;
   deskripsi_ujian: string;
   tipe_ujian: TipeUjian;
-  kelas_id: number | "";
+  kelas_id: number;
   kelas_scope?: "SEMUA" | "SPESIFIK";
-  kelas_detail_id: number | "";
-  bank_soal_id: number | "";
+  kelas_detail_id: number;
+  bank_soal_id: number ;
   jumlah_soal: number;
   tanggal_ujian: string;
   waktu_mulai: string;
   waktu_selesai: string;
   durasi_menit: number;
-  ruang_ujian_id: number | "";
+  ruang_ujian_id: number;
   acak_soal: boolean;
-  guru_pengawas_id: number | "";
-  sesi_id: number | "";
+  guru_pengawas_id: number;
+  sesi_id: number;
   token_ujian: string;
   // Nanti status dibuat default tergantung jam jadwal
   // nanti started dibuat default dengan nilai 0

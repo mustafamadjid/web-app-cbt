@@ -18,9 +18,11 @@ const dummyJadwalUjianDetail: DetailUjianItem[] = [
   {
     id: 1,
     nama_ujian: "Ujian Matematika",
-    deskripsi_ujian: "Evaluasi tengah semester untuk materi fungsi dan aljabar.",
+    deskripsi_ujian:
+      "Evaluasi tengah semester untuk materi fungsi dan aljabar.",
     tipe_ujian: "PILIHAN_GANDA",
     kelas_id: 1,
+    kelas_detail_id: 1,
     bank_soal_id: 4,
     jumlah_soal: 20,
     tanggal_ujian: "2026-02-12",
@@ -51,6 +53,7 @@ const dummyJadwalUjianDetail: DetailUjianItem[] = [
     deskripsi_ujian: "Ujian pemahaman teks eksposisi dan struktur bahasa.",
     tipe_ujian: "ESSAY",
     kelas_id: 2,
+    kelas_detail_id: 2,
     bank_soal_id: 1,
     jumlah_soal: 15,
     tanggal_ujian: "2026-02-12",
@@ -81,6 +84,7 @@ const dummyJadwalUjianDetail: DetailUjianItem[] = [
     deskripsi_ujian: "Evaluasi akhir materi eksperimen dan praktikum.",
     tipe_ujian: "CAMPURAN",
     kelas_id: 3,
+    kelas_detail_id: 3,
     bank_soal_id: 5,
     jumlah_soal: 16,
     tanggal_ujian: "2026-02-13",
@@ -104,7 +108,6 @@ const dummyJadwalUjianDetail: DetailUjianItem[] = [
     tingkat_kelas: 12,
     tingkat_kelas_id: 3,
     nama_kelas: "12 IPS 1",
-
   },
   {
     id: 4,
@@ -112,6 +115,7 @@ const dummyJadwalUjianDetail: DetailUjianItem[] = [
     deskripsi_ujian: "Ujian akhir materi reading comprehension.",
     tipe_ujian: "PILIHAN_GANDA",
     kelas_id: 2,
+    kelas_detail_id: 2,
     bank_soal_id: 1,
     jumlah_soal: 20,
     tanggal_ujian: "2026-02-14",
@@ -141,6 +145,7 @@ const dummyJadwalUjianDetail: DetailUjianItem[] = [
     deskripsi_ujian: "Ujian akhir bab nasionalisme dan pergerakan.",
     tipe_ujian: "ESSAY",
     kelas_id: 1,
+    kelas_detail_id: 1,
     bank_soal_id: 3,
     jumlah_soal: 18,
     tanggal_ujian: "2026-02-15",
@@ -171,6 +176,7 @@ const dummyJadwalUjianDetail: DetailUjianItem[] = [
     deskripsi_ujian: "Ujian akhir bab geometri dan trigonometri.",
     tipe_ujian: "ESSAY",
     kelas_id: 2,
+    kelas_detail_id: 2,
     bank_soal_id: 4,
     jumlah_soal: 18,
     tanggal_ujian: "2025-02-16",
@@ -194,7 +200,7 @@ const dummyJadwalUjianDetail: DetailUjianItem[] = [
     tingkat_kelas: 11,
     tingkat_kelas_id: 2,
     nama_kelas: "11 IPS 2",
-  }
+  },
 ];
 
 export const dummyJadwalUjian: JadwalUjianItem[] = dummyJadwalUjianDetail.map(
