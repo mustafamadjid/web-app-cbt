@@ -26,3 +26,12 @@ export type SoalUjianItem = {
     jawaban?:string;
     
 }
+
+export type SoalUjianResponse = {
+  id_bank_soal: number;
+  nama_ujian: string;
+  mata_pelajaran?: string;
+  jumlah_soal: number;
+  sisa_waktu?: string;
+  soal: SoalUjianItem[];
+};

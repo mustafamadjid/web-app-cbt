@@ -1,14 +1,7 @@
 import { api, type ApiEnvelope } from "@/services/Api/api";
-import type { SoalUjianItem } from "@/types/BankSoal/BankSoal";
+import type { SoalUjianResponse } from "@/types/BankSoal/BankSoal";
 
-type SoalUjianResponse = {
-  id_bank_soal: number;
-  nama_ujian: string;
-  mata_pelajaran?: string;
-  jumlah_soal: number;
-  sisa_waktu?: string;
-  soal: SoalUjianItem[];
-};
+
 
 const dummySoalUjian: Record<number, SoalUjianResponse> = {
   1: {
