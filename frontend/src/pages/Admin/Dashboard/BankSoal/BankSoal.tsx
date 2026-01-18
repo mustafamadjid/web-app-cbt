@@ -13,7 +13,7 @@ import {
 import AddButton from "@/components/common/Button/AddButton";
 import BankSoalLayout from "@/layouts/BankSoalLayout/BankSoalLayout";
 
-import type { BankSoalItem } from "@/types/DataMaster/BankSoal";
+import type { BankSoalItem } from "@/types/BankSoal/BankSoal";
 import type { TingkatKelasOption } from "@/types/DataMaster/Kelas";
 import type { MataPelajaranOption } from "@/types/DataMaster/MataPelajaran";
 
@@ -42,7 +42,7 @@ const BankSoal = () => {
   // ----- UI State -----
   const [viewMode, setViewMode] = useState<ViewMode>("ALL");
   const [selectedTingkatId, setSelectedTingkatId] = useState<number | null>(
-    null
+    null,
   );
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search, 400);
@@ -84,7 +84,7 @@ const BankSoal = () => {
         const mapel = await getMataPelajaranOptions({
           tingkatKelasId:
             viewMode === "BY_KELAS"
-              ? selectedTingkatId ?? undefined
+              ? (selectedTingkatId ?? undefined)
               : undefined,
         });
         if (!mounted) return;
@@ -114,7 +114,7 @@ const BankSoal = () => {
         const data = await getBankSoalByKelas({
           tingkatKelasId:
             viewMode === "BY_KELAS"
-              ? selectedTingkatId ?? undefined
+              ? (selectedTingkatId ?? undefined)
               : undefined,
           mapelId: selectedMapelId ?? undefined,
           q: debouncedSearch?.trim() || undefined,
@@ -205,7 +205,7 @@ const BankSoal = () => {
                 value={
                   viewMode === "ALL"
                     ? "ALL"
-                    : selectedTingkatId?.toString() ?? ""
+                    : (selectedTingkatId?.toString() ?? "")
                 }
                 onChange={(e) => handleTingkatChange(e.target.value)}
                 className="block w-full cursor-pointer appearance-none rounded-xl border-none bg-gray-50 py-2.5 pl-9 pr-8 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:ring-2 focus:ring-[#397e50]/20 transition-all"
@@ -233,7 +233,7 @@ const BankSoal = () => {
                 value={selectedMapelId ?? ""}
                 onChange={(e) =>
                   setSelectedMapelId(
-                    e.target.value === "" ? null : Number(e.target.value)
+                    e.target.value === "" ? null : Number(e.target.value),
                   )
                 }
                 className="block w-full cursor-pointer appearance-none rounded-xl border-none bg-gray-50 py-2.5 pl-9 pr-8 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:ring-2 focus:ring-[#397e50]/20 transition-all"

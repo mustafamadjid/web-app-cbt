@@ -1,4 +1,4 @@
-import type { BankSoalItem } from "@/types/DataMaster/BankSoal";
+import type { BankSoalItem } from "@/types/BankSoal/BankSoal";
 import type { MataPelajaranOption } from "@/types/DataMaster/MataPelajaran";
 import { getTingkatKelasById } from "@/services/Api/features-api/DataMaster/kelas.service";
 
@@ -152,7 +152,7 @@ export async function getBankSoalByKelas(params: {
           x.tgl_buat,
         ]
           .filter(Boolean)
-          .join(" ")
+          .join(" "),
       );
       return haystack.includes(nq);
     });
@@ -161,10 +161,9 @@ export async function getBankSoalByKelas(params: {
   // sort terbaru dulu
   result.sort((a, b) => (b.tgl_buat ?? "").localeCompare(a.tgl_buat ?? ""));
 
-
   // balikin tanpa field internal
   const stripped: BankSoalItem[] = result.map(
-    ({ __kelasId, __mapelId, ...rest }) => rest
+    ({ __kelasId, __mapelId, ...rest }) => rest,
   );
 
   return new Promise((resolve) => setTimeout(() => resolve(stripped), 350));

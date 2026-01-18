@@ -2,7 +2,7 @@ import React from "react";
 
 import SvgIcons from "@/assets/SvgIcons/svgIcons";
 
-import type { BankSoalItem } from "@/types/DataMaster/BankSoal";
+import type { BankSoalItem } from "@/types/BankSoal/BankSoal";
 
 type BoxBankSoalProps = Omit<BankSoalItem, "id"> & {
   onPreview?: () => void;
@@ -34,7 +34,6 @@ const kelasLabelClass = (k?: number | string) => {
 
   return [base, map[kk] ?? "bg-gray-400"].join(" ");
 };
-
 
 const BoxBankSoal: React.FC<BoxBankSoalProps> = ({
   nama_banksoal = "Bank Soal",

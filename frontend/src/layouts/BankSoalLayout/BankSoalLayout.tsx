@@ -1,8 +1,6 @@
-
-
 import BoxBankSoal from "@/components/features/BankSoal/BoxBankSoal";
 
-import type { BankSoalItem } from "@/types/DataMaster/BankSoal";
+import type { BankSoalItem } from "@/types/BankSoal/BankSoal";
 
 type BankSoalLayoutProps = {
   items: BankSoalItem[];

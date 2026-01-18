@@ -1,7 +1,7 @@
 import { api, type ApiEnvelope } from "../../api";
 import { buildJsonData } from "@/helper/FormData/BuildJsonData";
 
-import type { BankSoalItem } from "@/types/DataMaster/BankSoal";
+import type { BankSoalItem } from "@/types/BankSoal/BankSoal";
 import type {
   BankSoalOption,
   BuatUjianFormValues,
@@ -15,8 +15,18 @@ import { DUMMY_SISWA } from "@/services/Api/features-api/KelolaAkun/akunsiswa.se
 import { getTingkatKelasById } from "@/services/Api/features-api/DataMaster/kelas.service";
 
 const DUMMY_GURU_PENGAWAS: GuruPengawasOption[] = [
-  { id: 1, nama: "Budi Santoso", nip: "198305232010011001", mapel: "Matematika" },
-  { id: 2, nama: "Siti Rahmawati", nip: "198912112012012002", mapel: "Bahasa Indonesia" },
+  {
+    id: 1,
+    nama: "Budi Santoso",
+    nip: "198305232010011001",
+    mapel: "Matematika",
+  },
+  {
+    id: 2,
+    nama: "Siti Rahmawati",
+    nip: "198912112012012002",
+    mapel: "Bahasa Indonesia",
+  },
   { id: 3, nama: "Dedi Pratama", nip: "198706142011021003", mapel: "Fisika" },
 ];
 
@@ -25,7 +35,6 @@ const DUMMY_SESI: SesiUjianOption[] = [
   { id: 2, kode: "S2", nama: "Sesi 2 (Siang)" },
   { id: 3, kode: "S3", nama: "Sesi 3 (Sore)" },
 ];
-
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -36,7 +45,9 @@ const getTotalSoal = (item: BankSoalItem) => {
   return pg + essay;
 };
 
-export async function getUjianGuruPengawasOptions(): Promise<GuruPengawasOption[]> {
+export async function getUjianGuruPengawasOptions(): Promise<
+  GuruPengawasOption[]
+> {
   await sleep(180);
   return [...DUMMY_GURU_PENGAWAS];
 }
@@ -45,9 +56,6 @@ export async function getUjianSesiOptions(): Promise<SesiUjianOption[]> {
   await sleep(180);
   return [...DUMMY_SESI];
 }
-
-
-
 
 export async function getUjianBankSoalOptions(params: {
   tingkatKelasId?: number;
@@ -78,16 +86,16 @@ export async function getUjianSiswaPreview(params: {
   const tingkatKelas = getTingkatKelasById(params.tingkatKelasId);
   if (!tingkatKelas) return [];
 
-  return DUMMY_SISWA.filter((siswa) => siswa.__kelasId === tingkatKelas).map(
-    (siswa) => ({
+  return DUMMY_SISWA.filter(
+    (siswa) => siswa.id_tingkat_kelas === tingkatKelas,
+  ).map((siswa) => ({
     id: siswa.id,
     nama: siswa.namaLengkap,
     username: siswa.username,
     no_absen: siswa.noAbsen,
-    kelas: siswa.kelas,
+    kelas: String(siswa.id_tingkat_kelas),
     status_akun: siswa.statusAkun,
-  })
-  );
+  }));
 }
 
 export async function submitBuatUjian(values: BuatUjianFormValues) {
