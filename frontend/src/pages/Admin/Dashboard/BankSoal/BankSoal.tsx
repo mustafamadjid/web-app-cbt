@@ -315,7 +315,7 @@ const BankSoal = () => {
             <BankSoalLayout
               items={items}
               onPreview={(item) => navigate(`/banksoal/preview/${item.id}`)}
-              onKelola={(item) => navigate(`/banksoal/kelola/${item.id}`)}
+              onKelola={(item) => navigate(`${paths.dashboard.preview_bank_soal}/${item.id}`)}
               onHapus={(item) => console.log("Hapus", item.id)}
             />
           )}

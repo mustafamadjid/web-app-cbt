@@ -39,6 +39,8 @@ export const paths = {
 
     bank_soal: djoinAdmin("bank-soal"),
     tambah_bank_soal: djoinAdmin(join("bank-soal", "/tambah")),
+    preview_bank_soal: djoinAdmin(join("bank-soal", "/:id")),
+
 
     jadwal_ujian: djoinAdmin(join("ujian", "/jadwal")),
     detail_ujian: djoinAdmin(join("ujian", "/jadwal/:id")),
