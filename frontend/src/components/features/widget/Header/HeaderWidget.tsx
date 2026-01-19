@@ -1,10 +1,13 @@
 import React from "react";
-import { User, Menu, CalendarRange, Settings, ChevronDown } from "lucide-react";
+import { User,CalendarRange } from "lucide-react";
+import type { Role } from "@/types/Sidebar/SidebarMenu";
+import { paths } from "@/routes/paths";
+import { useNavigate } from "react-router";
 
 type HeaderProps = {
   title?: string;
   userName: string;
-  roleLabel: string;
+  roleLabel: Role;
   isOnline?: boolean;
   avatarUrl?: string | null;
   schoolName?: string;
@@ -24,7 +27,6 @@ const Header: React.FC<HeaderProps> = ({
   academicYear = "2025/2026",
   semester = "Ganjil",
   className,
- 
 
 }) => {
   const today = new Date().toLocaleDateString("id-ID", {
@@ -33,6 +35,23 @@ const Header: React.FC<HeaderProps> = ({
     month: "long",
     year: "numeric",
   });
+
+  const roleLabelMap = (role : Role) => {
+    if(role === "ADMIN") return "Administrator";
+    if(role === "GURU") return "Guru";
+    if(role === "SISWA") return "Siswa";
+    return "";
+  }
+
+  const navigate = useNavigate();
+
+  const pathNavigationByRole = (role : Role) => {
+    if(role === "ADMIN") return paths.dashboard.profil_admin;
+    if(role === "GURU") return paths.dashboard.profil_guru;
+    if(role === "SISWA") return paths.dashboard.profil_siswa;
+    return "";
+  }
+
 
   return (
     <header
@@ -91,13 +110,15 @@ const Header: React.FC<HeaderProps> = ({
               <div className="text-sm font-bold text-gray-800">{userName}</div>
               <div className="flex justify-end">
                 <span className="inline-flex items-center rounded-md bg-[#397e50] px-2 py-0.5 text-2xs font-bold uppercase tracking-wider text-white shadow-sm">
-                  {roleLabel}
+                  {roleLabelMap(roleLabel)}
                 </span>
               </div>
             </div>
 
             <div className="group relative cursor-pointer">
-              <div className="relative h-10 w-10 overflow-hidden rounded-full ring-2 ring-gray-100 transition-all group-hover:ring-[#397e50]/30 sm:h-11 sm:w-11">
+              <div 
+              onClick={()=> navigate(pathNavigationByRole(roleLabel))}
+              className="relative h-10 w-10 overflow-hidden rounded-full ring-2 ring-gray-100 transition-all group-hover:ring-[#397e50]/30 sm:h-11 sm:w-11">
                 {avatarUrl ? (
                   <img
                     src={avatarUrl}
