@@ -79,6 +79,13 @@ const JadwalUjianSiswaWidget: React.FC<JadwalUjianSiswaWidgetProps> = ({
   defaultView = "list",
 }) => {
   const [view, setView] = React.useState<"list" | "calendar">(defaultView);
+  const calendarRef = React.useRef<HTMLDivElement | null>(null);
+  const [selectedDate, setSelectedDate] = React.useState<string | null>(null);
+  const [selectedItems, setSelectedItems] = React.useState<CalendarItem[]>([]);
+  const [popoverPosition, setPopoverPosition] = React.useState<{
+    top: number;
+    left: number;
+  } | null>(null);
 
   const normalizedItems = React.useMemo<CalendarItem[]>(
     () =>
@@ -120,6 +127,33 @@ const JadwalUjianSiswaWidget: React.FC<JadwalUjianSiswaWidgetProps> = ({
       (prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1)
     );
   };
+
+  const handleDateClick = (
+    isoDate: string,
+    dayItems: CalendarItem[],
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    const container = calendarRef.current;
+    if (!container) return;
+
+    const containerRect = container.getBoundingClientRect();
+    const cellRect = event.currentTarget.getBoundingClientRect();
+    const leftOffset = cellRect.left - containerRect.left;
+    const maxLeft = Math.max(containerRect.width - 280, 12);
+
+    setSelectedDate(isoDate);
+    setSelectedItems(dayItems);
+    setPopoverPosition({
+      top: cellRect.bottom - containerRect.top + 8,
+      left: Math.min(Math.max(leftOffset, 12), maxLeft),
+    });
+  };
+
+  React.useEffect(() => {
+    setSelectedDate(null);
+    setSelectedItems([]);
+    setPopoverPosition(null);
+  }, [currentMonth, view]);
 
   const daysInMonth = new Date(
     currentMonth.getFullYear(),
@@ -227,7 +261,10 @@ const JadwalUjianSiswaWidget: React.FC<JadwalUjianSiswaWidgetProps> = ({
             ))}
           </div>
         ) : (
-          <div className="rounded-xl border border-gray-200 bg-white p-4">
+          <div
+            ref={calendarRef}
+            className="relative rounded-xl border border-gray-200 bg-white p-4"
+          >
             <div className="flex items-center justify-between gap-3">
               <button
                 type="button"
@@ -274,15 +311,24 @@ const JadwalUjianSiswaWidget: React.FC<JadwalUjianSiswaWidgetProps> = ({
                 const hasEvents = dayItems.length > 0;
 
                 return (
-                  <div
+                  <button
                     key={`day-${idx}`}
+                    type="button"
+                    onClick={(event) =>
+                      isoDate &&
+                      handleDateClick(isoDate, dayItems, event)
+                    }
+                    disabled={!isCurrentMonth}
                     className={[
-                      "min-h-[84px] rounded-lg border p-2",
+                      "min-h-[84px] rounded-lg border p-2 text-left transition",
                       isCurrentMonth
-                        ? "border-gray-200 bg-white"
+                        ? "border-gray-200 bg-white hover:border-[#397e50]/50 hover:bg-[#397e50]/5"
                         : "border-transparent bg-transparent text-gray-300",
                       hasEvents
                         ? "border-[#397e50]/40 bg-[#397e50]/10"
+                        : "",
+                      selectedDate === isoDate
+                        ? "ring-2 ring-[#397e50]/40"
                         : "",
                     ].join(" ")}
                   >
@@ -317,10 +363,75 @@ const JadwalUjianSiswaWidget: React.FC<JadwalUjianSiswaWidgetProps> = ({
                         )}
                       </ul>
                     )}
-                  </div>
+                  </button>
                 );
               })}
             </div>
+            {selectedDate && popoverPosition && (
+              <div
+                className="absolute z-10 w-[280px] rounded-xl border border-gray-200 bg-white p-4 text-xs shadow-lg"
+                style={{
+                  top: popoverPosition.top,
+                  left: popoverPosition.left,
+                }}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-[11px] font-semibold text-gray-500">
+                      Detail ujian
+                    </p>
+                    <p className="text-sm font-bold text-[#37513d]">
+                      {new Date(selectedDate).toLocaleDateString("id-ID", {
+                        weekday: "long",
+                        day: "2-digit",
+                        month: "long",
+                        year: "numeric",
+                      })}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedDate(null);
+                      setSelectedItems([]);
+                      setPopoverPosition(null);
+                    }}
+                    className="rounded-full border border-gray-200 px-2 py-1 text-[10px] font-semibold text-gray-500 transition hover:border-[#397e50]/40 hover:text-[#397e50]"
+                  >
+                    Tutup
+                  </button>
+                </div>
+
+                {selectedItems.length === 0 ? (
+                  <p className="mt-3 rounded-lg bg-gray-50 px-3 py-2 text-[11px] text-gray-500">
+                    Tidak ada ujian pada tanggal ini.
+                  </p>
+                ) : (
+                  <ul className="mt-3 space-y-2">
+                    {selectedItems.map((event) => (
+                      <li
+                        key={event.id}
+                        className="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2"
+                      >
+                        <p className="text-xs font-semibold text-[#37513d]">
+                          {event.nama_ujian}
+                        </p>
+                        <div className="mt-1 flex flex-wrap items-center gap-3 text-[10px] text-gray-500">
+                          <span className="inline-flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {event.waktu_mulai}
+                          </span>
+                          <span className="inline-flex items-center gap-1">
+                            <MapPin className="h-3 w-3" />
+                            {event.ruang_ujian ?? "Belum ditentukan"}
+                          </span>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>
