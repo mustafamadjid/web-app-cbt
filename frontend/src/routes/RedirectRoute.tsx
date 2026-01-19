@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { paths } from "@/routes/paths";
 import type { Role } from "@/types/Sidebar/SidebarMenu";
 
-type PublicOnlyRouteProps = {
+type RedirectRoutes = {
   children?: React.ReactNode;
 };
 
@@ -16,7 +16,7 @@ const roleHomeMap: Partial<Record<Role, string>> = {
   SISWA: paths.dashboard.home_siswa,
 };
 
-const PublicOnlyRoute = ({ children }: PublicOnlyRouteProps) => {
+const RedirectRoute = ({ children }: RedirectRoutes) => {
   const { status, user } = useAuth();
 
   if (status === "loading") {
@@ -26,15 +26,17 @@ const PublicOnlyRoute = ({ children }: PublicOnlyRouteProps) => {
       </div>
     );
   }
-
+  
   if (status === "authenticated") {
     const role = user?.role as Role | undefined;
+
     const fallback =
       (role && roleHomeMap[role]) ?? paths.dashboard.home_admin ?? "/";
+
     return <Navigate to={fallback} replace />;
   }
 
   return <>{children ?? <Outlet />}</>;
 };
 
-export default PublicOnlyRoute;
+export default RedirectRoute;

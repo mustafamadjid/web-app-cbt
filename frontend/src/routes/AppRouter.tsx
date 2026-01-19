@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router";
+import { createBrowserRouter, Navigate } from "react-router";
 import { paths } from "./paths";
 
 // Components
@@ -60,7 +60,7 @@ export const router = createBrowserRouter([
   },
   {
     path:"/",
-    element:<ProtectedRoute allowedRoles={["ADMIN","GURU","SISWA"]}/>
+    element:<Navigate to={paths.public.login} replace/>
   },
   {
     path: "/dashboard/administrator",
