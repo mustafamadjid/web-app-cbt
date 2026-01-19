@@ -9,7 +9,7 @@ import TotalSiswaGuruWidget from "@/components/features/widget/StatistikPengguna
 import UjianBerlangsungWidget from "@/components/features/widget/UjianBerlangsung/UjianBerlangsungWidget";
 
 // Types
-import type { PengumumanItem } from "@/components/features/widget/Pengumuman/PengumumanWidget";
+import type { PengumumanItem } from "@/types/Widget/Pengumuman";
 import type { JadwalUjianItem } from "@/types/Ujian/jadwalUjian";
 import type { AktivitasLogItem } from "@/types/Log/LogAktivitas";
 import type { UjianBerlangsungItem } from "@/types/Widget/UjianBerlangsung";
