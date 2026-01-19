@@ -189,28 +189,13 @@ export const mainMenuItems: SidebarMenuItem[] = [
     roles: SISWA_ONLY,
   },
   {
-    id: 10,
-    type: "group",
+    id: 102,
+    type: "link",
     label: "Ujian",
+    to: paths.dashboard.ujian_siswa,
+    end: true,
     icon: SvgIcons.book,
-    roles:SISWA_ONLY,
-    children: [
-      {
-        id: 1001,
-        label: "Mulai Ujian",
-        to: paths.dashboard.ujian_siswa,
-        icon: SvgIcons.chevronDouble,
-        roles:SISWA_ONLY,
-      },
-      {
-        id: 1002,
-        label: "Hasil Ujian",
-        to: paths.dashboard.hasil_ujian_siswa,
-        icon: SvgIcons.chevronDouble,
-        roles:SISWA_ONLY,
-      },
-      
-    ],
+    roles: SISWA_ONLY,
   },
 ];
 
