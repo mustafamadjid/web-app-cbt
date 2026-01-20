@@ -1,6 +1,7 @@
 import type { BankSoalItem } from "@/types/BankSoal/BankSoal";
 import type { MataPelajaranOption } from "@/types/DataMaster/MataPelajaran";
 import { getTingkatKelasById } from "@/services/Api/features-api/DataMaster/kelas.service";
+import { api, type ApiEnvelope } from "../../api";
 
 const DUMMY_MAPEL: MataPelajaranOption[] = [
   { id: 101, label: "Bahasa Indonesia (Kelas 10)" },
@@ -96,6 +97,8 @@ const DUMMY_BANKSOAL: BankSoalItemLocal[] = [
     tgl_buat: "2025-06-01",
   },
 ];
+
+const USE_DUMMY = true; // ✅ set false saat BE sudah siap
 
 // =====================
 // MOCK SERVICE
@@ -200,17 +203,31 @@ export async function getBankSoalByGuru(params: {
   q?: string;
 }): Promise<BankSoalItem[]> {
   if (!params.idGuru) {
-    return new Promise((resolve) => setTimeout(() => resolve([]), 200));
+    throw new Error("id guru wajib diisi.");
   }
 
-  const result = filterBankSoal({
-    ...params,
-    idGuru: params.idGuru,
+  if (USE_DUMMY) {
+    const result = filterBankSoal({
+      ...params,
+      idGuru: params.idGuru,
+    });
+
+    const stripped: BankSoalItem[] = result.map(
+      ({ __kelasId, __mapelId, ...rest }) => rest,
+    );
+
+    return new Promise((resolve) => setTimeout(() => resolve(stripped), 350));
+  }
+
+  const queryParams: Record<string, string | number | undefined> = {
+    tingkat_kelas_id: params.tingkatKelasId ?? undefined,
+    kelas_id: params.kelasId ?? undefined,
+    mapel_id: params.mapelId ?? undefined,
+    q: params.q ?? undefined,
+  };
+
+  const res = await api<ApiEnvelope<BankSoalItem[]>>(`/guru/${params.idGuru}/bank-soal`, {
+    params: queryParams,
   });
-
-  const stripped: BankSoalItem[] = result.map(
-    ({ __kelasId, __mapelId, ...rest }) => rest,
-  );
-
-  return new Promise((resolve) => setTimeout(() => resolve(stripped), 350));
+  return res.data;
 }

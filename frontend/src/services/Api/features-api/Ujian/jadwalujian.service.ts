@@ -351,7 +351,7 @@ const applyJadwalUjianFilters = (
   out = filterByTingkatKelasId(out, params.tingkatKelasId);
   out = filterByRuangUjianId(out, params.ruangUjianId);
   out = filterByTanggalIso(out, params.tanggal);
-  out = filterBySearch(out, params.q);
+  out = filterBySearch(out, params.search);
   out = filterByTahun(out, tahun);
   return out;
 };
@@ -382,7 +382,7 @@ export async function getJadwalUjian(
 
   // ✅ PRODUCTION MODE (aktifkan saat BE siap)
   const queryParams: Record<string, string | number | undefined> = {
-    q: params.q || undefined,
+    search: params.search || undefined,
     tanggal: params.tanggal || undefined,
     tingkat_kelas_id: params.tingkatKelasId ?? undefined,
     ruang_ujian_id: params.ruangUjianId ?? undefined,

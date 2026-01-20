@@ -19,7 +19,7 @@ export type JadwalUjianItem = {
 }
 
 export type JadwalUjianFilterParams = {
-  q?: string;
+  search?: string;
   tanggal?: string; // "YYYY-MM-DD"
   tingkatKelasId?: number;
   ruangUjianId?: number;
