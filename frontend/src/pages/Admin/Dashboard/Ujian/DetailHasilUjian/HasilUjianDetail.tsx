@@ -61,7 +61,7 @@ const StatWidget = ({
 };
 
 const HasilUjianDetail = () => {
-  const {user} = useAuth();
+  const { user } = useAuth();
 
   const { id } = useParams();
   const [loading, setLoading] = useState(false);
@@ -311,9 +311,13 @@ const HasilUjianDetail = () => {
 
                     <td className="px-6 py-4 text-right">
                       <Link
-                        to={user?.role === "ADMIN"? paths.dashboard.hasil_ujian_siswa_detail : paths.dashboard.hasil_ujian_siswa_detail_guru
-                          .replace(":id", String(ujianId))
-                          .replace(":siswaId", String(siswa.id))}
+                        to={
+                          user?.role === "ADMIN"
+                            ? paths.dashboard.hasil_ujian_detail_admin
+                            : paths.dashboard.hasil_ujian_detail_admin_guru
+                                .replace(":id", String(ujianId))
+                                .replace(":siswaId", String(siswa.id))
+                        }
                         className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-400 transition-colors hover:border-[#397e50] hover:bg-[#397e50] hover:text-white"
                         title="Lihat Detail"
                       >

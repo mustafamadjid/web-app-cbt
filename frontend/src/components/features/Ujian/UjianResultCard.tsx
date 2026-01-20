@@ -5,7 +5,7 @@ import { Link } from "react-router";
 import { paths } from "@/routes/paths";
 
 const UjianResultCard: React.FC<{ item: UjianSiswaResultItem }> = ({ item }) => {
-  const detailPath = paths.dashboard.hasil_ujian_siswa_detail.replace(
+  const detailPath = paths.dashboard.hasil_ujian_detail_siswa.replace(
     ":id",
     String(item.id)
   );

@@ -1,9 +1,9 @@
 import React from "react";
 import { useNavigate } from "react-router";
-import UjianFilterBar from "@/pages/Siswa/Ujian/UjianSiswa/components/UjianFilterBar";
-import UjianSection from "@/pages/Siswa/Ujian/UjianSiswa/components/UjianSection";
-import UjianCard from "@/pages/Siswa/Ujian/UjianSiswa/components/UjianCard";
-import UjianResultCard from "@/pages/Siswa/Ujian/UjianSiswa/components/UjianResultCard";
+import UjianFilterBar from "@/components/features/Ujian/UjianFilterBar";
+import UjianSection from "@/components/features/Ujian/UjianSection";
+import UjianCard from "@/components/features/Ujian/UjianCard";
+import UjianResultCard from "@/components/features/Ujian/UjianResultCard";
 import {
   getUjianSiswaOverview,
 } from "@/services/Api/features-api/Ujian/ujianSiswa.service";

@@ -183,7 +183,7 @@ export const router = createBrowserRouter([
                 element: <HasilUjianDetail />,
               },
               {
-                path: paths.dashboard.hasil_ujian_siswa_detail_guru,
+                path: paths.dashboard.hasil_ujian_detail_guru,
                 element: <HasilUjianSiswaDetail />,
               },
               { path: paths.dashboard.cetak_guru, element: <Cetak /> },
