@@ -118,7 +118,7 @@ export const router = createBrowserRouter([
               },
               {
                 path: paths.dashboard.hasil_ujian_siswa_detail,
-                element: <HasilUjianSiswaDetailSiswa />,
+                element: <HasilUjianSiswaDetail />,
               },
               { path: paths.dashboard.cetak, element: <Cetak /> },
             ],
@@ -183,7 +183,7 @@ export const router = createBrowserRouter([
                 element: <HasilUjianDetail />,
               },
               {
-                path: paths.dashboard.hasil_ujian_detail_guru,
+                path: paths.dashboard.hasil_ujian_siswa_detail_guru,
                 element: <HasilUjianSiswaDetail />,
               },
               { path: paths.dashboard.cetak_guru, element: <Cetak /> },
@@ -215,7 +215,7 @@ export const router = createBrowserRouter([
                 element: <UjianMulaiSiswa />,
               },
               {
-                path: paths.dashboard.hasil_ujian_siswa_detail,
+                path: paths.dashboard.hasil_ujian_detail_siswa,
                 element: <HasilUjianSiswaDetailSiswa />,
               },
               { path: paths.dashboard.profil_siswa, element: <ProfilePage /> },
