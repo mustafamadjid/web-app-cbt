@@ -5,14 +5,18 @@ import { paths } from "@/routes/paths";
 
 const UjianTokenSiswa: React.FC = () => {
   const navigate = useNavigate();
-  const { id } = useParams();
+  const { id, bankSoalId } = useParams();
   const [token, setToken] = React.useState("");
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!id) return;
+    if (!id || !bankSoalId) return;
     if (!token.trim()) return;
-    navigate(paths.dashboard.ujian_siswa_mulai.replace(":id", id));
+    navigate(
+      paths.dashboard.ujian_siswa_mulai
+        .replace(":id", id)
+        .replace(":bankSoalId", bankSoalId)
+    );
   };
 
   return (
