@@ -1,48 +1,48 @@
 import React from "react";
 import { useNavigate, useParams } from "react-router";
 import SoalLayout from "@/layouts/BankSoalLayout/SoalLayout";
-import type { SoalUjianItem } from "@/types/BankSoal/BankSoal";
+import type { SoalUjianResponse } from "@/types/BankSoal/BankSoal";
 import { paths } from "@/routes/paths";
-
-const DUMMY_SOAL: SoalUjianItem[] = [
-  {
-    id_soal: 1,
-    nomor_urut_soal: 1,
-    tipe_soal: "PILIHAN_GANDA",
-    pertanyaan: "Hasil dari 12 + 8 adalah ...",
-    opsi_a: "18",
-    opsi_b: "20",
-    opsi_c: "22",
-    opsi_d: "24",
-  },
-  {
-    id_soal: 2,
-    nomor_urut_soal: 2,
-    tipe_soal: "PILIHAN_GANDA",
-    pertanyaan: "Ibu kota Indonesia adalah ...",
-    opsi_a: "Bandung",
-    opsi_b: "Jakarta",
-    opsi_c: "Surabaya",
-    opsi_d: "Yogyakarta",
-  },
-  {
-    id_soal: 3,
-    nomor_urut_soal: 3,
-    tipe_soal: "ESSAY",
-    pertanyaan: "Jelaskan alasan pentingnya menjaga kelestarian lingkungan.",
-  },
-];
+import { getSoalUjian } from "@/services/Api/features-api/BankSoal/soalUjian.service";
 
 const UjianMulaiSiswa: React.FC = () => {
   const navigate = useNavigate();
-  const { id } = useParams();
+  const { id, bankSoalId } = useParams();
   const [currentIndex, setCurrentIndex] = React.useState(0);
+  const [soalData, setSoalData] = React.useState<SoalUjianResponse | null>(
+    null
+  );
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
   const [selectedOptions, setSelectedOptions] = React.useState<
     Record<number, string>
   >({});
 
-  const totalSoal = DUMMY_SOAL.length;
-  const currentSoal = DUMMY_SOAL[currentIndex];
+  React.useEffect(() => {
+    const loadSoal = async () => {
+      if (!bankSoalId) {
+        setError("Bank soal tidak ditemukan.");
+        setLoading(false);
+        return;
+      }
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await getSoalUjian(Number(bankSoalId));
+        setSoalData(response);
+        setCurrentIndex(0);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Gagal memuat soal.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void loadSoal();
+  }, [bankSoalId]);
+
+  const totalSoal = soalData?.soal.length ?? 0;
+  const currentSoal = soalData?.soal[currentIndex];
 
   const handleSelectOption = (soalId: number, value: string) => {
     setSelectedOptions((prev) => ({ ...prev, [soalId]: value }));
@@ -52,7 +52,7 @@ const UjianMulaiSiswa: React.FC = () => {
     <div className="space-y-3">
       <p className="text-xs font-semibold text-slate-400">Nomor Soal</p>
       <div className="flex flex-wrap gap-2">
-        {DUMMY_SOAL.map((soal, index) => {
+        {soalData?.soal.map((soal, index) => {
           const isActive = index === currentIndex;
           return (
             <button
@@ -75,12 +75,28 @@ const UjianMulaiSiswa: React.FC = () => {
     </div>
   );
 
+  if (loading) {
+    return (
+      <div className="rounded-xl border border-dashed border-gray-200 bg-white p-6 text-center text-sm text-gray-500">
+        Memuat soal ujian...
+      </div>
+    );
+  }
+
+  if (error || !currentSoal) {
+    return (
+      <div className="rounded-xl border border-dashed border-red-200 bg-white p-6 text-center text-sm text-red-500">
+        {error ?? "Soal ujian tidak tersedia."}
+      </div>
+    );
+  }
+
   return (
     <SoalLayout
-      title={`Ujian ${id ?? ""}`}
+      title={soalData?.nama_ujian ?? `Ujian ${id ?? ""}`}
       currentNumber={currentIndex + 1}
       totalSoal={totalSoal}
-      sisaWaktu="01:30:00"
+      sisaWaktu={soalData?.sisa_waktu ?? "00:00:00"}
       soal={currentSoal}
       questionNavigator={questionNavigator}
       selectedOption={selectedOptions[currentSoal.id_soal]}

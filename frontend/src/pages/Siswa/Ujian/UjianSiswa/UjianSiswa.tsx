@@ -46,8 +46,12 @@ const UjianSiswa: React.FC = () => {
     void fetchData();
   }, [fetchData]);
 
-  const handleStartExam = (id: number) => {
-    navigate(paths.dashboard.ujian_siswa_token.replace(":id", String(id)));
+  const handleStartExam = (id: number, bankSoalId: number) => {
+    navigate(
+      paths.dashboard.ujian_siswa_token
+        .replace(":id", String(id))
+        .replace(":bankSoalId", String(bankSoalId))
+    );
   };
 
   const categories = [
@@ -155,7 +159,7 @@ const UjianSiswa: React.FC = () => {
                     key={item.id}
                     item={item}
                     actionLabel="Mulai Sekarang"
-                    onAction={() => handleStartExam(item.id)}
+                    onAction={() => handleStartExam(item.id, item.id_bank_soal)}
                   />
                 ))
               )}
