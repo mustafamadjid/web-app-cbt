@@ -48,7 +48,7 @@ const UjianSiswa: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 px-8 py-10">
       <header className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
         <h1 className="text-2xl font-bold text-[#37513d]">Ujian Siswa</h1>
         <p className="mt-2 text-sm text-gray-500">

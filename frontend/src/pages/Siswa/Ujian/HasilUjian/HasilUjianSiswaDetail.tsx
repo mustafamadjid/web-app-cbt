@@ -27,7 +27,7 @@ const HasilUjianSiswaDetail: React.FC = () => {
   }, [id]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 px-8 py-10">
       <header className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
         <button
           type="button"

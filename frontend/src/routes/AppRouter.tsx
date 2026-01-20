@@ -46,7 +46,7 @@ import HomeSiswa from "@/pages/Siswa/HomeSiswa";
 import UjianSiswa from "@/pages/Siswa/Ujian/UjianSiswa/UjianSiswa";
 import UjianTokenSiswa from "@/pages/Siswa/Ujian/UjianSiswa/UjianTokenSiswa";
 import UjianMulaiSiswa from "@/pages/Siswa/Ujian/UjianSiswa/UjianMulaiSiswa";
-import HasilUjianSiswaDetailSiswa from "@/pages/Siswa/Ujian/HasilUjianSiswaDetail";
+import HasilUjianSiswaDetailSiswa from "@/pages/Siswa/Ujian/HasilUjian/HasilUjianSiswaDetail";
 import PublicOnlyRoute from "./PublicOnlyRoute";
 import ProfilePage from "@/pages/Profile/ProfilePage";
 
