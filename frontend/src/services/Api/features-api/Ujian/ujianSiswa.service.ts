@@ -128,7 +128,7 @@ const dummyUjianCompleted: UjianSiswaResultItem[] = [
 ];
 
 type IndexedItem = {
-    mapel: string;
+  mapel: string;
   __searchText: string;
   __month?: number;
   __year?: number;
@@ -149,7 +149,7 @@ const buildSearchableText = (item: UjianSiswaExamItem) =>
       item.ruang_ujian ?? "",
     ]
       .filter(Boolean)
-      .join(" ")
+      .join(" "),
   );
 
 const getDateMeta = (item: UjianSiswaExamItem) => {
@@ -198,23 +198,22 @@ const applyFilters = <T extends IndexedItem>(
   });
 };
 
-
 const stripInternalExam = (items: IndexedExamItem[]): UjianSiswaExamItem[] =>
   items.map(({ __searchText, __month, __year, ...rest }) => rest);
 
 const stripInternalResult = (
-  items: IndexedResultItem[]
+  items: IndexedResultItem[],
 ): UjianSiswaResultItem[] =>
   items.map(({ __searchText, __month, __year, ...rest }) => rest);
 
 const collectMapelOptions = (items: UjianSiswaExamItem[]) =>
   Array.from(new Set(items.map((item) => item.mapel))).sort((a, b) =>
-    a.localeCompare(b)
+    a.localeCompare(b),
   );
 
 const USE_DUMMY = true;
 
-export async function getUjianSiswaOverview(params: {
+export async function getUjianBySiswa(params: {
   siswaId: number;
   filter?: UjianSiswaFilterParams;
 }): Promise<UjianSiswaResponse> {
@@ -265,7 +264,7 @@ export async function getUjianSiswaOverview(params: {
 
   return res.data;
 
-    /*
+  /*
     Response data di  be harus sepert ini  
   {
     "message": "",
@@ -280,7 +279,7 @@ export async function getUjianSiswaOverview(params: {
 }
 
 export async function getUjianSiswaResultDetail(
-  id: number
+  id: number,
 ): Promise<UjianSiswaResultItem> {
   if (USE_DUMMY) {
     await sleep(180);
@@ -292,7 +291,7 @@ export async function getUjianSiswaResultDetail(
   }
 
   const res = await api<ApiEnvelope<UjianSiswaResultItem>>(
-    `/ujian-siswa/hasil/${id}`
+    `/ujian-siswa/hasil/${id}`,
   );
   return res.data;
 }

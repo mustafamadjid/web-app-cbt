@@ -4,9 +4,7 @@ import UjianFilterBar from "@/components/features/Ujian/UjianFilterBar";
 import UjianSection from "@/components/features/Ujian/UjianSection";
 import UjianCard from "@/components/features/Ujian/UjianCard";
 import UjianResultCard from "@/components/features/Ujian/UjianResultCard";
-import {
-  getUjianSiswaOverview,
-} from "@/services/Api/features-api/Ujian/ujianSiswa.service";
+import { getUjianBySiswa } from "@/services/Api/features-api/Ujian/ujianSiswa.service";
 import type {
   UjianSiswaFilterParams,
   UjianSiswaResponse,
@@ -32,7 +30,7 @@ const UjianSiswa: React.FC = () => {
   const fetchData = React.useCallback(async () => {
     setLoading(true);
     try {
-      const response = await getUjianSiswaOverview({
+      const response = await getUjianBySiswa({
         siswaId: DEFAULT_SISWA_ID,
         filter,
       });
@@ -50,7 +48,7 @@ const UjianSiswa: React.FC = () => {
     navigate(
       paths.dashboard.ujian_siswa_token
         .replace(":id", String(id))
-        .replace(":bankSoalId", String(bankSoalId))
+        .replace(":bankSoalId", String(bankSoalId)),
     );
   };
 
@@ -89,7 +87,9 @@ const UjianSiswa: React.FC = () => {
         onMonthChange={(value) =>
           setFilter((prev) => ({ ...prev, bulan: value }))
         }
-        onYearChange={(value) => setFilter((prev) => ({ ...prev, tahun: value }))}
+        onYearChange={(value) =>
+          setFilter((prev) => ({ ...prev, tahun: value }))
+        }
         onMapelChange={(value) =>
           setFilter((prev) => ({ ...prev, mapel: value }))
         }
