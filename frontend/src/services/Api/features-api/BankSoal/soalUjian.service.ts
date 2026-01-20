@@ -3,10 +3,10 @@ import type { SoalUjianResponse } from "@/types/BankSoal/BankSoal";
 
 
 
-const dummySoalUjian: Record<number, SoalUjianResponse> = {
-  1: {
+const dummySoalUjian: SoalUjianResponse[] = [
+  {
     id_bank_soal: 1,
-    nama_ujian: "Soal Bahasa Indonesia",
+    nama_ujian: "Soal Bahasa Indonesia ",
     mata_pelajaran: "Bahasa Indonesia",
     jumlah_soal: 3,
     sisa_waktu: "01:35:00",
@@ -53,7 +53,7 @@ const dummySoalUjian: Record<number, SoalUjianResponse> = {
       },
     ],
   },
-};
+];
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -64,7 +64,8 @@ export async function getSoalUjian(
 ): Promise<SoalUjianResponse> {
   if (USE_DUMMY) {
     await sleep(200);
-    const data = dummySoalUjian[bankSoalId];
+    const data = dummySoalUjian.find((item)=>item.id_bank_soal === bankSoalId);
+    console.log(data);
     if (!data) {
       throw new Error("Soal ujian tidak ditemukan.");
     }

@@ -15,6 +15,7 @@ const dummyUjianList: UjianSiswaExamItem[] = [
     id: 201,
     nama_ujian: "Ujian Matematika",
     mapel: "Matematika",
+    id_bank_soal: 4,
     pengawas_ujian: "Pak Budi Santoso",
     tgl_ujian: "Senin, 12 Februari 2026",
     tanggal_ujian: "2026-02-12",
@@ -35,6 +36,7 @@ const dummyUjianList: UjianSiswaExamItem[] = [
     id: 202,
     nama_ujian: "Ujian Bahasa Indonesia",
     mapel: "Bahasa Indonesia",
+    id_bank_soal: 1,
     pengawas_ujian: "Bu Siti Nuraini",
     tgl_ujian: "Senin, 12 Februari 2026",
     tanggal_ujian: "2026-02-12",
@@ -55,6 +57,7 @@ const dummyUjianList: UjianSiswaExamItem[] = [
     id: 203,
     nama_ujian: "Ujian Bahasa Inggris",
     mapel: "Bahasa Inggris",
+    id_bank_soal: 1,
     pengawas_ujian: "Bu Rina Oktavia",
     tgl_ujian: "Rabu, 14 Februari 2026",
     tanggal_ujian: "2026-02-14",
@@ -77,6 +80,7 @@ const dummyUjianCompleted: UjianSiswaResultItem[] = [
   {
     id: 301,
     nama_ujian: "Ujian IPA",
+    id_bank_soal: 5,
     mapel: "Ilmu Pengetahuan Alam",
     pengawas_ujian: "Pak Andi Pratama",
     tgl_ujian: "Selasa, 13 Februari 2026",
@@ -99,6 +103,7 @@ const dummyUjianCompleted: UjianSiswaResultItem[] = [
   },
   {
     id: 302,
+    id_bank_soal: 3,
     nama_ujian: "Ujian Sejarah",
     mapel: "Sejarah",
     pengawas_ujian: "Pak Dedi Kurniawan",
@@ -224,13 +229,13 @@ export async function getUjianSiswaOverview(params: {
     const filteredCompleted = applyFilters(indexedCompleted, filter);
 
     const upcoming = stripInternalExam(
-      filteredUpcoming.filter((item) => item.status_ujian === "belum_dimulai")
+      filteredUpcoming.filter((item) => item.status_ujian === "belum_dimulai"),
     );
     const ongoing = stripInternalExam(
-      filteredUpcoming.filter((item) => item.status_ujian === "berlangsung")
+      filteredUpcoming.filter((item) => item.status_ujian === "berlangsung"),
     );
     const completed = stripInternalResult(
-      filteredCompleted.filter((item) => item.status_ujian === "selesai")
+      filteredCompleted.filter((item) => item.status_ujian === "selesai"),
     );
 
     const mapelOptions = collectMapelOptions([
@@ -246,20 +251,32 @@ export async function getUjianSiswaOverview(params: {
     };
   }
 
+  const queryParams: Record<string, string | number | undefined> = {
+    bulan: filter.bulan,
+    tahun: filter.tahun,
+    mapel: filter.mapel,
+    search: filter.search?.trim() || undefined,
+  };
 
- const queryParams: Record<string, string | number | undefined> = {
-   bulan: filter.bulan,
-   tahun: filter.tahun,
-   mapel: filter.mapel,
-   search: filter.search?.trim() || undefined,
- };
+  const res = await api<ApiEnvelope<UjianSiswaResponse>>(
+    `siswa/${params.siswaId}/ujian`,
+    { params: queryParams },
+  );
 
- const res = await api<ApiEnvelope<UjianSiswaResponse>>(
-   `siswa/${params.siswaId}/ujian`,
-   { params: queryParams },
- );
+  return res.data;
 
- return res.data;
+    /*
+    Response data di  be harus sepert ini  
+  {
+    "message": "",
+    "data": {
+      "upcoming": [],
+      "ongoing": [],
+      "completed": [],
+      "mapelOptions": []
+    }
+  }
+    */
 }
 
 export async function getUjianSiswaResultDetail(
