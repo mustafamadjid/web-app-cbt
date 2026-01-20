@@ -9,6 +9,7 @@ export type UjianSiswaFilterParams = {
 
 export type UjianSiswaExamItem = JadwalUjianItem & {
   mapel: string;
+  id_bank_soal: number;
 };
 
 export type UjianSiswaResultItem = UjianSiswaExamItem & {
