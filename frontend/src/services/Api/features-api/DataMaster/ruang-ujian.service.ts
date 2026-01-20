@@ -28,11 +28,3 @@ export async function getRuangUjian(
     ruang.namaRuangan.toLowerCase().includes(q)
   );
 }
-
-export async function getRuangUjianOptions(): Promise<RuangUjianRow[]> {
-  await sleep(180);
-  
-
-  // Ini harusnya nanit kalau sudah fetch API ga perlu sorting id
-  return [...DUMMY_RUANG_UJIAN].sort((a, b) => a.id - b.id);
-}

@@ -20,12 +20,14 @@ import { useNavigate } from "react-router";
 import type { TingkatKelasOption } from "@/types/DataMaster/Kelas";
 
 import {
-  getAngkatanOptions,
-  getJenisKelaminOptions,
   getSiswa,
   type BarisSiswa,
 } from "@/services/Api/features-api/KelolaAkun/akunsiswa.service";
-import { getTingkatKelasOptions } from "@/services/Api/features-api/DataMaster/kelas.service";
+import {
+  getAngkatanOptions,
+  getJenisKelaminOptions,
+  getTingkatKelasOptions,
+} from "@/services/Api/features-api/GetOptions/options.service";
 
 import { paths } from "@/routes/paths";
 

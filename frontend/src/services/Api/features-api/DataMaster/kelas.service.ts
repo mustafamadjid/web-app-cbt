@@ -68,28 +68,6 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const normalize = (value: string) => value.toLowerCase().trim();
 
-export async function getTingkatKelasOptions(): Promise<TingkatKelasOption[]> {
-  await sleep(150);
-  const options = DUMMY_KELAS.reduce<Record<number, TingkatKelasOption>>(
-    (acc, kelas) => {
-      if (!acc[kelas.id_tingkat_kelas]) {
-        acc[kelas.id_tingkat_kelas] = {
-          id_tingkat_kelas: kelas.id_tingkat_kelas,
-          tingkat_kelas: kelas.tingkat_kelas,
-        };
-      }
-      return acc;
-    },
-    {}
-  );
-
-  // Ini harusnya nanit kalau sudah fetch API ga perlu sorting id
-
-  return Object.values(options).sort(
-    (a, b) => a.id_tingkat_kelas - b.id_tingkat_kelas
-  );
-}
-
 export async function getKelas(
   params: KelasFilterParams = {}
 ): Promise<KelasRow[]> {

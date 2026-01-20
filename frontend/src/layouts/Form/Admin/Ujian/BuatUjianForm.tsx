@@ -12,21 +12,20 @@ import type {
 } from "@/types/Ujian/BuatUjian";
 import type { KelasRow, TingkatKelasOption } from "@/types/DataMaster/Kelas";
 import {
-  getUjianBankSoalOptions,
-  getUjianGuruPengawasOptions,
-  getUjianSesiOptions,
   getUjianSiswaPreview,
   submitBuatUjian,
 } from "@/services/Api/features-api/Ujian/ujian.service";
 
-import { getRuangUjianOptions } from "@/services/Api/features-api/DataMaster/ruang-ujian.service";
-
 import { ApiError } from "@/services/Api/api";
-import {
-  getKelas,
-  getTingkatKelasOptions,
-} from "@/services/Api/features-api/DataMaster/kelas.service";
+import { getKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { getTingkatKelasById } from "@/services/Api/features-api/DataMaster/kelas.service";
+import {
+  getRuangUjianOptions,
+  getTingkatKelasOptions,
+  getUjianBankSoalOptions,
+  getUjianGuruPengawasOptions,
+  getUjianSesiOptions,
+} from "@/services/Api/features-api/GetOptions/options.service";
 
 // helper
 import { createSetField } from "@/helper/setField/setField";

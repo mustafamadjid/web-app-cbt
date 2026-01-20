@@ -15,11 +15,11 @@ import type {
   MataPelajaranRow,
 } from "@/types/DataMaster/MataPelajaran";
 import type { TingkatKelasOption } from "@/types/DataMaster/Kelas";
+import { getMataPelajaran } from "@/services/Api/features-api/DataMaster/mapel.service";
 import {
-  getMataPelajaran,
   getMataPelajaranOptions,
-} from "@/services/Api/features-api/DataMaster/mapel.service";
-import { getTingkatKelasOptions } from "@/services/Api/features-api/DataMaster/kelas.service";
+  getTingkatKelasOptions,
+} from "@/services/Api/features-api/GetOptions/options.service";
 import { paths } from "@/routes/paths";
 
 function useDebouncedValue<T>(value: T, delayMs = 300) {

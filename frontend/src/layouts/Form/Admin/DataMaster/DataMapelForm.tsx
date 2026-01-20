@@ -4,7 +4,7 @@ import InputField from "@/components/common/Input/InputField";
 
 import type { MataPelajaranFormValues } from "@/types/DataMaster/MataPelajaran";
 import type { TingkatKelasOption } from "@/types/DataMaster/Kelas";
-import { getTingkatKelasOptions } from "@/services/Api/features-api/DataMaster/kelas.service";
+import { getTingkatKelasOptions } from "@/services/Api/features-api/GetOptions/options.service";
 
 import { createSetField } from "@/helper/setField/setField";
 import {

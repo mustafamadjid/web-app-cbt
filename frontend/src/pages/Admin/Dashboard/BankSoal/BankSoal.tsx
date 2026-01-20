@@ -20,9 +20,11 @@ import type { MataPelajaranOption } from "@/types/DataMaster/MataPelajaran";
 import {
   getBankSoalByKelas,
   getBankSoalByGuru,
-  getMataPelajaranOptions,
 } from "@/services/Api/features-api/BankSoal/banksoal.service";
-import { getTingkatKelasOptions } from "@/services/Api/features-api/DataMaster/kelas.service";
+import {
+  getMataPelajaranOptions,
+  getTingkatKelasOptions,
+} from "@/services/Api/features-api/GetOptions/options.service";
 import { paths } from "@/routes/paths";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -91,6 +93,7 @@ const BankSoal = () => {
     (async () => {
       try {
         const mapel = await getMataPelajaranOptions({
+          source: "bankSoal",
           tingkatKelasId:
             viewMode === "BY_KELAS"
               ? (selectedTingkatId ?? undefined)

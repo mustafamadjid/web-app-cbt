@@ -1,15 +1,6 @@
 import type { BankSoalItem } from "@/types/BankSoal/BankSoal";
-import type { MataPelajaranOption } from "@/types/DataMaster/MataPelajaran";
 import { getTingkatKelasById } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { api, type ApiEnvelope } from "../../api";
-
-const DUMMY_MAPEL: MataPelajaranOption[] = [
-  { id: 101, label: "Bahasa Indonesia (Kelas 10)" },
-  { id: 102, label: "Fisika (Kelas 10)" },
-  { id: 103, label: "Matematika (Kelas 11)" },
-  { id: 104, label: "Bahasa Indonesia (Kelas 11)" },
-  { id: 105, label: "Ekonomi (Kelas 12)" },
-];
 
 // Catatan: BankSoalItem kamu saat ini punya `kelas: number` + `mata_pelajaran: string`.
 // Untuk filter mapel-by-id yang rapi, idealnya ada `mapelId` di item.
@@ -158,25 +149,6 @@ function filterBankSoal(params: BankSoalFilterParams) {
   result.sort((a, b) => (b.tgl_buat ?? "").localeCompare(a.tgl_buat ?? ""));
 
   return result;
-}
-
-export async function getMataPelajaranOptions(params: {
-  tingkatKelasId?: number;
-}): Promise<MataPelajaranOption[]> {
-  const tingkatKelas = getTingkatKelasById(params.tingkatKelasId);
-  const kelasId = tingkatKelas ?? undefined;
-
-  // contoh: kalau mode per kelas, batasi mapel sesuai kelas (dummy sederhana pakai label)
-  const filtered = !kelasId
-    ? DUMMY_MAPEL
-    : DUMMY_MAPEL.filter((m) => {
-        if (kelasId === 10) return m.label.includes("(Kelas 10)");
-        if (kelasId === 11) return m.label.includes("(Kelas 11)");
-        if (kelasId === 12) return m.label.includes("(Kelas 12)");
-        return true;
-      });
-
-  return new Promise((resolve) => setTimeout(() => resolve(filtered), 250));
 }
 
 export async function getBankSoalByKelas(params: {
