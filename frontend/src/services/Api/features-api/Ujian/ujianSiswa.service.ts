@@ -247,16 +247,12 @@ export async function getUjianSiswaOverview(params: {
   }
 
 
- const queryParamsRaw: Record<string, string | number | undefined> = {
+ const queryParams: Record<string, string | number | undefined> = {
    bulan: filter.bulan,
    tahun: filter.tahun,
    mapel: filter.mapel,
    search: filter.search?.trim() || undefined,
  };
-
- const queryParams = Object.fromEntries(
-   Object.entries(queryParamsRaw).filter(([, v]) => v !== undefined),
- );
 
  const res = await api<ApiEnvelope<UjianSiswaResponse>>(
    `siswa/${params.siswaId}/ujian`,

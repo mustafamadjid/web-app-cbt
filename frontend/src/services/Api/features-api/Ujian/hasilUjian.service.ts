@@ -283,12 +283,14 @@ export async function getHasilUjianList(
     );
   }
 
+  const queryParams: Record<string, string | number | undefined> = {
+    tingkat_kelas_id: params.tingkatKelasId ?? undefined,
+    tahun: params.tahun ?? undefined,
+  };
+
   const res = await api<ApiEnvelope<JadwalUjianItem[]>>("/ujian/hasil", {
     method: "GET",
-    params: {
-      tingkat_kelas_id: params.tingkatKelasId ?? undefined,
-      tahun: params.tahun ?? undefined,
-    },
+    params: queryParams,
   });
   return res.data;
 }
