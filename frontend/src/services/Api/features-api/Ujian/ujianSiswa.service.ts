@@ -123,6 +123,7 @@ const dummyUjianCompleted: UjianSiswaResultItem[] = [
 ];
 
 type IndexedItem = {
+    mapel: string;
   __searchText: string;
   __month?: number;
   __year?: number;
@@ -149,9 +150,8 @@ const buildSearchableText = (item: UjianSiswaExamItem) =>
 const getDateMeta = (item: UjianSiswaExamItem) => {
   const iso = item.tanggal_ujian ?? formatTanggalToIso(item.tgl_ujian ?? "");
   if (!iso) return { month: undefined, year: undefined };
-  const dt = new Date(iso);
-  if (Number.isNaN(dt.getTime())) return { month: undefined, year: undefined };
-  return { month: dt.getMonth() + 1, year: dt.getFullYear() };
+  const [y, m] = iso.split("-").map(Number);
+  return { month: m, year: y };
 };
 
 const indexExamItem = (item: UjianSiswaExamItem): IndexedExamItem => {
@@ -176,20 +176,23 @@ const indexResultItem = (item: UjianSiswaResultItem): IndexedResultItem => {
 
 const applyFilters = <T extends IndexedItem>(
   data: T[],
-  params: UjianSiswaFilterParams
+  params: UjianSiswaFilterParams,
 ) => {
   const query = params.search ? normalize(params.search) : "";
+
   return data.filter((item) => {
     if (params.bulan && item.__month !== params.bulan) return false;
     if (params.tahun && item.__year !== params.tahun) return false;
+
     if (params.mapel) {
-      const mapel = normalize(params.mapel);
-      if (!item.__searchText.includes(mapel)) return false;
+      if (normalize(item.mapel) !== normalize(params.mapel)) return false;
     }
+
     if (query && !item.__searchText.includes(query)) return false;
     return true;
   });
 };
+
 
 const stripInternalExam = (items: IndexedExamItem[]): UjianSiswaExamItem[] =>
   items.map(({ __searchText, __month, __year, ...rest }) => rest);
@@ -243,24 +246,24 @@ export async function getUjianSiswaOverview(params: {
     };
   }
 
-  const hasFilter = Boolean(
-    filter.bulan || filter.tahun || filter.mapel || filter.search
-  );
 
-  const queryParams: Record<string, string | number | undefined> = {
-    siswa_id: params.siswaId,
-    bulan: filter.bulan,
-    tahun: filter.tahun,
-    mapel: filter.mapel,
-    search: filter.search,
-  };
+ const queryParamsRaw: Record<string, string | number | undefined> = {
+   bulan: filter.bulan,
+   tahun: filter.tahun,
+   mapel: filter.mapel,
+   search: filter.search?.trim() || undefined,
+ };
 
-  const endpoint = hasFilter ? "/ujian-siswa" : `/ujian-siswa/${params.siswaId}`;
-  const res = await api<ApiEnvelope<UjianSiswaResponse>>(endpoint, {
-    params: hasFilter ? queryParams : undefined,
-  });
+ const queryParams = Object.fromEntries(
+   Object.entries(queryParamsRaw).filter(([, v]) => v !== undefined),
+ );
 
-  return res.data;
+ const res = await api<ApiEnvelope<UjianSiswaResponse>>(
+   `siswa/${params.siswaId}/ujian`,
+   { params: queryParams },
+ );
+
+ return res.data;
 }
 
 export async function getUjianSiswaResultDetail(
