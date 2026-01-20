@@ -3,7 +3,7 @@ import BoxHasilUjian from "@/components/features/Ujian/BoxHasilUjian";
 import {
   getHasilUjianList,
 } from "@/services/Api/features-api/Ujian/hasilUjian.service";
-import { getTingkatKelasOptions } from "@/services/Api/features-api/DataMaster/kelas.service";
+import { getTingkatKelasOptions } from "@/services/Api/features-api/GetOptions/options.service";
 import type { JadwalUjianItem } from "@/types/Ujian/jadwalUjian";
 import { paths } from "@/routes/paths";
 import type { TingkatKelasOption } from "@/types/DataMaster/Kelas";

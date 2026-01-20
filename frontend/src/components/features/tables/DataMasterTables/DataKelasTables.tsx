@@ -11,10 +11,8 @@ import { useNavigate } from "react-router";
 
 import AddButton from "@/components/common/Button/AddButton";
 import type { KelasRow, TingkatKelasOption } from "@/types/DataMaster/Kelas";
-import {
-  getKelas,
-  getTingkatKelasOptions,
-} from "@/services/Api/features-api/DataMaster/kelas.service";
+import { getKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
+import { getTingkatKelasOptions } from "@/services/Api/features-api/GetOptions/options.service";
 import { paths } from "@/routes/paths";
 
 function useDebouncedValue<T>(value: T, delayMs = 300) {

@@ -1,7 +1,9 @@
 import BoxJadwalUjian from "@/components/features/Ujian/BoxJadwalUjian";
 import { useAuth } from "@/contexts/AuthContext";
-import { getTingkatKelasOptions } from "@/services/Api/features-api/DataMaster/kelas.service";
-import { getRuangUjianOptions } from "@/services/Api/features-api/DataMaster/ruang-ujian.service";
+import {
+  getRuangUjianOptions,
+  getTingkatKelasOptions,
+} from "@/services/Api/features-api/GetOptions/options.service";
 import {
   applyUjianStatus,
   getJadwalUjian,

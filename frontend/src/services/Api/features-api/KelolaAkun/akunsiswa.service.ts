@@ -22,14 +22,6 @@ export type SiswaFilterParams = {
 };
 
 
-export const DUMMY_JENIS_KELAMIN: Array<{
-  value: JenisKelamin;
-  label: string;
-}> = [
-  { value: "LAKI_LAKI", label: "Laki-laki" },
-  { value: "PEREMPUAN", label: "Perempuan" },
-];
-
 export const DUMMY_SISWA: DataAkunSiswa[] = [
   {
     id: 1,
@@ -134,9 +126,6 @@ export const DUMMY_SISWA: DataAkunSiswa[] = [
     urlGambarProfil: "https://i.pravatar.cc/150?u=s-0006",
   },
 ];
-/** === DUMMY OPTIONS === */
-export const DUMMY_ANGKATAN: number[] = [2023, 2024, 2025];
-
 // Submit Data
 export async function submitStudentRegister(values: StudentRegisterFormValues) {
   const formData = buildFormData(values, {
@@ -168,18 +157,6 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 function normalize(s: string) {
   return s.toLowerCase().trim();
-}
-
-export async function getAngkatanOptions(): Promise<number[]> {
-  await sleep(250);
-  return DUMMY_ANGKATAN;
-}
-
-export async function getJenisKelaminOptions(): Promise<
-  Array<{ value: JenisKelamin; label: string }>
-> {
-  await sleep(150);
-  return DUMMY_JENIS_KELAMIN;
 }
 
 export async function getSiswa(

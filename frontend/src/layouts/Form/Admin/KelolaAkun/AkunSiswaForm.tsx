@@ -11,10 +11,8 @@ import type { KelasRow, TingkatKelasOption } from "@/types/DataMaster/Kelas";
 import { submitStudentRegister } from "@/services/Api/features-api/KelolaAkun/akunsiswa.service";
 import { paths } from "@/routes/paths";
 import { ApiError } from "@/services/Api/api";
-import {
-  getKelas,
-  getTingkatKelasOptions,
-} from "@/services/Api/features-api/DataMaster/kelas.service";
+import { getKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
+import { getTingkatKelasOptions } from "@/services/Api/features-api/GetOptions/options.service";
 
 import { createSetField } from "@/helper/setField/setField";
 import {

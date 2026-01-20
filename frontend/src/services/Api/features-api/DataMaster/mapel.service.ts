@@ -1,7 +1,6 @@
 import type {
   KelasOption,
   MataPelajaranFilterParams,
-  MataPelajaranOption,
   MataPelajaranRow,
 } from "@/types/DataMaster/MataPelajaran";
 import { getTingkatKelasById } from "@/services/Api/features-api/DataMaster/kelas.service";
@@ -62,19 +61,9 @@ const DUMMY_MAPEL: MataPelajaranRow[] = [
   },
 ];
 
-const DUMMY_MAPEL_OPTIONS: MataPelajaranOption[] = DUMMY_MAPEL.map((mapel) => ({
-  id: mapel.id,
-  label: mapel.namaMapel,
-}));
-
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const normalize = (value: string) => value.toLowerCase().trim();
-
-export async function getMataPelajaranOptions(): Promise<MataPelajaranOption[]> {
-  await sleep(150);
-  return DUMMY_MAPEL_OPTIONS;
-}
 
 export async function getMataPelajaran(
   params: MataPelajaranFilterParams = {}

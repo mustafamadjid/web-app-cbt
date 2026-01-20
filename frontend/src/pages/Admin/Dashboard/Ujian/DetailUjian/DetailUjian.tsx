@@ -15,13 +15,13 @@ import {
 
 import PrintButton from "@/components/common/Input/PrintButton";
 import { paths } from "@/routes/paths";
-import { getTingkatKelasOptions } from "@/services/Api/features-api/DataMaster/kelas.service";
-import { getRuangUjianOptions } from "@/services/Api/features-api/DataMaster/ruang-ujian.service";
 import {
+  getRuangUjianOptions,
+  getTingkatKelasOptions,
   getUjianBankSoalOptions,
   getUjianGuruPengawasOptions,
   getUjianSesiOptions,
-} from "@/services/Api/features-api/Ujian/ujian.service";
+} from "@/services/Api/features-api/GetOptions/options.service";
 import { getJadwalUjianDetail } from "@/services/Api/features-api/Ujian/jadwalujian.service";
 
 import type { TingkatKelasOption } from "@/types/DataMaster/Kelas";
