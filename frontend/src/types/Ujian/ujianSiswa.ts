@@ -1,0 +1,25 @@
+import type { JadwalUjianItem } from "@/types/Ujian/jadwalUjian";
+
+export type UjianSiswaFilterParams = {
+  bulan?: number;
+  tahun?: number;
+  mapel?: string;
+  search?: string;
+};
+
+export type UjianSiswaExamItem = JadwalUjianItem & {
+  mapel: string;
+};
+
+export type UjianSiswaResultItem = UjianSiswaExamItem & {
+  jumlah_benar: number;
+  jumlah_salah: number;
+  nilai: number;
+};
+
+export type UjianSiswaResponse = {
+  upcoming: UjianSiswaExamItem[];
+  ongoing: UjianSiswaExamItem[];
+  completed: UjianSiswaResultItem[];
+  mapelOptions: string[];
+};

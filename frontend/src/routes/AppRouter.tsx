@@ -44,6 +44,9 @@ import HasilUjianDetail from "@/pages/Admin/Dashboard/Ujian/DetailHasilUjian/Has
 import HasilUjianSiswaDetail from "@/pages/Admin/Dashboard/Ujian/DetailHasilUjian/HasilUjianSiswaDetail";
 import HomeSiswa from "@/pages/Siswa/HomeSiswa";
 import UjianSiswa from "@/pages/Siswa/Ujian/UjianSiswa/UjianSiswa";
+import UjianTokenSiswa from "@/pages/Siswa/Ujian/UjianSiswa/UjianTokenSiswa";
+import UjianMulaiSiswa from "@/pages/Siswa/Ujian/UjianSiswa/UjianMulaiSiswa";
+import HasilUjianSiswaDetailSiswa from "@/pages/Siswa/Ujian/HasilUjianSiswaDetail";
 import PublicOnlyRoute from "./PublicOnlyRoute";
 import ProfilePage from "@/pages/Profile/ProfilePage";
 
@@ -115,7 +118,7 @@ export const router = createBrowserRouter([
               },
               {
                 path: paths.dashboard.hasil_ujian_siswa_detail,
-                element: <HasilUjianSiswaDetail />,
+                element: <HasilUjianSiswaDetailSiswa />,
               },
               { path: paths.dashboard.cetak, element: <Cetak /> },
             ],
@@ -203,6 +206,18 @@ export const router = createBrowserRouter([
             children: [
               { index: true, element: <HomeSiswa /> },
               { path: paths.dashboard.ujian_siswa, element: <UjianSiswa /> },
+              {
+                path: paths.dashboard.ujian_siswa_token,
+                element: <UjianTokenSiswa />,
+              },
+              {
+                path: paths.dashboard.ujian_siswa_mulai,
+                element: <UjianMulaiSiswa />,
+              },
+              {
+                path: paths.dashboard.hasil_ujian_siswa_detail,
+                element: <HasilUjianSiswaDetailSiswa />,
+              },
               { path: paths.dashboard.profil_siswa, element: <ProfilePage /> },
               
             ],
