@@ -1,0 +1,110 @@
+openapi: 3.0.3
+info:
+  title: Web App CBT API
+  version: 0.1.0
+  description: |
+    Spesifikasi awal API untuk Web App CBT berdasarkan pemakaian di frontend.
+servers:
+  - url: http://localhost:3000
+    description: Local development
+paths:
+  /auth/login:
+    post:
+      summary: Login dan mendapatkan access token
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginPayload"
+      responses:
+        "200":
+          description: Berhasil login
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccessTokenResponse"
+        "401":
+          description: Kredensial tidak valid
+  /auth/me:
+    get:
+      summary: Ambil data user yang sedang login
+      tags: [Auth]
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Berhasil mengambil data user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Tidak terautentikasi
+  /auth/logout:
+    post:
+      summary: Logout dan menghapus sesi
+      tags: [Auth]
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Berhasil logout
+        "401":
+          description: Tidak terautentikasi
+  /auth/refresh:
+    post:
+      summary: Refresh access token menggunakan refresh cookie
+      tags: [Auth]
+      responses:
+        "200":
+          description: Berhasil refresh token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccessTokenResponse"
+        "401":
+          description: Refresh token tidak valid atau kadaluarsa
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    LoginPayload:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          example: admin
+        password:
+          type: string
+          format: password
+          example: secret123
+    AccessTokenResponse:
+      type: object
+      required:
+        - accessToken
+      properties:
+        accessToken:
+          type: string
+          description: JWT access token
+    User:
+      type: object
+      required:
+        - username
+        - role
+      properties:
+        id:
+          type: integer
+          format: int64
+          nullable: true
+        username:
+          type: string
+        role:
+          type: string
