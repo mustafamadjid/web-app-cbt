@@ -187,7 +187,7 @@ const DetailUjian = () => {
     return bank ? bank.nama : `Bank Soal #${detail.bank_soal_id}`;
   }, [detail, bankSoalOptions]);
 
-  const handlePrint = (jenis: PrintJenis) => {
+  const handlePrint = () => {
     if (typeof window !== "undefined") window.print();
   };
 
@@ -340,19 +340,19 @@ const DetailUjian = () => {
                   <PrintButton
                     label="Daftar Hadir"
                     className="flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-[#397e50] text-xs font-bold text-white transition hover:bg-[#2d633f]"
-                    onClick={() => handlePrint("daftar-hadir")}
+                    onClick={() => handlePrint()}
                   />
                   <PrintButton
                     label="Berita Acara"
                     variant="outline"
                     className="flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white text-xs font-bold text-slate-600 transition hover:bg-slate-50"
-                    onClick={() => handlePrint("berita-acara")}
+                    onClick={() => handlePrint()}
                   />
                   <PrintButton
                     label="Kartu Peserta"
                     variant="outline"
                     className="flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white text-xs font-bold text-slate-600 transition hover:bg-slate-50"
-                    onClick={() => handlePrint("kartu-peserta")}
+                    onClick={() => handlePrint()}
                   />
                 </div>
               </div>
