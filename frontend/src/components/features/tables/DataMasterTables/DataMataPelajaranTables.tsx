@@ -18,8 +18,10 @@ import type { TingkatKelas } from "@/types/DataMaster/Kelas";
 import { getMataPelajaran } from "@/services/Api/features-api/DataMaster/mapel.service";
 import {
   getMataPelajaranOptions,
-  getTingkatKelass,
 } from "@/services/Api/features-api/GetOptions/options.service";
+
+import { getTingkatKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
+
 import { paths } from "@/routes/paths";
 
 function useDebouncedValue<T>(value: T, delayMs = 300) {
@@ -59,7 +61,7 @@ const DataMataPelajaran: React.FC = () => {
       try {
         setErrorMsg("");
         const [kelas, mapel] = await Promise.all([
-          getTingkatKelass(),
+          getTingkatKelas(),
           getMataPelajaranOptions(),
         ]);
         if (!mounted) return;

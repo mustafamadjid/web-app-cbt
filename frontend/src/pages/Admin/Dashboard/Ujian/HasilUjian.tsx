@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import BoxHasilUjian from "@/components/features/Ujian/BoxHasilUjian";
 import { getHasilUjianList } from "@/services/Api/features-api/Ujian/hasilUjian.service";
-import { getTingkatKelass } from "@/services/Api/features-api/GetOptions/options.service";
 import type { JadwalUjianItem } from "@/types/Ujian/jadwalUjian";
 import { paths } from "@/routes/paths";
 import type { TingkatKelas } from "@/types/DataMaster/Kelas";
 import { tahunOption } from "@/helper/TahunOption/TahunOption";
 import { Calendar, Layers } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { getTingkatKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
 
 const HasilUjian = () => {
   const { user } = useAuth();
@@ -27,7 +27,7 @@ const HasilUjian = () => {
     (async () => {
       try {
         const [options, tahunOptionsData] = await Promise.all([
-          getTingkatKelass(),
+          getTingkatKelas(),
           tahunOption(),
         ]);
         setTingkatKelass(options);

@@ -2,7 +2,6 @@ import BoxJadwalUjian from "@/components/features/Ujian/BoxJadwalUjian";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   getRuangUjianOptions,
-  getTingkatKelass,
 } from "@/services/Api/features-api/GetOptions/options.service";
 import {
   applyUjianStatus,
@@ -17,6 +16,7 @@ import type { RuangUjianRow } from "@/types/DataMaster/RuangUjian";
 import type { JadwalUjianItem } from "@/types/Ujian/jadwalUjian";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Search, Calendar, Layers, MapPin, CalendarRange } from "lucide-react"; // Tambahan icon untuk filter
+import { getTingkatKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
 
 const STATUS_SECTIONS = [
   { key: "berlangsung", label: "Berlangsung", color: "bg-emerald-500" },
@@ -69,7 +69,7 @@ const JadwalUjian = () => {
       try {
         const [tingkatOptions, ruangUjianOptions, tahunOptions] =
           await Promise.all([
-            getTingkatKelass(),
+            getTingkatKelas(),
             getRuangUjianOptions(),
             tahunOption(),
           ]);
@@ -96,7 +96,7 @@ const JadwalUjian = () => {
         setLoading(true);
         setErrorMsg("");
         const data = await getJadwalUjian({
-          q: debouncedSearchTerm.trim() || undefined,
+          search: debouncedSearchTerm.trim() || undefined,
           tanggal: selectedDate || undefined,
           ruangUjianId,
           tingkatKelasId: tingkatKelas,

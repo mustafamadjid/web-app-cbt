@@ -17,7 +17,6 @@ import PrintButton from "@/components/common/Input/PrintButton";
 import { paths } from "@/routes/paths";
 import {
   getRuangUjianOptions,
-  getTingkatKelass,
   getUjianBankSoalOptions,
   getUjianGuruPengawasOptions,
   getUjianSesiOptions,
@@ -33,6 +32,7 @@ import type {
   TipeUjian,
 } from "@/types/Ujian/BuatUjian";
 import type { DetailUjianItem, PrintJenis } from "@/types/Ujian/DetailUjian";
+import { getTingkatKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
 
 const tipeUjianLabel: Record<TipeUjian, string> = {
   PILIHAN_GANDA: "Pilihan Ganda",
@@ -74,7 +74,7 @@ const DetailUjian = () => {
     const loadOptions = async () => {
       try {
         const [kelas, ruang, guru, sesi] = await Promise.all([
-          getTingkatKelass(),
+          getTingkatKelas(),
           getRuangUjianOptions(),
           getUjianGuruPengawasOptions(),
           getUjianSesiOptions(),

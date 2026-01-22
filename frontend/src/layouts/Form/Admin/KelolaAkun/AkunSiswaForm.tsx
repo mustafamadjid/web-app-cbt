@@ -242,7 +242,7 @@ const AkunSiswaForm = () => {
       const kelasTerpilih = daftarKelas.find(
         (kelas) =>
           kelas.id_tingkat_kelas === values.id_tingkat_kelas &&
-          String(kelas.id) === values.id_nama_kelas,
+          String(kelas.id_nama_kelas) === values.id_nama_kelas,
       );
 
       if (!kelasTerpilih) {
@@ -254,7 +254,7 @@ const AkunSiswaForm = () => {
         ...values,
         // Pastikan konsisten dengan yang ditemukan
         id_tingkat_kelas: kelasTerpilih.id_tingkat_kelas,
-        id_nama_kelas: String(kelasTerpilih.id),
+        id_nama_kelas: String(kelasTerpilih.id_nama_kelas),
       };
 
       await submitStudentRegister(payload);

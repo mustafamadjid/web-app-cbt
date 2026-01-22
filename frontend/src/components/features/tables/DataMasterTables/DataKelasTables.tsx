@@ -15,7 +15,7 @@ import {
   getNamaKelas,
   getTingkatKelasById,
 } from "@/services/Api/features-api/DataMaster/kelas.service";
-import { getTingkatKelass } from "@/services/Api/features-api/GetOptions/options.service";
+import { getTingkatKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { paths } from "@/routes/paths";
 
 function useDebouncedValue<T>(value: T, delayMs = 300) {
@@ -50,7 +50,7 @@ const DataKelasTables: React.FC = () => {
     (async () => {
       try {
         setErrorMsg("");
-        const tingkat = await getTingkatKelass();
+        const tingkat = await getTingkatKelas();
         if (!mounted) return;
         setOpsiTingkat(tingkat);
       } catch {

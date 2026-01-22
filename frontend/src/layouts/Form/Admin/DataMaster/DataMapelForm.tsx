@@ -4,7 +4,7 @@ import InputField from "@/components/common/Input/InputField";
 
 import type { MataPelajaranFormValues } from "@/types/DataMaster/MataPelajaran";
 import type { TingkatKelas } from "@/types/DataMaster/Kelas";
-import { getTingkatKelass } from "@/services/Api/features-api/GetOptions/options.service";
+import { getTingkatKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
 
 import { createSetField } from "@/helper/setField/setField";
 import {
@@ -32,7 +32,7 @@ const DataMapelForm = () => {
   useEffect(() => {
     let active = true;
     const loadKelas = async () => {
-      const data = await getTingkatKelass();
+      const data = await getTingkatKelas();
       if (!active) return;
       setKelasOptions(data);
     };

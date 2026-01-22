@@ -23,8 +23,9 @@ import {
 } from "@/services/Api/features-api/BankSoal/banksoal.service";
 import {
   getMataPelajaranOptions,
-  getTingkatKelass,
 } from "@/services/Api/features-api/GetOptions/options.service";
+
+import { getTingkatKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { paths } from "@/routes/paths";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -73,7 +74,7 @@ const BankSoal = () => {
     let mounted = true;
     (async () => {
       try {
-        const kelas = await getTingkatKelass();
+        const kelas = await getTingkatKelas();
         if (!mounted) return;
         setTingkatKelass(kelas);
       } catch (e) {
