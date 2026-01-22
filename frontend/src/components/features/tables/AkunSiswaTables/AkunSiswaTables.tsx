@@ -26,8 +26,9 @@ import {
 import {
   getAngkatanOptions,
   getJenisKelaminOptions,
-  getTingkatKelas,
 } from "@/services/Api/features-api/GetOptions/options.service";
+
+import { getTingkatKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
 
 import { paths } from "@/routes/paths";
 
