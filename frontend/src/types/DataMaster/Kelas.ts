@@ -16,6 +16,7 @@ export type TingkatKelas = {
 };
 export type NamaKelas = {
   id_nama_kelas: number;
+  id_tingkat_kelas: number;
   nama_kelas: string;
 };
 
