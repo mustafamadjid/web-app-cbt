@@ -10,7 +10,6 @@ import type {
 } from "@/types/Ujian/BuatUjian";
 import { getBankSoalByKelas } from "@/services/Api/features-api/BankSoal/banksoal.service";
 import {
-  getKelas,
   getTingkatKelasById,
 } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { getMataPelajaran } from "@/services/Api/features-api/DataMaster/mapel.service";

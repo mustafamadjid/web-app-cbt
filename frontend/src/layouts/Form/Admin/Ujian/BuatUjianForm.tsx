@@ -10,23 +10,24 @@ import type {
   SiswaPreviewItem,
   TipeUjian,
 } from "@/types/Ujian/BuatUjian";
-import type { KelasRow, TingkatKelas } from "@/types/DataMaster/Kelas";
+import type { NamaKelas, TingkatKelas } from "@/types/DataMaster/Kelas";
 import {
   getUjianSiswaPreview,
   submitBuatUjian,
 } from "@/services/Api/features-api/Ujian/ujian.service";
 
 import { ApiError } from "@/services/Api/api";
-import { getKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
-import { getTingkatKelasById } from "@/services/Api/features-api/DataMaster/kelas.service";
+import {
+  getNamaKelas,
+  getTingkatKelas,
+  getTingkatKelasById,
+} from "@/services/Api/features-api/DataMaster/kelas.service";
 import {
   getRuangUjianOptions,
   getUjianBankSoalOptions,
   getUjianGuruPengawasOptions,
   getUjianSesiOptions,
 } from "@/services/Api/features-api/GetOptions/options.service";
-
-import { getTingkatKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
 
 // helper
 import { createSetField } from "@/helper/setField/setField";
@@ -74,7 +75,7 @@ const BuatUjianForm = () => {
   const [loadingKelasDetail, setLoadingKelasDetail] = useState(false);
 
   const [kelasOptions, setKelasOptions] = useState<TingkatKelas[]>([]);
-  const [kelasDetailOptions, setKelasDetailOptions] = useState<KelasRow[]>([]);
+  const [kelasDetailOptions, setKelasDetailOptions] = useState<NamaKelas[]>([]);
   const [bankSoalOptions, setBankSoalOptions] = useState<BankSoalOption[]>([]);
   const [ruangOptions, setRuangOptions] = useState<RuangUjianRow[]>([]);
   const [guruOptions, setGuruOptions] = useState<GuruPengawasOption[]>([]);
@@ -94,7 +95,9 @@ const BuatUjianForm = () => {
   }, [values.kelas_id]);
 
   const kelasDetailById = useMemo(() => {
-    return new Map(kelasDetailOptions.map((kelas) => [kelas.id, kelas]));
+    return new Map(
+      kelasDetailOptions.map((kelas) => [kelas.id_nama_kelas, kelas]),
+    );
   }, [kelasDetailOptions]);
 
   const selectedKelasDetail =
@@ -146,7 +149,7 @@ const BuatUjianForm = () => {
     const loadKelasDetail = async () => {
       setLoadingKelasDetail(true);
       try {
-        const data = await getKelas({
+        const data = await getNamaKelas({
           tingkatKelas: values.kelas_id === 0 ? undefined : values.kelas_id,
         });
         if (!active) return;
@@ -531,7 +534,10 @@ const BuatUjianForm = () => {
                       : "Pilih nama kelas"}
                   </option>
                   {kelasDetailOptions.map((kelas) => (
-                    <option key={kelas.id} value={kelas.id}>
+                    <option
+                      key={kelas.id_nama_kelas}
+                      value={kelas.id_nama_kelas}
+                    >
                       {kelas.nama_kelas}
                     </option>
                   ))}

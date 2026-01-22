@@ -6,12 +6,12 @@ import ImageUpload from "@/components/features/Upload/ImageUpload";
 
 import type { JenisKelamin } from "@/types/OpsiTypes/Option";
 import type { StudentRegisterFormValues } from "@/types/KelolaAkun/AkunSiswa";
-import type { KelasRow, TingkatKelas } from "@/types/DataMaster/Kelas";
+import type { NamaKelas, TingkatKelas } from "@/types/DataMaster/Kelas";
 
 import { submitStudentRegister } from "@/services/Api/features-api/KelolaAkun/akunsiswa.service";
 import { paths } from "@/routes/paths";
 import { ApiError } from "@/services/Api/api";
-import { getKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
+import { getNamaKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { getTingkatKelass } from "@/services/Api/features-api/GetOptions/options.service";
 
 import { createSetField } from "@/helper/setField/setField";
@@ -91,15 +91,15 @@ const AkunSiswaForm = () => {
   }, [values.fotoProfil]);
 
   const [TingkatKelass, setTingkatKelass] = useState<TingkatKelas[]>([]);
-  const [daftarKelas, setDaftarKelas] = useState<KelasRow[]>([]);
-  const [namaKelasOptions, setNamaKelasOptions] = useState<KelasRow[]>([]);
+  const [daftarKelas, setDaftarKelas] = useState<NamaKelas[]>([]);
+  const [namaKelasOptions, setNamaKelasOptions] = useState<NamaKelas[]>([]);
 
   useEffect(() => {
     let active = true;
     const loadKelas = async () => {
       const [tingkat, kelas] = await Promise.all([
         getTingkatKelass(),
-        getKelas(),
+        getNamaKelas(),
       ]);
       if (!active) return;
       setTingkatKelass(tingkat);
@@ -126,7 +126,7 @@ const AkunSiswaForm = () => {
     setNamaKelasOptions(filtered);
 
     const isValid = filtered.some(
-      (kelas) => String(kelas.id) === values.id_nama_kelas,
+      (kelas) => String(kelas.id_nama_kelas) === values.id_nama_kelas,
     );
     if (!isValid && values.id_nama_kelas !== "") {
       setValues((prev) => ({ ...prev, id_nama_kelas: "" }));
@@ -581,7 +581,10 @@ const AkunSiswaForm = () => {
                     Pilih nama kelas...
                   </option>
                   {namaKelasOptions.map((kelas) => (
-                    <option key={kelas.id} value={String(kelas.id)}>
+                    <option
+                      key={kelas.id_nama_kelas}
+                      value={String(kelas.id_nama_kelas)}
+                    >
                       {kelas.nama_kelas}
                     </option>
                   ))}

@@ -10,8 +10,11 @@ import {
 import { useNavigate } from "react-router";
 
 import AddButton from "@/components/common/Button/AddButton";
-import type { KelasRow, TingkatKelas } from "@/types/DataMaster/Kelas";
-import { getKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
+import type { NamaKelas, TingkatKelas } from "@/types/DataMaster/Kelas";
+import {
+  getNamaKelas,
+  getTingkatKelasById,
+} from "@/services/Api/features-api/DataMaster/kelas.service";
 import { getTingkatKelass } from "@/services/Api/features-api/GetOptions/options.service";
 import { paths } from "@/routes/paths";
 
@@ -32,7 +35,7 @@ const DataKelasTables: React.FC = () => {
   const [tingkatKelas, setTingkatKelas] = useState<number | null>(null);
 
   const [opsiTingkat, setOpsiTingkat] = useState<TingkatKelas[]>([]);
-  const [daftarKelas, setDaftarKelas] = useState<KelasRow[]>([]);
+  const [daftarKelas, setDaftarKelas] = useState<NamaKelas[]>([]);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -69,7 +72,7 @@ const DataKelasTables: React.FC = () => {
         setLoading(true);
         setErrorMsg("");
 
-        const data = await getKelas({
+        const data = await getNamaKelas({
           q: debouncedKataKunci.trim() || undefined,
           tingkatKelas: tingkatKelas ?? undefined,
         });
@@ -79,7 +82,7 @@ const DataKelasTables: React.FC = () => {
         setDaftarKelas(data);
         setIdTerpilih((prev) => {
           if (prev.size === 0) return prev;
-          const ids = new Set(data.map((kelas) => kelas.id));
+          const ids = new Set(data.map((kelas) => kelas.id_nama_kelas));
           const next = new Set<number>();
           prev.forEach((id) => {
             if (ids.has(id)) next.add(id);
@@ -98,15 +101,16 @@ const DataKelasTables: React.FC = () => {
   }, [debouncedKataKunci, tingkatKelas]);
 
   const semuaTerlihatTerpilih =
-    daftarKelas.length > 0 && daftarKelas.every((k) => idTerpilih.has(k.id));
+    daftarKelas.length > 0 &&
+    daftarKelas.every((k) => idTerpilih.has(k.id_nama_kelas));
 
   const togglePilihSemuaTerlihat = () => {
     setIdTerpilih((prev) => {
       const next = new Set(prev);
       if (semuaTerlihatTerpilih) {
-        daftarKelas.forEach((kelas) => next.delete(kelas.id));
+        daftarKelas.forEach((kelas) => next.delete(kelas.id_nama_kelas));
       } else {
-        daftarKelas.forEach((kelas) => next.add(kelas.id));
+        daftarKelas.forEach((kelas) => next.add(kelas.id_nama_kelas));
       }
       return next;
     });
@@ -298,21 +302,23 @@ const DataKelasTables: React.FC = () => {
               {daftarKelas.length > 0 ? (
                 daftarKelas.map((kelas) => (
                   <tr
-                    key={kelas.id}
+                    key={kelas.id_nama_kelas}
                     className={`transition-colors hover:bg-slate-50 ${
-                      idTerpilih.has(kelas.id) ? "bg-indigo-50/30" : ""
+                      idTerpilih.has(kelas.id_nama_kelas)
+                        ? "bg-indigo-50/30"
+                        : ""
                     }`}
                   >
                     <td className="p-4">
                       <input
                         type="checkbox"
-                        checked={idTerpilih.has(kelas.id)}
-                        onChange={() => togglePilihBaris(kelas.id)}
+                        checked={idTerpilih.has(kelas.id_nama_kelas)}
+                        onChange={() => togglePilihBaris(kelas.id_nama_kelas)}
                         className="h-4 w-4 cursor-pointer rounded border-slate-300 text-[#397e50] focus:ring-[#397e50]"
                       />
                     </td>
                     <td className="px-6 py-4 font-medium text-slate-900">
-                      {kelas.tingkat_kelas}
+                      {getTingkatKelasById(kelas.id_tingkat_kelas) ?? "-"}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-col">
@@ -320,7 +326,7 @@ const DataKelasTables: React.FC = () => {
                           {kelas.nama_kelas}
                         </span>
                         <span className="text-xs text-slate-500">
-                          ID: {kelas.id}
+                          ID: {kelas.id_nama_kelas}
                         </span>
                       </div>
                     </td>
@@ -338,7 +344,9 @@ const DataKelasTables: React.FC = () => {
                         <button
                           className="cursor-pointer rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-red-600"
                           title="Hapus"
-                          onClick={() => setIdTerpilih(new Set([kelas.id]))}
+                          onClick={() =>
+                            setIdTerpilih(new Set([kelas.id_nama_kelas]))
+                          }
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
