@@ -6,7 +6,7 @@ import type {
   StudentRegisterResponse,
 } from "@/types/KelolaAkun/AkunSiswa";
 import { api, type ApiEnvelope } from "../../api";
-import { getKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
+import { getNamaKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
 
 import type { DataAkunSiswa } from "@/types/KelolaAkun/AkunSiswa";
 
@@ -165,10 +165,10 @@ export async function getSiswa(
   await sleep(350);
 
   let data = [...DUMMY_SISWA];
-  const daftarKelas = await getKelas();
+  const daftarKelas = await getNamaKelas();
   const kelasById = daftarKelas.reduce<Record<string, string>>(
     (acc, kelas) => {
-      acc[String(kelas.id)] = kelas.nama_kelas;
+      acc[String(kelas.id_nama_kelas)] = kelas.nama_kelas;
       return acc;
     },
     {}

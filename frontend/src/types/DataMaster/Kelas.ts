@@ -3,13 +3,6 @@ export type KelasFormValues = {
   nama_kelas: string;
 };
 
-export type KelasRow = {
-  id: number;
-  id_tingkat_kelas: number;
-  tingkat_kelas: number;
-  nama_kelas: string;
-};
-
 export type TingkatKelas = {
   id_tingkat_kelas: number;
   tingkat_kelas: number;
@@ -28,6 +21,5 @@ export type KelasFilterParams = {
 export type KelasSubmitResponse = {
   id: number;
 };
-
 
 

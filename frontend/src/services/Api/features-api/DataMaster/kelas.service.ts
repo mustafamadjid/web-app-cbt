@@ -3,7 +3,7 @@ import { buildJsonData } from "@/helper/FormData/BuildJsonData";
 
 import type {
   KelasFilterParams,
-  KelasRow,
+  NamaKelas,
   TingkatKelas,
 } from "@/types/DataMaster/Kelas";
 import type {
@@ -12,41 +12,43 @@ import type {
 } from "@/types/DataMaster/Kelas";
 import type { ApiEnvelope } from "../../api";
 
-const DUMMY_KELAS: KelasRow[] = [
+const USE_DUMMY = true; // ✅ set false saat BE sudah siap
+
+const DUMMY_TINGKAT_KELAS: TingkatKelas[] = [
+  { id_tingkat_kelas: 1, tingkat_kelas: 10 },
+  { id_tingkat_kelas: 2, tingkat_kelas: 11 },
+  { id_tingkat_kelas: 3, tingkat_kelas: 12 },
+];
+
+const DUMMY_NAMA_KELAS: NamaKelas[] = [
   {
-    id: 1,
+    id_nama_kelas: 1,
     id_tingkat_kelas: 1,
-    tingkat_kelas: 10,
     nama_kelas: "X IPA 1",
   },
   {
-    id: 2,
+    id_nama_kelas: 2,
     id_tingkat_kelas: 1,
-    tingkat_kelas: 10,
     nama_kelas: "X IPS 1",
   },
   {
-    id: 3,
+    id_nama_kelas: 3,
     id_tingkat_kelas: 2,
-    tingkat_kelas: 11,
     nama_kelas: "XI IPA 1",
   },
   {
-    id: 4,
+    id_nama_kelas: 4,
     id_tingkat_kelas: 2,
-    tingkat_kelas: 11,
     nama_kelas: "XI IPS 1",
   },
   {
-    id: 5,
+    id_nama_kelas: 5,
     id_tingkat_kelas: 3,
-    tingkat_kelas: 12,
     nama_kelas: "XII IPA 1",
   },
   {
-    id: 6,
+    id_nama_kelas: 6,
     id_tingkat_kelas: 3,
-    tingkat_kelas: 12,
     nama_kelas: "XII IPS 2",
   },
 ];
@@ -66,29 +68,41 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const normalize = (value: string) => value.toLowerCase().trim();
 
-export async function getKelas(
+let cachedTingkatKelas: TingkatKelas[] | null = null;
+
+export async function getNamaKelas(
   params: KelasFilterParams = {},
-): Promise<KelasRow[]> {
+): Promise<NamaKelas[]> {
+  if (!USE_DUMMY) {
+    const res = await api<ApiEnvelope<NamaKelas[]>>("/kelas/nama", {
+      method: "GET",
+      params,
+    });
+    return res.data;
+  }
+
   await sleep(250);
   const q = params.q ? normalize(params.q) : "";
 
-  const filtered = DUMMY_KELAS.filter((kelas) => {
+  const filtered = DUMMY_NAMA_KELAS.filter((kelas) => {
     if (params.tingkatKelas && kelas.id_tingkat_kelas !== params.tingkatKelas) {
       return false;
     }
 
     if (!q) return true;
 
+    const tingkatLabel = getTingkatKelasById(kelas.id_tingkat_kelas);
+
     return (
       kelas.nama_kelas.toLowerCase().includes(q) ||
       String(kelas.id_tingkat_kelas).includes(q) ||
-      String(kelas.tingkat_kelas).includes(q)
+      (tingkatLabel != null && String(tingkatLabel).includes(q))
     );
   });
 
   return [...filtered].sort((a, b) => {
-    if (a.tingkat_kelas !== b.tingkat_kelas) {
-      return a.tingkat_kelas - b.tingkat_kelas;
+    if (a.id_tingkat_kelas !== b.id_tingkat_kelas) {
+      return a.id_tingkat_kelas - b.id_tingkat_kelas;
     }
     return a.nama_kelas.localeCompare(b.nama_kelas, "id", {
       sensitivity: "base",
@@ -98,35 +112,23 @@ export async function getKelas(
 }
 
 export async function getTingkatKelas(): Promise<TingkatKelas[]> {
-  const data = await getKelas();
-  const options = data.reduce<Record<number, TingkatKelas>>((acc, kelas) => {
-    if (!acc[kelas.id_tingkat_kelas]) {
-      acc[kelas.id_tingkat_kelas] = {
-        id_tingkat_kelas: kelas.id_tingkat_kelas,
-        tingkat_kelas: kelas.tingkat_kelas,
-      };
-    }
-    return acc;
-  }, {});
+  if (!USE_DUMMY) {
+    const res = await api<ApiEnvelope<TingkatKelas[]>>("/kelas/tingkat", {
+      method: "GET",
+    });
+    cachedTingkatKelas = res.data;
+    return res.data;
+  }
 
-  return Object.values(options).sort(
+  await sleep(150);
+  cachedTingkatKelas = [...DUMMY_TINGKAT_KELAS];
+  return [...DUMMY_TINGKAT_KELAS].sort(
     (a, b) => a.id_tingkat_kelas - b.id_tingkat_kelas,
   );
 }
 
 export const getTingkatKelasById = (id?: number | null): number | undefined => {
   if (id == null) return undefined;
-  const dataId = DUMMY_KELAS.reduce<Record<number, TingkatKelas>>(
-    (acc, kelas) => {
-      if (!acc[kelas.id_tingkat_kelas]) {
-        acc[kelas.id_tingkat_kelas] = {
-          id_tingkat_kelas: kelas.id_tingkat_kelas,
-          tingkat_kelas: kelas.tingkat_kelas,
-        };
-      }
-      return acc;
-    },
-    {},
-  );
-  return dataId[id]?.tingkat_kelas;
+  const data = cachedTingkatKelas ?? (USE_DUMMY ? DUMMY_TINGKAT_KELAS : null);
+  return data?.find((item) => item.id_tingkat_kelas === id)?.tingkat_kelas;
 };
