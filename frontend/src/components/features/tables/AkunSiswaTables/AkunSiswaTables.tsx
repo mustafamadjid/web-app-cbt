@@ -26,7 +26,7 @@ import {
 import {
   getAngkatanOptions,
   getJenisKelaminOptions,
-  getTingkatKelass,
+  getTingkatKelas,
 } from "@/services/Api/features-api/GetOptions/options.service";
 
 import { paths } from "@/routes/paths";
@@ -133,7 +133,7 @@ const AkunSiswaTables: React.FC = () => {
         setErrorMsg("");
         const [a, k, g] = await Promise.all([
           getAngkatanOptions(),
-          getTingkatKelass(),
+          getTingkatKelas(),
           getJenisKelaminOptions(),
         ]);
         if (!mounted) return;
