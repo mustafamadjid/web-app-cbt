@@ -12,7 +12,7 @@ import { submitStudentRegister } from "@/services/Api/features-api/KelolaAkun/ak
 import { paths } from "@/routes/paths";
 import { ApiError } from "@/services/Api/api";
 import { getNamaKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
-import { getTingkatKelass } from "@/services/Api/features-api/GetOptions/options.service";
+import { getTingkatKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
 
 import { createSetField } from "@/helper/setField/setField";
 import {
@@ -98,7 +98,7 @@ const AkunSiswaForm = () => {
     let active = true;
     const loadKelas = async () => {
       const [tingkat, kelas] = await Promise.all([
-        getTingkatKelass(),
+        getTingkatKelas(),
         getNamaKelas(),
       ]);
       if (!active) return;

@@ -1,5 +1,5 @@
 import type { BankSoalItem } from "@/types/BankSoal/BankSoal";
-import type { TingkatKelas } from "@/types/DataMaster/Kelas";
+
 import type { MataPelajaranOption } from "@/types/DataMaster/MataPelajaran";
 import type { RuangUjianRow } from "@/types/DataMaster/RuangUjian";
 import type { JenisKelamin } from "@/types/OpsiTypes/Option";
