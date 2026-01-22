@@ -17,14 +17,14 @@ import PrintButton from "@/components/common/Input/PrintButton";
 import { paths } from "@/routes/paths";
 import {
   getRuangUjianOptions,
-  getTingkatKelasOptions,
+  getTingkatKelass,
   getUjianBankSoalOptions,
   getUjianGuruPengawasOptions,
   getUjianSesiOptions,
 } from "@/services/Api/features-api/GetOptions/options.service";
 import { getJadwalUjianDetail } from "@/services/Api/features-api/Ujian/jadwalujian.service";
 
-import type { TingkatKelasOption } from "@/types/DataMaster/Kelas";
+import type { TingkatKelas } from "@/types/DataMaster/Kelas";
 import type { RuangUjianRow } from "@/types/DataMaster/RuangUjian";
 import type {
   BankSoalOption,
@@ -63,7 +63,7 @@ const DetailUjian = () => {
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
 
-  const [kelasOptions, setKelasOptions] = useState<TingkatKelasOption[]>([]);
+  const [kelasOptions, setKelasOptions] = useState<TingkatKelas[]>([]);
   const [ruangOptions, setRuangOptions] = useState<RuangUjianRow[]>([]);
   const [guruOptions, setGuruOptions] = useState<GuruPengawasOption[]>([]);
   const [sesiOptions, setSesiOptions] = useState<SesiUjianOption[]>([]);
@@ -74,7 +74,7 @@ const DetailUjian = () => {
     const loadOptions = async () => {
       try {
         const [kelas, ruang, guru, sesi] = await Promise.all([
-          getTingkatKelasOptions(),
+          getTingkatKelass(),
           getRuangUjianOptions(),
           getUjianGuruPengawasOptions(),
           getUjianSesiOptions(),
@@ -151,7 +151,7 @@ const DetailUjian = () => {
   const kelasLabel = useMemo(() => {
     if (!detail?.kelas_id) return "-";
     const kelas = kelasOptions.find(
-      (item) => item.id_tingkat_kelas === detail.kelas_id
+      (item) => item.id_tingkat_kelas === detail.kelas_id,
     );
     return kelas ? `Kelas ${kelas.tingkat_kelas}` : `Kelas #${detail.kelas_id}`;
   }, [detail, kelasOptions]);
@@ -159,9 +159,9 @@ const DetailUjian = () => {
   const guruLabel = useMemo(() => {
     if (!detail?.guru_pengawas_id) return detail?.pengawas_ujian ?? "-";
     const guru = guruOptions.find(
-      (item) => item.id === detail.guru_pengawas_id
+      (item) => item.id === detail.guru_pengawas_id,
     );
-    return guru ? guru.nama : detail.pengawas_ujian ?? "-";
+    return guru ? guru.nama : (detail.pengawas_ujian ?? "-");
   }, [detail, guruOptions]);
 
   const sesiLabel = useMemo(() => {
@@ -174,15 +174,15 @@ const DetailUjian = () => {
   const ruangLabel = useMemo(() => {
     if (!detail?.ruang_ujian_id) return detail?.ruang_ujian ?? "-";
     const ruang = ruangOptions.find(
-      (item) => item.id === detail.ruang_ujian_id
+      (item) => item.id === detail.ruang_ujian_id,
     );
-    return ruang ? ruang.namaRuangan : detail.ruang_ujian ?? "-";
+    return ruang ? ruang.namaRuangan : (detail.ruang_ujian ?? "-");
   }, [detail, ruangOptions]);
 
   const bankSoalLabel = useMemo(() => {
     if (!detail?.bank_soal_id) return "-";
     const bank = bankSoalOptions.find(
-      (item) => item.id === detail.bank_soal_id
+      (item) => item.id === detail.bank_soal_id,
     );
     return bank ? bank.nama : `Bank Soal #${detail.bank_soal_id}`;
   }, [detail, bankSoalOptions]);

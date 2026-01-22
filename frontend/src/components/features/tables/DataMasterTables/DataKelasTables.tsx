@@ -10,9 +10,9 @@ import {
 import { useNavigate } from "react-router";
 
 import AddButton from "@/components/common/Button/AddButton";
-import type { KelasRow, TingkatKelasOption } from "@/types/DataMaster/Kelas";
+import type { KelasRow, TingkatKelas } from "@/types/DataMaster/Kelas";
 import { getKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
-import { getTingkatKelasOptions } from "@/services/Api/features-api/GetOptions/options.service";
+import { getTingkatKelass } from "@/services/Api/features-api/GetOptions/options.service";
 import { paths } from "@/routes/paths";
 
 function useDebouncedValue<T>(value: T, delayMs = 300) {
@@ -31,7 +31,7 @@ const DataKelasTables: React.FC = () => {
   const [kataKunci, setKataKunci] = useState("");
   const [tingkatKelas, setTingkatKelas] = useState<number | null>(null);
 
-  const [opsiTingkat, setOpsiTingkat] = useState<TingkatKelasOption[]>([]);
+  const [opsiTingkat, setOpsiTingkat] = useState<TingkatKelas[]>([]);
   const [daftarKelas, setDaftarKelas] = useState<KelasRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -47,7 +47,7 @@ const DataKelasTables: React.FC = () => {
     (async () => {
       try {
         setErrorMsg("");
-        const tingkat = await getTingkatKelasOptions();
+        const tingkat = await getTingkatKelass();
         if (!mounted) return;
         setOpsiTingkat(tingkat);
       } catch {
@@ -179,7 +179,7 @@ const DataKelasTables: React.FC = () => {
                 value={tingkatKelas ?? ""}
                 onChange={(e) =>
                   setTingkatKelas(
-                    e.target.value === "" ? null : Number(e.target.value)
+                    e.target.value === "" ? null : Number(e.target.value),
                   )
                 }
                 className="mt-1 w-full cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-[#397e50] focus:outline-none focus:ring-1 focus:ring-[#397e50]"
@@ -261,8 +261,8 @@ const DataKelasTables: React.FC = () => {
             <span className="text-rose-600">{errorMsg}</span>
           ) : (
             <span>
-              Menampilkan <span className="font-medium">{daftarKelas.length}</span>{" "}
-              hasil.
+              Menampilkan{" "}
+              <span className="font-medium">{daftarKelas.length}</span> hasil.
             </span>
           )}
         </div>
@@ -330,9 +330,7 @@ const DataKelasTables: React.FC = () => {
                           className="cursor-pointer rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-green-600"
                           title="Edit"
                           onClick={() =>
-                            navigate(
-                              `${paths.dashboard.data_master_kelas}/id`
-                            )
+                            navigate(`${paths.dashboard.data_master_kelas}/id`)
                           }
                         >
                           <Edit3 className="h-4 w-4" />

@@ -1,28 +1,24 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import BoxHasilUjian from "@/components/features/Ujian/BoxHasilUjian";
-import {
-  getHasilUjianList,
-} from "@/services/Api/features-api/Ujian/hasilUjian.service";
-import { getTingkatKelasOptions } from "@/services/Api/features-api/GetOptions/options.service";
+import { getHasilUjianList } from "@/services/Api/features-api/Ujian/hasilUjian.service";
+import { getTingkatKelass } from "@/services/Api/features-api/GetOptions/options.service";
 import type { JadwalUjianItem } from "@/types/Ujian/jadwalUjian";
 import { paths } from "@/routes/paths";
-import type { TingkatKelasOption } from "@/types/DataMaster/Kelas";
+import type { TingkatKelas } from "@/types/DataMaster/Kelas";
 import { tahunOption } from "@/helper/TahunOption/TahunOption";
 import { Calendar, Layers } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const HasilUjian = () => {
-  const {user} = useAuth();
+  const { user } = useAuth();
 
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [daftarUjian, setDaftarUjian] = useState<JadwalUjianItem[]>([]);
-  const [tingkatKelasOptions, setTingkatKelasOptions] = useState<
-    TingkatKelasOption[]
-  >([]);
+  const [TingkatKelass, setTingkatKelass] = useState<TingkatKelas[]>([]);
   const [tahunOptions, setTahunOptions] = useState<string[]>([]);
   const [selectedTingkatId, setSelectedTingkatId] = useState<number | null>(
-    null
+    null,
   );
   const [selectedTahun, setSelectedTahun] = useState<string | null>(null);
   const requestSeq = useRef(0);
@@ -31,13 +27,13 @@ const HasilUjian = () => {
     (async () => {
       try {
         const [options, tahunOptionsData] = await Promise.all([
-          getTingkatKelasOptions(),
+          getTingkatKelass(),
           tahunOption(),
         ]);
-        setTingkatKelasOptions(options);
+        setTingkatKelass(options);
         setTahunOptions(tahunOptionsData);
       } catch {
-        setTingkatKelasOptions([]);
+        setTingkatKelass([]);
         setTahunOptions([]);
       }
     })();
@@ -68,7 +64,7 @@ const HasilUjian = () => {
 
   const daftarSelesai = useMemo(
     () => daftarUjian.filter((ujian) => ujian.status_ujian === "selesai"),
-    [daftarUjian]
+    [daftarUjian],
   );
 
   return (
@@ -95,13 +91,13 @@ const HasilUjian = () => {
                 value={selectedTingkatId ?? ""}
                 onChange={(e) =>
                   setSelectedTingkatId(
-                    e.target.value === "" ? null : Number(e.target.value)
+                    e.target.value === "" ? null : Number(e.target.value),
                   )
                 }
                 className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm transition-all focus:border-[#397e50] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#397e50]/10"
               >
                 <option value="">Semua Kelas</option>
-                {tingkatKelasOptions.map((tingkat) => (
+                {TingkatKelass.map((tingkat) => (
                   <option
                     key={tingkat.id_tingkat_kelas}
                     value={tingkat.id_tingkat_kelas}
@@ -119,7 +115,7 @@ const HasilUjian = () => {
                 value={selectedTahun ?? ""}
                 onChange={(e) =>
                   setSelectedTahun(
-                    e.target.value === "" ? null : String(e.target.value)
+                    e.target.value === "" ? null : String(e.target.value),
                   )
                 }
                 className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm transition-all focus:border-[#397e50] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#397e50]/10"
@@ -158,10 +154,14 @@ const HasilUjian = () => {
             <BoxHasilUjian
               key={ujian.id}
               {...ujian}
-              linkHasil={user?.role === "ADMIN"? paths.dashboard.hasil_ujian_detail : paths.dashboard.hasil_ujian_detail_guru.replace(
-                ":id",
-                String(ujian.id)
-              )}
+              linkHasil={
+                user?.role === "ADMIN"
+                  ? paths.dashboard.hasil_ujian_detail
+                  : paths.dashboard.hasil_ujian_detail_guru.replace(
+                      ":id",
+                      String(ujian.id),
+                    )
+              }
             />
           ))}
         </div>

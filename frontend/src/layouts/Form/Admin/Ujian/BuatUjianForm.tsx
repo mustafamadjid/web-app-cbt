@@ -10,7 +10,7 @@ import type {
   SiswaPreviewItem,
   TipeUjian,
 } from "@/types/Ujian/BuatUjian";
-import type { KelasRow, TingkatKelasOption } from "@/types/DataMaster/Kelas";
+import type { KelasRow, TingkatKelas } from "@/types/DataMaster/Kelas";
 import {
   getUjianSiswaPreview,
   submitBuatUjian,
@@ -21,7 +21,7 @@ import { getKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { getTingkatKelasById } from "@/services/Api/features-api/DataMaster/kelas.service";
 import {
   getRuangUjianOptions,
-  getTingkatKelasOptions,
+  getTingkatKelass,
   getUjianBankSoalOptions,
   getUjianGuruPengawasOptions,
   getUjianSesiOptions,
@@ -64,7 +64,6 @@ const helperText = "text-xs text-slate-500";
 const selectBaseClass =
   "w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-[#397e50] focus:ring-2 focus:ring-[#397e50] disabled:bg-slate-50 disabled:text-slate-500";
 
-
 const BuatUjianForm = () => {
   const [values, setValues] = useState<BuatUjianFormValues>(initialValues);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -73,7 +72,7 @@ const BuatUjianForm = () => {
   const [loadingSiswa, setLoadingSiswa] = useState(false);
   const [loadingKelasDetail, setLoadingKelasDetail] = useState(false);
 
-  const [kelasOptions, setKelasOptions] = useState<TingkatKelasOption[]>([]);
+  const [kelasOptions, setKelasOptions] = useState<TingkatKelas[]>([]);
   const [kelasDetailOptions, setKelasDetailOptions] = useState<KelasRow[]>([]);
   const [bankSoalOptions, setBankSoalOptions] = useState<BankSoalOption[]>([]);
   const [ruangOptions, setRuangOptions] = useState<RuangUjianRow[]>([]);
@@ -108,7 +107,9 @@ const BuatUjianForm = () => {
   }, [bankSoalOptions]);
 
   const selectedBankSoal =
-    values.bank_soal_id === 0 ? undefined : bankSoalById.get(values.bank_soal_id);
+    values.bank_soal_id === 0
+      ? undefined
+      : bankSoalById.get(values.bank_soal_id);
 
   useEffect(() => {
     let active = true;
@@ -116,7 +117,7 @@ const BuatUjianForm = () => {
     const loadOptions = async () => {
       try {
         const [kelas, ruang, guru, sesi] = await Promise.all([
-          getTingkatKelasOptions(),
+          getTingkatKelass(),
           getRuangUjianOptions(),
           getUjianGuruPengawasOptions(),
           getUjianSesiOptions(),
@@ -239,7 +240,7 @@ const BuatUjianForm = () => {
   useEffect(() => {
     const duration = calculateDuration(
       values.waktu_mulai,
-      values.waktu_selesai
+      values.waktu_selesai,
     );
     setField("durasi_menit", duration);
   }, [values.waktu_mulai, values.waktu_selesai]);
@@ -254,7 +255,7 @@ const BuatUjianForm = () => {
     }
 
     return siswaPreview.filter(
-      (siswa) => siswa.kelas === selectedKelasDetail.nama_kelas
+      (siswa) => siswa.kelas === selectedKelasDetail.nama_kelas,
     );
   }, [siswaPreview, values.kelas_scope, selectedKelasDetail]);
 
@@ -302,7 +303,7 @@ const BuatUjianForm = () => {
     const currentErrors = validate(values);
     if (Object.keys(currentErrors).length > 0) {
       setSubmitError(
-        "Periksa kembali input yang masih kosong atau belum valid."
+        "Periksa kembali input yang masih kosong atau belum valid.",
       );
       return;
     }
@@ -443,9 +444,7 @@ const BuatUjianForm = () => {
                     hasError("kelas_id") ? "border-rose-300 ring-rose-100" : ""
                   }`}
                   value={values.kelas_id}
-                  onChange={(e) =>
-                    setField("kelas_id", Number(e.target.value))
-                  }
+                  onChange={(e) => setField("kelas_id", Number(e.target.value))}
                   onBlur={() => onBlur("kelas_id")}
                   required
                 >
@@ -484,18 +483,14 @@ const BuatUjianForm = () => {
                   onChange={(e) =>
                     setField(
                       "kelas_scope",
-                      e.target.value === "SPESIFIK" ? "SPESIFIK" : "SEMUA"
+                      e.target.value === "SPESIFIK" ? "SPESIFIK" : "SEMUA",
                     )
                   }
                   onBlur={() => onBlur("kelas_scope")}
                   disabled={values.kelas_id === 0}
                 >
-                  <option value="SEMUA">
-                    Semua kelas di tingkat ini
-                  </option>
-                  <option value="SPESIFIK">
-                    Spesifik nama kelas
-                  </option>
+                  <option value="SEMUA">Semua kelas di tingkat ini</option>
+                  <option value="SPESIFIK">Spesifik nama kelas</option>
                 </select>
                 {hasError("kelas_scope") && (
                   <p className="mt-1 text-xs text-rose-600">
@@ -750,9 +745,7 @@ const BuatUjianForm = () => {
                     hasError("sesi_id") ? "border-rose-300 ring-rose-100" : ""
                   }`}
                   value={values.sesi_id}
-                  onChange={(e) =>
-                    setField("sesi_id", Number(e.target.value))
-                  }
+                  onChange={(e) => setField("sesi_id", Number(e.target.value))}
                   onBlur={() => onBlur("sesi_id")}
                   required
                 >
@@ -893,9 +886,7 @@ const BuatUjianForm = () => {
                 loadingSiswa &&
                 (values.kelas_scope !== "SPESIFIK" ||
                   values.kelas_detail_id !== 0) && (
-                  <p className="text-sm text-slate-500">
-                    Memuat data siswa...
-                  </p>
+                  <p className="text-sm text-slate-500">Memuat data siswa...</p>
                 )}
 
               {values.kelas_id !== 0 &&

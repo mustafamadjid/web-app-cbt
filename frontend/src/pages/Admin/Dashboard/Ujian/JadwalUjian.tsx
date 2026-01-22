@@ -2,7 +2,7 @@ import BoxJadwalUjian from "@/components/features/Ujian/BoxJadwalUjian";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   getRuangUjianOptions,
-  getTingkatKelasOptions,
+  getTingkatKelass,
 } from "@/services/Api/features-api/GetOptions/options.service";
 import {
   applyUjianStatus,
@@ -12,7 +12,7 @@ import {
 import { tahunOption } from "@/helper/TahunOption/TahunOption";
 
 import { paths } from "@/routes/paths";
-import type { TingkatKelasOption } from "@/types/DataMaster/Kelas";
+import type { TingkatKelas } from "@/types/DataMaster/Kelas";
 import type { RuangUjianRow } from "@/types/DataMaster/RuangUjian";
 import type { JadwalUjianItem } from "@/types/Ujian/jadwalUjian";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -43,11 +43,9 @@ const JadwalUjian = () => {
   const [activeTab, setActiveTab] = useState<StatusKey>("berlangsung"); // Default ke 'berlangsung'
 
   const [daftarJadwalUjian, setDaftarJadwalUjian] = useState<JadwalUjianItem[]>(
-    []
+    [],
   );
-  const [tingkatKelasOptions, setTingkatKelasOptions] = useState<
-    TingkatKelasOption[]
-  >([]);
+  const [TingkatKelass, setTingkatKelass] = useState<TingkatKelas[]>([]);
   const [ruangOptions, setRuangOptions] = useState<RuangUjianRow[]>([]);
 
   const [tahunOptions, setTahunOptions] = useState<string[]>([]);
@@ -57,7 +55,7 @@ const JadwalUjian = () => {
 
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTingkatId, setSelectedTingkatId] = useState<number | null>(
-    null
+    null,
   );
   const [selectedRuang, setSelectedRuang] = useState<number | null>(null);
 
@@ -69,16 +67,17 @@ const JadwalUjian = () => {
   useEffect(() => {
     (async () => {
       try {
-        const [tingkatOptions, ruangUjianOptions,tahunOptions] = await Promise.all([
-          getTingkatKelasOptions(),
-          getRuangUjianOptions(),
-          tahunOption(),
-        ]);
-        setTingkatKelasOptions(tingkatOptions);
+        const [tingkatOptions, ruangUjianOptions, tahunOptions] =
+          await Promise.all([
+            getTingkatKelass(),
+            getRuangUjianOptions(),
+            tahunOption(),
+          ]);
+        setTingkatKelass(tingkatOptions);
         setRuangOptions(ruangUjianOptions);
         setTahunOptions(tahunOptions);
       } catch {
-        setTingkatKelasOptions([]);
+        setTingkatKelass([]);
         setRuangOptions([]);
         setTahunOptions([]);
       }
@@ -114,7 +113,13 @@ const JadwalUjian = () => {
         setLoading(false);
       }
     })();
-  }, [debouncedSearchTerm, selectedDate, selectedRuang, selectedTingkatId, selectedTahun]);
+  }, [
+    debouncedSearchTerm,
+    selectedDate,
+    selectedRuang,
+    selectedTingkatId,
+    selectedTahun,
+  ]);
 
   const groupedJadwal = useMemo(() => {
     const grouped: Record<StatusKey, JadwalUjianItem[]> = {
@@ -144,9 +149,9 @@ const JadwalUjian = () => {
     setDaftarJadwalUjian((prev) =>
       applyUjianStatus(
         prev.map((ujian) =>
-          ujian.id === id ? { ...ujian, started: 1 } : ujian
-        )
-      )
+          ujian.id === id ? { ...ujian, started: 1 } : ujian,
+        ),
+      ),
     );
   };
 
@@ -154,9 +159,9 @@ const JadwalUjian = () => {
     setDaftarJadwalUjian((prev) =>
       applyUjianStatus(
         prev.map((ujian) =>
-          ujian.id === id ? { ...ujian, started: 0 } : ujian
-        )
-      )
+          ujian.id === id ? { ...ujian, started: 0 } : ujian,
+        ),
+      ),
     );
   };
 
@@ -198,15 +203,12 @@ const JadwalUjian = () => {
                 <Calendar size={16} /> Tahun
               </label>
               <select
-              
                 value={selectedTahun ?? ""}
-                onChange={(e) =>{
+                onChange={(e) => {
                   setSelectedTahun(
-                    e.target.value === "" ? null : String(e.target.value)
+                    e.target.value === "" ? null : String(e.target.value),
                   );
-                }
-                  
-                }
+                }}
                 className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm transition-all focus:border-[#397e50] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#397e50]/10"
               >
                 <option value="">Semua Tahun</option>
@@ -226,13 +228,13 @@ const JadwalUjian = () => {
                 value={selectedTingkatId ?? ""}
                 onChange={(e) =>
                   setSelectedTingkatId(
-                    e.target.value === "" ? null : Number(e.target.value)
+                    e.target.value === "" ? null : Number(e.target.value),
                   )
                 }
                 className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm transition-all focus:border-[#397e50] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#397e50]/10"
               >
                 <option value="">Semua Kelas</option>
-                {tingkatKelasOptions.map((t) => (
+                {TingkatKelass.map((t) => (
                   <option key={t.id_tingkat_kelas} value={t.id_tingkat_kelas}>
                     Kelas {t.tingkat_kelas}
                   </option>
@@ -248,7 +250,7 @@ const JadwalUjian = () => {
                 value={selectedRuang ?? ""}
                 onChange={(e) => {
                   setSelectedRuang(
-                    e.target.value === "" ? null : Number(e.target.value)
+                    e.target.value === "" ? null : Number(e.target.value),
                   );
                 }}
                 className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm transition-all focus:border-[#397e50] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#397e50]/10"
@@ -327,7 +329,7 @@ const JadwalUjian = () => {
                     canControl={canControlUjian(ujian)}
                     linkJadwal={paths.dashboard.detail_ujian.replace(
                       ":id",
-                      String(ujian.id)
+                      String(ujian.id),
                     )}
                   />
                 ))

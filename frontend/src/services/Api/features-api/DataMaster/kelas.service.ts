@@ -1,12 +1,15 @@
-import { api, } from "../../api";
+import { api } from "../../api";
 import { buildJsonData } from "@/helper/FormData/BuildJsonData";
 
 import type {
   KelasFilterParams,
   KelasRow,
-  TingkatKelasOption,
+  TingkatKelas,
 } from "@/types/DataMaster/Kelas";
-import type { KelasSubmitResponse,KelasFormValues } from "@/types/DataMaster/Kelas";
+import type {
+  KelasSubmitResponse,
+  KelasFormValues,
+} from "@/types/DataMaster/Kelas";
 import type { ApiEnvelope } from "../../api";
 
 const DUMMY_KELAS: KelasRow[] = [
@@ -48,20 +51,15 @@ const DUMMY_KELAS: KelasRow[] = [
   },
 ];
 
-
 // Submit Handler
 export async function submitKelasResponse(values: KelasFormValues) {
   const data = buildJsonData(values);
-  const res = await api<ApiEnvelope<KelasSubmitResponse>>(
-    "/kelas",
-    {
-      method: "POST",
-      data,
-    }
-  )
+  const res = await api<ApiEnvelope<KelasSubmitResponse>>("/kelas", {
+    method: "POST",
+    data,
+  });
 
-  return res.data
-  
+  return res.data;
 }
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -69,16 +67,13 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const normalize = (value: string) => value.toLowerCase().trim();
 
 export async function getKelas(
-  params: KelasFilterParams = {}
+  params: KelasFilterParams = {},
 ): Promise<KelasRow[]> {
   await sleep(250);
   const q = params.q ? normalize(params.q) : "";
 
   const filtered = DUMMY_KELAS.filter((kelas) => {
-    if (
-      params.tingkatKelas &&
-      kelas.id_tingkat_kelas !== params.tingkatKelas
-    ) {
+    if (params.tingkatKelas && kelas.id_tingkat_kelas !== params.tingkatKelas) {
       return false;
     }
 
@@ -102,11 +97,9 @@ export async function getKelas(
   });
 }
 
-export const getTingkatKelasById = (
-  id?: number | null
-): number | undefined => {
+export const getTingkatKelasById = (id?: number | null): number | undefined => {
   if (id == null) return undefined;
-  const dataId = DUMMY_KELAS.reduce<Record<number, TingkatKelasOption>>(
+  const dataId = DUMMY_KELAS.reduce<Record<number, TingkatKelas>>(
     (acc, kelas) => {
       if (!acc[kelas.id_tingkat_kelas]) {
         acc[kelas.id_tingkat_kelas] = {
@@ -116,7 +109,7 @@ export const getTingkatKelasById = (
       }
       return acc;
     },
-    {}
+    {},
   );
   return dataId[id]?.tingkat_kelas;
 };

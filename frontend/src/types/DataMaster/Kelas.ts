@@ -10,7 +10,7 @@ export type KelasRow = {
   nama_kelas: string;
 };
 
-export type TingkatKelasOption = {
+export type TingkatKelas = {
   id_tingkat_kelas: number;
   tingkat_kelas: number;
 };
@@ -22,4 +22,10 @@ export type KelasFilterParams = {
 
 export type KelasSubmitResponse = {
   id: number;
+};
+
+
+export type NamaKelas = {
+  id_nama_kelas: number;
+  nama_kelas: string;
 };

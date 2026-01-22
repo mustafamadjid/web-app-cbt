@@ -14,11 +14,11 @@ import type {
   MataPelajaranOption,
   MataPelajaranRow,
 } from "@/types/DataMaster/MataPelajaran";
-import type { TingkatKelasOption } from "@/types/DataMaster/Kelas";
+import type { TingkatKelas } from "@/types/DataMaster/Kelas";
 import { getMataPelajaran } from "@/services/Api/features-api/DataMaster/mapel.service";
 import {
   getMataPelajaranOptions,
-  getTingkatKelasOptions,
+  getTingkatKelass,
 } from "@/services/Api/features-api/GetOptions/options.service";
 import { paths } from "@/routes/paths";
 
@@ -40,9 +40,7 @@ const DataMataPelajaran: React.FC = () => {
   const [tingkatTerpilih, setTingkatTerpilih] = useState<number | null>(null);
   const [mapelTerpilih, setMapelTerpilih] = useState<number | null>(null);
 
-  const [opsiTingkatKelas, setOpsiTingkatKelas] = useState<
-    TingkatKelasOption[]
-  >([]);
+  const [opsiTingkatKelas, setOpsiTingkatKelas] = useState<TingkatKelas[]>([]);
   const [opsiMapel, setOpsiMapel] = useState<MataPelajaranOption[]>([]);
 
   const [daftarMapel, setDaftarMapel] = useState<MataPelajaranRow[]>([]);
@@ -61,7 +59,7 @@ const DataMataPelajaran: React.FC = () => {
       try {
         setErrorMsg("");
         const [kelas, mapel] = await Promise.all([
-          getTingkatKelasOptions(),
+          getTingkatKelass(),
           getMataPelajaranOptions(),
         ]);
         if (!mounted) return;
@@ -163,7 +161,8 @@ const DataMataPelajaran: React.FC = () => {
             Data Mata Pelajaran
           </h2>
           <p className="mt-1 text-sm text-slate-500">
-            Kelola daftar mata pelajaran, kode mapel, serta tingkat kelas terkait.
+            Kelola daftar mata pelajaran, kode mapel, serta tingkat kelas
+            terkait.
           </p>
         </div>
 
@@ -206,7 +205,7 @@ const DataMataPelajaran: React.FC = () => {
                 value={tingkatTerpilih ?? ""}
                 onChange={(e) =>
                   setTingkatTerpilih(
-                    e.target.value === "" ? null : Number(e.target.value)
+                    e.target.value === "" ? null : Number(e.target.value),
                   )
                 }
                 className="mt-1 w-full cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-[#397e50] focus:outline-none focus:ring-1 focus:ring-[#397e50]"
@@ -223,12 +222,14 @@ const DataMataPelajaran: React.FC = () => {
               </select>
             </div>
             <div>
-              <label className="text-xs font-medium text-slate-600">Mapel</label>
+              <label className="text-xs font-medium text-slate-600">
+                Mapel
+              </label>
               <select
                 value={mapelTerpilih ?? ""}
                 onChange={(e) =>
                   setMapelTerpilih(
-                    e.target.value === "" ? null : Number(e.target.value)
+                    e.target.value === "" ? null : Number(e.target.value),
                   )
                 }
                 className="mt-1 w-full cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-[#397e50] focus:outline-none focus:ring-1 focus:ring-[#397e50]"
@@ -307,8 +308,8 @@ const DataMataPelajaran: React.FC = () => {
             <span className="text-rose-600">{errorMsg}</span>
           ) : (
             <span>
-              Menampilkan <span className="font-medium">{daftarMapel.length}</span>{" "}
-              hasil.
+              Menampilkan{" "}
+              <span className="font-medium">{daftarMapel.length}</span> hasil.
             </span>
           )}
         </div>
@@ -392,9 +393,7 @@ const DataMataPelajaran: React.FC = () => {
                             className="cursor-pointer rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-green-600"
                             title="Edit"
                             onClick={() =>
-                              navigate(
-                                "/data-master/tambah-mapel/id"
-                              )
+                              navigate("/data-master/tambah-mapel/id")
                             }
                           >
                             <Edit3 className="h-4 w-4" />

@@ -14,7 +14,7 @@ import AddButton from "@/components/common/Button/AddButton";
 import BankSoalLayout from "@/layouts/BankSoalLayout/BankSoalLayout";
 
 import type { BankSoalItem } from "@/types/BankSoal/BankSoal";
-import type { TingkatKelasOption } from "@/types/DataMaster/Kelas";
+import type { TingkatKelas } from "@/types/DataMaster/Kelas";
 import type { MataPelajaranOption } from "@/types/DataMaster/MataPelajaran";
 
 import {
@@ -23,7 +23,7 @@ import {
 } from "@/services/Api/features-api/BankSoal/banksoal.service";
 import {
   getMataPelajaranOptions,
-  getTingkatKelasOptions,
+  getTingkatKelass,
 } from "@/services/Api/features-api/GetOptions/options.service";
 import { paths } from "@/routes/paths";
 import { useAuth } from "@/contexts/AuthContext";
@@ -56,9 +56,7 @@ const BankSoal = () => {
   const [selectedMapelId, setSelectedMapelId] = useState<number | null>(null);
 
   // ----- Data State -----
-  const [tingkatKelasOptions, setTingkatKelasOptions] = useState<
-    TingkatKelasOption[]
-  >([]);
+  const [TingkatKelass, setTingkatKelass] = useState<TingkatKelas[]>([]);
   const [mapelOptions, setMapelOptions] = useState<MataPelajaranOption[]>([]);
   const [items, setItems] = useState<BankSoalItem[]>([]);
   const [myItems, setMyItems] = useState<BankSoalItem[]>([]);
@@ -75,9 +73,9 @@ const BankSoal = () => {
     let mounted = true;
     (async () => {
       try {
-        const kelas = await getTingkatKelasOptions();
+        const kelas = await getTingkatKelass();
         if (!mounted) return;
-        setTingkatKelasOptions(kelas);
+        setTingkatKelass(kelas);
       } catch (e) {
         if (mounted) setErrorMsg("Gagal memuat data tingkat kelas.");
       }
@@ -300,7 +298,7 @@ const BankSoal = () => {
               >
                 <option value="ALL">Semua Kelas</option>
                 <optgroup label="Pilih Tingkat">
-                  {tingkatKelasOptions.map((t) => (
+                  {TingkatKelass.map((t) => (
                     <option key={t.id_tingkat_kelas} value={t.id_tingkat_kelas}>
                       Kelas {t.tingkat_kelas}
                     </option>

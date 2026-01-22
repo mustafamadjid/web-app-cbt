@@ -1,5 +1,5 @@
 import type { BankSoalItem } from "@/types/BankSoal/BankSoal";
-import type { TingkatKelasOption } from "@/types/DataMaster/Kelas";
+import type { TingkatKelas } from "@/types/DataMaster/Kelas";
 import type { MataPelajaranOption } from "@/types/DataMaster/MataPelajaran";
 import type { RuangUjianRow } from "@/types/DataMaster/RuangUjian";
 import type { JenisKelamin } from "@/types/OpsiTypes/Option";
@@ -9,7 +9,10 @@ import type {
   SesiUjianOption,
 } from "@/types/Ujian/BuatUjian";
 import { getBankSoalByKelas } from "@/services/Api/features-api/BankSoal/banksoal.service";
-import { getKelas, getTingkatKelasById } from "@/services/Api/features-api/DataMaster/kelas.service";
+import {
+  getKelas,
+  getTingkatKelasById,
+} from "@/services/Api/features-api/DataMaster/kelas.service";
 import { getMataPelajaran } from "@/services/Api/features-api/DataMaster/mapel.service";
 import { getRuangUjian } from "@/services/Api/features-api/DataMaster/ruang-ujian.service";
 
@@ -95,20 +98,17 @@ export async function getMataPelajaranOptions(
   }));
 }
 
-export async function getTingkatKelasOptions(): Promise<TingkatKelasOption[]> {
+export async function getTingkatKelass(): Promise<TingkatKelas[]> {
   const data = await getKelas();
-  const options = data.reduce<Record<number, TingkatKelasOption>>(
-    (acc, kelas) => {
-      if (!acc[kelas.id_tingkat_kelas]) {
-        acc[kelas.id_tingkat_kelas] = {
-          id_tingkat_kelas: kelas.id_tingkat_kelas,
-          tingkat_kelas: kelas.tingkat_kelas,
-        };
-      }
-      return acc;
-    },
-    {},
-  );
+  const options = data.reduce<Record<number, TingkatKelas>>((acc, kelas) => {
+    if (!acc[kelas.id_tingkat_kelas]) {
+      acc[kelas.id_tingkat_kelas] = {
+        id_tingkat_kelas: kelas.id_tingkat_kelas,
+        tingkat_kelas: kelas.tingkat_kelas,
+      };
+    }
+    return acc;
+  }, {});
 
   return Object.values(options).sort(
     (a, b) => a.id_tingkat_kelas - b.id_tingkat_kelas,

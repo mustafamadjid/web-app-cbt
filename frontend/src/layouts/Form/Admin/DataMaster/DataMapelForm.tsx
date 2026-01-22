@@ -3,8 +3,8 @@ import { useEffect, useState } from "react";
 import InputField from "@/components/common/Input/InputField";
 
 import type { MataPelajaranFormValues } from "@/types/DataMaster/MataPelajaran";
-import type { TingkatKelasOption } from "@/types/DataMaster/Kelas";
-import { getTingkatKelasOptions } from "@/services/Api/features-api/GetOptions/options.service";
+import type { TingkatKelas } from "@/types/DataMaster/Kelas";
+import { getTingkatKelass } from "@/services/Api/features-api/GetOptions/options.service";
 
 import { createSetField } from "@/helper/setField/setField";
 import {
@@ -27,12 +27,12 @@ const DataMapelForm = () => {
   const [values, setValues] = useState<MataPelajaranFormValues>(initialValues);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [kelasOptions, setKelasOptions] = useState<TingkatKelasOption[]>([]);
+  const [kelasOptions, setKelasOptions] = useState<TingkatKelas[]>([]);
 
   useEffect(() => {
     let active = true;
     const loadKelas = async () => {
-      const data = await getTingkatKelasOptions();
+      const data = await getTingkatKelass();
       if (!active) return;
       setKelasOptions(data);
     };
@@ -120,7 +120,7 @@ const DataMapelForm = () => {
                   onChange={(e) =>
                     setField(
                       "kelasId",
-                      e.target.value === "" ? "" : Number(e.target.value)
+                      e.target.value === "" ? "" : Number(e.target.value),
                     )
                   }
                   onBlur={() => onBlur("kelasId")}

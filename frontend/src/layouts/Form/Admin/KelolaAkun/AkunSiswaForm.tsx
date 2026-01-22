@@ -6,13 +6,13 @@ import ImageUpload from "@/components/features/Upload/ImageUpload";
 
 import type { JenisKelamin } from "@/types/OpsiTypes/Option";
 import type { StudentRegisterFormValues } from "@/types/KelolaAkun/AkunSiswa";
-import type { KelasRow, TingkatKelasOption } from "@/types/DataMaster/Kelas";
+import type { KelasRow, TingkatKelas } from "@/types/DataMaster/Kelas";
 
 import { submitStudentRegister } from "@/services/Api/features-api/KelolaAkun/akunsiswa.service";
 import { paths } from "@/routes/paths";
 import { ApiError } from "@/services/Api/api";
 import { getKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
-import { getTingkatKelasOptions } from "@/services/Api/features-api/GetOptions/options.service";
+import { getTingkatKelass } from "@/services/Api/features-api/GetOptions/options.service";
 
 import { createSetField } from "@/helper/setField/setField";
 import {
@@ -90,9 +90,7 @@ const AkunSiswaForm = () => {
     };
   }, [values.fotoProfil]);
 
-  const [tingkatKelasOptions, setTingkatKelasOptions] = useState<
-    TingkatKelasOption[]
-  >([]);
+  const [TingkatKelass, setTingkatKelass] = useState<TingkatKelas[]>([]);
   const [daftarKelas, setDaftarKelas] = useState<KelasRow[]>([]);
   const [namaKelasOptions, setNamaKelasOptions] = useState<KelasRow[]>([]);
 
@@ -100,11 +98,11 @@ const AkunSiswaForm = () => {
     let active = true;
     const loadKelas = async () => {
       const [tingkat, kelas] = await Promise.all([
-        getTingkatKelasOptions(),
+        getTingkatKelass(),
         getKelas(),
       ]);
       if (!active) return;
-      setTingkatKelasOptions(tingkat);
+      setTingkatKelass(tingkat);
       setDaftarKelas(kelas);
     };
     loadKelas();
@@ -123,12 +121,12 @@ const AkunSiswaForm = () => {
     }
 
     const filtered = daftarKelas.filter(
-      (kelas) => kelas.id_tingkat_kelas === values.id_tingkat_kelas
+      (kelas) => kelas.id_tingkat_kelas === values.id_tingkat_kelas,
     );
     setNamaKelasOptions(filtered);
 
     const isValid = filtered.some(
-      (kelas) => String(kelas.id) === values.id_nama_kelas
+      (kelas) => String(kelas.id) === values.id_nama_kelas,
     );
     if (!isValid && values.id_nama_kelas !== "") {
       setValues((prev) => ({ ...prev, id_nama_kelas: "" }));
@@ -244,7 +242,7 @@ const AkunSiswaForm = () => {
       const kelasTerpilih = daftarKelas.find(
         (kelas) =>
           kelas.id_tingkat_kelas === values.id_tingkat_kelas &&
-          String(kelas.id) === values.id_nama_kelas
+          String(kelas.id) === values.id_nama_kelas,
       );
 
       if (!kelasTerpilih) {
@@ -264,9 +262,9 @@ const AkunSiswaForm = () => {
       setTimeout(
         () =>
           navigate(
-            `dashboard/administrator/${paths.dashboard.kelola_akun_siswa}`
+            `dashboard/administrator/${paths.dashboard.kelola_akun_siswa}`,
           ),
-        1500
+        1500,
       );
     } catch (error) {
       if (error instanceof ApiError) {
@@ -537,7 +535,7 @@ const AkunSiswaForm = () => {
                   </option>
 
                   {/* FIX: value harus id_tingkat_kelas (bukan tingkat_kelas) */}
-                  {tingkatKelasOptions.map((tingkat) => (
+                  {TingkatKelass.map((tingkat) => (
                     <option
                       key={tingkat.id_tingkat_kelas}
                       value={tingkat.id_tingkat_kelas}

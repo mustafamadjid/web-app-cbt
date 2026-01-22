@@ -17,7 +17,7 @@ import {
 import AddButton from "@/components/common/Button/AddButton";
 import type { StatusAkun, JenisKelamin } from "@/types/OpsiTypes/Option";
 import { useNavigate } from "react-router";
-import type { TingkatKelasOption } from "@/types/DataMaster/Kelas";
+import type { TingkatKelas } from "@/types/DataMaster/Kelas";
 
 import {
   getSiswa,
@@ -26,7 +26,7 @@ import {
 import {
   getAngkatanOptions,
   getJenisKelaminOptions,
-  getTingkatKelasOptions,
+  getTingkatKelass,
 } from "@/services/Api/features-api/GetOptions/options.service";
 
 import { paths } from "@/routes/paths";
@@ -107,9 +107,7 @@ const AkunSiswaTables: React.FC = () => {
 
   // OPTIONS from server
   const [opsiAngkatan, setOpsiAngkatan] = useState<number[]>([]);
-  const [opsiTingkatKelas, setOpsiTingkatKelas] = useState<
-    TingkatKelasOption[]
-  >([]);
+  const [opsiTingkatKelas, setOpsiTingkatKelas] = useState<TingkatKelas[]>([]);
   const [opsiGender, setOpsiGender] = useState<
     Array<{ value: JenisKelamin; label: string }>
   >([]);
@@ -135,7 +133,7 @@ const AkunSiswaTables: React.FC = () => {
         setErrorMsg("");
         const [a, k, g] = await Promise.all([
           getAngkatanOptions(),
-          getTingkatKelasOptions(),
+          getTingkatKelass(),
           getJenisKelaminOptions(),
         ]);
         if (!mounted) return;
@@ -266,9 +264,7 @@ const AkunSiswaTables: React.FC = () => {
 
           <AddButton
             label="Tambah Akun Siswa"
-            onClick={() =>
-              navigate(`${paths.dashboard.tambah_siswa}`)
-            }
+            onClick={() => navigate(`${paths.dashboard.tambah_siswa}`)}
           />
         </div>
       </div>
@@ -325,7 +321,7 @@ const AkunSiswaTables: React.FC = () => {
                 value={tingkatKelasId ?? ""}
                 onChange={(e) =>
                   setTingkatKelasId(
-                    e.target.value === "" ? null : Number(e.target.value)
+                    e.target.value === "" ? null : Number(e.target.value),
                   )
                 }
                 className="mt-1 w-full cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-[#397e50] focus:outline-none focus:ring-1 focus:ring-[#397e50]"
@@ -334,7 +330,7 @@ const AkunSiswaTables: React.FC = () => {
                 {opsiTingkatKelas.map((tingkat) => (
                   <option
                     key={tingkat.id_tingkat_kelas}
-                  value={tingkat.tingkat_kelas}
+                    value={tingkat.tingkat_kelas}
                   >
                     Kelas {tingkat.tingkat_kelas}
                   </option>
@@ -476,17 +472,17 @@ const AkunSiswaTables: React.FC = () => {
                   const hpTampil = !hpRaw
                     ? "-"
                     : samarkanDataSensitif
-                    ? samarkanNomorHp(hpRaw)
-                    : hpRaw;
+                      ? samarkanNomorHp(hpRaw)
+                      : hpRaw;
 
                   const emailTampil = !emailRaw
                     ? "-"
                     : samarkanDataSensitif
-                    ? samarkanEmail(emailRaw)
-                    : emailRaw;
+                      ? samarkanEmail(emailRaw)
+                      : emailRaw;
 
                   const ttlTampil = `${s.tempatLahir}, ${formatTanggalIndo(
-                    s.tanggalLahir
+                    s.tanggalLahir,
                   )}`;
 
                   return (
