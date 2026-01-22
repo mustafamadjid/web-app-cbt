@@ -97,6 +97,23 @@ export async function getKelas(
   });
 }
 
+export async function getTingkatKelas(): Promise<TingkatKelas[]> {
+  const data = await getKelas();
+  const options = data.reduce<Record<number, TingkatKelas>>((acc, kelas) => {
+    if (!acc[kelas.id_tingkat_kelas]) {
+      acc[kelas.id_tingkat_kelas] = {
+        id_tingkat_kelas: kelas.id_tingkat_kelas,
+        tingkat_kelas: kelas.tingkat_kelas,
+      };
+    }
+    return acc;
+  }, {});
+
+  return Object.values(options).sort(
+    (a, b) => a.id_tingkat_kelas - b.id_tingkat_kelas,
+  );
+}
+
 export const getTingkatKelasById = (id?: number | null): number | undefined => {
   if (id == null) return undefined;
   const dataId = DUMMY_KELAS.reduce<Record<number, TingkatKelas>>(

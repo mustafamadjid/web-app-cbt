@@ -21,11 +21,12 @@ import { getKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { getTingkatKelasById } from "@/services/Api/features-api/DataMaster/kelas.service";
 import {
   getRuangUjianOptions,
-  getTingkatKelass,
   getUjianBankSoalOptions,
   getUjianGuruPengawasOptions,
   getUjianSesiOptions,
 } from "@/services/Api/features-api/GetOptions/options.service";
+
+import { getTingkatKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
 
 // helper
 import { createSetField } from "@/helper/setField/setField";
@@ -117,7 +118,7 @@ const BuatUjianForm = () => {
     const loadOptions = async () => {
       try {
         const [kelas, ruang, guru, sesi] = await Promise.all([
-          getTingkatKelass(),
+          getTingkatKelas(),
           getRuangUjianOptions(),
           getUjianGuruPengawasOptions(),
           getUjianSesiOptions(),
