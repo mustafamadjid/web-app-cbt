@@ -9,7 +9,7 @@ import (
 )
 
 type PgxConfig struct {
-	DSN             string
+	DbURL             string
 	MaxConns        int32
 	MinConns        int32
 	MaxConnLifetime time.Duration
@@ -18,13 +18,13 @@ type PgxConfig struct {
 }
 
 func OpenPgxPool(ctx context.Context, cfg PgxConfig) (*pgxpool.Pool, error) {
-	if cfg.DSN == "" {
-		return nil, fmt.Errorf("postgres dsn is required")
+	if cfg.DbURL == "" {
+		return nil, fmt.Errorf("postgres DbURL is required")
 	}
 
-	poolCfg, err := pgxpool.ParseConfig(cfg.DSN)
+	poolCfg, err := pgxpool.ParseConfig(cfg.DbURL)
 	if err != nil {
-		return nil, fmt.Errorf("parse dsn: %w", err)
+		return nil, fmt.Errorf("parse DbURL: %w", err)
 	}
 
 	if cfg.MaxConns > 0 {
