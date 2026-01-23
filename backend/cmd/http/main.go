@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"fmt"
+	// "fmt"
 	"log"
 	"os"
 	"time"
@@ -12,11 +12,11 @@ import (
 
 func main() {
 	ctx := context.Background()
-	env, ok := os.LookupEnv("POSTGRES_DBURL")
-	if !ok {
-		log.Fatal("POSTGRES_DBURL tidak ada")
-	}
-	fmt.Println(env)
+	// env, ok := os.LookupEnv("POSTGRES_DBURL")
+	// if !ok {
+	// 	log.Fatal("POSTGRES_DBURL tidak ada")
+	// }
+	// fmt.Println(env)
 
 	pool, err := db.OpenPgxPool(ctx,db.PgxConfig{
 		DbURL:             os.Getenv("POSTGRES_DBURL"),
