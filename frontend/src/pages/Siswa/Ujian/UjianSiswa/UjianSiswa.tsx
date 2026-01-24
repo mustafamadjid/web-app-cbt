@@ -113,7 +113,7 @@ const UjianSiswa: React.FC = () => {
                   key={category.key}
                   type="button"
                   onClick={() => setActiveCategory(category.key)}
-                  className={`group relative overflow-hidden rounded-2xl border p-5 text-left transition duration-200 ${
+                  className={`group relative cursor-pointer overflow-hidden rounded-2xl border p-5 text-left transition duration-200 ${
                     isActive
                       ? "border-[#397e50] bg-[#f3f8f5] shadow-md"
                       : "border-gray-200 bg-white hover:-translate-y-0.5 hover:border-[#397e50]/60 hover:shadow"
