@@ -11,5 +11,8 @@ type UserRepository interface {
 	ExistByUsername(ctx context.Context,username string) (bool,error)
 
 	Create(ctx context.Context,pengguna user.Pengguna) (user.ID,error)
+	Update(ctx context.Context,pengguna user.Pengguna) (user.ID,error)
+
+	List(ctx context.Context) ([]user.Pengguna,error)
 }
 
