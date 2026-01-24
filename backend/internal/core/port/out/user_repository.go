@@ -6,13 +6,12 @@ import (
 )
 
 type UserRepository interface {
-	FindByUsername(ctx context.Context,username string) (user.Pengguna,error) 
-	FindByEmail(ctx context.Context,email string) (user.Pengguna,error)
-	ExistByUsername(ctx context.Context,username string) (bool,error)
+	FindUserByID(ctx context.Context,id user.ID) (user.Pengguna,error)
+	UserExistByUsername(ctx context.Context,username string) (bool,error)
 
-	Create(ctx context.Context,pengguna user.Pengguna) (user.ID,error)
-	Update(ctx context.Context,pengguna user.Pengguna) (user.ID,error)
+	CreateUser(ctx context.Context,pengguna user.Pengguna) (user.ID,error)
+	UpdateUser(ctx context.Context,pengguna user.Pengguna) (user.ID,error)
 
-	List(ctx context.Context) ([]user.Pengguna,error)
+	ListUser(ctx context.Context) ([]user.Pengguna,error)
 }
 
