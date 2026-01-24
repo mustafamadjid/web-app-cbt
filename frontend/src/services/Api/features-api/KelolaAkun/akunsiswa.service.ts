@@ -151,6 +151,44 @@ export async function submitStudentRegister(values: StudentRegisterFormValues) {
   return res.data;
 }
 
+export async function getSiswaById(id: number): Promise<DataAkunSiswa | null> {
+  const target = DUMMY_SISWA.find((siswa) => siswa.id === id);
+  if (target) return target;
+
+  const res = await api<ApiEnvelope<DataAkunSiswa>>(`/students/${id}`, {
+    method: "GET",
+  });
+  return res.data;
+}
+
+export async function updateSiswa(
+  id: number,
+  values: StudentRegisterFormValues
+) {
+  const formData = buildFormData(values, {
+    transform: (key, value) => {
+      if (value instanceof Blob) return value;
+      if (typeof value === "string") {
+        if (key === "email") return value.trim().toLowerCase();
+        if (key === "password") return value;
+        return value.trim();
+      }
+      return value as any;
+    },
+    skipNullish: true,
+  });
+
+  const res = await api<ApiEnvelope<StudentRegisterResponse>>(
+    `/students/${id}`,
+    {
+      method: "PUT",
+      data: formData,
+    }
+  );
+
+  return res.data;
+}
+
 
 /** === MOCK "API" (simulasikan network delay) === */
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));

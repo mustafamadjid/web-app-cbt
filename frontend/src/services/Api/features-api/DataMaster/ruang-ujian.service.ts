@@ -1,7 +1,11 @@
 import type {
   RuangUjianFilterParams,
+  RuangUjianFormValues,
   RuangUjianRow,
 } from "@/types/DataMaster/RuangUjian";
+import { api } from "@/services/Api/api";
+import type { ApiEnvelope } from "@/services/Api/api";
+import { buildJsonData } from "@/helper/FormData/BuildJsonData";
 
 const DUMMY_RUANG_UJIAN: RuangUjianRow[] = [
   { id: 1, namaRuangan: "Ruang Ujian 01" },
@@ -27,4 +31,28 @@ export async function getRuangUjian(
   return DUMMY_RUANG_UJIAN.filter((ruang) =>
     ruang.namaRuangan.toLowerCase().includes(q)
   );
+}
+
+export async function getRuangUjianById(
+  id: number
+): Promise<RuangUjianFormValues | null> {
+  const target = DUMMY_RUANG_UJIAN.find((ruang) => ruang.id === id);
+  if (!target) return null;
+
+  return {
+    nama_ruangan_ujian: target.namaRuangan,
+  };
+}
+
+export async function updateRuangUjian(
+  id: number,
+  values: RuangUjianFormValues
+) {
+  const data = buildJsonData(values);
+  const res = await api<ApiEnvelope<{ id: number }>>(`/ruang-ujian/${id}`, {
+    method: "PUT",
+    data,
+  });
+
+  return res.data;
 }

@@ -1,0 +1,72 @@
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router";
+
+import EditRuangForm from "@/layouts/Form/Admin/DataMaster/EditRuangForm";
+import type { RuangUjianFormValues } from "@/types/DataMaster/RuangUjian";
+import { getRuangUjianById, updateRuangUjian } from "@/services/Api/features-api/DataMaster/ruang-ujian.service";
+import { ApiError } from "@/services/Api/api";
+import { paths } from "@/routes/paths";
+
+const buildInitialValues = (): RuangUjianFormValues => ({
+  nama_ruangan_ujian: "",
+});
+
+const EditRuangUjian = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [initialValues, setInitialValues] =
+    useState<RuangUjianFormValues>(buildInitialValues());
+  const [loading, setLoading] = useState<boolean>(true);
+  const [submitting, setSubmitting] = useState<boolean>(false);
+
+  const ruangId = useMemo(() => Number(id), [id]);
+
+  useEffect(() => {
+    let active = true;
+    const loadRuang = async () => {
+      if (!id || Number.isNaN(ruangId)) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const data = await getRuangUjianById(ruangId);
+        if (!active || !data) return;
+        setInitialValues(data);
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+
+    loadRuang();
+
+    return () => {
+      active = false;
+    };
+  }, [id, ruangId]);
+
+  const handleSubmit = async (values: RuangUjianFormValues) => {
+    if (!id || Number.isNaN(ruangId)) {
+      throw new ApiError("ID ruangan tidak ditemukan.");
+    }
+
+    setSubmitting(true);
+    try {
+      await updateRuangUjian(ruangId, values);
+      navigate(paths.dashboard.data_master_ruang);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <EditRuangForm
+      initialValues={initialValues}
+      onSubmit={handleSubmit}
+      loading={loading}
+      submitting={submitting}
+    />
+  );
+};
+
+export default EditRuangUjian;

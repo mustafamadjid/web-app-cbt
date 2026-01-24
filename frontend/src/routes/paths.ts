@@ -26,6 +26,8 @@ export const paths = {
     kelola_akun_guru: djoinAdmin(join("kelola-akun", "/guru")),
     tambah_guru: djoinAdmin(join("kelola-akun", "/tambah-guru")),
     tambah_siswa: djoinAdmin(join("kelola-akun", "/tambah-siswa")),
+    edit_guru: djoinAdmin(join("kelola-akun", "/guru/:id/edit")),
+    edit_siswa: djoinAdmin(join("kelola-akun", "/siswa/:id/edit")),
 
     data_master_mapel: djoinAdmin(join("data-master", "/mapel")),
     data_master_kelas: djoinAdmin(join("data-master", "/kelas")),
@@ -36,6 +38,10 @@ export const paths = {
     tambah_data_master_kelas: djoinAdmin(join("data-master", "/tambah-kelas")),
     tambah_data_master_ruang: djoinAdmin(join("data-master", "/tambah-ruang")),
     tambah_data_master_sesi: djoinAdmin(join("data-master", "/tambah-sesi")),
+    edit_data_master_mapel: djoinAdmin(join("data-master", "/mapel/:id/edit")),
+    edit_data_master_kelas: djoinAdmin(join("data-master", "/kelas/:id/edit")),
+    edit_data_master_ruang: djoinAdmin(join("data-master", "/ruang/:id/edit")),
+    edit_data_master_sesi: djoinAdmin(join("data-master", "/sesi/:id/edit")),
 
     bank_soal: djoinAdmin("bank-soal"),
     tambah_bank_soal: djoinAdmin(join("bank-soal", "/tambah")),
