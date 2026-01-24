@@ -568,7 +568,14 @@ const AkunSiswaTables: React.FC = () => {
                           <button
                             className="cursor-pointer rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-green-600"
                             title="Edit"
-                            onClick={() => console.log("Edit", s.id)}
+                            onClick={() =>
+                              navigate(
+                                paths.dashboard.edit_siswa.replace(
+                                  ":id",
+                                  String(s.id),
+                                ),
+                              )
+                            }
                           >
                             <Edit3 className="h-4 w-4" />
                           </button>

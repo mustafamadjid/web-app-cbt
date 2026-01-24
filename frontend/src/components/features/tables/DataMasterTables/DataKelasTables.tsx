@@ -332,15 +332,20 @@ const DataKelasTables: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <button
-                          className="cursor-pointer rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-green-600"
-                          title="Edit"
-                          onClick={() =>
-                            navigate(`${paths.dashboard.data_master_kelas}/id`)
-                          }
-                        >
-                          <Edit3 className="h-4 w-4" />
-                        </button>
+                          <button
+                            className="cursor-pointer rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-green-600"
+                            title="Edit"
+                            onClick={() =>
+                              navigate(
+                                paths.dashboard.edit_data_master_kelas.replace(
+                                  ":id",
+                                  String(kelas.id_nama_kelas),
+                                ),
+                              )
+                            }
+                          >
+                            <Edit3 className="h-4 w-4" />
+                          </button>
                         <button
                           className="cursor-pointer rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-red-600"
                           title="Hapus"

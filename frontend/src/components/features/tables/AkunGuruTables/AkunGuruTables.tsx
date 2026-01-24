@@ -318,6 +318,14 @@ const AkunGuruTables: React.FC = () => {
                         <button
                           className="rounded-lg cursor-pointer p-2 text-slate-400 hover:bg-slate-100 hover:text-green-600 transition-colors"
                           title="Edit"
+                          onClick={() =>
+                            navigate(
+                              paths.dashboard.edit_guru.replace(
+                                ":id",
+                                String(p.id),
+                              ),
+                            )
+                          }
                         >
                           <Edit3 className="h-4 w-4" />
                         </button>

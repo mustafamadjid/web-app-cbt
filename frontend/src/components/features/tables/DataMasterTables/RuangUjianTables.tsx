@@ -272,7 +272,10 @@ const RuangUjianTables: React.FC = () => {
                           title="Edit"
                           onClick={() =>
                             navigate(
-                              "data-master/tambah-ruang"
+                              paths.dashboard.edit_data_master_ruang.replace(
+                                ":id",
+                                String(ruang.id),
+                              ),
                             )
                           }
                         >
