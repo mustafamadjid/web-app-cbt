@@ -57,21 +57,18 @@ const UjianSiswa: React.FC = () => {
       key: "upcoming" as const,
       title: "Ujian Mendatang",
       subtitle: "Lihat jadwal ujian yang akan dilaksanakan.",
-      accent: "from-emerald-500 to-lime-400",
       badge: "Segera",
     },
     {
       key: "ongoing" as const,
       title: "Ujian Berlangsung",
       subtitle: "Mulai ujian yang sedang berlangsung.",
-      accent: "from-amber-500 to-orange-400",
       badge: "Aktif",
     },
     {
       key: "completed" as const,
       title: "Hasil Ujian",
       subtitle: "Cek hasil ujian yang sudah selesai.",
-      accent: "from-sky-500 to-indigo-400",
       badge: "Selesai",
     },
   ];
@@ -118,22 +115,22 @@ const UjianSiswa: React.FC = () => {
                   onClick={() => setActiveCategory(category.key)}
                   className={`group relative overflow-hidden rounded-2xl border p-5 text-left transition duration-200 ${
                     isActive
-                      ? "border-[#37513d] bg-[#f3f7f4] shadow-md"
-                      : "border-gray-200 bg-white hover:-translate-y-0.5 hover:border-[#37513d]/60 hover:shadow"
+                      ? "border-[#397e50] bg-[#f3f8f5] shadow-md"
+                      : "border-gray-200 bg-white hover:-translate-y-0.5 hover:border-[#397e50]/60 hover:shadow"
                   }`}
                 >
                   <div
-                    className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${category.accent}`}
+                    className="absolute inset-x-0 top-0 h-1 bg-[#397e50]"
                   />
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-center gap-3">
                       <div
-                        className={`flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br ${category.accent} text-base font-semibold text-white shadow-sm`}
+                        className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#397e50] text-base font-semibold text-white shadow-sm"
                       >
                         {category.title.charAt(0)}
                       </div>
                       <div>
-                        <p className="text-base font-semibold text-[#37513d]">
+                        <p className="text-base font-semibold text-[#397e50]">
                           {category.title}
                         </p>
                         <p className="mt-1 text-sm text-gray-500">
@@ -144,16 +141,16 @@ const UjianSiswa: React.FC = () => {
                     <span
                       className={`rounded-full px-3 py-1 text-xs font-semibold ${
                         isActive
-                          ? "bg-[#37513d] text-white"
-                          : "bg-gray-100 text-gray-600 group-hover:bg-[#37513d]/10"
+                          ? "bg-[#397e50] text-white"
+                          : "bg-gray-100 text-gray-600 group-hover:bg-[#397e50]/10"
                       }`}
                     >
                       {category.badge}
                     </span>
                   </div>
                   {isActive && (
-                    <div className="mt-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-[#37513d]">
-                      <span className="h-2 w-2 rounded-full bg-[#37513d]" />
+                    <div className="mt-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-[#397e50]">
+                      <span className="h-2 w-2 rounded-full bg-[#397e50]" />
                       Aktif dipilih
                     </div>
                   )}
