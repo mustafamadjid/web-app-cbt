@@ -16,6 +16,8 @@ import KelolaAkunGuru from "@/pages/Admin/Dashboard/KelolaAkun/AkunGuru";
 import { KelolaAkunSiswa } from "@/pages/Admin/Dashboard/KelolaAkun/AkunSiswa";
 import TambahGuru from "@/pages/Admin/Dashboard/KelolaAkun/TambahAkun/TambahGuru";
 import TambahSiswa from "@/pages/Admin/Dashboard/KelolaAkun/TambahAkun/TambahSiswa";
+import EditAkunGuru from "@/pages/Admin/Dashboard/KelolaAkun/EditAkun/EditAkunGuru";
+import EditAkunSiswa from "@/pages/Admin/Dashboard/KelolaAkun/EditAkun/EditAkunSiswa";
 
 import MataPelajaran from "@/pages/Admin/Dashboard/DataMaster/MataPelajaran";
 import DataKelas from "@/pages/Admin/Dashboard/DataMaster/DataKelas";
@@ -25,6 +27,10 @@ import TambahMataPelajaran from "@/pages/Admin/Dashboard/DataMaster/TambahDataMa
 import TambahKelas from "@/pages/Admin/Dashboard/DataMaster/TambahDataMaster/TambahKelas";
 import TambahRuang from "@/pages/Admin/Dashboard/DataMaster/TambahDataMaster/TambahRuangUjian";
 import TambahSesi from "@/pages/Admin/Dashboard/DataMaster/TambahDataMaster/TambahSesi";
+import EditMapel from "@/pages/Admin/Dashboard/DataMaster/EditDataMaster/EditMapel";
+import EditKelas from "@/pages/Admin/Dashboard/DataMaster/EditDataMaster/EditKelas";
+import EditRuangUjian from "@/pages/Admin/Dashboard/DataMaster/EditDataMaster/EditRuangUjian";
+import EditSesi from "@/pages/Admin/Dashboard/DataMaster/EditDataMaster/EditSesi";
 
 import BankSoal from "@/pages/Admin/Dashboard/BankSoal/BankSoal";
 import TambahBankSoal from "@/pages/Admin/Dashboard/BankSoal/TambahBankSoal";
@@ -125,6 +131,8 @@ export const router = createBrowserRouter([
           },
           { path: paths.dashboard.tambah_guru, element: <TambahGuru /> },
           { path: paths.dashboard.tambah_siswa, element: <TambahSiswa /> },
+          { path: paths.dashboard.edit_guru, element: <EditAkunGuru /> },
+          { path: paths.dashboard.edit_siswa, element: <EditAkunSiswa /> },
           {
             path: paths.dashboard.tambah_data_master_mapel,
             element: <TambahMataPelajaran />,
@@ -140,6 +148,22 @@ export const router = createBrowserRouter([
           {
             path: paths.dashboard.tambah_data_master_sesi,
             element: <TambahSesi />,
+          },
+          {
+            path: paths.dashboard.edit_data_master_mapel,
+            element: <EditMapel />,
+          },
+          {
+            path: paths.dashboard.edit_data_master_kelas,
+            element: <EditKelas />,
+          },
+          {
+            path: paths.dashboard.edit_data_master_ruang,
+            element: <EditRuangUjian />,
+          },
+          {
+            path: paths.dashboard.edit_data_master_sesi,
+            element: <EditSesi />,
           },
           {
             path: paths.dashboard.tambah_bank_soal,

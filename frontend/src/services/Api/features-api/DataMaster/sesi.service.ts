@@ -1,4 +1,7 @@
-import type { SesiFilterParams, SesiRow } from "@/types/DataMaster/Sesi";
+import type { SesiFilterParams, SesiFormValues, SesiRow } from "@/types/DataMaster/Sesi";
+import { api } from "@/services/Api/api";
+import type { ApiEnvelope } from "@/services/Api/api";
+import { buildJsonData } from "@/helper/FormData/BuildJsonData";
 
 const DUMMY_SESI: SesiRow[] = [
   { id: 1, kodeSesi: "SESI-01", namaSesi: "Sesi Pagi" },
@@ -25,4 +28,24 @@ export async function getSesi(
       sesi.namaSesi.toLowerCase().includes(q)
     );
   });
+}
+
+export async function getSesiById(id: number): Promise<SesiFormValues | null> {
+  const target = DUMMY_SESI.find((sesi) => sesi.id === id);
+  if (!target) return null;
+
+  return {
+    kode_sesi: target.kodeSesi,
+    nama_sesi: target.namaSesi,
+  };
+}
+
+export async function updateSesi(id: number, values: SesiFormValues) {
+  const data = buildJsonData(values);
+  const res = await api<ApiEnvelope<{ id: number }>>(`/sesi/${id}`, {
+    method: "PUT",
+    data,
+  });
+
+  return res.data;
 }

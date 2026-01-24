@@ -152,6 +152,43 @@ export async function submitTeacherRegister(values: TeacherRegisterFormValues) {
   return res.data;
 }
 
+export async function getGuruById(id: number): Promise<DataGuru | null> {
+  if (!USE_DUMMY) {
+    const res = await api<ApiEnvelope<DataGuru>>(`/teachers/${id}`, {
+      method: "GET",
+    });
+    return res.data;
+  }
+
+  await sleep(150);
+  return daftarPengguna.find((guru) => guru.id === id) ?? null;
+}
+
+export async function updateGuru(id: number, values: TeacherRegisterFormValues) {
+  const formData = buildFormData(values, {
+    transform: (key, value) => {
+      if (value instanceof Blob) return value;
+      if (typeof value === "string") {
+        if (key === "email") return value.trim().toLowerCase();
+        if (key === "password") return value;
+        return value.trim();
+      }
+      return value as any;
+    },
+    skipNullish: true,
+  });
+
+  const res = await api<ApiEnvelope<TeacherRegisterResponse>>(
+    `/teachers/${id}`,
+    {
+      method: "PUT",
+      data: formData,
+    }
+  );
+
+  return res.data;
+}
+
 /** === MOCK "API" (simulasikan network delay) === */
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 

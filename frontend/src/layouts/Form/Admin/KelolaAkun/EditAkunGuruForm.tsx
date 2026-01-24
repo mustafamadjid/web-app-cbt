@@ -1,5 +1,12 @@
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
+import InputField from "@/components/common/Input/InputField";
+import ImageUpload from "@/components/features/Upload/ImageUpload";
+
+import type { TeacherRegisterFormValues } from "@/types/KelolaAkun/AkunGuru";
+import type { StatusAkun } from "@/types/OpsiTypes/Option";
+
+import { createSetField } from "@/helper/setField/setField";
 import {
   createValidator,
   emailFormat,
@@ -9,100 +16,69 @@ import {
   requiredString,
   requiredValue,
 } from "@/helper/validate/validateForm";
+import { ApiError } from "@/services/Api/api";
 
-type StatusAkun = "AKTIF" | "NONAKTIF";
-type JenisKelamin = "LAKI_LAKI" | "PEREMPUAN";
-
-type TeacherEditFormValues = {
-  namaLengkap: string;
-  email: string;
-  username: string;
-  password: string;
-  noHp: string;
-  jenisKelamin: JenisKelamin;
-  statusAkun: StatusAkun;
-  nip: string;
-  jabatan: string;
-  bidangStudi: string;
-  fotoProfil: File | null;
+type EditAkunGuruFormProps = {
+  initialValues: TeacherRegisterFormValues;
+  initialFotoUrl?: string;
+  onSubmit: (values: TeacherRegisterFormValues) => Promise<void>;
+  loading?: boolean;
+  submitting?: boolean;
 };
 
-const initialValues: TeacherEditFormValues = {
-  namaLengkap: "",
-  email: "",
-  username: "",
-  password: "",
-  noHp: "",
-  jenisKelamin: "LAKI_LAKI",
-  statusAkun: "AKTIF",
-  nip: "",
-  jabatan: "",
-  bidangStudi: "",
-  fotoProfil: null,
-};
-
-// Type untuk props initialValues dan onSubmit
-
-const inputBase =
-  "w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-[#397e50] focus:ring-2 focus:ring-[#397e50] disabled:bg-slate-50 disabled:text-slate-500";
-const labelBase = "text-xs font-medium text-slate-600";
 const sectionTitle = "text-sm font-semibold text-slate-800";
 const helperText = "text-xs text-slate-500";
 
-const EditAkunGuruForm= () => {
-  const [values, setValues] =
-    useState<TeacherEditFormValues>(initialValues);
+const EditAkunGuruForm = ({
+  initialValues,
+  initialFotoUrl,
+  onSubmit,
+  loading = false,
+  submitting = false,
+}: EditAkunGuruFormProps) => {
+  const [values, setValues] = useState<TeacherRegisterFormValues>(initialValues);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [fotoUrl, setFotoUrl] = useState<string>("");
+  const [fotoUrl, setFotoUrl] = useState<string>(initialFotoUrl ?? "");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  // TODO : Panggil service GetGuruById() di halaman editGuruPage
-  // Return nya akan jadi isi initialValues
-  //  Buat props untuk onSubmit dan initialValues
-
+  useEffect(() => {
+    setValues(initialValues);
+    setTouched({});
+  }, [initialValues]);
 
   useEffect(() => {
-    if (!values.fotoProfil) {
-      setFotoUrl("");
-      return;
+    if (values.fotoProfil) {
+      const url = URL.createObjectURL(values.fotoProfil);
+      setFotoUrl(url);
+      return () => URL.revokeObjectURL(url);
     }
 
-    const url = URL.createObjectURL(values.fotoProfil);
-    setFotoUrl(url);
+    setFotoUrl(initialFotoUrl ?? "");
+    return undefined;
+  }, [initialFotoUrl, values.fotoProfil]);
 
-    return () => {
-      URL.revokeObjectURL(url);
-    };
-  }, [values.fotoProfil]);
+  const setField = createSetField(setValues);
 
-  const setField = <K extends keyof TeacherEditFormValues>(
-    key: K,
-    value: TeacherEditFormValues[K]
-  ) => {
-    setValues((prev) => ({ ...prev, [key]: value }));
-  };
-
-  const onBlur = (name: keyof TeacherEditFormValues) => {
+  const onBlur = (name: keyof TeacherRegisterFormValues) => {
     setTouched((prev) => ({ ...prev, [name]: true }));
   };
 
-  const validate = createValidator<TeacherEditFormValues>({
+  const validate = createValidator<TeacherRegisterFormValues>({
+    role: [requiredString("Role wajib diisi.")],
     namaLengkap: [requiredString("Nama lengkap wajib diisi.")],
     email: [
       requiredString("Email wajib diisi."),
       emailFormat("Format email tidak valid."),
     ],
     username: [requiredString("Username wajib diisi.")],
-    password: [
-      requiredString("Password wajib diisi."),
-      minLength(8, "Password minimal 8 karakter."),
-    ],
+    password: [minLength(8, "Password minimal 8 karakter.")],
     noHp: [requiredString("Nomor HP wajib diisi.")],
     nip: [requiredString("NIP wajib diisi.")],
     jabatan: [requiredString("Jabatan wajib diisi.")],
     bidangStudi: [requiredString("Bidang studi wajib diisi.")],
     jenisKelamin: [requiredValue("Jenis kelamin wajib dipilih.")],
+    statusAkun: [requiredValue("Status akun wajib dipilih.")],
     fotoProfil: [
       fileMaxSize(2 * 1024 * 1024, "Ukuran foto maksimal 2MB."),
       fileTypeStartsWith("image/", "File harus berupa gambar."),
@@ -110,15 +86,15 @@ const EditAkunGuruForm= () => {
   });
 
   const errors = validate(values);
-  const hasError = (name: keyof TeacherEditFormValues) =>
+  const hasError = (name: keyof TeacherRegisterFormValues) =>
     !!errors[name] && !!touched[name];
 
-  const onSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitError(null);
 
-    // mark all touched to show errors
     setTouched({
+      role: true,
       namaLengkap: true,
       email: true,
       username: true,
@@ -138,25 +114,13 @@ const EditAkunGuruForm= () => {
       return;
     }
 
-    // Contoh payload (biasanya pakai FormData untuk upload file)
-    const formData = new FormData();
-    formData.append("namaLengkap", values.namaLengkap);
-    formData.append("email", values.email);
-    formData.append("username", values.username);
-    formData.append("password", values.password);
-    formData.append("noHp", values.noHp);
-    formData.append("jenisKelamin", values.jenisKelamin);
-    formData.append("statusAkun", values.statusAkun);
-    formData.append("nip", values.nip);
-    formData.append("jabatan", values.jabatan);
-    formData.append("bidangStudi", values.bidangStudi);
-    if (values.fotoProfil) formData.append("fotoProfil", values.fotoProfil);
-
-    // TODO: panggil API
-    // await api.put("/guru/register", formData)
-
-    console.log("READY_TO_SUBMIT", Object.fromEntries(formData.entries()));
-    alert("Form valid. Lanjutkan submit ke API.");
+    try {
+      await onSubmit(values);
+    } catch (error) {
+      if (error instanceof ApiError) {
+        setSubmitError(error.message);
+      }
+    }
   };
 
   const clearFoto = () => {
@@ -164,32 +128,23 @@ const EditAkunGuruForm= () => {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
+  const isDisabled = loading || submitting;
+
   return (
     <div className="min-h-screen w-full bg-slate-50 py-8">
       <div className="mx-auto w-full max-w-5xl px-4">
-        {/* Header + Progress */}
         <div className="mb-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-base font-semibold text-slate-900">
-                Registrasi Akun Guru
-              </h1>
-              <p className="mt-1 text-sm text-slate-500">
-                Lengkapi data guru untuk membuat akun.
-              </p>
-            </div>
-
-            <div className="hidden w-56 md:block">
-              <div className="h-2 w-full rounded-full bg-slate-100">
-                <div className="h-2 w-[45%] rounded-full bg-[#397e50]" />
-              </div>
-              <p className="mt-2 text-right text-xs text-slate-500">Step 1/2</p>
-            </div>
+          <div>
+            <h1 className="text-base font-semibold text-slate-900">
+              Edit Akun Guru
+            </h1>
+            <p className="mt-1 text-sm text-slate-500">
+              Perbarui data akun guru sesuai kebutuhan.
+            </p>
           </div>
         </div>
 
-        <form onSubmit={onSubmit} className="space-y-6">
-          {/* INFORMASI DASAR */}
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="mb-4">
               <h2 className={sectionTitle}>Informasi Dasar</h2>
@@ -198,20 +153,20 @@ const EditAkunGuruForm= () => {
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
-                <label className={labelBase} htmlFor="namaLengkap">
-                  Nama Lengkap
-                </label>
-                <input
+                <InputField
                   id="namaLengkap"
-                  className={`${inputBase} ${
+                  label="Nama Lengkap"
+                  value={values.namaLengkap}
+                  onChange={(v) => setField("namaLengkap", v)}
+                  onBlur={() => onBlur("namaLengkap")}
+                  placeholder="Contoh: Budi Santoso"
+                  inputClassName={
                     hasError("namaLengkap")
                       ? "border-rose-300 ring-rose-100"
                       : ""
-                  }`}
-                  value={values.namaLengkap}
-                  onChange={(e) => setField("namaLengkap", e.target.value)}
-                  onBlur={() => onBlur("namaLengkap")}
-                  placeholder="Contoh: Budi Santoso"
+                  }
+                  disabled={isDisabled}
+                  required
                 />
                 {hasError("namaLengkap") && (
                   <p className="mt-1 text-xs text-rose-600">
@@ -221,19 +176,19 @@ const EditAkunGuruForm= () => {
               </div>
 
               <div>
-                <label className={labelBase} htmlFor="email">
-                  Email
-                </label>
-                <input
+                <InputField
                   id="email"
                   type="email"
-                  className={`${inputBase} ${
-                    hasError("email") ? "border-rose-300 ring-rose-100" : ""
-                  }`}
+                  label="Email"
                   value={values.email}
-                  onChange={(e) => setField("email", e.target.value)}
+                  onChange={(v) => setField("email", v)}
                   onBlur={() => onBlur("email")}
                   placeholder="nama@sekolah.sch.id"
+                  inputClassName={
+                    hasError("email") ? "border-rose-300 ring-rose-100" : ""
+                  }
+                  disabled={isDisabled}
+                  required
                 />
                 {hasError("email") && (
                   <p className="mt-1 text-xs text-rose-600">{errors.email}</p>
@@ -241,18 +196,20 @@ const EditAkunGuruForm= () => {
               </div>
 
               <div>
-                <label className={labelBase} htmlFor="username">
-                  Username
-                </label>
-                <input
+                <InputField
                   id="username"
-                  className={`${inputBase} ${
-                    hasError("username") ? "border-rose-300 ring-rose-100" : ""
-                  }`}
+                  label="Username"
                   value={values.username}
-                  onChange={(e) => setField("username", e.target.value)}
+                  onChange={(v) => setField("username", v)}
                   onBlur={() => onBlur("username")}
                   placeholder="contoh: budi.santoso"
+                  inputClassName={
+                    hasError("username")
+                      ? "border-rose-300 ring-rose-100"
+                      : ""
+                  }
+                  disabled={isDisabled}
+                  required
                 />
                 {hasError("username") && (
                   <p className="mt-1 text-xs text-rose-600">
@@ -262,19 +219,21 @@ const EditAkunGuruForm= () => {
               </div>
 
               <div>
-                <label className={labelBase} htmlFor="password">
-                  Password
-                </label>
-                <input
+                <InputField
                   id="password"
                   type="password"
-                  className={`${inputBase} ${
-                    hasError("password") ? "border-rose-300 ring-rose-100" : ""
-                  }`}
+                  label="Password Baru"
                   value={values.password}
-                  onChange={(e) => setField("password", e.target.value)}
+                  onChange={(v) => setField("password", v)}
                   onBlur={() => onBlur("password")}
-                  placeholder="Minimal 8 karakter"
+                  placeholder="Biarkan kosong jika tidak diganti"
+                  inputClassName={
+                    hasError("password")
+                      ? "border-rose-300 ring-rose-100"
+                      : ""
+                  }
+                  disabled={isDisabled}
+                  required={false}
                 />
                 {hasError("password") && (
                   <p className="mt-1 text-xs text-rose-600">
@@ -284,21 +243,22 @@ const EditAkunGuruForm= () => {
               </div>
 
               <div>
-                <label className={labelBase} htmlFor="jenisKelamin">
+                <label className="text-xs font-medium text-slate-600" htmlFor="jenisKelamin">
                   Jenis Kelamin
                 </label>
                 <select
                   id="jenisKelamin"
-                  className={`${inputBase} ${
+                  className={`w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-[#397e50] focus:ring-2 focus:ring-[#397e50] disabled:bg-slate-50 disabled:text-slate-500 ${
                     hasError("jenisKelamin")
                       ? "border-rose-300 ring-rose-100"
                       : ""
                   }`}
                   value={values.jenisKelamin}
                   onChange={(e) =>
-                    setField("jenisKelamin", e.target.value as JenisKelamin)
+                    setField("jenisKelamin", e.target.value as "LAKI_LAKI" | "PEREMPUAN")
                   }
                   onBlur={() => onBlur("jenisKelamin")}
+                  disabled={isDisabled}
                 >
                   <option value="LAKI_LAKI">Laki-laki</option>
                   <option value="PEREMPUAN">Perempuan</option>
@@ -311,35 +271,68 @@ const EditAkunGuruForm= () => {
               </div>
 
               <div>
-                <label className={labelBase} htmlFor="statusAkun">
-                  Status Akun
+                <label className="text-xs font-medium text-slate-600" htmlFor="role">
+                  Role Akun
                 </label>
-                <input
-                  id="statusAkun"
-                  className={inputBase}
-                  value={values.statusAkun}
-                  disabled
-                  readOnly
-                />
-                <p className="mt-1 text-xs text-slate-500">
-                  Default aktif saat registrasi.
-                </p>
+                <select
+                  id="role"
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-[#397e50] focus:ring-2 focus:ring-[#397e50] disabled:bg-slate-50 disabled:text-slate-500"
+                  value={values.role}
+                  onChange={(e) => setField("role", e.target.value)}
+                  onBlur={() => onBlur("role")}
+                  disabled={isDisabled}
+                >
+                  <option value="GURU">Guru</option>
+                  <option value="ADMIN">Admin</option>
+                </select>
+                {hasError("role") && (
+                  <p className="mt-1 text-xs text-rose-600">{errors.role}</p>
+                )}
               </div>
 
               <div>
-                <label className={labelBase} htmlFor="noHp">
-                  Nomor HP
+                <label className="text-xs font-medium text-slate-600" htmlFor="statusAkun">
+                  Status Akun
                 </label>
-                <input
-                  id="noHp"
-                  inputMode="tel"
-                  className={`${inputBase} ${
-                    hasError("noHp") ? "border-rose-300 ring-rose-100" : ""
+                <select
+                  id="statusAkun"
+                  className={`w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-[#397e50] focus:ring-2 focus:ring-[#397e50] disabled:bg-slate-50 disabled:text-slate-500 ${
+                    hasError("statusAkun")
+                      ? "border-rose-300 ring-rose-100"
+                      : ""
                   }`}
+                  value={values.statusAkun}
+                  onChange={(e) =>
+                    setField("statusAkun", e.target.value as StatusAkun)
+                  }
+                  onBlur={() => onBlur("statusAkun")}
+                  disabled={isDisabled}
+                >
+                  <option value="aktif">Aktif</option>
+                  <option value="nonaktif">Nonaktif</option>
+                  <option value="dibekukan">Dibekukan</option>
+                </select>
+                {hasError("statusAkun") && (
+                  <p className="mt-1 text-xs text-rose-600">
+                    {errors.statusAkun}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <InputField
+                  id="noHp"
+                  type="tel"
+                  label="Nomor HP"
                   value={values.noHp}
-                  onChange={(e) => setField("noHp", e.target.value)}
+                  onChange={(v) => setField("noHp", v)}
                   onBlur={() => onBlur("noHp")}
                   placeholder="Contoh: 081234567890"
+                  inputClassName={
+                    hasError("noHp") ? "border-rose-300 ring-rose-100" : ""
+                  }
+                  disabled={isDisabled}
+                  required
                 />
                 {hasError("noHp") && (
                   <p className="mt-1 text-xs text-rose-600">{errors.noHp}</p>
@@ -348,7 +341,6 @@ const EditAkunGuruForm= () => {
             </div>
           </div>
 
-          {/* DATA KEPEGAWAIAN */}
           <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="mb-4">
               <h2 className={sectionTitle}>Data Kepegawaian</h2>
@@ -357,18 +349,18 @@ const EditAkunGuruForm= () => {
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
-                <label className={labelBase} htmlFor="nip">
-                  NIP
-                </label>
-                <input
+                <InputField
                   id="nip"
-                  className={`${inputBase} ${
-                    hasError("nip") ? "border-rose-300 ring-rose-100" : ""
-                  }`}
+                  label="NIP"
                   value={values.nip}
-                  onChange={(e) => setField("nip", e.target.value)}
+                  onChange={(v) => setField("nip", v)}
                   onBlur={() => onBlur("nip")}
                   placeholder="Nomor Induk Pegawai"
+                  inputClassName={
+                    hasError("nip") ? "border-rose-300 ring-rose-100" : ""
+                  }
+                  disabled={isDisabled}
+                  required
                 />
                 {hasError("nip") && (
                   <p className="mt-1 text-xs text-rose-600">{errors.nip}</p>
@@ -376,18 +368,18 @@ const EditAkunGuruForm= () => {
               </div>
 
               <div>
-                <label className={labelBase} htmlFor="jabatan">
-                  Jabatan
-                </label>
-                <input
+                <InputField
                   id="jabatan"
-                  className={`${inputBase} ${
-                    hasError("jabatan") ? "border-rose-300 ring-rose-100" : ""
-                  }`}
+                  label="Jabatan"
                   value={values.jabatan}
-                  onChange={(e) => setField("jabatan", e.target.value)}
+                  onChange={(v) => setField("jabatan", v)}
                   onBlur={() => onBlur("jabatan")}
                   placeholder="Contoh: Guru Tetap"
+                  inputClassName={
+                    hasError("jabatan") ? "border-rose-300 ring-rose-100" : ""
+                  }
+                  disabled={isDisabled}
+                  required
                 />
                 {hasError("jabatan") && (
                   <p className="mt-1 text-xs text-rose-600">{errors.jabatan}</p>
@@ -395,20 +387,20 @@ const EditAkunGuruForm= () => {
               </div>
 
               <div className="md:col-span-2">
-                <label className={labelBase} htmlFor="bidangStudi">
-                  Bidang Studi
-                </label>
-                <input
+                <InputField
                   id="bidangStudi"
-                  className={`${inputBase} ${
+                  label="Bidang Studi"
+                  value={values.bidangStudi}
+                  onChange={(v) => setField("bidangStudi", v)}
+                  onBlur={() => onBlur("bidangStudi")}
+                  placeholder="Contoh: Matematika"
+                  inputClassName={
                     hasError("bidangStudi")
                       ? "border-rose-300 ring-rose-100"
                       : ""
-                  }`}
-                  value={values.bidangStudi}
-                  onChange={(e) => setField("bidangStudi", e.target.value)}
-                  onBlur={() => onBlur("bidangStudi")}
-                  placeholder="Contoh: Matematika"
+                  }
+                  disabled={isDisabled}
+                  required
                 />
                 {hasError("bidangStudi") && (
                   <p className="mt-1 text-xs text-rose-600">
@@ -419,137 +411,58 @@ const EditAkunGuruForm= () => {
             </div>
           </div>
 
-          {/* FOTO PROFIL */}
-          <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div className="mb-4 flex items-start justify-between gap-4">
-              <div>
-                <h2 className={sectionTitle}>Foto Profil</h2>
-                <p className={helperText}>Unggah foto profil (maks. 2MB).</p>
-              </div>
+          <ImageUpload
+            sectionTitle="Foto Profil"
+            helperText="Unggah foto profil (maks. 2MB)."
+            formatText="Format: JPG/PNG"
+            imgSrc={fotoUrl}
+            fileName={values.fotoProfil?.name}
+            size={values.fotoProfil?.size ? Number((values.fotoProfil.size / (1024 * 1024)).toFixed(2)) : undefined}
+            imageFileCheck={!!values.fotoProfil}
+            onChange={(e) => {
+              const file = e.target.files?.[0] ?? null;
+              setField("fotoProfil", file);
+              onBlur("fotoProfil");
+            }}
+            onClick={clearFoto}
+          />
+          {hasError("fotoProfil") && (
+            <p className="-mt-4 text-xs text-rose-600">{errors.fotoProfil}</p>
+          )}
 
-              <div className="text-right">
-                <p className="text-xs text-slate-500">Format: JPG/PNG</p>
-              </div>
+          {submitError && (
+            <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600">
+              {submitError}
             </div>
+          )}
 
-            <div className="flex flex-col gap-4 md:flex-row md:items-center">
-              {/* Preview */}
-              <div className="flex items-center gap-3">
-                <div className="h-24 w-24 overflow-hidden rounded-md border border-slate-200 bg-slate-100">
-                  {fotoUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={fotoUrl}
-                      alt="Preview foto profil"
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center text-xs text-slate-400">
-                      No Photo
-                    </div>
-                  )}
-                </div>
+          <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+            <button
+              type="button"
+              className="inline-flex items-center justify-center cursor-pointer rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+              onClick={() => {
+                setValues(initialValues);
+                setTouched({});
+                setSubmitError(null);
+                clearFoto();
+              }}
+              disabled={isDisabled}
+            >
+              Reset
+            </button>
 
-                <div>
-                  <p className="text-sm font-medium text-slate-700">
-                    Foto profil
-                  </p>
-                  <p className="text-xs text-slate-500">
-                    Akan ditampilkan pada akun guru.
-                  </p>
-                </div>
-              </div>
-
-              {/* Upload + Chip */}
-              <div className="flex flex-1 flex-col gap-2 md:flex-row md:items-center md:justify-end">
-                <label className="inline-flex cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50">
-                  Pilih Foto
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0] ?? null;
-                      setField("fotoProfil", file);
-                      onBlur("fotoProfil");
-                    }}
-                  />
-                </label>
-
-                {values.fotoProfil ? (
-                  <div className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
-                    <div className="min-w-0">
-                      <p className="truncate text-xs font-medium text-slate-700">
-                        {values.fotoProfil.name}
-                      </p>
-                      <p className="text-[11px] text-slate-500">
-                        {(values.fotoProfil.size / (1024 * 1024)).toFixed(2)} MB
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={clearFoto}
-                      className="rounded-md px-2 py-1 text-xs font-medium text-slate-600 hover:bg-white"
-                      aria-label="Hapus foto"
-                      title="Hapus foto"
-                    >
-                      X
-                    </button>
-                  </div>
-                ) : (
-                  <p className="text-xs text-slate-500 md:text-right">
-                    Belum ada file dipilih.
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {hasError("fotoProfil") && (
-              <p className="mt-2 text-xs text-rose-600">{errors.fotoProfil}</p>
-            )}
-          </div>
-
-          {/* SUBMIT */}
-          <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-            {submitError && (
-              <div className="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
-                {submitError}
-              </div>
-            )}
-
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-xs text-slate-500">
-                Dengan mendaftar, data akan disimpan sesuai kebijakan sekolah.
-              </p>
-
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer"
-                  onClick={() => {
-                    setValues(initialValues);
-                    setTouched({});
-                    setSubmitError(null);
-                  }}
-                >
-                  Reset
-                </button>
-
-                <button
-                  type="submit"
-                  className="rounded-lg bg-[#397e50] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-600 cursor-pointer"
-                >
-                  Daftarkan Guru
-                </button>
-              </div>
-            </div>
+            <button
+              type="submit"
+              className="inline-flex cursor-pointer items-center justify-center rounded-lg bg-[#397e50] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#2f6a43] disabled:cursor-not-allowed disabled:opacity-70"
+              disabled={isDisabled}
+            >
+              Simpan Perubahan
+            </button>
           </div>
         </form>
       </div>
     </div>
   );
-}
-
+};
 
 export default EditAkunGuruForm;

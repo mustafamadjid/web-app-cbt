@@ -2,8 +2,12 @@ import type {
   KelasOption,
   MataPelajaranFilterParams,
   MataPelajaranRow,
+  MataPelajaranFormValues,
 } from "@/types/DataMaster/MataPelajaran";
 import { getTingkatKelasById } from "@/services/Api/features-api/DataMaster/kelas.service";
+import { api } from "@/services/Api/api";
+import type { ApiEnvelope } from "@/services/Api/api";
+import { buildJsonData } from "@/helper/FormData/BuildJsonData";
 
 const DUMMY_KELAS: KelasOption[] = [
   {
@@ -100,4 +104,31 @@ export async function getMataPelajaran(
       (tingkatKelas !== undefined && String(tingkatKelas).includes(q))
     );
   });
+}
+
+export async function getMataPelajaranById(
+  id: number
+): Promise<MataPelajaranFormValues | null> {
+  const target = DUMMY_MAPEL.find((mapel) => mapel.id === id);
+  if (!target) return null;
+
+  return {
+    kelasId: target.kelasId,
+    kodeMapel: target.kodeMapel,
+    namaMapel: target.namaMapel,
+    deskripsiMapel: target.deskripsiMapel,
+  };
+}
+
+export async function updateMataPelajaran(
+  id: number,
+  values: MataPelajaranFormValues
+) {
+  const data = buildJsonData(values);
+  const res = await api<ApiEnvelope<{ id: number }>>(`/mapel/${id}`, {
+    method: "PUT",
+    data,
+  });
+
+  return res.data;
 }

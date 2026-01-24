@@ -111,6 +111,41 @@ export async function getNamaKelas(
   });
 }
 
+export async function getKelasById(
+  id: number,
+): Promise<KelasFormValues | null> {
+  if (!USE_DUMMY) {
+    const res = await api<ApiEnvelope<KelasFormValues>>(`/kelas/${id}`, {
+      method: "GET",
+    });
+    return res.data;
+  }
+
+  await sleep(150);
+  const data = DUMMY_NAMA_KELAS.find((kelas) => kelas.id_nama_kelas === id);
+  if (!data) return null;
+
+  const tingkatValue =
+    DUMMY_TINGKAT_KELAS.find(
+      (tingkat) => tingkat.id_tingkat_kelas === data.id_tingkat_kelas,
+    )?.tingkat_kelas ?? data.id_tingkat_kelas;
+
+  return {
+    tingkat_kelas: tingkatValue,
+    nama_kelas: data.nama_kelas,
+  };
+}
+
+export async function updateKelas(id: number, values: KelasFormValues) {
+  const data = buildJsonData(values);
+  const res = await api<ApiEnvelope<KelasSubmitResponse>>(`/kelas/${id}`, {
+    method: "PUT",
+    data,
+  });
+
+  return res.data;
+}
+
 export async function getTingkatKelas(): Promise<TingkatKelas[]> {
   if (!USE_DUMMY) {
     const res = await api<ApiEnvelope<TingkatKelas[]>>("/kelas/tingkat", {
