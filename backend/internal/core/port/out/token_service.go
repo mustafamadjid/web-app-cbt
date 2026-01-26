@@ -6,8 +6,12 @@ import (
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 )
 
-type TokenService interface {
-	GenerateAccessToken(userID user.ID, role user.Role, tokenDuration time.Duration) (string,error)
+type AccessTokenService interface {
+	GenerateAccessToken(userID user.ID, role user.Role, username string, tokenDuration time.Duration) (string,error)
+	VerifyAccessToken(token string, now time.Time) (userID user.ID, role user.Role, username string,err error)
+}
+
+type RefreshTokenService interface {
 	GenerateRefreshToken(sessionID string, tokenDuration time.Duration) (string,error)
-	VerifyRefreshToken(token string) (sessionID string,err error)
+	VerifyRefreshToken(token string, now time.Time) (sessionID string,err error)
 }
