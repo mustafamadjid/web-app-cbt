@@ -16,7 +16,7 @@ import (
 )
 
 type fakeUserRepo struct {
-	byUsername map[string] user.Pengguna
+	byUsername      map[string]user.Pengguna
 	findUsernameErr error
 }
 
@@ -25,9 +25,10 @@ type fakeHasher struct {
 }
 
 type fakeSessionRepo struct {
-	sessionNextID string
-	store map[string] session.Session
+	sessionNextID    string
+	store            map[string]session.Session
 	createSessionErr error
+	revokeSessionErr error
 }
 
 type fakeAccessToken struct {
@@ -36,54 +37,64 @@ type fakeAccessToken struct {
 
 type fakeRefreshToken struct {
 	GenerateRefreshTokenErr error
+	VerifyRefreshTokenErr   error
 }
 
 func (fakeRepo *fakeUserRepo) FindByUsername(ctx context.Context, username string) (user.Pengguna, error) {
-	u,ok := fakeRepo.byUsername[username]
+	if fakeRepo.findUsernameErr != nil {
+		return user.Pengguna{}, fakeRepo.findUsernameErr
+	}
+	u, ok := fakeRepo.byUsername[username]
 	if !ok {
 		return user.Pengguna{}, coreerror.ErrNotFound
 	}
 
-	return  u,nil
+	return u, nil
 }
 
-func (fakeHash *fakeHasher) ComparePaswordAndHashed (hash string,plain string) bool {
+func (fakeHash *fakeHasher) ComparePaswordAndHashed(hash string, plain string) bool {
 	return fakeHash.ok
 }
 
-func (fakeHash *fakeHasher) GenerateHash(plain string) (string,error) {
-	return "hashed password",nil
+func (fakeHash *fakeHasher) GenerateHash(plain string) (string, error) {
+	return "hashed password", nil
 }
 
-func (fakeSession *fakeSessionRepo) CreateSession(ctx context.Context, userID user.ID, expiresAt time.Time) (string,error){
+func (fakeSession *fakeSessionRepo) CreateSession(ctx context.Context, userID user.ID, expiresAt time.Time) (string, error) {
+	if fakeSession.createSessionErr != nil {
+		return "", fakeSession.createSessionErr
+	}
 	if fakeSession.store == nil {
-		fakeSession.store = map[string] session.Session{}
+		fakeSession.store = map[string]session.Session{}
 	}
 
 	if fakeSession.sessionNextID == "" {
-		fakeSession.sessionNextID = "session_user_1";
+		fakeSession.sessionNextID = "session_user_1"
 	}
 
 	id := fakeSession.sessionNextID
 	fakeSession.store[id] = session.Session{
 		SessionID: id,
-		UserID: userID,
-		Revoked: false,
+		UserID:    userID,
+		Revoked:   false,
 		ExpiresAt: expiresAt,
 	}
-	return id,nil
+	return id, nil
 }
 
-func (fakeSession *fakeSessionRepo) GetSession(ctx context.Context, sessionID string) (session.Session, error){
-	ss,ok := fakeSession.store[sessionID]
+func (fakeSession *fakeSessionRepo) GetSession(ctx context.Context, sessionID string) (session.Session, error) {
+	ss, ok := fakeSession.store[sessionID]
 	if !ok {
 		return session.Session{}, coreerror.ErrNotFound
 	}
-	return ss,nil
+	return ss, nil
 }
 
 func (fakeSession *fakeSessionRepo) RevokeSession(ctx context.Context, sessionID string) error {
-	ss,ok := fakeSession.store[sessionID]
+	if fakeSession.revokeSessionErr != nil {
+		return fakeSession.revokeSessionErr
+	}
+	ss, ok := fakeSession.store[sessionID]
 	if !ok {
 		return coreerror.ErrNotFound
 	}
@@ -92,21 +103,21 @@ func (fakeSession *fakeSessionRepo) RevokeSession(ctx context.Context, sessionID
 	return nil
 }
 
-func (fakeSession *fakeSessionRepo) RevokeSessionAllbyUser(ctx context.Context, userID user.ID,now time.Time) error {
-	for ssid,sess := range fakeSession.store {
+func (fakeSession *fakeSessionRepo) RevokeSessionAllbyUser(ctx context.Context, userID user.ID, now time.Time) error {
+	for ssid, sess := range fakeSession.store {
 		if sess.UserID == userID && !sess.Revoked && now.Before(sess.ExpiresAt) {
 			sess.Revoked = true
 			fakeSession.store[ssid] = sess
 		}
 	}
-	return  nil
+	return nil
 }
 
 func (f *fakeAccessToken) GenerateAccessToken(userID user.ID, role user.Role, username string, tokenDuration time.Duration) (string, error) {
 	if f.GenerateAccessTokenErr != nil {
 		return "", f.GenerateAccessTokenErr
 	}
-	
+
 	return fmt.Sprintf("ACCESS TOKEN :|%v|%v|%s", userID, role, username), nil
 }
 
@@ -121,7 +132,7 @@ func (f *fakeAccessToken) VerifyAccessToken(token string, now time.Time) (userID
 		return 0, "", "", coreerror.ErrInvalidToken
 	}
 
-	idValue,err := strconv.Atoi(parts[0])
+	idValue, err := strconv.Atoi(parts[0])
 	if err != nil {
 		return 0, "", "", coreerror.ErrInvalidToken
 	}
@@ -129,15 +140,17 @@ func (f *fakeAccessToken) VerifyAccessToken(token string, now time.Time) (userID
 	return user.ID(idValue), user.Role(parts[1]), parts[2], nil
 }
 
-
-func (fakeRefreshToken *fakeRefreshToken) GenerateRefreshToken(sessionID string, tokenDuration time.Duration) (string,error){
+func (fakeRefreshToken *fakeRefreshToken) GenerateRefreshToken(sessionID string, tokenDuration time.Duration) (string, error) {
 	if fakeRefreshToken.GenerateRefreshTokenErr != nil {
-		return "",fakeRefreshToken.GenerateRefreshTokenErr
+		return "", fakeRefreshToken.GenerateRefreshTokenErr
 	}
-	return "REFRESH TOKEN : " + sessionID ,nil
+	return "REFRESH TOKEN : " + sessionID, nil
 }
 
-func (fakeRefreshToken *fakeRefreshToken) VerifyRefreshToken(token string, now time.Time) (sessionID string,err error){
+func (fakeRefreshToken *fakeRefreshToken) VerifyRefreshToken(token string, now time.Time) (sessionID string, err error) {
+	if fakeRefreshToken.VerifyRefreshTokenErr != nil {
+		return "", fakeRefreshToken.VerifyRefreshTokenErr
+	}
 	const prefix = "REFRESH TOKEN : "
 	if len(token) <= len(prefix) || token[:len(prefix)] != prefix {
 		return "", coreerror.ErrInvalidToken
@@ -147,7 +160,7 @@ func (fakeRefreshToken *fakeRefreshToken) VerifyRefreshToken(token string, now t
 
 func TestLogin_Success_ReturnToken(t *testing.T) {
 	users := &fakeUserRepo{
-		byUsername: map[string]user.Pengguna {
+		byUsername: map[string]user.Pengguna{
 			"myadmin": {ID: 1, Username: "myadmin", PasswordHashed: "X", Role: "ADMIN", StatusAkun: user.AKTIF, NamaLengkap: "My Admin", Email: "admin@example.com", JenisKelamin: "LAKI_LAKI", NoHp: "081234567891"},
 		},
 	}
@@ -157,7 +170,7 @@ func TestLogin_Success_ReturnToken(t *testing.T) {
 	accessTokens := &fakeAccessToken{}
 	refreshTokens := &fakeRefreshToken{}
 
-	uc := auth_service.NewAuthService(users,hasher,sessions,accessTokens,refreshTokens)
+	uc := auth_service.NewAuthService(users, hasher, sessions, accessTokens, refreshTokens)
 
 	res, err := uc.Login(context.Background(), login.LoginCmd{
 		Username: "myadmin", Password: "password",
@@ -170,5 +183,239 @@ func TestLogin_Success_ReturnToken(t *testing.T) {
 	}
 	if res.RefreshToken != "REFRESH TOKEN : sess_1" {
 		t.Fatalf("expected refresh for sess_1, got %s", res.RefreshToken)
+	}
+}
+
+func TestLogin_BasisPaths(t *testing.T) {
+	type tc struct {
+		name        string
+		setup       func() (*auth_service.AuthService, login.LoginCmd)
+		wantErr     error
+		wantAccess  string
+		wantRefresh string
+	}
+
+	tests := []tc{
+		{
+			name: "P1 user not found -> invalid creds",
+			setup: func() (*auth_service.AuthService, login.LoginCmd) {
+				users := &fakeUserRepo{byUsername: map[string]user.Pengguna{}}
+				hasher := &fakeHasher{ok: true}
+				sessions := &fakeSessionRepo{}
+				accessTokens := &fakeAccessToken{}
+				refreshTokens := &fakeRefreshToken{}
+				svc := auth_service.NewAuthService(users, hasher, sessions, accessTokens, refreshTokens)
+				return svc, login.LoginCmd{Username: "admin@example.com", Password: "password"}
+			},
+			wantErr: coreerror.ErrInvalidCreds,
+		},
+		{
+			name: "P2 status tidak aktif -> invalid creds",
+			setup: func() (*auth_service.AuthService, login.LoginCmd) {
+				users := &fakeUserRepo{
+					byUsername: map[string]user.Pengguna{
+						"admin@example.com": {ID: 1, Username: "admin@example.com", PasswordHashed: "X", Role: "ADMIN", StatusAkun: "NONAKTIF"},
+					},
+				}
+				hasher := &fakeHasher{ok: true}
+				sessions := &fakeSessionRepo{}
+				accessTokens := &fakeAccessToken{}
+				refreshTokens := &fakeRefreshToken{}
+				svc := auth_service.NewAuthService(users, hasher, sessions, accessTokens, refreshTokens)
+				return svc, login.LoginCmd{Username: "admin@example.com", Password: "password"}
+			},
+			wantErr: coreerror.ErrInvalidCreds,
+		},
+		{
+			name: "P3 wrong password -> invalid creds",
+			setup: func() (*auth_service.AuthService, login.LoginCmd) {
+				users := &fakeUserRepo{
+					byUsername: map[string]user.Pengguna{
+						"admin@example.com": {ID: 1, Username: "admin@example.com", PasswordHashed: "X", Role: "ADMIN", StatusAkun: user.AKTIF},
+					},
+				}
+				hasher := &fakeHasher{ok: false}
+				sessions := &fakeSessionRepo{}
+				accessTokens := &fakeAccessToken{}
+				refreshTokens := &fakeRefreshToken{}
+				svc := auth_service.NewAuthService(users, hasher, sessions, accessTokens, refreshTokens)
+				return svc, login.LoginCmd{Username: "admin@example.com", Password: "wrong"}
+			},
+			wantErr: coreerror.ErrInvalidCreds,
+		},
+		{
+			name: "P4 create session error -> propagated",
+			setup: func() (*auth_service.AuthService, login.LoginCmd) {
+				users := &fakeUserRepo{
+					byUsername: map[string]user.Pengguna{
+						"admin@example.com": {ID: 1, Username: "admin@example.com", PasswordHashed: "X", Role: "ADMIN", StatusAkun: user.AKTIF},
+					},
+				}
+				hasher := &fakeHasher{ok: true}
+				sessions := &fakeSessionRepo{createSessionErr: fmt.Errorf("session db down")}
+				accessTokens := &fakeAccessToken{}
+				refreshTokens := &fakeRefreshToken{}
+				svc := auth_service.NewAuthService(users, hasher, sessions, accessTokens, refreshTokens)
+				return svc, login.LoginCmd{Username: "admin@example.com", Password: "password"}
+			},
+			wantErr: fmt.Errorf("session db down"),
+		},
+		{
+			name: "P5 access token error -> propagated",
+			setup: func() (*auth_service.AuthService, login.LoginCmd) {
+				users := &fakeUserRepo{
+					byUsername: map[string]user.Pengguna{
+						"admin@example.com": {ID: 1, Username: "admin@example.com", PasswordHashed: "X", Role: "ADMIN", StatusAkun: user.AKTIF},
+					},
+				}
+				hasher := &fakeHasher{ok: true}
+				sessions := &fakeSessionRepo{sessionNextID: "sess_1"}
+				accessTokens := &fakeAccessToken{GenerateAccessTokenErr: fmt.Errorf("sign access fail")}
+				refreshTokens := &fakeRefreshToken{}
+				svc := auth_service.NewAuthService(users, hasher, sessions, accessTokens, refreshTokens)
+				return svc, login.LoginCmd{Username: "admin@example.com", Password: "password"}
+			},
+			wantErr: fmt.Errorf("sign access fail"),
+		},
+		{
+			name: "P6 refresh token error -> propagated",
+			setup: func() (*auth_service.AuthService, login.LoginCmd) {
+				users := &fakeUserRepo{
+					byUsername: map[string]user.Pengguna{
+						"admin@example.com": {ID: 1, Username: "admin@example.com", PasswordHashed: "X", Role: "ADMIN", StatusAkun: user.AKTIF},
+					},
+				}
+				hasher := &fakeHasher{ok: true}
+				sessions := &fakeSessionRepo{sessionNextID: "sess_1"}
+				accessTokens := &fakeAccessToken{}
+				refreshTokens := &fakeRefreshToken{GenerateRefreshTokenErr: fmt.Errorf("sign refresh fail")}
+				svc := auth_service.NewAuthService(users, hasher, sessions, accessTokens, refreshTokens)
+				return svc, login.LoginCmd{Username: "admin@example.com", Password: "password"}
+			},
+			wantErr: fmt.Errorf("sign refresh fail"),
+		},
+		{
+			name: "P7 success",
+			setup: func() (*auth_service.AuthService, login.LoginCmd) {
+				users := &fakeUserRepo{
+					byUsername: map[string]user.Pengguna{
+						"admin@example.com": {ID: 1, Username: "admin@example.com", PasswordHashed: "X", Role: "ADMIN", StatusAkun: user.AKTIF},
+					},
+				}
+				hasher := &fakeHasher{ok: true}
+				sessions := &fakeSessionRepo{sessionNextID: "sess_99"}
+				accessTokens := &fakeAccessToken{}
+				refreshTokens := &fakeRefreshToken{}
+				svc := auth_service.NewAuthService(users, hasher, sessions, accessTokens, refreshTokens)
+				return svc, login.LoginCmd{Username: "admin@example.com", Password: "password"}
+			},
+			wantAccess:  "ACCESS TOKEN :|1|ADMIN|admin@example.com",
+			wantRefresh: "REFRESH TOKEN : sess_99",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			svc, cmd := tt.setup()
+			res, err := svc.Login(context.Background(), cmd)
+
+			if tt.wantErr == nil && err != nil {
+				t.Fatalf("expected nil, got %v", err)
+			}
+			if tt.wantErr != nil {
+				if err == nil {
+					t.Fatalf("expected error, got nil")
+				}
+				if err != nil && err.Error() != tt.wantErr.Error() && err != coreerror.ErrInvalidCreds {
+					t.Fatalf("expected error %v, got %v", tt.wantErr, err)
+				}
+			}
+
+			if tt.wantErr == nil {
+				if res.AccessToken != tt.wantAccess {
+					t.Fatalf("want %q, got %q", tt.wantAccess, res.AccessToken)
+				}
+				if res.RefreshToken != tt.wantRefresh {
+					t.Fatalf("want %q, got %q", tt.wantRefresh, res.RefreshToken)
+				}
+			}
+		})
+	}
+}
+
+func TestLogout_BasisPaths(t *testing.T) {
+	type tc struct {
+		name    string
+		setup   func() (*auth_service.AuthService, string)
+		wantErr error
+	}
+
+	tests := []tc{
+		{
+			name: "P1 invalid refresh token -> invalid token",
+			setup: func() (*auth_service.AuthService, string) {
+				users := &fakeUserRepo{}
+				hasher := &fakeHasher{ok: true}
+				sessions := &fakeSessionRepo{}
+				accessTokens := &fakeAccessToken{}
+				refreshTokens := &fakeRefreshToken{VerifyRefreshTokenErr: coreerror.ErrInvalidToken}
+				svc := auth_service.NewAuthService(users, hasher, sessions, accessTokens, refreshTokens)
+				return svc, "bad-token"
+			},
+			wantErr: coreerror.ErrInvalidToken,
+		},
+		{
+			name: "P2 revoke session error -> propagated",
+			setup: func() (*auth_service.AuthService, string) {
+				users := &fakeUserRepo{}
+				hasher := &fakeHasher{ok: true}
+				sessions := &fakeSessionRepo{
+					store: map[string]session.Session{
+						"sess_1": {SessionID: "sess_1", UserID: 1, ExpiresAt: time.Now().Add(time.Hour)},
+					},
+					revokeSessionErr: fmt.Errorf("session revoke failed"),
+				}
+				accessTokens := &fakeAccessToken{}
+				refreshTokens := &fakeRefreshToken{}
+				svc := auth_service.NewAuthService(users, hasher, sessions, accessTokens, refreshTokens)
+				return svc, "REFRESH TOKEN : sess_1"
+			},
+			wantErr: fmt.Errorf("session revoke failed"),
+		},
+		{
+			name: "P3 success",
+			setup: func() (*auth_service.AuthService, string) {
+				users := &fakeUserRepo{}
+				hasher := &fakeHasher{ok: true}
+				sessions := &fakeSessionRepo{
+					store: map[string]session.Session{
+						"sess_1": {SessionID: "sess_1", UserID: 1, ExpiresAt: time.Now().Add(time.Hour)},
+					},
+				}
+				accessTokens := &fakeAccessToken{}
+				refreshTokens := &fakeRefreshToken{}
+				svc := auth_service.NewAuthService(users, hasher, sessions, accessTokens, refreshTokens)
+				return svc, "REFRESH TOKEN : sess_1"
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			svc, token := tt.setup()
+			err := svc.Logout(context.Background(), token, time.Now())
+
+			if tt.wantErr == nil && err != nil {
+				t.Fatalf("expected nil, got %v", err)
+			}
+			if tt.wantErr != nil {
+				if err == nil {
+					t.Fatalf("expected error, got nil")
+				}
+				if err != nil && err.Error() != tt.wantErr.Error() && err != coreerror.ErrInvalidToken {
+					t.Fatalf("expected error %v, got %v", tt.wantErr, err)
+				}
+			}
+		})
 	}
 }
