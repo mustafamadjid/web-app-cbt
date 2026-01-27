@@ -10,7 +10,7 @@ import (
 	out "github.com/mustafamadjid/web-app-cbt/internal/core/port/out"
 	txport "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/tx"
 	userport "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
-	user_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/user"
+	user_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/user/create"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -166,7 +166,7 @@ func (fakeHash *fakeHasher) GenerateHash(plain string) (string, error) {
 	return fakeHash.hash, nil
 }
 
-func TestCreateGuru(t *testing.T) {
+func TestCreateGuruBranchCoverage(t *testing.T) {
 	validCmd := func() user_service.CreateGuruCmd {
 		return user_service.CreateGuruCmd{
 			Username:     "guruuser",
@@ -202,7 +202,7 @@ func TestCreateGuru(t *testing.T) {
 		wantResult         user_service.CreateGuruRes
 	}{
 		{
-			name:  "semua validasi lolos",
+			name:  "Branch 1 -> semua validasi lolos",
 			cmd:   validCmd(),
 			actor: adminActor,
 			txm: &fakeTxManager{tx: &fakeTx{
@@ -219,7 +219,7 @@ func TestCreateGuru(t *testing.T) {
 			wantResult:         user_service.CreateGuruRes{IdPengguna: 10, IdProfilGuru: 20},
 		},
 		{
-			name:  "username taken",
+			name:  "Branch 2 -> username taken",
 			cmd:   validCmd(),
 			actor: adminActor,
 			txm: &fakeTxManager{tx: &fakeTx{
@@ -236,7 +236,7 @@ func TestCreateGuru(t *testing.T) {
 			wantCreateProfil:   false,
 		},
 		{
-			name:  "NIP taken",
+			name:  "Branch 3 -> NIP taken",
 			cmd:   validCmd(),
 			actor: adminActor,
 			txm: &fakeTxManager{tx: &fakeTx{
@@ -253,7 +253,7 @@ func TestCreateGuru(t *testing.T) {
 			wantCreateProfil:   false,
 		},
 		{
-			name:  "Create pengguna gagal",
+			name:  "Branch 4 -> Create pengguna gagal",
 			cmd:   validCmd(),
 			actor: adminActor,
 			txm: &fakeTxManager{tx: &fakeTx{
@@ -270,7 +270,7 @@ func TestCreateGuru(t *testing.T) {
 			wantCreateProfil:   false,
 		},
 		{
-			name:  "Create profil guru gagal",
+			name:  "Branch 5 -> Create profil guru gagal",
 			cmd:   validCmd(),
 			actor: adminActor,
 			txm: &fakeTxManager{tx: &fakeTx{
@@ -287,7 +287,7 @@ func TestCreateGuru(t *testing.T) {
 			wantCreateProfil:   true,
 		},
 		{
-			name:  "Commit gagal",
+			name:  "Branch 6 -> Commit gagal",
 			cmd:   validCmd(),
 			actor: adminActor,
 			txm: &fakeTxManager{tx: &fakeTx{
@@ -305,7 +305,7 @@ func TestCreateGuru(t *testing.T) {
 			wantCreateProfil:   true,
 		},
 		{
-			name:  "invalid email",
+			name:  "Branch 7 -> invalid email",
 			cmd:   func() user_service.CreateGuruCmd { c := validCmd(); c.Email = "not-an-email"; return c }(),
 			actor: adminActor,
 			txm: &fakeTxManager{tx: &fakeTx{
@@ -322,7 +322,7 @@ func TestCreateGuru(t *testing.T) {
 			wantCreateProfil:   false,
 		},
 		{
-			name:  "invalid nip",
+			name:  "Branch 8 -> invalid nip",
 			cmd:   func() user_service.CreateGuruCmd { c := validCmd(); c.Nip = "123"; return c }(),
 			actor: adminActor,
 			txm: &fakeTxManager{tx: &fakeTx{
@@ -339,7 +339,7 @@ func TestCreateGuru(t *testing.T) {
 			wantCreateProfil:   false,
 		},
 		{
-			name:  "hash password gagal",
+			name:  "Branch 9 -> hash password gagal",
 			cmd:   validCmd(),
 			actor: adminActor,
 			txm: &fakeTxManager{tx: &fakeTx{
@@ -356,7 +356,7 @@ func TestCreateGuru(t *testing.T) {
 			wantCreateProfil:   false,
 		},
 		{
-			name:  "begin tx gagal",
+			name:  "Branch 10 -> begin tx gagal",
 			cmd:   validCmd(),
 			actor: adminActor,
 			txm: &fakeTxManager{
