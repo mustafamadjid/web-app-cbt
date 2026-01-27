@@ -10,4 +10,5 @@ var (
 	ErrConflict       = errors.New("conflict")
 	ErrInvalidToken   = errors.New("invalid token")
 	ErrInvalidCreds   = errors.New("invalid credentials")
+	ErrUsernameTaken = errors.New("username taken")
 )

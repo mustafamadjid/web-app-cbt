@@ -1,52 +1,43 @@
 package user
 
+import (
+	"errors"
+	"net/mail"
+	"strings"
+)
+
 type ID int
 type Role string
 type StatusAkun string
+type Email string
 
 const (
 	ADMIN Role = "ADMIN"
-	GURU Role = "GURU"
+	GURU  Role = "GURU"
 	SISWA Role = "SISWA"
 )
 
 const (
-	AKTIF StatusAkun = "AKTIF"
+	AKTIF    StatusAkun = "AKTIF"
 	NONAKTIF StatusAkun = "NONAKTIF"
 )
 
 type Pengguna struct {
-	ID ID
-	Username string
-	Email string
+	ID             ID
+	Username       string
+	Email          Email
 	PasswordHashed string
-	NamaLengkap string
-	JenisKelamin string
-	NoHp string
-	Role Role
-	StatusAkun StatusAkun
-	Foto string
+	NamaLengkap    string
+	JenisKelamin   string
+	NoHp           string
+	Role           Role
+	StatusAkun     StatusAkun
+	Foto           string
 }
 
-type ProfilSiswa struct{
-	ID ID
-	IdPengguna ID
-	IdTingkatKelas ID
-	IdNamaKelas ID
-	nisn string
-	NoAbsen int
-	Angkatan int
-	TempatLahir string
-	TanggalLahir string
-}
-type ProfilGuru struct{
-	ID ID
-	IdPengguna ID
-	Nip string
-	Jabatan string
-	BidangStudi string
-}
-
+var (
+	ErrInvalidEmail = errors.New("invalid Email")
+)
 
 func (role Role) ValidRole() bool {
 	switch role {
@@ -55,4 +46,15 @@ func (role Role) ValidRole() bool {
 	default:
 		return false
 	}
+}
+
+func CheckNewEmail(raw string) (Email, error) {
+	s := strings.TrimSpace(strings.ToLower(raw))
+	if s == "" {
+		return "", ErrInvalidEmail
+	}
+	if _, err := mail.ParseAddress(s); err != nil {
+		return "", ErrInvalidEmail
+	}
+	return Email(s), nil
 }

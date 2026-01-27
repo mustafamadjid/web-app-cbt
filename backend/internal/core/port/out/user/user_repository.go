@@ -11,7 +11,10 @@ type UserRepository interface {
 
 	CreateUser(ctx context.Context,pengguna user.Pengguna) (user.ID,error)
 	UpdateUser(ctx context.Context,pengguna user.Pengguna) (user.ID,error)
+	DeleteUser(ctx context.Context,id user.ID) error
 
 	ListUser(ctx context.Context) ([]user.Pengguna,error)
 }
+
+
 
