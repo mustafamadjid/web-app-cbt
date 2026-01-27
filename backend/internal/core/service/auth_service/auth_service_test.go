@@ -183,18 +183,10 @@ func TestLogin_Success_ReturnToken(t *testing.T) {
 	res, err := uc.Login(context.Background(), login.LoginCmd{
 		Username: "myadmin", Password: "password",
 	})
-	
 
-	
-	if err != nil {
-		t.Fatalf("expected nil, got %v", err)
-	}
-	if res.AccessToken != "ACCESS TOKEN :|1|ADMIN|myadmin" {
-		t.Fatalf("expected ACCESS TOKEN, got %s", res.AccessToken)
-	}
-	if res.RefreshToken != "REFRESH TOKEN : sess_1" {
-		t.Fatalf("expected refresh for sess_1, got %s", res.RefreshToken)
-	}
+	assert.NoError(t, err)
+	assert.Equal(t, "ACCESS TOKEN :|1|ADMIN|myadmin", res.AccessToken)
+	assert.Equal(t, "REFRESH TOKEN : sess_1", res.RefreshToken)
 }
 
 func TestLogin_BasisPaths(t *testing.T) {
@@ -329,27 +321,15 @@ func TestLogin_BasisPaths(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			svc, cmd := tt.setup()
 			res, err := svc.Login(context.Background(), cmd)
-
-			if tt.wantErr == nil && err != nil {
-				t.Fatalf("expected nil, got %v", err)
-			}
-			if tt.wantErr != nil {
-				if err == nil {
-					t.Fatalf("expected error, got nil")
-				}
-				if err != nil && err.Error() != tt.wantErr.Error() && err != coreerror.ErrInvalidCreds {
-					t.Fatalf("expected error %v, got %v", tt.wantErr, err)
-				}
-			}
-
 			if tt.wantErr == nil {
-				if res.AccessToken != tt.wantAccess {
-					t.Fatalf("want %q, got %q", tt.wantAccess, res.AccessToken)
-				}
-				if res.RefreshToken != tt.wantRefresh {
-					t.Fatalf("want %q, got %q", tt.wantRefresh, res.RefreshToken)
-				}
+				assert.NoError(t, err)
+				assert.Equal(t, tt.wantAccess, res.AccessToken)
+				assert.Equal(t, tt.wantRefresh, res.RefreshToken)
+				return
 			}
+
+			assert.Error(t, err)
+			assert.EqualError(t, err, tt.wantErr.Error())
 		})
 	}
 }
@@ -415,18 +395,13 @@ func TestLogout_BasisPaths(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			svc, token := tt.setup()
 			err := svc.Logout(context.Background(), token, time.Now())
+			if tt.wantErr == nil {
+				assert.NoError(t, err)
+				return
+			}
 
-			if tt.wantErr == nil && err != nil {
-				t.Fatalf("expected nil, got %v", err)
-			}
-			if tt.wantErr != nil {
-				if err == nil {
-					t.Fatalf("expected error, got nil")
-				}
-				if err != nil && err.Error() != tt.wantErr.Error() && err != coreerror.ErrInvalidToken {
-					t.Fatalf("expected error %v, got %v", tt.wantErr, err)
-				}
-			}
+			assert.Error(t, err)
+			assert.EqualError(t, err, tt.wantErr.Error())
 		})
 	}
 }
