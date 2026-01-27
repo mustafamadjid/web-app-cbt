@@ -2,6 +2,7 @@ package auth_service_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -13,6 +14,7 @@ import (
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/auth/session"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/service/auth_service"
+	"github.com/stretchr/testify/assert"
 )
 
 type fakeUserRepo struct {
@@ -158,6 +160,12 @@ func (fakeRefreshToken *fakeRefreshToken) VerifyRefreshToken(token string, now t
 	return token[len(prefix):], nil
 }
 
+var (
+	ErrSessionDown    = errors.New("session db down")
+	ErrSignAccessFail = errors.New("sign access fail")
+	ErrSignRefreshFail = errors.New("sign refresh fail")
+)
+
 func TestLogin_Success_ReturnToken(t *testing.T) {
 	users := &fakeUserRepo{
 		byUsername: map[string]user.Pengguna{
@@ -175,6 +183,9 @@ func TestLogin_Success_ReturnToken(t *testing.T) {
 	res, err := uc.Login(context.Background(), login.LoginCmd{
 		Username: "myadmin", Password: "password",
 	})
+	
+
+	
 	if err != nil {
 		t.Fatalf("expected nil, got %v", err)
 	}
@@ -205,7 +216,7 @@ func TestLogin_BasisPaths(t *testing.T) {
 				accessTokens := &fakeAccessToken{}
 				refreshTokens := &fakeRefreshToken{}
 				svc := auth_service.NewAuthService(users, hasher, sessions, accessTokens, refreshTokens)
-				return svc, login.LoginCmd{Username: "admin@example.com", Password: "password"}
+				return svc, login.LoginCmd{Username: "myadmin", Password: "password"}
 			},
 			wantErr: coreerror.ErrInvalidCreds,
 		},
@@ -214,7 +225,7 @@ func TestLogin_BasisPaths(t *testing.T) {
 			setup: func() (*auth_service.AuthService, login.LoginCmd) {
 				users := &fakeUserRepo{
 					byUsername: map[string]user.Pengguna{
-						"admin@example.com": {ID: 1, Username: "admin@example.com", PasswordHashed: "X", Role: "ADMIN", StatusAkun: "NONAKTIF"},
+						"myadmin": {ID: 1, Username: "myadmin", PasswordHashed: "X", Role: "ADMIN", StatusAkun: user.NONAKTIF},
 					},
 				}
 				hasher := &fakeHasher{ok: true}
@@ -222,7 +233,7 @@ func TestLogin_BasisPaths(t *testing.T) {
 				accessTokens := &fakeAccessToken{}
 				refreshTokens := &fakeRefreshToken{}
 				svc := auth_service.NewAuthService(users, hasher, sessions, accessTokens, refreshTokens)
-				return svc, login.LoginCmd{Username: "admin@example.com", Password: "password"}
+				return svc, login.LoginCmd{Username: "myadmin", Password: "password"}
 			},
 			wantErr: coreerror.ErrInvalidCreds,
 		},
