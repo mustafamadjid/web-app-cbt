@@ -35,6 +35,11 @@ type Pengguna struct {
 	Foto           string
 }
 
+type Actor struct {
+	IdPengguna ID
+	Role       Role
+}
+
 var (
 	ErrInvalidEmail = errors.New("invalid Email")
 )

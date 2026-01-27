@@ -3,7 +3,9 @@ package user_service_test
 import (
 	"context"
 
+	
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
+	out "github.com/mustafamadjid/web-app-cbt/internal/core/port/out"
 	txport "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/tx"
 	userport "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
 )
@@ -68,7 +70,7 @@ type fakeProfilGuruRepo struct {
 	createErr error
 }
 
-func (r *fakeProfilGuruRepo) ExistByNIP(ctx context.Context, nip string) (bool, error) {
+func (r *fakeProfilGuruRepo) ExistByNIP(ctx context.Context, nip user.NIP) (bool, error) {
 	return r.existsNip, nil
 }
 
@@ -114,4 +116,12 @@ func (t *fakeTx) Commit() error {
 func (t *fakeTx) Rollback() error {
 	t.rollbackCalled = true
 	return nil
+}
+
+type fakeHasher struct {
+	generateHash out.PasswordHasher
+}
+
+func (fakeHash *fakeHasher) GenerateHash(plain string) (string,error){
+	return "Hashed Paswwor",nil
 }

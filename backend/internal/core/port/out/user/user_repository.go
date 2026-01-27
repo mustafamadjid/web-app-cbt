@@ -5,6 +5,8 @@ import (
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 )
 
+
+
 type UserRepository interface {
 	FindUserByID(ctx context.Context,id user.ID) (user.Pengguna,error)
 	UserExistByUsername(ctx context.Context,username string) (bool,error)
