@@ -50,7 +50,6 @@ func (fakeRepo *fakeUserRepo) FindByUsername(ctx context.Context, username strin
 	if !ok {
 		return user.Pengguna{}, coreerror.ErrNotFound
 	}
-
 	return u, nil
 }
 
@@ -69,11 +68,9 @@ func (fakeSession *fakeSessionRepo) CreateSession(ctx context.Context, userID us
 	if fakeSession.store == nil {
 		fakeSession.store = map[string]session.Session{}
 	}
-
 	if fakeSession.sessionNextID == "" {
 		fakeSession.sessionNextID = "session_user_1"
 	}
-
 	id := fakeSession.sessionNextID
 	fakeSession.store[id] = session.Session{
 		SessionID: id,
@@ -119,7 +116,6 @@ func (f *fakeAccessToken) GenerateAccessToken(userID user.ID, role user.Role, us
 	if f.GenerateAccessTokenErr != nil {
 		return "", f.GenerateAccessTokenErr
 	}
-
 	return fmt.Sprintf("ACCESS TOKEN :|%v|%v|%s", userID, role, username), nil
 }
 
@@ -128,17 +124,14 @@ func (f *fakeAccessToken) VerifyAccessToken(token string, now time.Time) (userID
 	if !strings.HasPrefix(token, prefix) {
 		return 0, "", "", coreerror.ErrInvalidToken
 	}
-
 	parts := strings.Split(token[len(prefix):], "|")
 	if len(parts) != 3 {
 		return 0, "", "", coreerror.ErrInvalidToken
 	}
-
 	idValue, err := strconv.Atoi(parts[0])
 	if err != nil {
 		return 0, "", "", coreerror.ErrInvalidToken
 	}
-
 	return user.ID(idValue), user.Role(parts[1]), parts[2], nil
 }
 
@@ -161,9 +154,10 @@ func (fakeRefreshToken *fakeRefreshToken) VerifyRefreshToken(token string, now t
 }
 
 var (
-	ErrSessionDown    = errors.New("session db down")
-	ErrSignAccessFail = errors.New("sign access fail")
+	ErrSessionDown     = errors.New("session db down")
+	ErrSignAccessFail  = errors.New("sign access fail")
 	ErrSignRefreshFail = errors.New("sign refresh fail")
+	ErrRevokeFailed    = errors.New("session revoke failed")
 )
 
 func TestLogin_Success_ReturnToken(t *testing.T) {
@@ -172,17 +166,13 @@ func TestLogin_Success_ReturnToken(t *testing.T) {
 			"myadmin": {ID: 1, Username: "myadmin", PasswordHashed: "X", Role: "ADMIN", StatusAkun: user.AKTIF, NamaLengkap: "My Admin", Email: "admin@example.com", JenisKelamin: "LAKI_LAKI", NoHp: "081234567891"},
 		},
 	}
-
 	hasher := &fakeHasher{ok: true}
 	sessions := &fakeSessionRepo{sessionNextID: "sess_1"}
 	accessTokens := &fakeAccessToken{}
 	refreshTokens := &fakeRefreshToken{}
-
 	uc := auth_service.NewAuthService(users, hasher, sessions, accessTokens, refreshTokens)
 
-	res, err := uc.Login(context.Background(), login.LoginCmd{
-		Username: "myadmin", Password: "password",
-	})
+	res, err := uc.Login(context.Background(), login.LoginCmd{Username: "myadmin", Password: "password"})
 
 	assert.NoError(t, err)
 	assert.Equal(t, "ACCESS TOKEN :|1|ADMIN|myadmin", res.AccessToken)
@@ -255,13 +245,13 @@ func TestLogin_BasisPaths(t *testing.T) {
 					},
 				}
 				hasher := &fakeHasher{ok: true}
-				sessions := &fakeSessionRepo{createSessionErr: fmt.Errorf("session db down")}
+				sessions := &fakeSessionRepo{createSessionErr: ErrSessionDown}
 				accessTokens := &fakeAccessToken{}
 				refreshTokens := &fakeRefreshToken{}
 				svc := auth_service.NewAuthService(users, hasher, sessions, accessTokens, refreshTokens)
 				return svc, login.LoginCmd{Username: "admin@example.com", Password: "password"}
 			},
-			wantErr: fmt.Errorf("session db down"),
+			wantErr: ErrSessionDown,
 		},
 		{
 			name: "P5 access token error -> propagated",
@@ -273,12 +263,12 @@ func TestLogin_BasisPaths(t *testing.T) {
 				}
 				hasher := &fakeHasher{ok: true}
 				sessions := &fakeSessionRepo{sessionNextID: "sess_1"}
-				accessTokens := &fakeAccessToken{GenerateAccessTokenErr: fmt.Errorf("sign access fail")}
+				accessTokens := &fakeAccessToken{GenerateAccessTokenErr: ErrSignAccessFail}
 				refreshTokens := &fakeRefreshToken{}
 				svc := auth_service.NewAuthService(users, hasher, sessions, accessTokens, refreshTokens)
 				return svc, login.LoginCmd{Username: "admin@example.com", Password: "password"}
 			},
-			wantErr: fmt.Errorf("sign access fail"),
+			wantErr: ErrSignAccessFail,
 		},
 		{
 			name: "P6 refresh token error -> propagated",
@@ -291,11 +281,11 @@ func TestLogin_BasisPaths(t *testing.T) {
 				hasher := &fakeHasher{ok: true}
 				sessions := &fakeSessionRepo{sessionNextID: "sess_1"}
 				accessTokens := &fakeAccessToken{}
-				refreshTokens := &fakeRefreshToken{GenerateRefreshTokenErr: fmt.Errorf("sign refresh fail")}
+				refreshTokens := &fakeRefreshToken{GenerateRefreshTokenErr: ErrSignRefreshFail}
 				svc := auth_service.NewAuthService(users, hasher, sessions, accessTokens, refreshTokens)
 				return svc, login.LoginCmd{Username: "admin@example.com", Password: "password"}
 			},
-			wantErr: fmt.Errorf("sign refresh fail"),
+			wantErr: ErrSignRefreshFail,
 		},
 		{
 			name: "P7 success",
@@ -321,6 +311,7 @@ func TestLogin_BasisPaths(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			svc, cmd := tt.setup()
 			res, err := svc.Login(context.Background(), cmd)
+
 			if tt.wantErr == nil {
 				assert.NoError(t, err)
 				assert.Equal(t, tt.wantAccess, res.AccessToken)
@@ -329,7 +320,7 @@ func TestLogin_BasisPaths(t *testing.T) {
 			}
 
 			assert.Error(t, err)
-			assert.EqualError(t, err, tt.wantErr.Error())
+			assert.ErrorIs(t, err, tt.wantErr)
 		})
 	}
 }
@@ -364,14 +355,14 @@ func TestLogout_BasisPaths(t *testing.T) {
 					store: map[string]session.Session{
 						"sess_1": {SessionID: "sess_1", UserID: 1, ExpiresAt: time.Now().Add(time.Hour)},
 					},
-					revokeSessionErr: fmt.Errorf("session revoke failed"),
+					revokeSessionErr: ErrRevokeFailed,
 				}
 				accessTokens := &fakeAccessToken{}
 				refreshTokens := &fakeRefreshToken{}
 				svc := auth_service.NewAuthService(users, hasher, sessions, accessTokens, refreshTokens)
 				return svc, "REFRESH TOKEN : sess_1"
 			},
-			wantErr: fmt.Errorf("session revoke failed"),
+			wantErr: ErrRevokeFailed,
 		},
 		{
 			name: "P3 success",
@@ -392,16 +383,18 @@ func TestLogout_BasisPaths(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			svc, token := tt.setup()
 			err := svc.Logout(context.Background(), token, time.Now())
+
 			if tt.wantErr == nil {
 				assert.NoError(t, err)
 				return
 			}
 
 			assert.Error(t, err)
-			assert.EqualError(t, err, tt.wantErr.Error())
+			assert.ErrorIs(t, err, tt.wantErr)
 		})
 	}
 }

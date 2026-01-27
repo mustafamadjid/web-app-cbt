@@ -28,6 +28,26 @@ type Pengguna struct {
 	Foto string
 }
 
+type ProfilSiswa struct{
+	ID ID
+	IdPengguna ID
+	IdTingkatKelas ID
+	IdNamaKelas ID
+	nisn string
+	NoAbsen int
+	Angkatan int
+	TempatLahir string
+	TanggalLahir string
+}
+type ProfilGuru struct{
+	ID ID
+	IdPengguna ID
+	Nip string
+	Jabatan string
+	BidangStudi string
+}
+
+
 func (role Role) ValidRole() bool {
 	switch role {
 	case ADMIN, GURU, SISWA:
