@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
@@ -49,7 +50,7 @@ func (r *fakeUserRepo) FindUserByID(ctx context.Context, id user.ID) (user.Pengg
 	panic("not used in this test")
 }
 
-func (r *fakeUserRepo) UpdateUser(ctx context.Context,idPengguna user.ID, p user.Pengguna) (user.ID, error) {
+func (r *fakeUserRepo) UpdateUser(ctx context.Context, idPengguna user.ID, p user.Pengguna) (user.ID, error) {
 	panic("not used in this test")
 }
 
@@ -94,15 +95,53 @@ func (r *fakeProfilGuruRepo) FindProfilGuruByID(ctx context.Context, id user.ID)
 	panic("not used in this test")
 }
 
-func (r *fakeProfilGuruRepo) UpdateProfilGuru(ctx context.Context, idPengguna user.ID ,profilGuru user.ProfilGuru) (user.ID, error) {
+func (r *fakeProfilGuruRepo) UpdateProfilGuru(ctx context.Context, idPengguna user.ID, profilGuru user.ProfilGuru) (user.ID, error) {
+	panic("not used in this test")
+}
+
+// ===== minimal fake profil siswa repo =====
+
+type fakeProfilSiswaRepo struct {
+	existsNisn bool
+	existErr   error
+
+	createID  user.ID
+	createErr error
+
+	existCalled  bool
+	createCalled bool
+}
+
+func (r *fakeProfilSiswaRepo) ExistByNISN(ctx context.Context, nisn string) (bool, error) {
+	r.existCalled = true
+	if r.existErr != nil {
+		return false, r.existErr
+	}
+	return r.existsNisn, nil
+}
+
+func (r *fakeProfilSiswaRepo) CreateProfilSiswa(ctx context.Context, g user.ProfilSiswa) (user.ID, error) {
+	r.createCalled = true
+	if r.createErr != nil {
+		return 0, r.createErr
+	}
+	return r.createID, nil
+}
+
+func (r *fakeProfilSiswaRepo) FindProfilSiswaByID(ctx context.Context, id user.ID) (user.ProfilSiswa, error) {
+	panic("not used in this test")
+}
+
+func (r *fakeProfilSiswaRepo) UpdateProfilSiswa(ctx context.Context, profilSiswa user.ProfilSiswa) (user.ID, error) {
 	panic("not used in this test")
 }
 
 // ===== fake tx & tx manager =====
 
 type fakeTx struct {
-	userRepo       *fakeUserRepo
-	profilGuruRepo *fakeProfilGuruRepo
+	userRepo        *fakeUserRepo
+	profilGuruRepo  *fakeProfilGuruRepo
+	profilSiswaRepo *fakeProfilSiswaRepo
 
 	commitCalled   bool
 	rollbackCalled bool
@@ -129,6 +168,10 @@ func (t *fakeTx) Pengguna() userport.UserRepository {
 
 func (t *fakeTx) ProfilGuru() userport.ProfilGuruRepository {
 	return t.profilGuruRepo
+}
+
+func (t *fakeTx) ProfilSiswa() userport.ProfilSiswaRepository {
+	return t.profilSiswaRepo
 }
 
 func (t *fakeTx) Commit() error {
@@ -403,6 +446,287 @@ func TestCreateGuruBranchCoverage(t *testing.T) {
 				}
 				if tc.txm.tx.profilGuruRepo != nil {
 					assert.Equal(t, tc.wantCreateProfil, tc.txm.tx.profilGuruRepo.createCalled)
+				}
+			}
+		})
+	}
+}
+
+func TestCreateSiswaBranchCoverage(t *testing.T) {
+	validCmd := func() user_service.CreateSiswaCmd {
+		return user_service.CreateSiswaCmd{
+			Username:       "siswauser",
+			Email:          "siswa@example.com",
+			Password:       "password",
+			NamaLengkap:    "Siswa Test",
+			JenisKelamin:   "L",
+			NoHp:           "08123456789",
+			Foto:           "foto.png",
+			IdTingkatKelas: 1,
+			IdNamaKelas:    2,
+			Nisn:           "1234567890",
+			NoAbsen:        1,
+			Angkatan:       2021,
+			TempatLahir:    "Bandung",
+			TanggalLahir:   time.Date(2005, time.January, 1, 0, 0, 0, 0, time.UTC),
+		}
+	}
+
+	adminActor := user.Actor{IdPengguna: 1, Role: user.ADMIN}
+
+	testErr := errors.New("test error")
+
+	cases := []struct {
+		name               string
+		cmd                user_service.CreateSiswaCmd
+		actor              user.Actor
+		txm                *fakeTxManager
+		hasher             *fakeHasher
+		wantErr            error
+		wantBeginCalled    bool
+		wantHasherCalled   bool
+		wantCommitCalled   bool
+		wantRollbackCalled bool
+		wantCreateUser     bool
+		wantCreateProfil   bool
+		wantResult         user_service.CreateSiswaRes
+	}{
+		{
+			name:  "Branch 1 -> semua validasi lolos",
+			cmd:   validCmd(),
+			actor: adminActor,
+			txm: &fakeTxManager{tx: &fakeTx{
+				userRepo:        &fakeUserRepo{createID: 10},
+				profilSiswaRepo: &fakeProfilSiswaRepo{createID: 20},
+			}},
+			hasher:             &fakeHasher{hash: "hashed"},
+			wantBeginCalled:    true,
+			wantHasherCalled:   true,
+			wantCommitCalled:   true,
+			wantRollbackCalled: true,
+			wantCreateUser:     true,
+			wantCreateProfil:   true,
+			wantResult:         user_service.CreateSiswaRes{IdPengguna: 10, IdProfilSiswa: 20},
+		},
+		{
+			name:  "Branch 2 -> username taken",
+			cmd:   validCmd(),
+			actor: adminActor,
+			txm: &fakeTxManager{tx: &fakeTx{
+				userRepo:        &fakeUserRepo{existByUsername: true},
+				profilSiswaRepo: &fakeProfilSiswaRepo{},
+			}},
+			hasher:             &fakeHasher{hash: "hashed"},
+			wantErr:            coreerror.ErrUsernameTaken,
+			wantBeginCalled:    true,
+			wantHasherCalled:   true,
+			wantCommitCalled:   false,
+			wantRollbackCalled: true,
+			wantCreateUser:     false,
+			wantCreateProfil:   false,
+		},
+		{
+			name:  "Branch 3 -> NISN taken",
+			cmd:   validCmd(),
+			actor: adminActor,
+			txm: &fakeTxManager{tx: &fakeTx{
+				userRepo:        &fakeUserRepo{existByUsername: false},
+				profilSiswaRepo: &fakeProfilSiswaRepo{existsNisn: true},
+			}},
+			hasher:             &fakeHasher{hash: "hashed"},
+			wantErr:            coreerror.ErrNisnTaken,
+			wantBeginCalled:    true,
+			wantHasherCalled:   true,
+			wantCommitCalled:   false,
+			wantRollbackCalled: true,
+			wantCreateUser:     false,
+			wantCreateProfil:   false,
+		},
+		{
+			name:  "Branch 4 -> Create pengguna gagal",
+			cmd:   validCmd(),
+			actor: adminActor,
+			txm: &fakeTxManager{tx: &fakeTx{
+				userRepo:        &fakeUserRepo{createErr: testErr},
+				profilSiswaRepo: &fakeProfilSiswaRepo{},
+			}},
+			hasher:             &fakeHasher{hash: "hashed"},
+			wantErr:            testErr,
+			wantBeginCalled:    true,
+			wantHasherCalled:   true,
+			wantCommitCalled:   false,
+			wantRollbackCalled: true,
+			wantCreateUser:     true,
+			wantCreateProfil:   false,
+		},
+		{
+			name:  "Branch 5 -> Create profil siswa gagal",
+			cmd:   validCmd(),
+			actor: adminActor,
+			txm: &fakeTxManager{tx: &fakeTx{
+				userRepo:        &fakeUserRepo{createID: 10},
+				profilSiswaRepo: &fakeProfilSiswaRepo{createErr: testErr},
+			}},
+			hasher:             &fakeHasher{hash: "hashed"},
+			wantErr:            testErr,
+			wantBeginCalled:    true,
+			wantHasherCalled:   true,
+			wantCommitCalled:   false,
+			wantRollbackCalled: true,
+			wantCreateUser:     true,
+			wantCreateProfil:   true,
+		},
+		{
+			name:  "Branch 6 -> Commit gagal",
+			cmd:   validCmd(),
+			actor: adminActor,
+			txm: &fakeTxManager{tx: &fakeTx{
+				userRepo:        &fakeUserRepo{createID: 10},
+				profilSiswaRepo: &fakeProfilSiswaRepo{createID: 20},
+				commitErr:       testErr,
+			}},
+			hasher:             &fakeHasher{hash: "hashed"},
+			wantErr:            testErr,
+			wantBeginCalled:    true,
+			wantHasherCalled:   true,
+			wantCommitCalled:   true,
+			wantRollbackCalled: true,
+			wantCreateUser:     true,
+			wantCreateProfil:   true,
+		},
+		{
+			name:  "Branch 7 -> invalid email",
+			cmd:   func() user_service.CreateSiswaCmd { c := validCmd(); c.Email = "not-an-email"; return c }(),
+			actor: adminActor,
+			txm: &fakeTxManager{tx: &fakeTx{
+				userRepo:        &fakeUserRepo{},
+				profilSiswaRepo: &fakeProfilSiswaRepo{},
+			}},
+			hasher:             &fakeHasher{hash: "hashed"},
+			wantErr:            user.ErrInvalidEmail,
+			wantBeginCalled:    false,
+			wantHasherCalled:   false,
+			wantCommitCalled:   false,
+			wantRollbackCalled: false,
+			wantCreateUser:     false,
+			wantCreateProfil:   false,
+		},
+		{
+			name:  "Branch 8 -> invalid nisn",
+			cmd:   func() user_service.CreateSiswaCmd { c := validCmd(); c.Nisn = "123"; return c }(),
+			actor: adminActor,
+			txm: &fakeTxManager{tx: &fakeTx{
+				userRepo:        &fakeUserRepo{},
+				profilSiswaRepo: &fakeProfilSiswaRepo{},
+			}},
+			hasher:             &fakeHasher{hash: "hashed"},
+			wantErr:            user.ErrInvalidNISN,
+			wantBeginCalled:    false,
+			wantHasherCalled:   false,
+			wantCommitCalled:   false,
+			wantRollbackCalled: false,
+			wantCreateUser:     false,
+			wantCreateProfil:   false,
+		},
+		{
+			name:  "Branch 9 -> invalid absen",
+			cmd:   func() user_service.CreateSiswaCmd { c := validCmd(); c.NoAbsen = 0; return c }(),
+			actor: adminActor,
+			txm: &fakeTxManager{tx: &fakeTx{
+				userRepo:        &fakeUserRepo{},
+				profilSiswaRepo: &fakeProfilSiswaRepo{},
+			}},
+			hasher:             &fakeHasher{hash: "hashed"},
+			wantErr:            user.ErrInvalidAbsen,
+			wantBeginCalled:    false,
+			wantHasherCalled:   false,
+			wantCommitCalled:   false,
+			wantRollbackCalled: false,
+			wantCreateUser:     false,
+			wantCreateProfil:   false,
+		},
+		{
+			name:  "Branch 10 -> invalid angkatan",
+			cmd:   func() user_service.CreateSiswaCmd { c := validCmd(); c.Angkatan = 2000; return c }(),
+			actor: adminActor,
+			txm: &fakeTxManager{tx: &fakeTx{
+				userRepo:        &fakeUserRepo{},
+				profilSiswaRepo: &fakeProfilSiswaRepo{},
+			}},
+			hasher:             &fakeHasher{hash: "hashed"},
+			wantErr:            user.ErrInvalidAngkatan,
+			wantBeginCalled:    false,
+			wantHasherCalled:   false,
+			wantCommitCalled:   false,
+			wantRollbackCalled: false,
+			wantCreateUser:     false,
+			wantCreateProfil:   false,
+		},
+		{
+			name:  "Branch 11 -> hash password gagal",
+			cmd:   validCmd(),
+			actor: adminActor,
+			txm: &fakeTxManager{tx: &fakeTx{
+				userRepo:        &fakeUserRepo{},
+				profilSiswaRepo: &fakeProfilSiswaRepo{},
+			}},
+			hasher:             &fakeHasher{err: testErr},
+			wantErr:            testErr,
+			wantBeginCalled:    false,
+			wantHasherCalled:   true,
+			wantCommitCalled:   false,
+			wantRollbackCalled: false,
+			wantCreateUser:     false,
+			wantCreateProfil:   false,
+		},
+		{
+			name:  "Branch 12 -> begin tx gagal",
+			cmd:   validCmd(),
+			actor: adminActor,
+			txm: &fakeTxManager{
+				beginErr: testErr,
+				tx: &fakeTx{
+					userRepo:        &fakeUserRepo{},
+					profilSiswaRepo: &fakeProfilSiswaRepo{},
+				},
+			},
+			hasher:             &fakeHasher{hash: "hashed"},
+			wantErr:            testErr,
+			wantBeginCalled:    true,
+			wantHasherCalled:   true,
+			wantCommitCalled:   false,
+			wantRollbackCalled: false,
+			wantCreateUser:     false,
+			wantCreateProfil:   false,
+		},
+	}
+
+	for _, tc := range cases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			service := user_service.NewCreateSiswaService(tc.txm, tc.hasher)
+
+			res, err := service.CreateSiswa(context.Background(), tc.cmd, tc.actor)
+
+			if tc.wantErr != nil {
+				assert.ErrorIs(t, err, tc.wantErr)
+			} else {
+				assert.NoError(t, err)
+			}
+
+			assert.Equal(t, tc.wantResult, res)
+			assert.Equal(t, tc.wantBeginCalled, tc.txm.beginCalled)
+			assert.Equal(t, tc.wantHasherCalled, tc.hasher.called)
+
+			if tc.txm.tx != nil {
+				assert.Equal(t, tc.wantCommitCalled, tc.txm.tx.commitCalled)
+				assert.Equal(t, tc.wantRollbackCalled, tc.txm.tx.rollbackCalled)
+				if tc.txm.tx.userRepo != nil {
+					assert.Equal(t, tc.wantCreateUser, tc.txm.tx.userRepo.createCalled)
+				}
+				if tc.txm.tx.profilSiswaRepo != nil {
+					assert.Equal(t, tc.wantCreateProfil, tc.txm.tx.profilSiswaRepo.createCalled)
 				}
 			}
 		})

@@ -5,7 +5,6 @@ import (
 
 	"github.com/jackc/pgx/v5"
 
-
 	outuser "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
 )
 
@@ -20,6 +19,10 @@ func (p *pgTx) Pengguna() outuser.UserRepository {
 
 func (p *pgTx) ProfilGuru() outuser.ProfilGuruRepository {
 	return &ProfilgGuruRepo{q: p.tx}
+}
+
+func (p *pgTx) ProfilSiswa() outuser.ProfilSiswaRepository {
+	return &ProfilSiswaRepo{q: p.tx}
 }
 
 func (p *pgTx) Commit() error {
