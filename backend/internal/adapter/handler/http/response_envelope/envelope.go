@@ -1,4 +1,4 @@
-package http
+package httpx
 
 type APIResponse[T any] struct {
 	Data *T `json:"data"`
