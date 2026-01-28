@@ -14,4 +14,5 @@ type AccessTokenService interface {
 type RefreshTokenService interface {
 	GenerateRefreshToken(sessionId string, tokenDuration time.Duration) (string,error)
 	VerifyRefreshToken(token string, now time.Time) (sessionID string,err error)
+	
 }

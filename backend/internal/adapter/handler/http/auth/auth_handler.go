@@ -77,3 +77,20 @@ func (h *AuthHandler) Login(write http.ResponseWriter, req *http.Request) {
 	httpResponse.WriteOK(write, http.StatusOK, responseData, "success")
 }
 
+func (h *AuthHandler) Logout(write http.ResponseWriter, req *http.Request) {
+	c,err := req.Cookie(h.cookies.RefreshName)
+	if err != nil || c.Value == "" {
+		httpResponse.WriteErr( write, http.StatusUnauthorized,"INVALID_TOKEN","unauthorized : invalid token")
+		return
+	}
+
+	_= h.svc.Logout(req.Context(),c.Value,time.Now())
+
+	cookie.ClearAuthCookies(write,h.cookies)
+
+	httpResponse.WriteOK(write, http.StatusOK,"", "success")
+}
+
+func (h *AuthHandler)Refresh(write http.ResponseWriter, req *http.Request) {
+	
+}
