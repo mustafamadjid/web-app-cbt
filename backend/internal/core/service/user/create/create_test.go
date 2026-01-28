@@ -10,7 +10,7 @@ import (
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 	out "github.com/mustafamadjid/web-app-cbt/internal/core/port/out"
 	txport "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/tx"
-	userport "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
+	outuser "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
 	user_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/user/create"
 	"github.com/stretchr/testify/assert"
 )
@@ -50,7 +50,7 @@ func (r *fakeUserRepo) FindUserByID(ctx context.Context, id user.ID) (user.Pengg
 	panic("not used in this test")
 }
 
-func (r *fakeUserRepo) UpdateUser(ctx context.Context, idPengguna user.ID, p user.Pengguna) (user.ID, error) {
+func (r *fakeUserRepo) UpdateUser(ctx context.Context,idPengguna user.ID,pengguna outuser.UpdatePenggunaPatch) error {
 	panic("not used in this test")
 }
 
@@ -95,7 +95,7 @@ func (r *fakeProfilGuruRepo) FindProfilGuruByID(ctx context.Context, id user.ID)
 	panic("not used in this test")
 }
 
-func (r *fakeProfilGuruRepo) UpdateProfilGuru(ctx context.Context, idPengguna user.ID, profilGuru user.ProfilGuru) (user.ID, error) {
+func (r *fakeProfilGuruRepo) UpdateProfilGuru(ctx context.Context,idPengguna user.ID, profilGuru outuser.UpdateProfilGuruPatch) error {
 	panic("not used in this test")
 }
 
@@ -103,7 +103,7 @@ func (r *fakeProfilGuruRepo) UpdateProfilGuru(ctx context.Context, idPengguna us
 
 type fakeProfilSiswaRepo struct {
 	existsNisn bool
-	existErr   error
+	existNisnErr   error
 
 	createID  user.ID
 	createErr error
@@ -114,8 +114,8 @@ type fakeProfilSiswaRepo struct {
 
 func (r *fakeProfilSiswaRepo) ExistByNISN(ctx context.Context, nisn string) (bool, error) {
 	r.existCalled = true
-	if r.existErr != nil {
-		return false, r.existErr
+	if r.existNisnErr != nil {
+		return false, r.existNisnErr
 	}
 	return r.existsNisn, nil
 }
@@ -162,15 +162,15 @@ func (m *fakeTxManager) Begin(ctx context.Context) (txport.Tx, error) {
 	return m.tx, nil
 }
 
-func (t *fakeTx) Pengguna() userport.UserRepository {
+func (t *fakeTx) Pengguna() outuser.UserRepository {
 	return t.userRepo
 }
 
-func (t *fakeTx) ProfilGuru() userport.ProfilGuruRepository {
+func (t *fakeTx) ProfilGuru() outuser.ProfilGuruRepository {
 	return t.profilGuruRepo
 }
 
-func (t *fakeTx) ProfilSiswa() userport.ProfilSiswaRepository {
+func (t *fakeTx) ProfilSiswa() outuser.ProfilSiswaRepository {
 	return t.profilSiswaRepo
 }
 
@@ -226,6 +226,7 @@ func TestCreateGuruBranchCoverage(t *testing.T) {
 	}
 
 	adminActor := user.Actor{IdPengguna: 1, Role: user.ADMIN}
+	nonAdminActor := user.Actor{IdPengguna: 2, Role: user.GURU}
 
 	testErr := errors.New("test error")
 
@@ -418,6 +419,63 @@ func TestCreateGuruBranchCoverage(t *testing.T) {
 			wantCreateUser:     false,
 			wantCreateProfil:   false,
 		},
+		{
+			name:  "Branch 11 -> Aktor bukan admin",
+			cmd:   validCmd(),
+			actor: nonAdminActor,
+			txm: &fakeTxManager{
+				tx: &fakeTx{
+					userRepo:       &fakeUserRepo{},
+					profilGuruRepo: &fakeProfilGuruRepo{},
+				},
+			},
+			hasher:             &fakeHasher{hash: "hashed"},
+			wantErr:            coreerror.ErrForbidden,
+			wantBeginCalled:    false,
+			wantHasherCalled:   false,
+			wantCommitCalled:   false,
+			wantRollbackCalled: false,
+			wantCreateUser:     false,
+			wantCreateProfil:   false,
+		},
+		{
+			name:  "Branch 12 -> UserExistByUsername Error",
+			cmd:   validCmd(),
+			actor: adminActor,
+			txm: &fakeTxManager{
+				tx: &fakeTx{
+					userRepo:       &fakeUserRepo{userExistErr: coreerror.ErrDbError},
+					profilGuruRepo: &fakeProfilGuruRepo{},
+				},
+			},
+			hasher:             &fakeHasher{hash: "hashed"},
+			wantErr:            coreerror.ErrDbError,
+			wantBeginCalled:    true,
+			wantHasherCalled:   true,
+			wantCommitCalled:   false,
+			wantRollbackCalled: true,
+			wantCreateUser:     false,
+			wantCreateProfil:   false,
+		},
+		{
+			name:  "Branch 13 -> ExistNIP Error",
+			cmd:   validCmd(),
+			actor: adminActor,
+			txm: &fakeTxManager{
+				tx: &fakeTx{
+					userRepo:       &fakeUserRepo{},
+					profilGuruRepo: &fakeProfilGuruRepo{existErr: coreerror.ErrDbError},
+				},
+			},
+			hasher:             &fakeHasher{hash: "hashed"},
+			wantErr:            coreerror.ErrDbError,
+			wantBeginCalled:    true,
+			wantHasherCalled:   true,
+			wantCommitCalled:   false,
+			wantRollbackCalled: true,
+			wantCreateUser:     false,
+			wantCreateProfil:   false,
+		},
 	}
 
 	for _, tc := range cases {
@@ -473,6 +531,7 @@ func TestCreateSiswaBranchCoverage(t *testing.T) {
 	}
 
 	adminActor := user.Actor{IdPengguna: 1, Role: user.ADMIN}
+	nonAdminActor := user.Actor{IdPengguna: 1, Role: user.SISWA}
 
 	testErr := errors.New("test error")
 
@@ -696,6 +755,63 @@ func TestCreateSiswaBranchCoverage(t *testing.T) {
 			wantHasherCalled:   true,
 			wantCommitCalled:   false,
 			wantRollbackCalled: false,
+			wantCreateUser:     false,
+			wantCreateProfil:   false,
+		},
+		{
+			name:  "Branch 13 -> Aktor non admin",
+			cmd:   validCmd(),
+			actor: nonAdminActor,
+			txm: &fakeTxManager{
+				tx: &fakeTx{
+					userRepo:        &fakeUserRepo{},
+					profilSiswaRepo: &fakeProfilSiswaRepo{},
+				},
+			},
+			hasher:             &fakeHasher{hash: "hashed"},
+			wantErr:            coreerror.ErrForbidden,
+			wantBeginCalled:    false,
+			wantHasherCalled:   false,
+			wantCommitCalled:   false,
+			wantRollbackCalled: false,
+			wantCreateUser:     false,
+			wantCreateProfil:   false,
+		},
+		{
+			name:  "Branch 14 -> UserExistByUsername Error",
+			cmd:   validCmd(),
+			actor: adminActor,
+			txm: &fakeTxManager{
+				tx: &fakeTx{
+					userRepo:        &fakeUserRepo{userExistErr: coreerror.ErrDbError},
+					profilSiswaRepo: &fakeProfilSiswaRepo{},
+				},
+			},
+			hasher:             &fakeHasher{hash: "hashed"},
+			wantErr:            coreerror.ErrDbError,
+			wantBeginCalled:    true,
+			wantHasherCalled:   true,
+			wantCommitCalled:   false,
+			wantRollbackCalled: true,
+			wantCreateUser:     false,
+			wantCreateProfil:   false,
+		},
+		{
+			name:  "Branch 15 -> ExistByNISN Error",
+			cmd:   validCmd(),
+			actor: adminActor,
+			txm: &fakeTxManager{
+				tx: &fakeTx{
+					userRepo:        &fakeUserRepo{},
+					profilSiswaRepo: &fakeProfilSiswaRepo{existNisnErr: coreerror.ErrDbError},
+				},
+			},
+			hasher:             &fakeHasher{hash: "hashed"},
+			wantErr:            coreerror.ErrDbError,
+			wantBeginCalled:    true,
+			wantHasherCalled:   true,
+			wantCommitCalled:   false,
+			wantRollbackCalled: true,
 			wantCreateUser:     false,
 			wantCreateProfil:   false,
 		},
