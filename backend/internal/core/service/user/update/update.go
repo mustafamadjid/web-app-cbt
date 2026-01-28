@@ -11,13 +11,15 @@ import (
 	outuser "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
 )
 
-
-
 type UpdateTx struct {
 	txm txout.TxManager
 }
 
 func NewUpdateGuruService(txm txout.TxManager) *UpdateTx {
+	return &UpdateTx{txm: txm}
+}
+
+func NewUpdateSiswaService(txm txout.TxManager) *UpdateTx {
 	return &UpdateTx{txm: txm}
 }
 
@@ -27,6 +29,10 @@ func hasPenggunaPatch(p outuser.UpdatePenggunaPatch) bool {
 
 func hasProfilPatch(p outuser.UpdateProfilGuruPatch) bool {
 	return p.Nip != nil || p.Jabatan != nil || p.BidangStudi != nil
+}
+
+func hasProfilSiswaPatch(p outuser.UpdateProfilSiswaPatch) bool {
+	return p.IdTingkatKelas != nil || p.IdNamaKelas != nil || p.Nisn != nil || p.NoAbsen != nil || p.Angkatan != nil || p.TempatLahir != nil || p.TanggalLahir != nil
 }
 
 func (u *UpdateTx) UpdateGuru(ctx context.Context, cmd UpdateGuruCmd, actor user.Actor) error {
@@ -129,6 +135,128 @@ func (u *UpdateTx) UpdateGuru(ctx context.Context, cmd UpdateGuruCmd, actor user
 	if hasProfilPatch(profilPatch) {
 		if error := tx.ProfilGuru().UpdateProfilGuru(ctx, cmd.IdPengguna, profilPatch); error != nil {
 			return error
+		}
+	}
+
+	return tx.Commit()
+}
+
+func (u *UpdateTx) UpdateSiswa(ctx context.Context, cmd UpdateSiswaCmd, actor user.Actor) error {
+	if actor.Role != user.ADMIN {
+		return coreerror.ErrForbidden
+	}
+
+	if cmd.IdPengguna == 0 {
+		return errors.New("Id pengguna required")
+	}
+
+	if cmd.Username != nil {
+		s := strings.TrimSpace(*cmd.Username)
+		if s == "" {
+			return errors.New("username cannot be empty")
+		}
+		cmd.Username = &s
+	}
+
+	if cmd.NamaLengkap != nil {
+		s := strings.TrimSpace(*cmd.NamaLengkap)
+		if s == "" {
+			return errors.New("nama_lengkap cannot be empty")
+		}
+		cmd.NamaLengkap = &s
+	}
+
+	var emailVO *user.Email
+	if cmd.Email != nil {
+		e, err := user.CheckNewEmail(*cmd.Email)
+		if err != nil {
+			return err
+		}
+		emailVO = &e
+	}
+	if cmd.NoHp != nil {
+		s := strings.TrimSpace(*cmd.NoHp)
+		cmd.NoHp = &s
+	}
+	if cmd.Foto != nil {
+		s := strings.TrimSpace(*cmd.Foto)
+		cmd.Foto = &s
+	}
+	if cmd.Nisn != nil {
+		nisn, err := user.CheckNewNISN(*cmd.Nisn)
+		if err != nil {
+			return err
+		}
+		s := string(nisn)
+		cmd.Nisn = &s
+	}
+	if cmd.NoAbsen != nil {
+		if err := user.CheckAbsen(*cmd.NoAbsen); err != nil {
+			return err
+		}
+	}
+	if cmd.Angkatan != nil {
+		if err := user.CheckAngkatan(*cmd.Angkatan); err != nil {
+			return err
+		}
+	}
+	if cmd.TempatLahir != nil {
+		s := strings.TrimSpace(*cmd.TempatLahir)
+		cmd.TempatLahir = &s
+	}
+
+	if cmd.NamaLengkap == nil &&
+		cmd.Email == nil &&
+		cmd.NoHp == nil &&
+		cmd.Foto == nil &&
+		cmd.StatusAkun == nil &&
+		cmd.Role == nil &&
+		cmd.IdTingkatKelas == nil &&
+		cmd.IdNamaKelas == nil &&
+		cmd.Nisn == nil &&
+		cmd.NoAbsen == nil &&
+		cmd.Angkatan == nil &&
+		cmd.TempatLahir == nil &&
+		cmd.TanggalLahir == nil {
+		return coreerror.ErrNoFieldToUpdate
+	}
+
+	tx, err := u.txm.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		_ = tx.Rollback()
+	}()
+
+	penggunaPatch := outuser.UpdatePenggunaPatch{
+		NamaLengkap: cmd.NamaLengkap,
+		Email:       emailVO,
+		NoHp:        cmd.NoHp,
+		Foto:        cmd.Foto,
+		StatusAkun:  cmd.StatusAkun,
+		Role:        cmd.Role,
+	}
+
+	if hasPenggunaPatch(penggunaPatch) {
+		if err := tx.Pengguna().UpdateUser(ctx, cmd.IdPengguna, penggunaPatch); err != nil {
+			return err
+		}
+	}
+
+	profilPatch := outuser.UpdateProfilSiswaPatch{
+		IdTingkatKelas: cmd.IdTingkatKelas,
+		IdNamaKelas:    cmd.IdNamaKelas,
+		Nisn:           cmd.Nisn,
+		NoAbsen:        cmd.NoAbsen,
+		Angkatan:       cmd.Angkatan,
+		TempatLahir:    cmd.TempatLahir,
+		TanggalLahir:   cmd.TanggalLahir,
+	}
+
+	if hasProfilSiswaPatch(profilPatch) {
+		if err := tx.ProfilSiswa().UpdateProfilSiswa(ctx, cmd.IdPengguna, profilPatch); err != nil {
+			return err
 		}
 	}
 

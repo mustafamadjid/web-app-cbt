@@ -3,11 +3,14 @@ package postgres
 import (
 	"context"
 	"errors"
+	"fmt"
+	"strings"
 
 	"github.com/jackc/pgx/v5"
 
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
+	outuser "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
 )
 
 type ProfilSiswaRepo struct {
@@ -100,40 +103,44 @@ func (r *ProfilSiswaRepo) CreateProfilSiswa(ctx context.Context, profilSiswa use
 	return id, nil
 }
 
-func (r *ProfilSiswaRepo) UpdateProfilSiswa(ctx context.Context, profilSiswa user.ProfilSiswa) (user.ID, error) {
-	const query = `
-		UPDATE profil_siswa
-		SET id_kelas = $1,
-			id_nama_kelas = $2,
-			nisn = $3,
-			no_absen = $4,
-			angkatan = $5,
-			tempat_lahir = $6,
-			tanggal_lahir = $7,
-			updated_at = now()
-		WHERE id_pengguna = $8
-		RETURNING id_siswa
-	`
+func (r *ProfilSiswaRepo) UpdateProfilSiswa(ctx context.Context, idPengguna user.ID, profilSiswa outuser.UpdateProfilSiswaPatch) error {
+	set := make([]string, 0, 7)
+	args := make([]any, 0, 8)
 
-	var id user.ID
-	err := r.q.QueryRow(
-		ctx,
-		query,
-		profilSiswa.IdTingkatKelas,
-		profilSiswa.IdNamaKelas,
-		string(profilSiswa.Nisn),
-		profilSiswa.NoAbsen,
-		profilSiswa.Angkatan,
-		profilSiswa.TempatLahir,
-		profilSiswa.TanggalLahir,
-		profilSiswa.IdPengguna,
-	).Scan(&id)
-	if errors.Is(err, pgx.ErrNoRows) {
-		return 0, coreerror.ErrNotFound
-	}
-	if err != nil {
-		return 0, err
+	add := func(col string, v any) {
+		args = append(args, v)
+		set = append(set, fmt.Sprintf("%s=$%d", col, len(args)))
 	}
 
-	return id, nil
+	if profilSiswa.IdTingkatKelas != nil {
+		add("id_kelas", *profilSiswa.IdTingkatKelas)
+	}
+	if profilSiswa.IdNamaKelas != nil {
+		add("id_nama_kelas", *profilSiswa.IdNamaKelas)
+	}
+	if profilSiswa.Nisn != nil {
+		add("nisn", *profilSiswa.Nisn)
+	}
+	if profilSiswa.NoAbsen != nil {
+		add("no_absen", *profilSiswa.NoAbsen)
+	}
+	if profilSiswa.Angkatan != nil {
+		add("angkatan", *profilSiswa.Angkatan)
+	}
+	if profilSiswa.TempatLahir != nil {
+		add("tempat_lahir", *profilSiswa.TempatLahir)
+	}
+	if profilSiswa.TanggalLahir != nil {
+		add("tanggal_lahir", *profilSiswa.TanggalLahir)
+	}
+
+	if len(set) == 0 {
+		return nil
+	}
+
+	args = append(args, idPengguna)
+	q := fmt.Sprintf(`UPDATE profil_siswa SET %s WHERE id_pengguna=$%d`, strings.Join(set, ", "), len(args))
+
+	_, err := r.q.Exec(ctx, q, args...)
+	return err
 }
