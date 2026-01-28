@@ -1,1 +1,156 @@
 package user_service
+
+import (
+	"context"
+	"errors"
+	"strings"
+
+	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
+	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
+	outuser "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
+	txout "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/tx"
+)
+
+type UpdateGuruCmd struct {
+	IdPengguna   user.ID
+
+	Username     *string
+	Email        *string
+	NamaLengkap  *string
+	JenisKelamin *string
+	NoHp         *string
+	Foto         *string
+	StatusAkun 	 *user.StatusAkun
+	Role         *user.Role
+
+	Nip         *string
+	Jabatan     *string
+	BidangStudi *string
+}
+
+type UpdateGuruRes struct {
+
+}
+
+type UpdateTx struct {
+	txm txout.TxManager
+}
+
+func NewUpdateGuruService(txm txout.TxManager) *UpdateTx {
+	return &UpdateTx{txm: txm}
+}
+
+func hasPenggunaPatch(p outuser.UpdatePenggunaPatch) bool {
+	return p.NamaLengkap != nil || p.Email != nil || p.NoHp != nil || p.Foto != nil || p.StatusAkun != nil || p.Role != nil
+}
+
+func hasProfilPatch(p outuser.UpdateProfilGuruPatch) bool {
+	return p.Nip != nil || p.Jabatan != nil || p.BidangStudi != nil
+}
+
+func (u *UpdateTx) UpdateGuru(ctx context.Context, cmd UpdateGuruCmd, actor user.Actor) error {
+	if actor.Role != user.ADMIN {
+		return coreerror.ErrForbidden
+	}
+
+	if cmd.IdPengguna == 0 {
+		return errors.New("Id pengguna required")
+	}
+
+	// Normalisasi dan Validasi
+	if cmd.Username != nil {
+		s := strings.TrimSpace(*cmd.Username)
+		if s == "" {
+			return errors.New("username cannot be empty")
+		}
+		cmd.Username = &s
+	}
+
+	if cmd.NamaLengkap != nil {
+		s := strings.TrimSpace(*cmd.NamaLengkap)
+		if s == "" {
+			return errors.New("nama_lengkap cannot be empty")
+		}
+		cmd.NamaLengkap = &s
+	}
+	var emailVO *user.Email
+	if cmd.Email != nil {
+		e, err := user.CheckNewEmail(*cmd.Email)
+		if err != nil {
+			return err
+		}
+		emailVO = &e
+	}
+	if cmd.NoHp != nil {
+		s := strings.TrimSpace(*cmd.NoHp)
+		cmd.NoHp = &s
+	}
+	if cmd.Foto != nil {
+		s := strings.TrimSpace(*cmd.Foto)
+		cmd.Foto = &s
+	}
+	if cmd.Nip != nil {
+		s := strings.TrimSpace(*cmd.Nip)
+		cmd.Nip = &s
+	}
+	if cmd.Jabatan != nil {
+		s := strings.TrimSpace(*cmd.Jabatan)
+		cmd.Jabatan = &s
+	}
+	if cmd.BidangStudi != nil {
+		s := strings.TrimSpace(*cmd.BidangStudi)
+		cmd.BidangStudi = &s
+	}
+
+	
+	if cmd.NamaLengkap == nil &&
+		cmd.Email == nil &&
+		cmd.NoHp == nil &&
+		cmd.Foto == nil &&
+		cmd.StatusAkun == nil &&
+		cmd.Nip == nil &&
+		cmd.Jabatan == nil &&
+		cmd.BidangStudi == nil {
+		return coreerror.ErrNoFieldToUpdate
+	}
+
+	// Transaksi
+	tx, error := u.txm.Begin(ctx)
+	if error != nil {
+		return error
+	}
+	defer func ()  {
+		_= tx.Rollback()
+	}()
+	
+	// Update patch pengguna
+	penggunaPatch := outuser.UpdatePenggunaPatch{
+		NamaLengkap: cmd.NamaLengkap,
+		Email:       emailVO,
+		NoHp:        cmd.NoHp,
+		Foto:        cmd.Foto,
+		StatusAkun:  cmd.StatusAkun,
+		Role:        cmd.Role,
+	}
+
+	if hasPenggunaPatch(penggunaPatch) {
+		if error := tx.Pengguna().UpdateUser(ctx, cmd.IdPengguna, penggunaPatch); error != nil {
+			return error
+		}
+	}
+
+	// Update patch profil guru
+	profilPatch := outuser.UpdateProfilGuruPatch{
+		Nip:         cmd.Nip,
+		Jabatan:     cmd.Jabatan,
+		BidangStudi: cmd.BidangStudi,
+	}
+
+	if hasProfilPatch(profilPatch) {
+		if error := tx.ProfilGuru().UpdateProfilGuru(ctx, cmd.IdPengguna, profilPatch); error != nil {
+			return error
+		}
+	}
+
+	return tx.Commit()
+}

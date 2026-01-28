@@ -3,11 +3,14 @@ package postgres
 import (
 	"context"
 	"errors"
+	"fmt"
+	"strings"
 
 	"github.com/jackc/pgx/v5"
 
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
+	outuser "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
 )
 
 type ProfilgGuruRepo struct {
@@ -84,32 +87,32 @@ func (r *ProfilgGuruRepo) CreateProfilGuru(ctx context.Context, profilGuru user.
 	return id, nil
 }
 
-func (r *ProfilgGuruRepo) UpdateProfilGuru(ctx context.Context, idPengguna user.ID, profilGuru user.ProfilGuru) (user.ID, error) {
-	const query = `
-		UPDATE profil_guru
-		SET nip = $1,
-			jabatan = $2,
-			bidang_studi = $3,
-			updated_at = now()
-		WHERE id_pengguna = $4
-		RETURNING id_guru
-	`
+func (r *ProfilgGuruRepo) UpdateProfilGuru(ctx context.Context,idPengguna user.ID, profilGuru outuser.UpdateProfilGuruPatch) error{
+	set := make([]string, 0, 4)
+	args := make([]any, 0, 5)
 
-	var id user.ID
-	err := r.q.QueryRow(
-		ctx,
-		query,
-		string(profilGuru.Nip),
-		profilGuru.Jabatan,
-		profilGuru.BidangStudi,
-		idPengguna,
-	).Scan(&id)
-	if errors.Is(err, pgx.ErrNoRows) {
-		return 0, coreerror.ErrNotFound
-	}
-	if err != nil {
-		return 0, err
+	add := func(col string, v any) {
+		args = append(args, v)
+		set = append(set, fmt.Sprintf("%s=$%d", col, len(args)))
 	}
 
-	return id, nil
+	if profilGuru.Nip != nil {
+		add("nip", *profilGuru.Nip)
+	}
+	if profilGuru.Jabatan != nil {
+		add("jabatan", *profilGuru.Jabatan)
+	}
+	if profilGuru.BidangStudi != nil {
+		add("bidang_studi", *profilGuru.BidangStudi)
+	}
+
+	if len(set) == 0 {
+		return nil
+	}
+
+	args = append(args, idPengguna)
+	q := fmt.Sprintf(`UPDATE profil_guru SET %s WHERE id_pengguna=$%d`, strings.Join(set, ", "), len(args))
+
+	_, err := r.q.Exec(ctx, q, args...)
+	return err
 }

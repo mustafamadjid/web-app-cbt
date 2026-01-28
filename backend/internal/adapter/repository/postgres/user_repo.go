@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -10,7 +11,7 @@ import (
 
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
-
+	outuser "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
 )
 
 type UserRepo struct {
@@ -136,51 +137,43 @@ func (r *UserRepo) CreateUser(ctx context.Context, pengguna user.Pengguna) (user
 	return id, nil
 }
 
-func (r *UserRepo) UpdateUser(ctx context.Context, idPengguna user.ID, pengguna user.Pengguna) (user.ID, error) {
-	const query = `
-		UPDATE pengguna
-		SET foto = $1,
-			nama_lengkap = $2,
-			jenis_kelamin = $3,
-			username = $4,
-			password = $5,
-			email = $6,
-			no_hp = $7,
-			id_role = (SELECT id_role FROM role WHERE nama_role = $8),
-			status_akun = $9,
-			updated_at = now()
-		WHERE id_pengguna = $10
-		RETURNING id_pengguna
-	`
+func (r *UserRepo) UpdateUser(ctx context.Context,idPengguna user.ID,pengguna outuser.UpdatePenggunaPatch) error{
+	set := make([]string, 0, 6)
+	args := make([]any, 0, 7)
 
-	jenisKelamin, err := parseJenisKelamin(pengguna.JenisKelamin)
-	if err != nil {
-		return 0, err
+	add := func(col string, v any) {
+		args = append(args, v)
+		set = append(set, fmt.Sprintf("%s=$%d", col, len(args)))
 	}
 
-	var id user.ID
-	err = r.q.QueryRow(
-		ctx,
-		query,
-		pengguna.Foto,
-		pengguna.NamaLengkap,
-		jenisKelamin,
-		pengguna.Username,
-		pengguna.PasswordHashed,
-		string(pengguna.Email),
-		pengguna.NoHp,
-		string(pengguna.Role),
-		string(pengguna.StatusAkun),
-		idPengguna,
-	).Scan(&id)
-	if errors.Is(err, pgx.ErrNoRows) {
-		return 0, coreerror.ErrNotFound
+	if pengguna.NamaLengkap != nil {
+		add("nama_lengkap", *pengguna.NamaLengkap)
 	}
-	if err != nil {
-		return 0, err
+	if pengguna.Email != nil {
+		add("email", string(*pengguna.Email))
+	}
+	if pengguna.NoHp != nil {
+		add("no_hp", *pengguna.NoHp)
+	}
+	if pengguna.Foto != nil {
+		add("foto", *pengguna.Foto)
+	}
+	if pengguna.StatusAkun != nil {
+		add("status_akun", string(*pengguna.StatusAkun))
+	}
+	if pengguna.Role != nil {
+		add("id_role", *pengguna.Role)
 	}
 
-	return id, nil
+	if len(set) == 0 {
+		return nil
+	}
+
+	args = append(args, idPengguna)
+	q := fmt.Sprintf(`UPDATE pengguna SET %s WHERE id_pengguna=$%d`, strings.Join(set, ", "), len(args))
+
+	_, err := r.q.Exec(ctx, q, args...)
+	return err
 }
 
 func (r *UserRepo) DeleteUser(ctx context.Context, id user.ID) error {
