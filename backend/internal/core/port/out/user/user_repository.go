@@ -12,7 +12,7 @@ type UserRepository interface {
 	UserExistByUsername(ctx context.Context,username string) (bool,error)
 
 	CreateUser(ctx context.Context,pengguna user.Pengguna) (user.ID,error)
-	UpdateUser(ctx context.Context,pengguna user.Pengguna) (user.ID,error)
+	UpdateUser(ctx context.Context,idPengguna user.ID,pengguna user.Pengguna) (user.ID,error)
 	DeleteUser(ctx context.Context,id user.ID) error
 
 	ListUser(ctx context.Context) ([]user.Pengguna,error)

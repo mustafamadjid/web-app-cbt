@@ -49,7 +49,7 @@ func (r *fakeUserRepo) FindUserByID(ctx context.Context, id user.ID) (user.Pengg
 	panic("not used in this test")
 }
 
-func (r *fakeUserRepo) UpdateUser(ctx context.Context, p user.Pengguna) (user.ID, error) {
+func (r *fakeUserRepo) UpdateUser(ctx context.Context,idPengguna user.ID, p user.Pengguna) (user.ID, error) {
 	panic("not used in this test")
 }
 
@@ -94,7 +94,7 @@ func (r *fakeProfilGuruRepo) FindProfilGuruByID(ctx context.Context, id user.ID)
 	panic("not used in this test")
 }
 
-func (r *fakeProfilGuruRepo) UpdateProfilGuru(ctx context.Context, profilGuru user.ProfilGuru) (user.ID, error) {
+func (r *fakeProfilGuruRepo) UpdateProfilGuru(ctx context.Context, idPengguna user.ID ,profilGuru user.ProfilGuru) (user.ID, error) {
 	panic("not used in this test")
 }
 
