@@ -3,55 +3,12 @@ package user_service
 import (
 	"context"
 	"strings"
-	"time"
 
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/port/out"
 	txout "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/tx"
 )
-
-type CreateGuruCmd struct {
-	Username     string
-	Email        string
-	Password     string
-	NamaLengkap  string
-	JenisKelamin string
-	NoHp         string
-	Foto         string
-
-	Nip         string
-	Jabatan     string
-	BidangStudi string
-}
-
-type CreateGuruRes struct {
-	IdPengguna   user.ID
-	IdProfilGuru user.ID
-}
-
-type CreateSiswaCmd struct {
-	Username     string
-	Email        string
-	Password     string
-	NamaLengkap  string
-	JenisKelamin string
-	NoHp         string
-	Foto         string
-
-	IdTingkatKelas user.ID
-	IdNamaKelas    user.ID
-	Nisn           string
-	NoAbsen        int
-	Angkatan       int
-	TempatLahir    string
-	TanggalLahir   time.Time
-}
-
-type CreateSiswaRes struct {
-	IdPengguna    user.ID
-	IdProfilSiswa user.ID
-}
 
 type CreateTx struct {
 	txm    txout.TxManager

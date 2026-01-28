@@ -7,29 +7,11 @@ import (
 
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
-	outuser "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
 	txout "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/tx"
+	outuser "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
 )
 
-type UpdateGuruCmd struct {
-	IdPengguna   user.ID
-
-	Username     *string
-	Email        *string
-	NamaLengkap  *string
-	JenisKelamin *string
-	NoHp         *string
-	Foto         *string
-	StatusAkun 	 *user.StatusAkun
-	Role         *user.Role
-
-	Nip         *string
-	Jabatan     *string
-	BidangStudi *string
-}
-
 type UpdateGuruRes struct {
-
 }
 
 type UpdateTx struct {
@@ -102,7 +84,6 @@ func (u *UpdateTx) UpdateGuru(ctx context.Context, cmd UpdateGuruCmd, actor user
 		cmd.BidangStudi = &s
 	}
 
-	
 	if cmd.NamaLengkap == nil &&
 		cmd.Email == nil &&
 		cmd.NoHp == nil &&
@@ -119,10 +100,10 @@ func (u *UpdateTx) UpdateGuru(ctx context.Context, cmd UpdateGuruCmd, actor user
 	if error != nil {
 		return error
 	}
-	defer func ()  {
-		_= tx.Rollback()
+	defer func() {
+		_ = tx.Rollback()
 	}()
-	
+
 	// Update patch pengguna
 	penggunaPatch := outuser.UpdatePenggunaPatch{
 		NamaLengkap: cmd.NamaLengkap,
