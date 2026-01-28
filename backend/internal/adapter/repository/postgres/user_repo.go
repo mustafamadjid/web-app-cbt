@@ -11,11 +11,10 @@ import (
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 
-	"github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres"
 )
 
 type UserRepo struct {
-	q postgres.Executor
+	q Executor
 }
 
 func (r *UserRepo) FindUserByID(ctx context.Context, id user.ID) (user.Pengguna, error) {

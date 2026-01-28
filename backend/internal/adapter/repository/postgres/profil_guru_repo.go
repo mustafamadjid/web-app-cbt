@@ -8,12 +8,10 @@ import (
 
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
-
-	"github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres"
 )
 
 type ProfilgGuruRepo struct {
-	q postgres.Executor
+	q Executor
 }
 
 func (r *ProfilgGuruRepo) FindProfilGuruByID(ctx context.Context, id user.ID) (user.ProfilGuru, error) {
