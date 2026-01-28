@@ -11,8 +11,7 @@ import (
 	outuser "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
 )
 
-type UpdateGuruRes struct {
-}
+
 
 type UpdateTx struct {
 	txm txout.TxManager

@@ -37,6 +37,7 @@ type Pengguna struct {
 
 type Actor struct {
 	IdPengguna ID
+	Username string
 	Role       Role
 }
 

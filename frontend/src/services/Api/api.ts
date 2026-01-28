@@ -6,7 +6,7 @@ import { authToken } from "../auth/token";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
-export type ApiEnvelope<T> = { data: T; message?: string; meta?: unknown };
+export type ApiEnvelope<T> = { data: T; message?: string; meta?: unknown,error: T };
 
 export type RequestOptions = Omit<
   AxiosRequestConfig,
