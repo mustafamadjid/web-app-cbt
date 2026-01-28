@@ -1,4 +1,4 @@
-package auth_service_test
+package auth_service
 
 import (
 	"context"
@@ -10,10 +10,9 @@ import (
 	"time"
 
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
-	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/auth/login"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/auth/session"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
-	"github.com/mustafamadjid/web-app-cbt/internal/core/service/auth_service"
+	// "github.com/mustafamadjid/web-app-cbt/internal/core/service/auth_service"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -170,9 +169,9 @@ func TestLogin_Success_ReturnToken(t *testing.T) {
 	sessions := &fakeSessionRepo{sessionNextID: "sess_1"}
 	accessTokens := &fakeAccessToken{}
 	refreshTokens := &fakeRefreshToken{}
-	uc := auth_service.NewAuthService(users, hasher, sessions, accessTokens, refreshTokens)
+	uc := NewAuthService(users, hasher, sessions, accessTokens, refreshTokens)
 
-	res, err := uc.Login(context.Background(), login.LoginCmd{Username: "myadmin", Password: "password"})
+	res, err := uc.Login(context.Background(),  LoginCmd{Username: "myadmin", Password: "password"})
 
 	assert.NoError(t, err)
 	assert.Equal(t, "ACCESS TOKEN :|1|ADMIN|myadmin", res.AccessToken)
@@ -182,7 +181,7 @@ func TestLogin_Success_ReturnToken(t *testing.T) {
 func TestLogin_BasisPaths(t *testing.T) {
 	type tc struct {
 		name        string
-		setup       func() (*auth_service.AuthService, login.LoginCmd)
+		setup       func() (*AuthService, LoginCmd)
 		wantErr     error
 		wantAccess  string
 		wantRefresh string
@@ -191,20 +190,20 @@ func TestLogin_BasisPaths(t *testing.T) {
 	tests := []tc{
 		{
 			name: "P1 user not found -> invalid creds",
-			setup: func() (*auth_service.AuthService, login.LoginCmd) {
+			setup: func() (*AuthService, LoginCmd) {
 				users := &fakeUserRepo{byUsername: map[string]user.Pengguna{}}
 				hasher := &fakeHasher{ok: true}
 				sessions := &fakeSessionRepo{}
 				accessTokens := &fakeAccessToken{}
 				refreshTokens := &fakeRefreshToken{}
-				svc := auth_service.NewAuthService(users, hasher, sessions, accessTokens, refreshTokens)
-				return svc, login.LoginCmd{Username: "myadmin", Password: "password"}
+				svc := NewAuthService(users, hasher, sessions, accessTokens, refreshTokens)
+				return svc,LoginCmd{Username: "myadmin", Password: "password"}
 			},
 			wantErr: coreerror.ErrInvalidCreds,
 		},
 		{
 			name: "P2 status tidak aktif -> invalid creds",
-			setup: func() (*auth_service.AuthService, login.LoginCmd) {
+			setup: func() (*AuthService, LoginCmd) {
 				users := &fakeUserRepo{
 					byUsername: map[string]user.Pengguna{
 						"myadmin": {ID: 1, Username: "myadmin", PasswordHashed: "X", Role: "ADMIN", StatusAkun: user.NONAKTIF},
@@ -214,14 +213,14 @@ func TestLogin_BasisPaths(t *testing.T) {
 				sessions := &fakeSessionRepo{}
 				accessTokens := &fakeAccessToken{}
 				refreshTokens := &fakeRefreshToken{}
-				svc := auth_service.NewAuthService(users, hasher, sessions, accessTokens, refreshTokens)
-				return svc, login.LoginCmd{Username: "myadmin", Password: "password"}
+				svc := NewAuthService(users, hasher, sessions, accessTokens, refreshTokens)
+				return svc, LoginCmd{Username: "myadmin", Password: "password"}
 			},
 			wantErr: coreerror.ErrInvalidCreds,
 		},
 		{
 			name: "P3 wrong password -> invalid creds",
-			setup: func() (*auth_service.AuthService, login.LoginCmd) {
+			setup: func() (*AuthService, LoginCmd) {
 				users := &fakeUserRepo{
 					byUsername: map[string]user.Pengguna{
 						"admin@example.com": {ID: 1, Username: "admin@example.com", PasswordHashed: "X", Role: "ADMIN", StatusAkun: user.AKTIF},
@@ -231,14 +230,14 @@ func TestLogin_BasisPaths(t *testing.T) {
 				sessions := &fakeSessionRepo{}
 				accessTokens := &fakeAccessToken{}
 				refreshTokens := &fakeRefreshToken{}
-				svc := auth_service.NewAuthService(users, hasher, sessions, accessTokens, refreshTokens)
-				return svc, login.LoginCmd{Username: "admin@example.com", Password: "wrong"}
+				svc := NewAuthService(users, hasher, sessions, accessTokens, refreshTokens)
+				return svc, LoginCmd{Username: "admin@example.com", Password: "wrong"}
 			},
 			wantErr: coreerror.ErrInvalidCreds,
 		},
 		{
 			name: "P4 create session error -> propagated",
-			setup: func() (*auth_service.AuthService, login.LoginCmd) {
+			setup: func() (*AuthService, LoginCmd) {
 				users := &fakeUserRepo{
 					byUsername: map[string]user.Pengguna{
 						"admin@example.com": {ID: 1, Username: "admin@example.com", PasswordHashed: "X", Role: "ADMIN", StatusAkun: user.AKTIF},
@@ -248,14 +247,14 @@ func TestLogin_BasisPaths(t *testing.T) {
 				sessions := &fakeSessionRepo{createSessionErr: ErrSessionDown}
 				accessTokens := &fakeAccessToken{}
 				refreshTokens := &fakeRefreshToken{}
-				svc := auth_service.NewAuthService(users, hasher, sessions, accessTokens, refreshTokens)
-				return svc, login.LoginCmd{Username: "admin@example.com", Password: "password"}
+				svc := NewAuthService(users, hasher, sessions, accessTokens, refreshTokens)
+				return svc, LoginCmd{Username: "admin@example.com", Password: "password"}
 			},
 			wantErr: ErrSessionDown,
 		},
 		{
 			name: "P5 access token error -> propagated",
-			setup: func() (*auth_service.AuthService, login.LoginCmd) {
+			setup: func() (*AuthService, LoginCmd) {
 				users := &fakeUserRepo{
 					byUsername: map[string]user.Pengguna{
 						"admin@example.com": {ID: 1, Username: "admin@example.com", PasswordHashed: "X", Role: "ADMIN", StatusAkun: user.AKTIF},
@@ -265,14 +264,14 @@ func TestLogin_BasisPaths(t *testing.T) {
 				sessions := &fakeSessionRepo{sessionNextID: "sess_1"}
 				accessTokens := &fakeAccessToken{GenerateAccessTokenErr: ErrSignAccessFail}
 				refreshTokens := &fakeRefreshToken{}
-				svc := auth_service.NewAuthService(users, hasher, sessions, accessTokens, refreshTokens)
-				return svc, login.LoginCmd{Username: "admin@example.com", Password: "password"}
+				svc := NewAuthService(users, hasher, sessions, accessTokens, refreshTokens)
+				return svc, LoginCmd{Username: "admin@example.com", Password: "password"}
 			},
 			wantErr: ErrSignAccessFail,
 		},
 		{
 			name: "P6 refresh token error -> propagated",
-			setup: func() (*auth_service.AuthService, login.LoginCmd) {
+			setup: func() (*AuthService, LoginCmd) {
 				users := &fakeUserRepo{
 					byUsername: map[string]user.Pengguna{
 						"admin@example.com": {ID: 1, Username: "admin@example.com", PasswordHashed: "X", Role: "ADMIN", StatusAkun: user.AKTIF},
@@ -282,14 +281,14 @@ func TestLogin_BasisPaths(t *testing.T) {
 				sessions := &fakeSessionRepo{sessionNextID: "sess_1"}
 				accessTokens := &fakeAccessToken{}
 				refreshTokens := &fakeRefreshToken{GenerateRefreshTokenErr: ErrSignRefreshFail}
-				svc := auth_service.NewAuthService(users, hasher, sessions, accessTokens, refreshTokens)
-				return svc, login.LoginCmd{Username: "admin@example.com", Password: "password"}
+				svc := NewAuthService(users, hasher, sessions, accessTokens, refreshTokens)
+				return svc, LoginCmd{Username: "admin@example.com", Password: "password"}
 			},
 			wantErr: ErrSignRefreshFail,
 		},
 		{
 			name: "P7 success",
-			setup: func() (*auth_service.AuthService, login.LoginCmd) {
+			setup: func() (*AuthService, LoginCmd) {
 				users := &fakeUserRepo{
 					byUsername: map[string]user.Pengguna{
 						"admin@example.com": {ID: 1, Username: "admin@example.com", PasswordHashed: "X", Role: "ADMIN", StatusAkun: user.AKTIF},
@@ -299,8 +298,8 @@ func TestLogin_BasisPaths(t *testing.T) {
 				sessions := &fakeSessionRepo{sessionNextID: "sess_99"}
 				accessTokens := &fakeAccessToken{}
 				refreshTokens := &fakeRefreshToken{}
-				svc := auth_service.NewAuthService(users, hasher, sessions, accessTokens, refreshTokens)
-				return svc, login.LoginCmd{Username: "admin@example.com", Password: "password"}
+				svc := NewAuthService(users, hasher, sessions, accessTokens, refreshTokens)
+				return svc, LoginCmd{Username: "admin@example.com", Password: "password"}
 			},
 			wantAccess:  "ACCESS TOKEN :|1|ADMIN|admin@example.com",
 			wantRefresh: "REFRESH TOKEN : sess_99",
@@ -328,27 +327,27 @@ func TestLogin_BasisPaths(t *testing.T) {
 func TestLogout_BasisPaths(t *testing.T) {
 	type tc struct {
 		name    string
-		setup   func() (*auth_service.AuthService, string)
+		setup   func() (*AuthService, string)
 		wantErr error
 	}
 
 	tests := []tc{
 		{
 			name: "P1 invalid refresh token -> invalid token",
-			setup: func() (*auth_service.AuthService, string) {
+			setup: func() (*AuthService, string) {
 				users := &fakeUserRepo{}
 				hasher := &fakeHasher{ok: true}
 				sessions := &fakeSessionRepo{}
 				accessTokens := &fakeAccessToken{}
 				refreshTokens := &fakeRefreshToken{VerifyRefreshTokenErr: coreerror.ErrInvalidToken}
-				svc := auth_service.NewAuthService(users, hasher, sessions, accessTokens, refreshTokens)
+				svc := NewAuthService(users, hasher, sessions, accessTokens, refreshTokens)
 				return svc, "bad-token"
 			},
 			wantErr: coreerror.ErrInvalidToken,
 		},
 		{
 			name: "P2 revoke session error -> propagated",
-			setup: func() (*auth_service.AuthService, string) {
+			setup: func() (*AuthService, string) {
 				users := &fakeUserRepo{}
 				hasher := &fakeHasher{ok: true}
 				sessions := &fakeSessionRepo{
@@ -359,14 +358,14 @@ func TestLogout_BasisPaths(t *testing.T) {
 				}
 				accessTokens := &fakeAccessToken{}
 				refreshTokens := &fakeRefreshToken{}
-				svc := auth_service.NewAuthService(users, hasher, sessions, accessTokens, refreshTokens)
+				svc := NewAuthService(users, hasher, sessions, accessTokens, refreshTokens)
 				return svc, "REFRESH TOKEN : sess_1"
 			},
 			wantErr: ErrRevokeFailed,
 		},
 		{
 			name: "P3 success",
-			setup: func() (*auth_service.AuthService, string) {
+			setup: func() (*AuthService, string) {
 				users := &fakeUserRepo{}
 				hasher := &fakeHasher{ok: true}
 				sessions := &fakeSessionRepo{
@@ -376,7 +375,7 @@ func TestLogout_BasisPaths(t *testing.T) {
 				}
 				accessTokens := &fakeAccessToken{}
 				refreshTokens := &fakeRefreshToken{}
-				svc := auth_service.NewAuthService(users, hasher, sessions, accessTokens, refreshTokens)
+				svc := NewAuthService(users, hasher, sessions, accessTokens, refreshTokens)
 				return svc, "REFRESH TOKEN : sess_1"
 			},
 		},
