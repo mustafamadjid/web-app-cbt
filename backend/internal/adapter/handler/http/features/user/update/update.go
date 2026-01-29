@@ -1,14 +1,13 @@
 package httpx
 
 import (
-	"encoding/json"
 	"errors"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
 
-	httpfeatures "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/user"
+	"github.com/julienschmidt/httprouter"
 	httphelper "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper"
 	httpResponse "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper/response_envelope"
 	"github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/middleware"
@@ -28,114 +27,89 @@ type requestError struct {
 	message string
 }
 
-func (e requestError) Error() string {
-	return e.message
-}
+func (e requestError) Error() string { return e.message }
 
 func NewUpdateUserHandler(svc *user_service.UpdateTx) *UpdateHandler {
 	return &UpdateHandler{svc: svc}
 }
 
-func (h *UpdateHandler) UpdateGuru(write http.ResponseWriter, req *http.Request) {
-	if req.Method != http.MethodPut {
-		httpResponse.WriteErr(write, http.StatusMethodNotAllowed, "METHOD_NOT_ALLOWED", "method not allowed")
+func (h *UpdateHandler) UpdateGuru(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	if r.Method != http.MethodPut {
+		httpResponse.WriteErr(w, http.StatusMethodNotAllowed, "METHOD_NOT_ALLOWED", "method not allowed")
 		return
 	}
 
-	cmd, err := h.parseUpdateGuruRequest(req)
+	cmd, err := h.parseUpdateGuruMultipart(r, ps)
 	if err != nil {
-		h.writeRequestError(write, err)
+		h.writeRequestError(w, err)
 		return
 	}
 
-	actor, ok := middleware.ActorFromContext(req.Context())
+	actor, ok := middleware.ActorFromContext(r.Context())
 	if !ok {
-		httpResponse.WriteErr(write, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error : failed get actor from context")
+		httpResponse.WriteErr(w, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error : failed get actor from context")
 		return
 	}
 
-	if err := h.svc.UpdateGuru(req.Context(), cmd, actor); err != nil {
-		h.writeUpdateError(write, err, "guru")
+	if err := h.svc.UpdateGuru(r.Context(), cmd, actor); err != nil {
+		h.writeUpdateError(w, err, "guru")
 		return
 	}
 
-	httpResponse.WriteOKNoData(write, http.StatusOK, "Success")
+	httpResponse.WriteOKNoData(w, http.StatusOK, "Success")
 }
 
-func (h *UpdateHandler) UpdateSiswa(write http.ResponseWriter, req *http.Request) {
-	if req.Method != http.MethodPut {
-		httpResponse.WriteErr(write, http.StatusMethodNotAllowed, "METHOD_NOT_ALLOWED", "method not allowed")
+func (h *UpdateHandler) UpdateSiswa(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	if r.Method != http.MethodPut {
+		httpResponse.WriteErr(w, http.StatusMethodNotAllowed, "METHOD_NOT_ALLOWED", "method not allowed")
 		return
 	}
 
-	cmd, err := h.parseUpdateSiswaRequest(req)
+	cmd, err := h.parseUpdateSiswaMultipart(r, ps)
 	if err != nil {
-		h.writeRequestError(write, err)
+		h.writeRequestError(w, err)
 		return
 	}
 
-	actor, ok := middleware.ActorFromContext(req.Context())
+	actor, ok := middleware.ActorFromContext(r.Context())
 	if !ok {
-		httpResponse.WriteErr(write, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error : failed get actor from context")
+		httpResponse.WriteErr(w, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error : failed get actor from context")
 		return
 	}
 
-	if err := h.svc.UpdateSiswa(req.Context(), cmd, actor); err != nil {
-		h.writeUpdateError(write, err, "siswa")
+	if err := h.svc.UpdateSiswa(r.Context(), cmd, actor); err != nil {
+		h.writeUpdateError(w, err, "siswa")
 		return
 	}
 
-	httpResponse.WriteOKNoData(write, http.StatusOK, "Success")
+	httpResponse.WriteOKNoData(w, http.StatusOK, "Success")
 }
 
-func (h *UpdateHandler) parseUpdateGuruRequest(req *http.Request) (user_service.UpdateGuruCmd, error) {
-	ct := req.Header.Get("Content-Type")
-	if strings.HasPrefix(ct, "multipart/form-data") {
-		return h.parseUpdateGuruForm(req)
-	}
-	if strings.HasPrefix(ct, "application/json") {
-		return h.parseUpdateGuruJSON(req)
-	}
-
-	return user_service.UpdateGuruCmd{}, requestError{
-		status:  http.StatusBadRequest,
-		code:    "BAD_REQUEST",
-		message: "Bad request : invalid content type",
-	}
-}
-
-func (h *UpdateHandler) parseUpdateSiswaRequest(req *http.Request) (user_service.UpdateSiswaCmd, error) {
-	ct := req.Header.Get("Content-Type")
-	if strings.HasPrefix(ct, "multipart/form-data") {
-		return h.parseUpdateSiswaForm(req)
-	}
-	if strings.HasPrefix(ct, "application/json") {
-		return h.parseUpdateSiswaJSON(req)
-	}
-
-	return user_service.UpdateSiswaCmd{}, requestError{
-		status:  http.StatusBadRequest,
-		code:    "BAD_REQUEST",
-		message: "Bad request : invalid content type",
-	}
-}
-
-func (h *UpdateHandler) parseUpdateGuruForm(req *http.Request) (user_service.UpdateGuruCmd, error) {
-	if err := req.ParseMultipartForm(10 << 20); err != nil {
+func (h *UpdateHandler) parseUpdateGuruMultipart(r *http.Request, ps httprouter.Params) (user_service.UpdateGuruCmd, error) {
+	ct := r.Header.Get("Content-Type")
+	if !strings.HasPrefix(ct, "multipart/form-data") {
 		return user_service.UpdateGuruCmd{}, requestError{
 			status:  http.StatusBadRequest,
 			code:    "BAD_REQUEST",
-			message: "Bad request : invalid content type",
+			message: "Bad request : content type must be multipart/form-data",
 		}
 	}
 
-	idPengguna, err := parseRequiredID(req.MultipartForm.Value, "id_pengguna")
+	idPengguna, err := parseIDFromURLParam(ps, "id")
 	if err != nil {
 		return user_service.UpdateGuruCmd{}, err
 	}
 
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
+		return user_service.UpdateGuruCmd{}, requestError{
+			status:  http.StatusBadRequest,
+			code:    "BAD_REQUEST",
+			message: "Bad request : invalid multipart form",
+		}
+	}
+
 	cmd := user_service.UpdateGuruCmd{IdPengguna: idPengguna}
-	applyOptionalStrings(req.MultipartForm.Value, map[string]**string{
+	applyOptionalStrings(r.MultipartForm.Value, map[string]**string{
 		"username":      &cmd.Username,
 		"email":         &cmd.Email,
 		"nama_lengkap":  &cmd.NamaLengkap,
@@ -146,19 +120,19 @@ func (h *UpdateHandler) parseUpdateGuruForm(req *http.Request) (user_service.Upd
 		"bidang_studi":  &cmd.BidangStudi,
 	})
 
-	statusAkun, err := parseOptionalStatus(req.MultipartForm.Value, "status_akun")
+	statusAkun, err := parseOptionalStatus(r.MultipartForm.Value, "status_akun")
 	if err != nil {
 		return user_service.UpdateGuruCmd{}, err
 	}
 	cmd.StatusAkun = statusAkun
 
-	role, err := parseOptionalRole(req.MultipartForm.Value, "role")
+	role, err := parseOptionalRole(r.MultipartForm.Value, "role")
 	if err != nil {
 		return user_service.UpdateGuruCmd{}, err
 	}
 	cmd.Role = role
 
-	if relPath, err := h.parseOptionalFoto(req); err != nil {
+	if relPath, err := h.parseOptionalFoto(r); err != nil {
 		return user_service.UpdateGuruCmd{}, err
 	} else if relPath != nil {
 		cmd.Foto = relPath
@@ -167,22 +141,31 @@ func (h *UpdateHandler) parseUpdateGuruForm(req *http.Request) (user_service.Upd
 	return cmd, nil
 }
 
-func (h *UpdateHandler) parseUpdateSiswaForm(req *http.Request) (user_service.UpdateSiswaCmd, error) {
-	if err := req.ParseMultipartForm(10 << 20); err != nil {
+func (h *UpdateHandler) parseUpdateSiswaMultipart(r *http.Request, ps httprouter.Params) (user_service.UpdateSiswaCmd, error) {
+	ct := r.Header.Get("Content-Type")
+	if !strings.HasPrefix(ct, "multipart/form-data") {
 		return user_service.UpdateSiswaCmd{}, requestError{
 			status:  http.StatusBadRequest,
 			code:    "BAD_REQUEST",
-			message: "Bad request : invalid content type",
+			message: "Bad request : content type must be multipart/form-data",
 		}
 	}
 
-	idPengguna, err := parseRequiredID(req.MultipartForm.Value, "id_pengguna")
+	idPengguna, err := parseIDFromURLParam(ps, "id")
 	if err != nil {
 		return user_service.UpdateSiswaCmd{}, err
 	}
 
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
+		return user_service.UpdateSiswaCmd{}, requestError{
+			status:  http.StatusBadRequest,
+			code:    "BAD_REQUEST",
+			message: "Bad request : invalid multipart form",
+		}
+	}
+
 	cmd := user_service.UpdateSiswaCmd{IdPengguna: idPengguna}
-	applyOptionalStrings(req.MultipartForm.Value, map[string]**string{
+	applyOptionalStrings(r.MultipartForm.Value, map[string]**string{
 		"username":      &cmd.Username,
 		"email":         &cmd.Email,
 		"nama_lengkap":  &cmd.NamaLengkap,
@@ -192,49 +175,49 @@ func (h *UpdateHandler) parseUpdateSiswaForm(req *http.Request) (user_service.Up
 		"tempat_lahir":  &cmd.TempatLahir,
 	})
 
-	statusAkun, err := parseOptionalStatus(req.MultipartForm.Value, "status_akun")
+	statusAkun, err := parseOptionalStatus(r.MultipartForm.Value, "status_akun")
 	if err != nil {
 		return user_service.UpdateSiswaCmd{}, err
 	}
 	cmd.StatusAkun = statusAkun
 
-	role, err := parseOptionalRole(req.MultipartForm.Value, "role")
+	role, err := parseOptionalRole(r.MultipartForm.Value, "role")
 	if err != nil {
 		return user_service.UpdateSiswaCmd{}, err
 	}
 	cmd.Role = role
 
-	if idTingkat, err := parseOptionalID(req.MultipartForm.Value, "id_tingkat_kelas"); err != nil {
+	if idTingkat, err := parseOptionalID(r.MultipartForm.Value, "id_tingkat_kelas"); err != nil {
 		return user_service.UpdateSiswaCmd{}, err
 	} else if idTingkat != nil {
 		cmd.IdTingkatKelas = idTingkat
 	}
 
-	if idNama, err := parseOptionalID(req.MultipartForm.Value, "id_nama_kelas"); err != nil {
+	if idNama, err := parseOptionalID(r.MultipartForm.Value, "id_nama_kelas"); err != nil {
 		return user_service.UpdateSiswaCmd{}, err
 	} else if idNama != nil {
 		cmd.IdNamaKelas = idNama
 	}
 
-	if noAbsen, err := parseOptionalInt(req.MultipartForm.Value, "no_absen"); err != nil {
+	if noAbsen, err := parseOptionalInt(r.MultipartForm.Value, "no_absen"); err != nil {
 		return user_service.UpdateSiswaCmd{}, err
 	} else if noAbsen != nil {
 		cmd.NoAbsen = noAbsen
 	}
 
-	if angkatan, err := parseOptionalInt(req.MultipartForm.Value, "angkatan"); err != nil {
+	if angkatan, err := parseOptionalInt(r.MultipartForm.Value, "angkatan"); err != nil {
 		return user_service.UpdateSiswaCmd{}, err
 	} else if angkatan != nil {
 		cmd.Angkatan = angkatan
 	}
 
-	if tanggal, err := parseOptionalDate(req.MultipartForm.Value, "tanggal_lahir"); err != nil {
+	if tanggal, err := parseOptionalDate(r.MultipartForm.Value, "tanggal_lahir"); err != nil {
 		return user_service.UpdateSiswaCmd{}, err
 	} else if tanggal != nil {
 		cmd.TanggalLahir = tanggal
 	}
 
-	if relPath, err := h.parseOptionalFoto(req); err != nil {
+	if relPath, err := h.parseOptionalFoto(r); err != nil {
 		return user_service.UpdateSiswaCmd{}, err
 	} else if relPath != nil {
 		cmd.Foto = relPath
@@ -243,98 +226,35 @@ func (h *UpdateHandler) parseUpdateSiswaForm(req *http.Request) (user_service.Up
 	return cmd, nil
 }
 
-func (h *UpdateHandler) parseUpdateGuruJSON(req *http.Request) (user_service.UpdateGuruCmd, error) {
-	var payload httpfeatures.UpdateGuruRequest
-	if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
-		return user_service.UpdateGuruCmd{}, requestError{
+func parseIDFromURLParam(ps httprouter.Params, key string) (user.ID, error) {
+	raw := strings.TrimSpace(ps.ByName(key))
+	if raw == "" {
+		return 0, requestError{
 			status:  http.StatusBadRequest,
 			code:    "BAD_REQUEST",
-			message: "Bad request : invalid request body",
+			message: "Bad request : " + key + " is required",
 		}
 	}
-	if payload.IdPengguna == 0 {
-		return user_service.UpdateGuruCmd{}, requestError{
+	idInt, err := strconv.Atoi(raw)
+	if err != nil {
+		return 0, requestError{
 			status:  http.StatusBadRequest,
-			code:    "BAD_REQUEST",
-			message: "Bad request : id_pengguna is required",
+			code:    "INVALID_INPUT",
+			message: key + " must be a number",
 		}
 	}
-
-	statusAkun, err := parseOptionalStatusFromString(payload.StatusAkun)
-	if err != nil {
-		return user_service.UpdateGuruCmd{}, err
+	if idInt <= 0 {
+		return 0, requestError{
+			status:  http.StatusBadRequest,
+			code:    "INVALID_INPUT",
+			message: key + " must be a positive number",
+		}
 	}
-
-	role, err := parseOptionalRoleFromString(payload.Role)
-	if err != nil {
-		return user_service.UpdateGuruCmd{}, err
-	}
-
-	return user_service.UpdateGuruCmd{
-		IdPengguna:   payload.IdPengguna,
-		Username:     payload.Username,
-		Email:        payload.Email,
-		NamaLengkap:  payload.NamaLengkap,
-		JenisKelamin: payload.JenisKelamin,
-		NoHp:         payload.NoHp,
-		Foto:         payload.Foto,
-		StatusAkun:   statusAkun,
-		Role:         role,
-		Nip:          payload.Nip,
-		Jabatan:      payload.Jabatan,
-		BidangStudi:  payload.BidangStudi,
-	}, nil
+	return user.ID(idInt), nil
 }
 
-func (h *UpdateHandler) parseUpdateSiswaJSON(req *http.Request) (user_service.UpdateSiswaCmd, error) {
-	var payload httpfeatures.UpdateSiswaRequest
-	if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
-		return user_service.UpdateSiswaCmd{}, requestError{
-			status:  http.StatusBadRequest,
-			code:    "BAD_REQUEST",
-			message: "Bad request : invalid request body",
-		}
-	}
-	if payload.IdPengguna == 0 {
-		return user_service.UpdateSiswaCmd{}, requestError{
-			status:  http.StatusBadRequest,
-			code:    "BAD_REQUEST",
-			message: "Bad request : id_pengguna is required",
-		}
-	}
-
-	statusAkun, err := parseOptionalStatusFromString(payload.StatusAkun)
-	if err != nil {
-		return user_service.UpdateSiswaCmd{}, err
-	}
-
-	role, err := parseOptionalRoleFromString(payload.Role)
-	if err != nil {
-		return user_service.UpdateSiswaCmd{}, err
-	}
-
-	return user_service.UpdateSiswaCmd{
-		IdPengguna:     payload.IdPengguna,
-		Username:       payload.Username,
-		Email:          payload.Email,
-		NamaLengkap:    payload.NamaLengkap,
-		JenisKelamin:   payload.JenisKelamin,
-		NoHp:           payload.NoHp,
-		Foto:           payload.Foto,
-		StatusAkun:     statusAkun,
-		Role:           role,
-		IdTingkatKelas: payload.IdTingkatKelas,
-		IdNamaKelas:    payload.IdNamaKelas,
-		Nisn:           payload.Nisn,
-		NoAbsen:        payload.NoAbsen,
-		Angkatan:       payload.Angkatan,
-		TempatLahir:    payload.TempatLahir,
-		TanggalLahir:   payload.TanggalLahir,
-	}, nil
-}
-
-func (h *UpdateHandler) parseOptionalFoto(req *http.Request) (*string, error) {
-	file, fh, err := req.FormFile("foto")
+func (h *UpdateHandler) parseOptionalFoto(r *http.Request) (*string, error) {
+	file, fh, err := r.FormFile("foto")
 	if err != nil {
 		if errors.Is(err, http.ErrMissingFile) {
 			return nil, nil
@@ -346,6 +266,7 @@ func (h *UpdateHandler) parseOptionalFoto(req *http.Request) (*string, error) {
 		}
 	}
 	defer file.Close()
+
 
 	relPath, err := h.storeImage.SavePhotoRelative(file, fh)
 	if err != nil {
@@ -366,66 +287,38 @@ func (h *UpdateHandler) parseOptionalFoto(req *http.Request) (*string, error) {
 	return &relPath, nil
 }
 
-func (h *UpdateHandler) writeRequestError(write http.ResponseWriter, err error) {
+func (h *UpdateHandler) writeRequestError(w http.ResponseWriter, err error) {
 	if reqErr, ok := err.(requestError); ok {
-		httpResponse.WriteErr(write, reqErr.status, reqErr.code, reqErr.message)
+		httpResponse.WriteErr(w, reqErr.status, reqErr.code, reqErr.message)
 		return
 	}
-	httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request : invalid request body")
+	httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "Bad request : invalid request body")
 }
 
-func (h *UpdateHandler) writeUpdateError(write http.ResponseWriter, err error, role string) {
+func (h *UpdateHandler) writeUpdateError(w http.ResponseWriter, err error, role string) {
 	switch {
 	case errors.Is(err, coreerror.ErrForbidden):
-		httpResponse.WriteErr(write, http.StatusForbidden, "FORBIDDEN", "forbidden")
+		httpResponse.WriteErr(w, http.StatusForbidden, "FORBIDDEN", "forbidden")
 	case errors.Is(err, coreerror.ErrNoFieldToUpdate):
-		httpResponse.WriteErr(write, http.StatusBadRequest, "NO_FIELD_TO_UPDATE", "no field to update")
+		httpResponse.WriteErr(w, http.StatusBadRequest, "NO_FIELD_TO_UPDATE", "no field to update")
 	case errors.Is(err, coreerror.ErrUsernameTaken):
-		httpResponse.WriteErr(write, http.StatusConflict, "USERNAME_TAKEN", "username already taken")
+		httpResponse.WriteErr(w, http.StatusConflict, "USERNAME_TAKEN", "username already taken")
 	case errors.Is(err, coreerror.ErrNipTaken):
-		httpResponse.WriteErr(write, http.StatusConflict, "NIP_TAKEN", "nip already taken")
+		httpResponse.WriteErr(w, http.StatusConflict, "NIP_TAKEN", "nip already taken")
 	case errors.Is(err, coreerror.ErrNisnTaken):
-		httpResponse.WriteErr(write, http.StatusConflict, "NISN_TAKEN", "nisn already taken")
+		httpResponse.WriteErr(w, http.StatusConflict, "NISN_TAKEN", "nisn already taken")
 	case errors.Is(err, coreerror.ErrInvalidInput),
 		errors.Is(err, coreerror.ErrInvalidStatusAkun),
 		errors.Is(err, user.ErrInvalidEmail),
 		errors.Is(err, user.ErrInvalidNISN),
 		errors.Is(err, user.ErrInvalidAbsen),
 		errors.Is(err, user.ErrInvalidAngkatan):
-		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", "invalid input")
+		httpResponse.WriteErr(w, http.StatusBadRequest, "INVALID_INPUT", "invalid input")
 	case errors.Is(err, coreerror.ErrNotFound):
-		httpResponse.WriteErr(write, http.StatusNotFound, "NOT_FOUND", "data not found")
+		httpResponse.WriteErr(w, http.StatusNotFound, "NOT_FOUND", "data not found")
 	default:
-		httpResponse.WriteErr(write, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error: failed update "+role)
+		httpResponse.WriteErr(w, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error: failed update "+role)
 	}
-}
-
-func parseRequiredID(values map[string][]string, key string) (user.ID, error) {
-	raw, ok := values[key]
-	if !ok || len(raw) == 0 {
-		return 0, requestError{
-			status:  http.StatusBadRequest,
-			code:    "BAD_REQUEST",
-			message: "Bad request : " + key + " is required",
-		}
-	}
-	val := strings.TrimSpace(raw[0])
-	if val == "" {
-		return 0, requestError{
-			status:  http.StatusBadRequest,
-			code:    "BAD_REQUEST",
-			message: "Bad request : " + key + " is required",
-		}
-	}
-	idInt, err := strconv.ParseInt(val, 10, 64)
-	if err != nil {
-		return 0, requestError{
-			status:  http.StatusBadRequest,
-			code:    "INVALID_INPUT",
-			message: key + " must be a number",
-		}
-	}
-	return user.ID(idInt), nil
 }
 
 func parseOptionalID(values map[string][]string, key string) (*user.ID, error) {
@@ -442,11 +335,11 @@ func parseOptionalID(values map[string][]string, key string) (*user.ID, error) {
 		}
 	}
 	idInt, err := strconv.ParseInt(val, 10, 64)
-	if err != nil {
+	if err != nil || idInt <= 0 {
 		return nil, requestError{
 			status:  http.StatusBadRequest,
 			code:    "INVALID_INPUT",
-			message: key + " must be a number",
+			message: key + " must be a positive number",
 		}
 	}
 	id := user.ID(idInt)
@@ -544,54 +437,6 @@ func parseOptionalRole(values map[string][]string, key string) (*user.Role, erro
 		return nil, nil
 	}
 	val := strings.TrimSpace(raw[0])
-	if val == "" {
-		return nil, requestError{
-			status:  http.StatusBadRequest,
-			code:    "INVALID_INPUT",
-			message: "role cannot be empty",
-		}
-	}
-	role := user.Role(val)
-	if !role.ValidRole() {
-		return nil, requestError{
-			status:  http.StatusBadRequest,
-			code:    "INVALID_INPUT",
-			message: "invalid role",
-		}
-	}
-	return &role, nil
-}
-
-func parseOptionalStatusFromString(raw *string) (*user.StatusAkun, error) {
-	if raw == nil {
-		return nil, nil
-	}
-	val := strings.TrimSpace(*raw)
-	if val == "" {
-		return nil, requestError{
-			status:  http.StatusBadRequest,
-			code:    "INVALID_INPUT",
-			message: "status_akun cannot be empty",
-		}
-	}
-	status := user.StatusAkun(val)
-	switch status {
-	case user.AKTIF, user.NONAKTIF:
-		return &status, nil
-	default:
-		return nil, requestError{
-			status:  http.StatusBadRequest,
-			code:    "INVALID_INPUT",
-			message: "invalid status_akun",
-		}
-	}
-}
-
-func parseOptionalRoleFromString(raw *string) (*user.Role, error) {
-	if raw == nil {
-		return nil, nil
-	}
-	val := strings.TrimSpace(*raw)
 	if val == "" {
 		return nil, requestError{
 			status:  http.StatusBadRequest,

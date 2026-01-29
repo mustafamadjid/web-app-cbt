@@ -4,7 +4,9 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"strings"
 
+	"github.com/julienschmidt/httprouter"
 	httpResponse "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper/response_envelope"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
@@ -19,26 +21,19 @@ func NewDeleteUserHandler(svc *user_service.DeleteUserService) *DeleteHandler {
 	return &DeleteHandler{svc: svc}
 }
 
-func (h *DeleteHandler) DeleteGuru(write http.ResponseWriter, req *http.Request) {
-	h.deleteUser(write, req)
-}
 
-func (h *DeleteHandler) DeleteSiswa(write http.ResponseWriter, req *http.Request) {
-	h.deleteUser(write, req)
-}
-
-func (h *DeleteHandler) deleteUser(write http.ResponseWriter, req *http.Request) {
+func (h *DeleteHandler)DeleteUser(write http.ResponseWriter, req *http.Request,params httprouter.Params) {
 	if req.Method != http.MethodDelete {
 		httpResponse.WriteErr(write, http.StatusMethodNotAllowed, "METHOD_NOT_ALLOWED", "method not allowed")
 		return
 	}
-	id := req.URL.Query().Get("id")
-	if id == "" {
+	rawId := strings.TrimSpace(params.ByName("id"))
+	if rawId == "" {
 		httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request : id is required")
 		return
 	}
 
-	parsedId, err := strconv.Atoi(id)
+	parsedId, err := strconv.Atoi(rawId)
 	if err != nil || parsedId <= 0 {
 		httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request : invalid id")
 		return
