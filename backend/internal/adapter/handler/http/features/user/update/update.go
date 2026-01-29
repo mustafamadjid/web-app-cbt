@@ -34,7 +34,7 @@ func NewUpdateUserHandler(svc *user_service.UpdateTx) *UpdateHandler {
 }
 
 func (h *UpdateHandler) UpdateGuru(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	if r.Method != http.MethodPut {
+	if r.Method != http.MethodPatch {
 		httpResponse.WriteErr(w, http.StatusMethodNotAllowed, "METHOD_NOT_ALLOWED", "method not allowed")
 		return
 	}
@@ -60,7 +60,7 @@ func (h *UpdateHandler) UpdateGuru(w http.ResponseWriter, r *http.Request, ps ht
 }
 
 func (h *UpdateHandler) UpdateSiswa(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	if r.Method != http.MethodPut {
+	if r.Method != http.MethodPatch {
 		httpResponse.WriteErr(w, http.StatusMethodNotAllowed, "METHOD_NOT_ALLOWED", "method not allowed")
 		return
 	}
