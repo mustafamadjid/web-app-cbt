@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/julienschmidt/httprouter"
 	"github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/cookie"
 	httpResponse "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper/response_envelope"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
@@ -16,34 +17,34 @@ import (
 )
 
 type AuthHandler struct {
-	svc 	authin.AuthUsecase
-	cookies	cookie.CookieConfig
-	accessTTL time.Duration
+	svc        authin.AuthUsecase
+	cookies    cookie.CookieConfig
+	accessTTL  time.Duration
 	refreshTTL time.Duration
 }
 
 func NewAuthHandler(svc authin.AuthUsecase, cookies cookie.CookieConfig, accessTTL time.Duration, refreshTTL time.Duration) *AuthHandler {
 	return &AuthHandler{
-		svc: svc,
-		cookies: cookies,
-		accessTTL: accessTTL,
+		svc:        svc,
+		cookies:    cookies,
+		accessTTL:  accessTTL,
 		refreshTTL: refreshTTL,
 	}
 }
 
-func (h *AuthHandler) Login(write http.ResponseWriter, req *http.Request) {
+func (h *AuthHandler) Login(write http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	var reqBody LoginRequest
 
 	dec := json.NewDecoder(req.Body)
 	dec.DisallowUnknownFields()
 	if err := dec.Decode(&reqBody); err != nil {
-		httpResponse.WriteErr(write, http.StatusBadRequest,"BAD_REQUEST","Bad request")
+		httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request")
 		return
 	}
 
 	re := regexp.MustCompile(`^[a-zA-Z0-9._-]+$`)
 	if !re.MatchString(reqBody.Username) {
-		httpResponse.WriteErr(write, http.StatusBadRequest,"BAD_REQUEST","Bad request : invalid character")
+		httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request : invalid character")
 		return
 	}
 
@@ -56,18 +57,18 @@ func (h *AuthHandler) Login(write http.ResponseWriter, req *http.Request) {
 
 	res, err := h.svc.Login(req.Context(), reqCmd)
 	if err != nil {
-		switch{
-		case errors.Is(err,coreerror.ErrInvalidCreds):
-			httpResponse.WriteErr( write, http.StatusUnauthorized,"INVALID_CREDENTIALS","unauthorized : invalid credentials")
+		switch {
+		case errors.Is(err, coreerror.ErrInvalidCreds):
+			httpResponse.WriteErr(write, http.StatusUnauthorized, "INVALID_CREDENTIALS", "unauthorized : invalid credentials")
 		default:
-			httpResponse.WriteErr( write, http.StatusInternalServerError,"INTERNAL_SERVER_ERROR","internal server error")
+			httpResponse.WriteErr(write, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error")
 		}
 		return
 	}
 
 	responseData := LoginResponse{
 		IdPengguna: res.IdPengguna,
-		Username: res.Username,
+		Username:   res.Username,
 	}
 
 	cookie.SetAccessCookie(write, h.cookies, res.AccessToken, now.Add(h.accessTTL))
@@ -76,35 +77,35 @@ func (h *AuthHandler) Login(write http.ResponseWriter, req *http.Request) {
 	httpResponse.WriteOK(write, http.StatusOK, responseData, "success")
 }
 
-func (h *AuthHandler) Logout(write http.ResponseWriter, req *http.Request) {
-	c,err := req.Cookie(h.cookies.RefreshName)
+func (h *AuthHandler) Logout(write http.ResponseWriter, req *http.Request, _ httprouter.Params) {
+	c, err := req.Cookie(h.cookies.RefreshName)
 	if err != nil || c.Value == "" {
-		httpResponse.WriteErr( write, http.StatusUnauthorized,"INVALID_TOKEN","unauthorized : invalid token")
+		httpResponse.WriteErr(write, http.StatusUnauthorized, "INVALID_TOKEN", "unauthorized : invalid token")
 		return
 	}
 
-	_= h.svc.Logout(req.Context(),c.Value,time.Now())
+	_ = h.svc.Logout(req.Context(), c.Value, time.Now())
 
-	cookie.ClearAuthCookies(write,h.cookies)
+	cookie.ClearAuthCookies(write, h.cookies)
 
 	httpResponse.WriteOKNoData(write, http.StatusOK, "success")
 }
 
-func (h *AuthHandler)Refresh(write http.ResponseWriter, req *http.Request) {
-	c,err := req.Cookie(h.cookies.RefreshName)
+func (h *AuthHandler) Refresh(write http.ResponseWriter, req *http.Request, _ httprouter.Params) {
+	c, err := req.Cookie(h.cookies.RefreshName)
 	if err != nil || c.Value == "" {
-		httpResponse.WriteErr( write, http.StatusUnauthorized,"INVALID_TOKEN","unauthorized : invalid token")
+		httpResponse.WriteErr(write, http.StatusUnauthorized, "INVALID_TOKEN", "unauthorized : invalid token")
 		return
 	}
 
-	newAccessToken,err := h.svc.RefreshAccessToken(req.Context(),c.Value,h.accessTTL)
-	if err != nil  {
-		httpResponse.WriteErr( write, http.StatusUnauthorized,"INVALID_TOKEN","unauthorized : invalid token")
+	newAccessToken, err := h.svc.RefreshAccessToken(req.Context(), c.Value, h.accessTTL)
+	if err != nil {
+		httpResponse.WriteErr(write, http.StatusUnauthorized, "INVALID_TOKEN", "unauthorized : invalid token")
 		return
 	}
 
 	now := time.Now()
-	cookie.SetAccessCookie(write, h.cookies,newAccessToken,now)
-	httpResponse.WriteOKNoData(write, http.StatusOK,"success")
+	cookie.SetAccessCookie(write, h.cookies, newAccessToken, now)
+	httpResponse.WriteOKNoData(write, http.StatusOK, "success")
 
 }

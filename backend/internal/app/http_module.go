@@ -2,6 +2,7 @@ package app
 
 import (
 	"net/http"
+
 	"github.com/julienschmidt/httprouter"
 
 	"github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/cookie"
@@ -10,10 +11,10 @@ import (
 
 type HTTPModule struct {
 	Handler http.Handler
-	Server *http.Server
+	Server  *http.Server
 }
 
-func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule,tokens *TokenModule) *HTTPModule {
+func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, tokens *TokenModule) *HTTPModule {
 	cookies := cookie.CookieConfig{
 		AccessName:  cfg.Cookie.AccessName,
 		RefreshName: cfg.Cookie.RefreshName,
@@ -22,9 +23,34 @@ func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule,tokens *Tok
 		SameSite:    cfg.Cookie.SameSite,
 	}
 
-	protected := middleware.RequireValidAccessToken(http.NewServeMux(),tokens.AccessTokenSvc,cookies)
+	router := httprouter.New()
 
-	protectedMux := http.NewServeMux()
-	protectedMux.HandleFunc("/guru/register",users.CreateHandler.CreateGuru)
+	requireAccess := func(next httprouter.Handle) httprouter.Handle {
+		return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+			handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				next(w, r, ps)
+			})
+			middleware.RequireValidAccessToken(handler, tokens.AccessTokenSvc, cookies).ServeHTTP(w, r)
+		}
+	}
+
+	router.POST("/auth/login", auth.Handler.Login)
+	router.POST("/auth/logout", auth.Handler.Logout)
+	router.POST("/auth/refresh", auth.Handler.Refresh)
+
+	router.POST("/guru/register", requireAccess(users.CreateHandler.CreateGuru))
+	router.POST("/siswa/register", requireAccess(users.CreateHandler.CreateSiswa))
+	router.PATCH("/guru/:id", requireAccess(users.UpdateHandler.UpdateGuru))
+	router.PATCH("/siswa/:id", requireAccess(users.UpdateHandler.UpdateSiswa))
+	router.DELETE("/users/:id", requireAccess(users.DeleteHandler.DeleteUser))
+
+	server := &http.Server{
+		Addr:    cfg.HTTP.Addr,
+		Handler: router,
+	}
+
+	return &HTTPModule{
+		Handler: router,
+		Server:  server,
+	}
 }
-	
