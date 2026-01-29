@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	httpResponse "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/response_envelope"
+	httpResponse "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper/response_envelope"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/port/out"
 )

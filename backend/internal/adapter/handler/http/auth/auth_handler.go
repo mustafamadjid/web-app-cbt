@@ -8,9 +8,8 @@ import (
 	"time"
 
 	"github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/cookie"
-	httpResponse "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/response_envelope"
+	httpResponse "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper/response_envelope"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
-	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 	authin "github.com/mustafamadjid/web-app-cbt/internal/core/port/in/auth_port_in"
 
 	"github.com/mustafamadjid/web-app-cbt/internal/core/service/auth_service"
@@ -22,17 +21,6 @@ type AuthHandler struct {
 	accessTTL time.Duration
 	refreshTTL time.Duration
 }
-
-type LoginRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
-type LoginResponse struct {
-	IdPengguna user.ID
-	Username string
-}
-
 
 func NewAuthHandler(svc authin.AuthUsecase, cookies cookie.CookieConfig, accessTTL time.Duration, refreshTTL time.Duration) *AuthHandler {
 	return &AuthHandler{

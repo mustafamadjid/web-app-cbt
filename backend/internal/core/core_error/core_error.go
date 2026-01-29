@@ -20,4 +20,7 @@ var (
 	ErrNipTaken      = errors.New("NIP taken")
 	ErrNisnTaken     = errors.New("NISN taken")
 	ErrInvalidStatusAkun = errors.New("invalid status akun")
+
+	ErrFileTooLarge = errors.New("file too large")
+	ErrInvalidFileFormat = errors.New("invalid file format")
 )
