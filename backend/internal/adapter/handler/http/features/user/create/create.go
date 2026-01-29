@@ -9,6 +9,7 @@ import (
 
 	httpx "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper"
 	httpResponse "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper/response_envelope"
+	"github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/middleware"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 
@@ -84,8 +85,8 @@ func (h *UserHandler) CreateGuru(write http.ResponseWriter, req *http.Request){
 		httpResponse.WriteErr(write,http.StatusBadRequest,"BAD_REQUEST","Bad request : invalid request body")
 		return
 	}
-	actor,err := httpx.ActorFromContext(req.Context())
-	if err != nil {
+	actor,ok:= middleware.ActorFromContext(req.Context())
+	if !ok {
 		httpResponse.WriteErr(write,http.StatusInternalServerError,"INTERNAL_SERVER_ERROR","internal server error : failed get actor from context")
 		return
 	}
@@ -215,8 +216,8 @@ cmd := user_service.CreateSiswaCmd{
 	TanggalLahir:   tanggalLahir,
 }
 	
-	actor,err := httpx.ActorFromContext(req.Context())
-	if err != nil {
+	actor,ok := middleware.ActorFromContext(req.Context())
+	if !ok {
 		httpResponse.WriteErr(write,http.StatusInternalServerError,"INTERNAL_SERVER_ERROR","internal server error : failed get actor from context")
 		return
 	}

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/cookie"
 	httpResponse "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper/response_envelope"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/port/out"
@@ -19,40 +20,30 @@ func ActorFromContext(ctx context.Context) (user.Actor, bool) {
 	return actor, ok
 }
 
-func WithActor(next http.Handler, verifier out.AccessTokenService, cookieName string) http.Handler {
-	return http.HandlerFunc(func(write http.ResponseWriter, req *http.Request) {
-		c,err := req.Cookie(cookieName)
+func RequireValidAccessToken(next http.Handler, access out.AccessTokenService, cookies cookie.CookieConfig) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		c, err := r.Cookie(cookies.AccessName)
 		if err != nil || c.Value == "" {
-			next.ServeHTTP(write, req)
+			httpResponse.WriteErr(w, http.StatusUnauthorized, "UNAUTHORIZED", "unauthorized")
 			return
 		}
 
-		idPengguna, role, username, err := verifier.VerifyAccessToken(c.Value,time.Now())
+		uid, role, username, err := access.VerifyAccessToken(c.Value, time.Now())
 		if err != nil {
-			next.ServeHTTP(write, req)
+			cookie.ClearAuthCookies(w, cookies)
+			httpResponse.WriteErr(w, http.StatusUnauthorized, "UNAUTHORIZED", "unauthorized")
 			return
 		}
 
-		actor := user.Actor {
-			IdPengguna: idPengguna,
-			Role: role,
-			Username: username,
+		actor := user.Actor{
+			IdPengguna: uid,
+			Role:       role,
+			Username:   username,
 		}
-		ctx := context.WithValue(req.Context(), actorKey, actor)
-		next.ServeHTTP(write, req.WithContext(ctx))
+
+		ctx := context.WithValue(r.Context(), actorKey, actor)
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
-
-func RequireAuth(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(write http.ResponseWriter, req *http.Request) {
-		_, ok := ActorFromContext(req.Context())
-		if !ok {
-			httpResponse.WriteErr(write,http.StatusUnauthorized,"UNAUTHORIZED","unauthorized")
-			return
-		}
-		next.ServeHTTP(write,req)
-	})
-}
-
 
 
