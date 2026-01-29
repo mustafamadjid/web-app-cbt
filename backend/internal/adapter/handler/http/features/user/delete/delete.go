@@ -1,12 +1,13 @@
 package httpx
 
 import (
-	"encoding/json"
 	"errors"
 	"net/http"
+	"strconv"
 
 	httpResponse "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper/response_envelope"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
+	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 	user_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/user/delete"
 )
 
@@ -31,19 +32,22 @@ func (h *DeleteHandler) deleteUser(write http.ResponseWriter, req *http.Request)
 		httpResponse.WriteErr(write, http.StatusMethodNotAllowed, "METHOD_NOT_ALLOWED", "method not allowed")
 		return
 	}
-
-	var payload DeleteUserRequest
-	if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
-		httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request : invalid request body")
+	id := req.URL.Query().Get("id")
+	if id == "" {
+		httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request : id is required")
 		return
 	}
 
-	if payload.IdPengguna == 0 {
-		httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request : id_pengguna is required")
+	parsedId, err := strconv.Atoi(id)
+	if err != nil || parsedId <= 0 {
+		httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request : invalid id")
 		return
 	}
 
-	if err := h.svc.Delete(req.Context(), payload.IdPengguna); err != nil {
+	uid := user.ID(parsedId)
+	
+
+	if err := h.svc.Delete(req.Context(), uid); err != nil {
 		switch {
 		case errors.Is(err, coreerror.ErrNotFound):
 			httpResponse.WriteErr(write, http.StatusNotFound, "NOT_FOUND", "data not found")
