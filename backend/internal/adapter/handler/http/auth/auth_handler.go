@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"regexp"
 	"time"
 
 	"github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/cookie"
@@ -44,8 +45,17 @@ func NewAuthHandler(svc authin.AuthUsecase, cookies cookie.CookieConfig, accessT
 
 func (h *AuthHandler) Login(write http.ResponseWriter, req *http.Request) {
 	var reqBody LoginRequest
-	if err := json.NewDecoder(req.Body).Decode(&reqBody); err != nil {
+
+	dec := json.NewDecoder(req.Body)
+	dec.DisallowUnknownFields()
+	if err := dec.Decode(&reqBody); err != nil {
 		httpResponse.WriteErr(write, http.StatusBadRequest,"BAD_REQUEST","Bad request")
+		return
+	}
+
+	re := regexp.MustCompile(`^[a-zA-Z0-9._-]+$`)
+	if !re.MatchString(reqBody.Username) {
+		httpResponse.WriteErr(write, http.StatusBadRequest,"BAD_REQUEST","Bad request : invalid character")
 		return
 	}
 
