@@ -3,13 +3,13 @@ package out
 import (
 	"context"
 
-	out_user "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
+	out "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
 )
 
 type Tx interface {
-	Pengguna() out_user.UserRepository
-	ProfilGuru() out_user.ProfilGuruRepository
-	ProfilSiswa() out_user.ProfilSiswaRepository
+	Pengguna() out.UserRepository
+	ProfilGuru() out.ProfilGuruRepository
+	ProfilSiswa() out.ProfilSiswaRepository
 
 	Commit() error
 	Rollback() error
