@@ -6,21 +6,25 @@ import (
 
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
+
 	"github.com/mustafamadjid/web-app-cbt/internal/core/port/out"
+	outuser "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
+
 	"github.com/mustafamadjid/web-app-cbt/internal/core/port/out/auth_port_out"
 	
 )
 
 type AuthService struct {
 	authUsers auth_port_out.AuthUserrepository
+	users 		outuser.UserRepository
 	hasher out.PasswordHasher
 	sessions out.SessionRepository
 	accessTokens out.AccessTokenService
 	refreshTokens out.RefreshTokenService
 }
 
-func NewAuthService(authUser auth_port_out.AuthUserrepository, hash out.PasswordHasher, session out.SessionRepository, accessToken out.AccessTokenService, refreshToken out.RefreshTokenService) *AuthService {
-	return &AuthService{authUsers: authUser, hasher: hash, sessions: session, accessTokens: accessToken, refreshTokens: refreshToken}
+func NewAuthService(authUser auth_port_out.AuthUserrepository,user outuser.UserRepository, hash out.PasswordHasher, session out.SessionRepository, accessToken out.AccessTokenService, refreshToken out.RefreshTokenService) *AuthService {
+	return &AuthService{authUsers: authUser,users: user, hasher: hash, sessions: session, accessTokens: accessToken, refreshTokens: refreshToken}
 }
 
 
@@ -69,4 +73,35 @@ func (authService *AuthService) Logout(ctx context.Context, refreshtoken string,
 	return nil
 }
 
-// TODO Buat refresh() untuk dapat acces token baru
+func(authService *AuthService)RefreshAccessToken(ctx context.Context, refreshToken string, accessTTL time.Duration) (string, error){
+	 if refreshToken == "" {
+		return "", coreerror.ErrNoTokenProvided
+	 }
+
+	 now := time.Now()
+	sid,err := authService.refreshTokens.VerifyRefreshToken(refreshToken, now)
+	if err != nil {
+		return "", err
+	}
+
+	sess, err := authService.sessions.GetSession(ctx, sid)
+	if err != nil {
+		return "", err
+	}
+
+	if now.After(sess.ExpiresAt) || sess.Revoked {
+		return "", coreerror.ErrSessionExpired 
+	}
+
+	u, err := authService.users.FindUserByID(ctx,sess.UserID)
+	if err != nil {
+		return "", err
+	}
+
+	accessToken, err := authService.accessTokens.GenerateAccessToken(sess.UserID,u.Role, u.Username, accessTTL)
+	if err != nil {
+		return "", err
+	}
+
+	return accessToken, nil
+}
