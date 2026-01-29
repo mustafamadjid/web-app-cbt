@@ -17,6 +17,10 @@ type ProfilgGuruRepo struct {
 	q Executor
 }
 
+func NewProfilgGuruRepo(q Executor) *ProfilgGuruRepo {
+	return &ProfilgGuruRepo{q: q}
+}
+
 func (r *ProfilgGuruRepo) FindProfilGuruByID(ctx context.Context, id user.ID) (user.ProfilGuru, error) {
 	const query = `
 		SELECT id_guru,

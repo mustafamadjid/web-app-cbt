@@ -16,6 +16,11 @@ type SessionRepo struct {
 	q Executor
 }
 
+func NewSessionRepo(q Executor) *SessionRepo {
+	return &SessionRepo{q: q}
+}
+
+
 func (r *SessionRepo) CreateSession(ctx context.Context, userID user.ID, expiresAt time.Time) (string, error) {
 	const query = `
 		INSERT INTO sessions (id_pengguna, expires_at)

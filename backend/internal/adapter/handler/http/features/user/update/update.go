@@ -8,16 +8,18 @@ import (
 	"strings"
 	"time"
 
-	httpx "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper"
+	httpfeatures "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/user"
+	httphelper "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper"
 	httpResponse "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper/response_envelope"
+	"github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/middleware"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 	user_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/user/update"
 )
 
 type UpdateHandler struct {
-	svc        user_service.UpdateTx
-	storeImage httpx.ImageStore
+	svc        *user_service.UpdateTx
+	storeImage httphelper.ImageStore
 }
 
 type requestError struct {
@@ -30,7 +32,7 @@ func (e requestError) Error() string {
 	return e.message
 }
 
-func NewUpdateUserHandler(svc user_service.UpdateTx) *UpdateHandler {
+func NewUpdateUserHandler(svc *user_service.UpdateTx) *UpdateHandler {
 	return &UpdateHandler{svc: svc}
 }
 
@@ -46,8 +48,8 @@ func (h *UpdateHandler) UpdateGuru(write http.ResponseWriter, req *http.Request)
 		return
 	}
 
-	actor, err := httpx.ActorFromContext(req.Context())
-	if err != nil {
+	actor, ok := middleware.ActorFromContext(req.Context())
+	if !ok {
 		httpResponse.WriteErr(write, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error : failed get actor from context")
 		return
 	}
@@ -72,8 +74,8 @@ func (h *UpdateHandler) UpdateSiswa(write http.ResponseWriter, req *http.Request
 		return
 	}
 
-	actor, err := httpx.ActorFromContext(req.Context())
-	if err != nil {
+	actor, ok := middleware.ActorFromContext(req.Context())
+	if !ok {
 		httpResponse.WriteErr(write, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error : failed get actor from context")
 		return
 	}
@@ -242,7 +244,7 @@ func (h *UpdateHandler) parseUpdateSiswaForm(req *http.Request) (user_service.Up
 }
 
 func (h *UpdateHandler) parseUpdateGuruJSON(req *http.Request) (user_service.UpdateGuruCmd, error) {
-	var payload UpdateGuruRequest
+	var payload httpfeatures.UpdateGuruRequest
 	if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
 		return user_service.UpdateGuruCmd{}, requestError{
 			status:  http.StatusBadRequest,
@@ -285,7 +287,7 @@ func (h *UpdateHandler) parseUpdateGuruJSON(req *http.Request) (user_service.Upd
 }
 
 func (h *UpdateHandler) parseUpdateSiswaJSON(req *http.Request) (user_service.UpdateSiswaCmd, error) {
-	var payload UpdateSiswaRequest
+	var payload httpfeatures.UpdateSiswaRequest
 	if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
 		return user_service.UpdateSiswaCmd{}, requestError{
 			status:  http.StatusBadRequest,

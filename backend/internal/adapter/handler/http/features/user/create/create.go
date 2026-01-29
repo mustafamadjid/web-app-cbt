@@ -18,12 +18,12 @@ import (
 )
 
 type UserHandler struct {
-	svc user_service.CreateTx
+	svc *user_service.CreateTx
 	storeImage httpx.ImageStore
 }
 
 
-func NewCreateUserHandler(svc user_service.CreateTx) *UserHandler {
+func NewCreateUserHandler(svc *user_service.CreateTx) *UserHandler {
 	return &UserHandler{svc: svc}
 }
 

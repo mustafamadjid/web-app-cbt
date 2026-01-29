@@ -17,6 +17,10 @@ import (
 type UserRepo struct {
 	q Executor
 }
+func NewUserRepo(q Executor) *UserRepo {
+	return &UserRepo{q: q}
+}
+
 
 func (r *UserRepo) FindUserByID(ctx context.Context, id user.ID) (user.Pengguna, error) {
 	const query = `

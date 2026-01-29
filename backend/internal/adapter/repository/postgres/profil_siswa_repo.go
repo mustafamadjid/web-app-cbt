@@ -17,6 +17,10 @@ type ProfilSiswaRepo struct {
 	q Executor
 }
 
+func NewProfilSiswaRepo(q Executor) *ProfilSiswaRepo {
+	return &ProfilSiswaRepo{q: q}
+}
+
 func (r *ProfilSiswaRepo) FindProfilSiswaByID(ctx context.Context, id user.ID) (user.ProfilSiswa, error) {
 	const query = `
 		SELECT id_siswa,

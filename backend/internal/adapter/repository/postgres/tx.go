@@ -14,15 +14,15 @@ type pgTx struct {
 }
 
 func (p *pgTx) Pengguna() outuser.UserRepository {
-	return &UserRepo{q: p.tx}
+	return NewUserRepo(p.tx)
 }
 
 func (p *pgTx) ProfilGuru() outuser.ProfilGuruRepository {
-	return &ProfilgGuruRepo{q: p.tx}
+	return NewProfilgGuruRepo(p.tx)
 }
 
 func (p *pgTx) ProfilSiswa() outuser.ProfilSiswaRepository {
-	return &ProfilSiswaRepo{q: p.tx}
+	return NewProfilSiswaRepo(p.tx)
 }
 
 func (p *pgTx) Commit() error {
