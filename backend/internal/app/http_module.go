@@ -38,11 +38,11 @@ func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, tokens *To
 	router.POST("/auth/logout", auth.Handler.Logout)
 	router.POST("/auth/refresh", auth.Handler.Refresh)
 
-	router.POST("/guru/register", requireAccess(users.CreateHandler.CreateGuru))
-	router.POST("/siswa/register", requireAccess(users.CreateHandler.CreateSiswa))
+	router.POST("/guru", requireAccess(users.CreateHandler.CreateGuru))
+	router.POST("/siswa", requireAccess(users.CreateHandler.CreateSiswa))
 	router.PATCH("/guru/:id", requireAccess(users.UpdateHandler.UpdateGuru))
 	router.PATCH("/siswa/:id", requireAccess(users.UpdateHandler.UpdateSiswa))
-	router.DELETE("/users/:id", requireAccess(users.DeleteHandler.DeleteUser))
+	router.DELETE("/pengguna/:id", requireAccess(users.DeleteHandler.DeleteUser))
 
 	server := &http.Server{
 		Addr:    cfg.HTTP.Addr,
