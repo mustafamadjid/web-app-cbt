@@ -2,6 +2,9 @@ package app
 
 import (
 	"net/http"
+	"path"
+	"path/filepath"
+	"strings"
 
 	"github.com/julienschmidt/httprouter"
 
@@ -43,6 +46,23 @@ func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, tokens *To
 	router.PATCH("/guru/:id", requireAccess(users.UpdateHandler.UpdateGuru))
 	router.PATCH("/siswa/:id", requireAccess(users.UpdateHandler.UpdateSiswa))
 	router.DELETE("/pengguna/:id", requireAccess(users.DeleteHandler.DeleteUser))
+
+	router.GET("/uploads/*filepath", requireAccess(func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+    rel := ps.ByName("filepath") 
+
+    if rel == "/" || rel == "" {
+        http.NotFound(w, r)
+        return
+    }
+    clean := path.Clean(rel)
+    if strings.Contains(clean, "..") {
+        http.Error(w, "bad path", http.StatusBadRequest)
+        return
+    }
+
+    full := filepath.Join("./public/uploads", clean)
+    http.ServeFile(w, r, full)
+}))
 
 	server := &http.Server{
 		Addr:    cfg.HTTP.Addr,

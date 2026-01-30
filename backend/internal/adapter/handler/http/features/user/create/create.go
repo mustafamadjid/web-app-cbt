@@ -23,8 +23,8 @@ type UserHandler struct {
 	storeImage httpx.ImageStore
 }
 
-func NewCreateUserHandler(svc *user_service.CreateTx) *UserHandler {
-	return &UserHandler{svc: svc}
+func NewCreateUserHandler(svc *user_service.CreateTx, storeImage httpx.ImageStore) *UserHandler {
+	return &UserHandler{svc: svc, storeImage: storeImage}
 }
 
 func (h *UserHandler) CreateGuru(write http.ResponseWriter, req *http.Request, _ httprouter.Params) {

@@ -9,6 +9,7 @@ type Config struct {
 	HTTP   HTTPConfig
 	JWT    JWTConfig
 	Cookie CookieConfig
+	ImageStore ImageStoreConfig
 }
 
 type JWTConfig struct {
@@ -29,4 +30,11 @@ type CookieConfig struct {
 
 type HTTPConfig struct {
 	Addr string
+}
+
+type ImageStoreConfig struct {
+	Dir      string
+	BaseURL  string
+	Route    string
+	MaxBytes int64
 }

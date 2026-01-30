@@ -29,8 +29,8 @@ type requestError struct {
 
 func (e requestError) Error() string { return e.message }
 
-func NewUpdateUserHandler(svc *user_service.UpdateTx) *UpdateHandler {
-	return &UpdateHandler{svc: svc}
+func NewUpdateUserHandler(svc *user_service.UpdateTx, storeImage httphelper.ImageStore) *UpdateHandler {
+	return &UpdateHandler{svc: svc, storeImage: storeImage}
 }
 
 func (h *UpdateHandler) UpdateGuru(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {

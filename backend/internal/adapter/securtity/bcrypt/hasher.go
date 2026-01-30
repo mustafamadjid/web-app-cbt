@@ -21,6 +21,6 @@ func (h *Hasher) GenerateHash(plain string)(string,error){
 	return string(b), nil
 }
 
-func (h *Hasher) CompareHash(hash, plain string) bool {
+func (h *Hasher) ComparePaswordAndHashed(hash, plain string) bool {
 	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(plain)) == nil
 }

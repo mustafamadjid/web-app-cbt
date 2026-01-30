@@ -24,7 +24,7 @@ type ImageStore struct {
 	MaxBytes int64  // contoh: 5 << 20
 }
 
-func (s ImageStore) SavePhotoRelative(file multipart.File, fh *multipart.FileHeader) (string, error) {
+func (s *ImageStore) SavePhotoRelative(file multipart.File, fh *multipart.FileHeader) (string, error) {
 	if s.Dir == "" || s.Route == "" {
 		return "", errors.New("ImageStore Dir/Route must be set")
 	}
