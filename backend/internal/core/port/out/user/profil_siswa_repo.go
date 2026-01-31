@@ -5,6 +5,8 @@ import (
 	"time"
 
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
+
+	query "github.com/mustafamadjid/web-app-cbt/internal/core/query/user"
 )
 
 type UpdateProfilSiswaPatch struct {
@@ -24,4 +26,8 @@ type ProfilSiswaRepository interface {
 	CreateProfilSiswa(ctx context.Context,profilSiswa user.ProfilSiswa) (user.ID,error)
 
 	UpdateProfilSiswa(ctx context.Context,idPengguna user.ID,profilSiswa UpdateProfilSiswaPatch) error
+}
+
+type GetListSiswaRepo interface {
+	GetListSiswa(ctx context.Context, filter query.ListSiswaFilter) ([]query.SiswaListItem,error)
 }

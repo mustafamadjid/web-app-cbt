@@ -26,5 +26,5 @@ type ListSiswaFilter struct {
 
 	Angkatan *int
 	TingkatKelas *int
-	JenisKelamin *string
+	JenisKelamin *int
 }
