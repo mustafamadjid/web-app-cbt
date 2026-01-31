@@ -3,7 +3,7 @@ package app
 import (
 	"github.com/mustafamadjid/web-app-cbt/internal/core/port/out"
 
-	httpget "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/user"
+	httpget "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/user/get"
 	httpcreate "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/user/create"
 	httpdelete "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/user/delete"
 	httpupdate "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/user/update"
@@ -33,11 +33,13 @@ func BuildUserModule(cfg Config, infra *InfraModule, hasher out.PasswordHasher) 
 	createSvc := create.NewCreateGuruService(infra.Txm, hasher)
 	updateSvc := update.NewUpdateGuruService(infra.Txm)
 	deleteSvc := delete.NewDeleteUserService(infra.users)
+
 	getSvc := get.NewGetListSiswaService(infra.profilSiswa)
 
 	handlerCreate := httpcreate.NewCreateUserHandler(createSvc, store)
 	handlerUpdate := httpupdate.NewUpdateUserHandler(updateSvc, store)
 	handlerDelete := httpdelete.NewDeleteUserHandler(deleteSvc)
+	
 	handlerGet := httpget.NewGetSiswaHandler(getSvc)
 
 	return &UserModule{CreateHandler: handlerCreate, UpdateHandler: handlerUpdate, DeleteHandler: handlerDelete, GetHandler: handlerGet}
