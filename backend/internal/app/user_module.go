@@ -3,9 +3,9 @@ package app
 import (
 	"github.com/mustafamadjid/web-app-cbt/internal/core/port/out"
 
-	httpget "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/user/get"
 	httpcreate "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/user/create"
 	httpdelete "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/user/delete"
+	httpget "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/user/get"
 	httpupdate "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/user/update"
 	httpx "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper"
 
@@ -16,10 +16,11 @@ import (
 )
 
 type UserModule struct {
-	CreateHandler *httpcreate.UserHandler
-	UpdateHandler *httpupdate.UpdateHandler
-	DeleteHandler *httpdelete.DeleteHandler
-	GetHandler    *httpget.GetSiswaHandler
+	CreateHandler   *httpcreate.UserHandler
+	UpdateHandler   *httpupdate.UpdateHandler
+	DeleteHandler   *httpdelete.DeleteHandler
+	GetSiswaHandler *httpget.GetSiswaHandler
+	GetGuruHandler  *httpget.GetGuruHandler
 }
 
 func BuildUserModule(cfg Config, infra *InfraModule, hasher out.PasswordHasher) *UserModule {
@@ -34,13 +35,21 @@ func BuildUserModule(cfg Config, infra *InfraModule, hasher out.PasswordHasher) 
 	updateSvc := update.NewUpdateGuruService(infra.Txm)
 	deleteSvc := delete.NewDeleteUserService(infra.users)
 
-	getSvc := get.NewGetListSiswaService(infra.profilSiswa)
+	getSiswaSvc := get.NewGetListSiswaService(infra.profilSiswa)
+	getGuruSvc := get.NewGetListGuruService(infra.profilGuru)
 
 	handlerCreate := httpcreate.NewCreateUserHandler(createSvc, store)
 	handlerUpdate := httpupdate.NewUpdateUserHandler(updateSvc, store)
 	handlerDelete := httpdelete.NewDeleteUserHandler(deleteSvc)
-	
-	handlerGet := httpget.NewGetSiswaHandler(getSvc)
 
-	return &UserModule{CreateHandler: handlerCreate, UpdateHandler: handlerUpdate, DeleteHandler: handlerDelete, GetHandler: handlerGet}
+	handlerGetSiswa := httpget.NewGetSiswaHandler(getSiswaSvc)
+	handlerGetGuru := httpget.NewGetGuruHandler(getGuruSvc)
+
+	return &UserModule{
+		CreateHandler:   handlerCreate,
+		UpdateHandler:   handlerUpdate,
+		DeleteHandler:   handlerDelete,
+		GetSiswaHandler: handlerGetSiswa,
+		GetGuruHandler:  handlerGetGuru,
+	}
 }

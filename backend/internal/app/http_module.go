@@ -42,11 +42,12 @@ func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, tokens *To
 	router.POST("/auth/refresh", auth.Handler.Refresh)
 
 	// Siswa
-	router.GET("/siswa", requireAccess(users.GetHandler.ListSiswa))
+	router.GET("/siswa", requireAccess(users.GetSiswaHandler.ListSiswa))
 	router.POST("/siswa", requireAccess(users.CreateHandler.CreateSiswa))
 	router.PATCH("/siswa/:id", requireAccess(users.UpdateHandler.UpdateSiswa))
 
 	// Guru
+	router.GET("/guru", requireAccess(users.GetGuruHandler.ListGuru))
 	router.POST("/guru", requireAccess(users.CreateHandler.CreateGuru))
 	router.PATCH("/guru/:id", requireAccess(users.UpdateHandler.UpdateGuru))
 	router.DELETE("/pengguna/:id", requireAccess(users.DeleteHandler.DeleteUser))
