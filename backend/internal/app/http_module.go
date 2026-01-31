@@ -43,26 +43,27 @@ func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, tokens *To
 
 	router.POST("/guru", requireAccess(users.CreateHandler.CreateGuru))
 	router.POST("/siswa", requireAccess(users.CreateHandler.CreateSiswa))
+	router.GET("/siswa", requireAccess(users.GetHandler.ListSiswa))
 	router.PATCH("/guru/:id", requireAccess(users.UpdateHandler.UpdateGuru))
 	router.PATCH("/siswa/:id", requireAccess(users.UpdateHandler.UpdateSiswa))
 	router.DELETE("/pengguna/:id", requireAccess(users.DeleteHandler.DeleteUser))
 
 	router.GET("/uploads/*filepath", requireAccess(func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-    rel := ps.ByName("filepath") 
+		rel := ps.ByName("filepath")
 
-    if rel == "/" || rel == "" {
-        http.NotFound(w, r)
-        return
-    }
-    clean := path.Clean(rel)
-    if strings.Contains(clean, "..") {
-        http.Error(w, "bad path", http.StatusBadRequest)
-        return
-    }
+		if rel == "/" || rel == "" {
+			http.NotFound(w, r)
+			return
+		}
+		clean := path.Clean(rel)
+		if strings.Contains(clean, "..") {
+			http.Error(w, "bad path", http.StatusBadRequest)
+			return
+		}
 
-    full := filepath.Join("./public/uploads", clean)
-    http.ServeFile(w, r, full)
-}))
+		full := filepath.Join("./public/uploads", clean)
+		http.ServeFile(w, r, full)
+	}))
 
 	server := &http.Server{
 		Addr:    cfg.HTTP.Addr,

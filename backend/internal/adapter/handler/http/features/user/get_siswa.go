@@ -1,0 +1,116 @@
+package httpx
+
+import (
+	"errors"
+	"net/http"
+	"strconv"
+	"strings"
+
+	"github.com/julienschmidt/httprouter"
+	httpResponse "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper/response_envelope"
+	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
+	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
+	query "github.com/mustafamadjid/web-app-cbt/internal/core/query/user"
+	user_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/user/get"
+)
+
+type GetSiswaHandler struct {
+	svc *user_service.GetSiswaService
+}
+
+func NewGetSiswaHandler(svc *user_service.GetSiswaService) *GetSiswaHandler {
+	return &GetSiswaHandler{svc: svc}
+}
+
+func (h *GetSiswaHandler) ListSiswa(write http.ResponseWriter, req *http.Request, _ httprouter.Params) {
+	if req.Method != http.MethodGet {
+		httpResponse.WriteErr(write, http.StatusMethodNotAllowed, "METHOD_NOT_ALLOWED", "method not allowed")
+		return
+	}
+
+	filters, err := parseListSiswaFilters(req)
+	if err != nil {
+		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
+		return
+	}
+
+	items, err := h.svc.ListSiswa(req.Context(), filters)
+	if err != nil {
+		switch {
+		case errors.Is(err, coreerror.ErrInvalidInput):
+			httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", "invalid input")
+		default:
+			httpResponse.WriteErr(write, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error: failed get list siswa")
+		}
+		return
+	}
+
+	httpResponse.WriteOK(write, http.StatusOK, items, "Success")
+}
+
+func parseListSiswaFilters(req *http.Request) (query.ListSiswaFilter, error) {
+	values := req.URL.Query()
+	filters := query.ListSiswaFilter{}
+
+	filters.Search = strings.TrimSpace(values.Get("q"))
+	if filters.Search == "" {
+		filters.Search = strings.TrimSpace(values.Get("search"))
+	}
+
+	if statusRaw := strings.TrimSpace(values.Get("status")); statusRaw != "" {
+		status := user.StatusAkun(strings.ToUpper(statusRaw))
+		filters.Status = &status
+	}
+
+	if limitRaw := strings.TrimSpace(values.Get("limit")); limitRaw != "" {
+		limit, err := strconv.Atoi(limitRaw)
+		if err != nil {
+			return query.ListSiswaFilter{}, errors.New("limit must be a number")
+		}
+		filters.Limit = limit
+	}
+
+	if offsetRaw := strings.TrimSpace(values.Get("offset")); offsetRaw != "" {
+		offset, err := strconv.Atoi(offsetRaw)
+		if err != nil {
+			return query.ListSiswaFilter{}, errors.New("offset must be a number")
+		}
+		filters.Offset = offset
+	}
+
+	filters.SortBy = strings.TrimSpace(values.Get("sort_by"))
+
+	if sortDescRaw := strings.TrimSpace(values.Get("sort_desc")); sortDescRaw != "" {
+		sortDesc, err := strconv.ParseBool(sortDescRaw)
+		if err != nil {
+			return query.ListSiswaFilter{}, errors.New("sort_desc must be a boolean")
+		}
+		filters.SortDesc = sortDesc
+	}
+
+	if angkatanRaw := strings.TrimSpace(values.Get("angkatan")); angkatanRaw != "" {
+		angkatan, err := strconv.Atoi(angkatanRaw)
+		if err != nil {
+			return query.ListSiswaFilter{}, errors.New("angkatan must be a number")
+		}
+		filters.Angkatan = &angkatan
+	}
+
+	if tingkatKelasRaw := strings.TrimSpace(values.Get("tingkat_kelas")); tingkatKelasRaw != "" {
+		tingkatKelas, err := strconv.Atoi(tingkatKelasRaw)
+		if err != nil {
+			return query.ListSiswaFilter{}, errors.New("tingkat_kelas must be a number")
+		}
+		filters.TingkatKelas = &tingkatKelas
+	}
+
+	if jenisKelaminRaw := strings.TrimSpace(values.Get("jenis_kelamin")); jenisKelaminRaw != "" {
+		jenisKelamin, err := strconv.Atoi(jenisKelaminRaw)
+		if err != nil {
+			return query.ListSiswaFilter{}, errors.New("jenis_kelamin must be a number")
+		}
+		filters.JenisKelamin = &jenisKelamin
+	}
+
+	return filters, nil
+}
