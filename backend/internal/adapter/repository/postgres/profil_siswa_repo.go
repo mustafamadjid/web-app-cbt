@@ -11,6 +11,7 @@ import (
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 	outuser "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
+	query "github.com/mustafamadjid/web-app-cbt/internal/core/query/user"
 )
 
 type ProfilSiswaRepo struct {
@@ -147,4 +148,129 @@ func (r *ProfilSiswaRepo) UpdateProfilSiswa(ctx context.Context, idPengguna user
 
 	_, err := r.q.Exec(ctx, q, args...)
 	return err
+}
+
+func (r *ProfilSiswaRepo) GetListSiswa(ctx context.Context, filter query.ListSiswaFilter) ([]query.SiswaListItem, error) {
+	sortColumns := map[string]string{
+		"nama_lengkap": "p.nama_lengkap",
+		"created_at":   "p.created_at",
+		"username":     "p.username",
+		"nisn":         "ps.nisn",
+	}
+
+	baseQuery := `
+		SELECT p.id_pengguna,
+			p.username,
+			p.email,
+			p.nama_lengkap,
+			p.jenis_kelamin,
+			p.no_hp,
+			p.foto,
+			p.status_akun,
+			nk.nama_kelas,
+			k.tingkat_kelas,
+			ps.angkatan
+		FROM pengguna p
+		JOIN profil_siswa ps ON ps.id_pengguna = p.id_pengguna
+		JOIN kelas k ON ps.id_kelas = k.id_kelas
+		JOIN nama_kelas nk ON ps.id_nama_kelas = nk.id_nama_kelas
+	`
+
+	where := make([]string, 0, 6)
+	args := make([]any, 0, 8)
+
+	if filter.Search != "" {
+		args = append(args, "%"+filter.Search+"%")
+		idx := len(args)
+		where = append(where, fmt.Sprintf(`(p.nama_lengkap ILIKE $%d OR p.username ILIKE $%d OR p.email ILIKE $%d OR ps.nisn ILIKE $%d)`, idx, idx, idx, idx))
+	}
+
+	if filter.Status != nil {
+		args = append(args, string(*filter.Status))
+		where = append(where, fmt.Sprintf("p.status_akun = $%d", len(args)))
+	}
+
+	if filter.Angkatan != nil {
+		args = append(args, *filter.Angkatan)
+		where = append(where, fmt.Sprintf("ps.angkatan = $%d", len(args)))
+	}
+
+	if filter.TingkatKelas != nil {
+		args = append(args, *filter.TingkatKelas)
+		where = append(where, fmt.Sprintf("k.tingkat_kelas = $%d", len(args)))
+	}
+
+	if filter.JenisKelamin != nil {
+		args = append(args, *filter.JenisKelamin)
+		where = append(where, fmt.Sprintf("p.jenis_kelamin = $%d", len(args)))
+	}
+
+	if len(where) > 0 {
+		baseQuery = fmt.Sprintf("%s WHERE %s", baseQuery, strings.Join(where, " AND "))
+	}
+
+	sortColumn, ok := sortColumns[filter.SortBy]
+	if !ok {
+		sortColumn = "p.created_at"
+	}
+
+	direction := "ASC"
+	if filter.SortDesc {
+		direction = "DESC"
+	}
+
+	baseQuery = fmt.Sprintf("%s ORDER BY %s %s", baseQuery, sortColumn, direction)
+
+	args = append(args, filter.Limit)
+	limitIndex := len(args)
+	args = append(args, filter.Offset)
+	offsetIndex := len(args)
+	baseQuery = fmt.Sprintf("%s LIMIT $%d OFFSET $%d", baseQuery, limitIndex, offsetIndex)
+
+	rows, err := r.q.Query(ctx, baseQuery, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var results []query.SiswaListItem
+	for rows.Next() {
+		var item query.SiswaListItem
+		var jenisKelamin int16
+		var status string
+		var email string
+
+		if err := rows.Scan(
+			&item.IdPengguna,
+			&item.Username,
+			&email,
+			&item.NamaLengkap,
+			&jenisKelamin,
+			&item.NoHp,
+			&item.Foto,
+			&status,
+			&item.NamaKelas,
+			&item.TingkatKelas,
+			&item.Angkatan,
+		); err != nil {
+			return nil, err
+		}
+
+		jenisKelaminValue, err := formatJenisKelamin(jenisKelamin)
+		if err != nil {
+			return nil, err
+		}
+
+		item.Email = user.Email(email)
+		item.JenisKelamin = jenisKelaminValue
+		item.StatusAkun = user.StatusAkun(status)
+
+		results = append(results, item)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return results, nil
 }
