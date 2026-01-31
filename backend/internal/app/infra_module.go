@@ -17,6 +17,7 @@ type InfraModule struct {
 	Sessions out.SessionRepository
 	AuthUsers outauth.AuthUserrepository
 	users 	outuser.UserRepository
+	profilSiswa outuser.GetListSiswaRepo
 }
 
 func BuildInfraModule(pool *pgxpool.Pool) *InfraModule {
@@ -28,5 +29,6 @@ func BuildInfraModule(pool *pgxpool.Pool) *InfraModule {
 		Sessions: pg.NewSessionRepo(pool),
 		AuthUsers: pg.NewAuthUserRepo(pool),
 		users : pg.NewUserRepo(pool),
+		profilSiswa: pg.NewProfilSiswaRepo(pool),
 	}
 }
