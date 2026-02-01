@@ -17,7 +17,7 @@ type ctxKey string
 const actorKey ctxKey = "actor"
 
 func ActorFromContext(ctx context.Context) (user.Actor, bool) {
-	actor,ok := ctx.Value(actorKey).(user.Actor)
+	actor, ok := ctx.Value(actorKey).(user.Actor)
 	return actor, ok
 }
 
@@ -45,14 +45,32 @@ func RequireValidAccessToken(next http.Handler, access out.AccessTokenService, c
 		ctx := context.WithValue(r.Context(), actorKey, actor)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
-}	
-	// func RequireAccess(next httprouter.Handle, tokens out.AccessTokenService, cookies cookie.CookieConfig) httprouter.Handle{
-	// 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	// 		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	// 			next(w, r, ps)
-	// 		})
-	// 		RequireValidAccessToken(handler, tokens, cookies).ServeHTTP(w, r)
-	// 	}
-	// }
+}
 
+func RequireActorRole(next http.Handler, allowedRoles ...user.Role) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		actor, ok := ActorFromContext(r.Context())
+		if !ok {
+			httpResponse.WriteErr(w, http.StatusUnauthorized, "UNAUTHORIZED", "unauthorized")
+			return
+		}
 
+		for _, role := range allowedRoles {
+			if actor.Role == role {
+				next.ServeHTTP(w, r)
+				return
+			}
+		}
+
+		httpResponse.WriteErr(w, http.StatusForbidden, "FORBIDDEN", "forbidden")
+	})
+}
+
+// func RequireAccess(next httprouter.Handle, tokens out.AccessTokenService, cookies cookie.CookieConfig) httprouter.Handle{
+// 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+// 		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+// 			next(w, r, ps)
+// 		})
+// 		RequireValidAccessToken(handler, tokens, cookies).ServeHTTP(w, r)
+// 	}
+// }
