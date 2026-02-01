@@ -41,7 +41,7 @@ func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, tokens *To
 	requireAccessRole := func(roles ...user.Role) func(next httprouter.Handle) httprouter.Handle {
 		return func(next httprouter.Handle) httprouter.Handle {
 			return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-				handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 					next(w, r, ps)
 				})
 				handler = middleware.RequireActorRole(handler, roles...)
