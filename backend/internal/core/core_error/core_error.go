@@ -15,6 +15,7 @@ var (
 	ErrNoTokenProvided = errors.New("no token provided")
 	ErrSessionExpired = errors.New("session expired")
 	ErrHasSession = errors.New("user already has session")
+	ErrNoSessionId = errors.New("no session id")
 	
 	ErrNoFieldToUpdate = errors.New("no field to update")
 	ErrUsernameTaken = errors.New("username taken")

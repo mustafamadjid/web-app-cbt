@@ -116,3 +116,13 @@ func(authService *AuthService)RefreshAccessToken(ctx context.Context, refreshTok
 	return accessToken, nil
 }
 
+func(authService *AuthService)AdminRevokingSession(ctx context.Context, sessionID string) error{
+	if sessionID == "" {
+		return coreerror.ErrNoSessionId
+	}
+	if err := authService.sessions.RevokeSession(ctx,sessionID); err != nil {
+		return err
+	}
+	return nil
+}
+

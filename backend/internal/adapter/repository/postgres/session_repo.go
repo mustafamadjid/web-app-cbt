@@ -184,6 +184,13 @@ func (r *SessionRepo) RevokeSessionAllbyUser(ctx context.Context, userID user.ID
 			AND expires_at > $1
 	`
 
-	_, err := r.q.Exec(ctx, query, now, userID)
-	return err
+	ct, err := r.q.Exec(ctx, query, now, userID)
+	if err != nil {
+		return err
+	}
+
+	if ct.RowsAffected() == 0 {
+		return coreerror.ErrNotFound
+	}
+	return nil
 }

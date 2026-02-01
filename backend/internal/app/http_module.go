@@ -40,17 +40,23 @@ func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, tokens *To
 	router.POST("/auth/login", auth.Handler.Login)
 	router.POST("/auth/logout", auth.Handler.Logout)
 	router.POST("/auth/refresh", auth.Handler.Refresh)
+	
+	// Admin
+	router.GET("admin/siswa", requireAccess(users.GetSiswaHandler.ListSiswa))
+	router.POST("admin/siswa", requireAccess(users.CreateHandler.CreateSiswa))
+	router.PATCH("admin/siswa/:id", requireAccess(users.UpdateHandler.UpdateSiswa))
+
+	router.GET("/admin/guru", requireAccess(users.GetGuruHandler.ListGuru))
+	router.POST("/admin", requireAccess(users.CreateHandler.CreateGuru))
+	router.PATCH("/admin/:id", requireAccess(users.UpdateHandler.UpdateGuru))
+
+	router.DELETE("admin/pengguna/:id", requireAccess(users.DeleteHandler.DeleteUser))
 
 	// Siswa
-	router.GET("/siswa", requireAccess(users.GetSiswaHandler.ListSiswa))
-	router.POST("/siswa", requireAccess(users.CreateHandler.CreateSiswa))
-	router.PATCH("/siswa/:id", requireAccess(users.UpdateHandler.UpdateSiswa))
-
+	
+	
 	// Guru
-	router.GET("/guru", requireAccess(users.GetGuruHandler.ListGuru))
-	router.POST("/guru", requireAccess(users.CreateHandler.CreateGuru))
-	router.PATCH("/guru/:id", requireAccess(users.UpdateHandler.UpdateGuru))
-	router.DELETE("/pengguna/:id", requireAccess(users.DeleteHandler.DeleteUser))
+	
 
 	router.GET("/uploads/*filepath", requireAccess(func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		rel := ps.ByName("filepath")

@@ -60,6 +60,8 @@ func (h *AuthHandler) Login(write http.ResponseWriter, req *http.Request, _ http
 		switch {
 		case errors.Is(err, coreerror.ErrInvalidCreds):
 			httpResponse.WriteErr(write, http.StatusUnauthorized, "INVALID_CREDENTIALS", "unauthorized : invalid credentials")
+		case errors.Is(err, coreerror.ErrHasSession):
+			httpResponse.WriteErr(write, http.StatusUnauthorized, "HAS_SESSION", "unauthorized : already has session")
 		default:
 			httpResponse.WriteErr(write, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error")
 		}
@@ -108,4 +110,31 @@ func (h *AuthHandler) Refresh(write http.ResponseWriter, req *http.Request, _ ht
 	cookie.SetAccessCookie(write, h.cookies, newAccessToken, now)
 	httpResponse.WriteOKNoData(write, http.StatusOK, "success")
 
+}
+
+
+func (h *AuthHandler)AdminRevokeUser(write http.ResponseWriter, req *http.Request, _ httprouter.Params) {
+	if req.Method != http.MethodPut {
+		httpResponse.WriteErr(write, http.StatusMethodNotAllowed, "METHOD_NOT_ALLOWED", "method not allowed")
+		return
+	}
+	var reqBody AdminRevokeRequest
+
+	dec := json.NewDecoder(req.Body)
+	dec.DisallowUnknownFields()
+	if err := dec.Decode(&reqBody); err != nil {
+		httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request")
+		return
+	}
+
+	if err := h.svc.AdminRevokingSession(req.Context(),reqBody.SessionId); err != nil {
+		switch {
+		case errors.Is(err, coreerror.ErrNotFound):
+			httpResponse.WriteErr(write, http.StatusNotFound, "NOT_FOUND", "Session not found")
+		default:
+			httpResponse.WriteErr(write, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error")
+		}
+		return
+	}
+	httpResponse.WriteOKNoData(write, http.StatusOK, "success")
 }

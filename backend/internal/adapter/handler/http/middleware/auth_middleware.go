@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	// "github.com/julienschmidt/httprouter"
 	"github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/cookie"
 	httpResponse "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper/response_envelope"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
@@ -44,6 +45,14 @@ func RequireValidAccessToken(next http.Handler, access out.AccessTokenService, c
 		ctx := context.WithValue(r.Context(), actorKey, actor)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
-}
+}	
+	// func RequireAccess(next httprouter.Handle, tokens out.AccessTokenService, cookies cookie.CookieConfig) httprouter.Handle{
+	// 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	// 		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	// 			next(w, r, ps)
+	// 		})
+	// 		RequireValidAccessToken(handler, tokens, cookies).ServeHTTP(w, r)
+	// 	}
+	// }
 
 
