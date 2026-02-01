@@ -151,6 +151,14 @@ func (fakeSession *fakeSessionRepo) RevokeSessionAllbyUser(ctx context.Context, 
 	return nil
 }
 
+func (fakeSession *fakeSessionRepo)GetSessionByUserId(ctx context.Context, userId user.ID)(session.Session, error){
+	ss, ok := fakeSession.store[userId]
+	if !ok {
+		return session.Session{}, coreerror.ErrNotFound
+	}
+	return ss, nil
+}
+
 func (f *fakeAccessToken) GenerateAccessToken(userID user.ID, role user.Role, username string, tokenDuration time.Duration) (string, error) {
 	if f.GenerateAccessTokenErr != nil {
 		return "", f.GenerateAccessTokenErr
