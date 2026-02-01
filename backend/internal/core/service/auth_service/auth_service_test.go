@@ -160,6 +160,25 @@ func (fakeSession *fakeSessionRepo) GetSessionByUserId(ctx context.Context, user
 	return session.Session{}, coreerror.ErrNotFound
 }
 
+func (fakeSession *fakeSessionRepo)GetAllActiveSession(ctx context.Context) ([]session.Session, error) {
+	var sessions []session.Session
+	for _, sess := range fakeSession.store {
+		if !sess.Revoked {
+			sessions = append(sessions, sess)
+		}
+	}
+	return sessions, nil
+}
+
+func (fakeSession *fakeSessionRepo)HasActiveSession(ctx context.Context, userID user.ID) (bool, error) {
+	for _, sess := range fakeSession.store {
+		if sess.UserID == userID && !sess.Revoked {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
 func (f *fakeAccessToken) GenerateAccessToken(userID user.ID, role user.Role, username string, tokenDuration time.Duration) (string, error) {
 	if f.GenerateAccessTokenErr != nil {
 		return "", f.GenerateAccessTokenErr

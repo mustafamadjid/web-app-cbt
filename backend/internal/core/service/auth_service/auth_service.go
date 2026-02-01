@@ -42,6 +42,16 @@ func (authService *AuthService) Login(ctx context.Context, cmd LoginCmd) ( Login
 		return  LoginRes{}, coreerror.ErrInvalidCreds
 	}
 
+	checkSession, err := authService.sessions.HasActiveSession(ctx,u.ID)
+	if err != nil {
+		return  LoginRes{}, err
+	}
+
+	if checkSession {
+		return  LoginRes{}, coreerror.ErrHasSession
+	}
+
+	
 	refreshExp := time.Now().Add(14 * 24 * time.Hour)
 	sessionId, err := authService.sessions.CreateSession(ctx, u.ID, refreshExp)
 	if err != nil {
