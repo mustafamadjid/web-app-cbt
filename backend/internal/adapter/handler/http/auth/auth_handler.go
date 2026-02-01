@@ -42,9 +42,9 @@ func (h *AuthHandler) Login(write http.ResponseWriter, req *http.Request, _ http
 		return
 	}
 
-	re := regexp.MustCompile(`^[a-zA-Z0-9._-]+$`)
+	re := regexp.MustCompile(`^[a-zA-Z0-9._]{3,13}$`)
 	if !re.MatchString(reqBody.Username) {
-		httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request : invalid character")
+		httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request : invalid character. It must be 3-16 characters long and contain only letters, numbers, and underscores.")
 		return
 	}
 
