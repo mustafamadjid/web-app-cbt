@@ -10,6 +10,7 @@ import (
 
 	"github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/cookie"
 	"github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/middleware"
+	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 )
 
 type HTTPModule struct {
@@ -37,26 +38,38 @@ func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, tokens *To
 		}
 	}
 
+	requireAccessRole := func(roles ...user.Role) func(next httprouter.Handle) httprouter.Handle {
+		return func(next httprouter.Handle) httprouter.Handle {
+			return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+				handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					next(w, r, ps)
+				})
+				handler = middleware.RequireActorRole(handler, roles...)
+				middleware.RequireValidAccessToken(handler, tokens.AccessTokenSvc, cookies).ServeHTTP(w, r)
+			}
+		}
+	}
+
+	requireAdmin := requireAccessRole(user.ADMIN)
+
 	router.POST("/auth/login", auth.Handler.Login)
 	router.POST("/auth/logout", auth.Handler.Logout)
 	router.POST("/auth/refresh", auth.Handler.Refresh)
-	
+
 	// Admin
-	router.GET("admin/siswa", requireAccess(users.GetSiswaHandler.ListSiswa))
-	router.POST("admin/siswa", requireAccess(users.CreateHandler.CreateSiswa))
-	router.PATCH("admin/siswa/:id", requireAccess(users.UpdateHandler.UpdateSiswa))
+	router.GET("admin/siswa", requireAdmin(users.GetSiswaHandler.ListSiswa))
+	router.POST("admin/siswa", requireAdmin(users.CreateHandler.CreateSiswa))
+	router.PATCH("admin/siswa/:id", requireAdmin(users.UpdateHandler.UpdateSiswa))
 
-	router.GET("/admin/guru", requireAccess(users.GetGuruHandler.ListGuru))
-	router.POST("/admin", requireAccess(users.CreateHandler.CreateGuru))
-	router.PATCH("/admin/:id", requireAccess(users.UpdateHandler.UpdateGuru))
+	router.GET("/admin/guru", requireAdmin(users.GetGuruHandler.ListGuru))
+	router.POST("/admin", requireAdmin(users.CreateHandler.CreateGuru))
+	router.PATCH("/admin/:id", requireAdmin(users.UpdateHandler.UpdateGuru))
 
-	router.DELETE("admin/pengguna/:id", requireAccess(users.DeleteHandler.DeleteUser))
+	router.DELETE("admin/pengguna/:id", requireAdmin(users.DeleteHandler.DeleteUser))
 
 	// Siswa
-	
-	
+
 	// Guru
-	
 
 	router.GET("/uploads/*filepath", requireAccess(func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		rel := ps.ByName("filepath")
