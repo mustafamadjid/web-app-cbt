@@ -7,9 +7,11 @@ import (
 	"strings"
 
 	"github.com/julienschmidt/httprouter"
-	httpResponse "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper/response_envelope"
-	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
+
+	httpResponse "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper/response_envelope"
+	validator "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/validation"
+	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	query "github.com/mustafamadjid/web-app-cbt/internal/core/query/user"
 	user_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/user/get"
 )
@@ -21,6 +23,7 @@ type GetGuruHandler struct {
 func NewGetGuruHandler(svc *user_service.GetGuruService) *GetGuruHandler {
 	return &GetGuruHandler{svc: svc}
 }
+
 
 func (h *GetGuruHandler) ListGuru(write http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	if req.Method != http.MethodGet {
@@ -56,12 +59,12 @@ func parseListGuruFilters(req *http.Request) (query.ListGuruFilter, error) {
 	if filters.Search == "" {
 		filters.Search = strings.TrimSpace(values.Get("search"))
 	}
-	if err := validateInputSafe(filters.Search, "search"); err != nil {
+	if err := validator.ValidateInputSafe(filters.Search, "search"); err != nil {
 		return query.ListGuruFilter{}, err
 	}
 
 	if statusRaw := strings.TrimSpace(values.Get("status")); statusRaw != "" {
-		if err := validateInputSafe(statusRaw, "status"); err != nil {
+		if err := validator.ValidateInputSafe(statusRaw, "status"); err != nil {
 			return query.ListGuruFilter{}, err
 		}
 		status := user.StatusAkun(strings.ToUpper(statusRaw))
@@ -85,7 +88,7 @@ func parseListGuruFilters(req *http.Request) (query.ListGuruFilter, error) {
 	}
 
 	filters.SortBy = strings.TrimSpace(values.Get("sort_by"))
-	if err := validateInputSafe(filters.SortBy, "sort_by"); err != nil {
+	if err := validator.ValidateInputSafe(filters.SortBy, "sort_by"); err != nil {
 		return query.ListGuruFilter{}, err
 	}
 
@@ -98,12 +101,12 @@ func parseListGuruFilters(req *http.Request) (query.ListGuruFilter, error) {
 	}
 
 	if bidangRaw := strings.TrimSpace(values.Get("bidang")); bidangRaw != "" {
-		if err := validateInputSafe(bidangRaw, "bidang"); err != nil {
+		if err := validator.ValidateInputSafe(bidangRaw, "bidang"); err != nil {
 			return query.ListGuruFilter{}, err
 		}
 		filters.Bidang = &bidangRaw
 	} else if bidangStudiRaw := strings.TrimSpace(values.Get("bidang_studi")); bidangStudiRaw != "" {
-		if err := validateInputSafe(bidangStudiRaw, "bidang_studi"); err != nil {
+		if err := validator.ValidateInputSafe(bidangStudiRaw, "bidang_studi"); err != nil {
 			return query.ListGuruFilter{}, err
 		}
 		filters.Bidang = &bidangStudiRaw

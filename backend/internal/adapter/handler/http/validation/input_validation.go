@@ -7,7 +7,7 @@ import (
 
 var disallowedSubstrings = []string{"--", "/*", "*/", "`", "$("}
 
-func validateInputSafe(value, field string) error {
+func ValidateInputSafe(value, field string) error {
 	trimmed := strings.TrimSpace(value)
 	if trimmed == "" {
 		return nil

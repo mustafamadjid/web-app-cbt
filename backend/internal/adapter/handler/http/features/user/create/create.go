@@ -9,6 +9,7 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 	httpx "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper"
+	validator "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/validation"
 	httpResponse "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper/response_envelope"
 	"github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/middleware"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
@@ -84,35 +85,35 @@ func (h *UserHandler) CreateGuru(write http.ResponseWriter, req *http.Request, _
 		httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request : invalid request body")
 		return
 	}
-	if err := validateInputSafe(cmd.Username, "username"); err != nil {
+	if err := validator.ValidateInputSafe(cmd.Username, "username"); err != nil {
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
-	if err := validateInputSafe(cmd.Email, "email"); err != nil {
+	if err := validator.ValidateInputSafe(cmd.Email, "email"); err != nil {
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
-	if err := validateInputSafe(cmd.NamaLengkap, "nama_lengkap"); err != nil {
+	if err := validator.ValidateInputSafe(cmd.NamaLengkap, "nama_lengkap"); err != nil {
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
-	if err := validateInputSafe(cmd.JenisKelamin, "jenis_kelamin"); err != nil {
+	if err := validator.ValidateInputSafe(cmd.JenisKelamin, "jenis_kelamin"); err != nil {
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
-	if err := validateInputSafe(cmd.NoHp, "no_hp"); err != nil {
+	if err := validator.ValidateInputSafe(cmd.NoHp, "no_hp"); err != nil {
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
-	if err := validateInputSafe(cmd.Nip, "nip"); err != nil {
+	if err := validator.ValidateInputSafe(cmd.Nip, "nip"); err != nil {
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
-	if err := validateInputSafe(cmd.Jabatan, "jabatan"); err != nil {
+	if err := validator.ValidateInputSafe(cmd.Jabatan, "jabatan"); err != nil {
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
-	if err := validateInputSafe(cmd.BidangStudi, "bidang_studi"); err != nil {
+	if err := validator.ValidateInputSafe(cmd.BidangStudi, "bidang_studi"); err != nil {
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
@@ -265,31 +266,31 @@ func (h *UserHandler) CreateSiswa(write http.ResponseWriter, req *http.Request, 
 		httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request: invalid request body")
 		return
 	}
-	if err := validateInputSafe(cmd.Username, "username"); err != nil {
+	if err := validator.ValidateInputSafe(cmd.Username, "username"); err != nil {
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
-	if err := validateInputSafe(cmd.Email, "email"); err != nil {
+	if err := validator.ValidateInputSafe(cmd.Email, "email"); err != nil {
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
-	if err := validateInputSafe(cmd.NamaLengkap, "nama_lengkap"); err != nil {
+	if err := validator.ValidateInputSafe(cmd.NamaLengkap, "nama_lengkap"); err != nil {
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
-	if err := validateInputSafe(cmd.JenisKelamin, "jenis_kelamin"); err != nil {
+	if err := validator.ValidateInputSafe(cmd.JenisKelamin, "jenis_kelamin"); err != nil {
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
-	if err := validateInputSafe(cmd.NoHp, "no_hp"); err != nil {
+	if err := validator.ValidateInputSafe(cmd.NoHp, "no_hp"); err != nil {
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
-	if err := validateInputSafe(cmd.Nisn, "nisn"); err != nil {
+	if err := validator.ValidateInputSafe(cmd.Nisn, "nisn"); err != nil {
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
-	if err := validateInputSafe(cmd.TempatLahir, "tempat_lahir"); err != nil {
+	if err := validator.ValidateInputSafe(cmd.TempatLahir, "tempat_lahir"); err != nil {
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}

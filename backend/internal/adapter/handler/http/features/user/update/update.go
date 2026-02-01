@@ -8,11 +8,13 @@ import (
 	"time"
 
 	"github.com/julienschmidt/httprouter"
+	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
+	"github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/middleware"
+
+	validator "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/validation"
 	httphelper "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper"
 	httpResponse "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper/response_envelope"
-	"github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/middleware"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
-	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 	user_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/user/update"
 )
 
@@ -404,7 +406,7 @@ func applyOptionalStrings(values map[string][]string, fields map[string]**string
 			continue
 		}
 		val := strings.TrimSpace(raw[0])
-		if err := validateInputSafe(val, key); err != nil {
+		if err := validator.ValidateInputSafe(val, key); err != nil {
 			return requestError{
 				status:  http.StatusBadRequest,
 				code:    "INVALID_INPUT",

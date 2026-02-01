@@ -7,9 +7,11 @@ import (
 	"strings"
 
 	"github.com/julienschmidt/httprouter"
-	httpResponse "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper/response_envelope"
-	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
+
+	httpResponse "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper/response_envelope"
+	validator "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/validation"
+	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	query "github.com/mustafamadjid/web-app-cbt/internal/core/query/user"
 	user_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/user/get"
 )
@@ -56,12 +58,12 @@ func parseListSiswaFilters(req *http.Request) (query.ListSiswaFilter, error) {
 	if filters.Search == "" {
 		filters.Search = strings.TrimSpace(values.Get("search"))
 	}
-	if err := validateInputSafe(filters.Search, "search"); err != nil {
+	if err := validator.ValidateInputSafe(filters.Search, "search"); err != nil {
 		return query.ListSiswaFilter{}, err
 	}
 
 	if statusRaw := strings.TrimSpace(values.Get("status")); statusRaw != "" {
-		if err := validateInputSafe(statusRaw, "status"); err != nil {
+		if err := validator.ValidateInputSafe(statusRaw, "status"); err != nil {
 			return query.ListSiswaFilter{}, err
 		}
 		status := user.StatusAkun(strings.ToUpper(statusRaw))
@@ -85,7 +87,7 @@ func parseListSiswaFilters(req *http.Request) (query.ListSiswaFilter, error) {
 	}
 
 	filters.SortBy = strings.TrimSpace(values.Get("sort_by"))
-	if err := validateInputSafe(filters.SortBy, "sort_by"); err != nil {
+	if err := validator.ValidateInputSafe(filters.SortBy, "sort_by"); err != nil {
 		return query.ListSiswaFilter{}, err
 	}
 
