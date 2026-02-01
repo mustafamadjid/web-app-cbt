@@ -109,7 +109,7 @@ func (h *UpdateHandler) parseUpdateGuruMultipart(r *http.Request, ps httprouter.
 	}
 
 	cmd := user_service.UpdateGuruCmd{IdPengguna: idPengguna}
-	applyOptionalStrings(r.MultipartForm.Value, map[string]**string{
+	if err := applyOptionalStrings(r.MultipartForm.Value, map[string]**string{
 		"username":      &cmd.Username,
 		"email":         &cmd.Email,
 		"nama_lengkap":  &cmd.NamaLengkap,
@@ -118,7 +118,9 @@ func (h *UpdateHandler) parseUpdateGuruMultipart(r *http.Request, ps httprouter.
 		"nip":           &cmd.Nip,
 		"jabatan":       &cmd.Jabatan,
 		"bidang_studi":  &cmd.BidangStudi,
-	})
+	}); err != nil {
+		return user_service.UpdateGuruCmd{}, err
+	}
 
 	statusAkun, err := parseOptionalStatus(r.MultipartForm.Value, "status_akun")
 	if err != nil {
@@ -165,7 +167,7 @@ func (h *UpdateHandler) parseUpdateSiswaMultipart(r *http.Request, ps httprouter
 	}
 
 	cmd := user_service.UpdateSiswaCmd{IdPengguna: idPengguna}
-	applyOptionalStrings(r.MultipartForm.Value, map[string]**string{
+	if err := applyOptionalStrings(r.MultipartForm.Value, map[string]**string{
 		"username":      &cmd.Username,
 		"email":         &cmd.Email,
 		"nama_lengkap":  &cmd.NamaLengkap,
@@ -173,7 +175,9 @@ func (h *UpdateHandler) parseUpdateSiswaMultipart(r *http.Request, ps httprouter
 		"no_hp":         &cmd.NoHp,
 		"nisn":          &cmd.Nisn,
 		"tempat_lahir":  &cmd.TempatLahir,
-	})
+	}); err != nil {
+		return user_service.UpdateSiswaCmd{}, err
+	}
 
 	statusAkun, err := parseOptionalStatus(r.MultipartForm.Value, "status_akun")
 	if err != nil {
@@ -266,7 +270,6 @@ func (h *UpdateHandler) parseOptionalFoto(r *http.Request) (*string, error) {
 		}
 	}
 	defer file.Close()
-
 
 	relPath, err := h.storeImage.SavePhotoRelative(file, fh)
 	if err != nil {
@@ -394,15 +397,23 @@ func parseOptionalDate(values map[string][]string, key string) (*time.Time, erro
 	return &parsed, nil
 }
 
-func applyOptionalStrings(values map[string][]string, fields map[string]**string) {
+func applyOptionalStrings(values map[string][]string, fields map[string]**string) error {
 	for key, target := range fields {
 		raw, ok := values[key]
 		if !ok || len(raw) == 0 {
 			continue
 		}
 		val := strings.TrimSpace(raw[0])
+		if err := validateInputSafe(val, key); err != nil {
+			return requestError{
+				status:  http.StatusBadRequest,
+				code:    "INVALID_INPUT",
+				message: err.Error(),
+			}
+		}
 		*target = &val
 	}
+	return nil
 }
 
 func parseOptionalStatus(values map[string][]string, key string) (*user.StatusAkun, error) {

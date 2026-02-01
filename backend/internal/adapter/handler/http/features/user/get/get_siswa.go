@@ -56,8 +56,14 @@ func parseListSiswaFilters(req *http.Request) (query.ListSiswaFilter, error) {
 	if filters.Search == "" {
 		filters.Search = strings.TrimSpace(values.Get("search"))
 	}
+	if err := validateInputSafe(filters.Search, "search"); err != nil {
+		return query.ListSiswaFilter{}, err
+	}
 
 	if statusRaw := strings.TrimSpace(values.Get("status")); statusRaw != "" {
+		if err := validateInputSafe(statusRaw, "status"); err != nil {
+			return query.ListSiswaFilter{}, err
+		}
 		status := user.StatusAkun(strings.ToUpper(statusRaw))
 		filters.Status = &status
 	}
@@ -79,6 +85,9 @@ func parseListSiswaFilters(req *http.Request) (query.ListSiswaFilter, error) {
 	}
 
 	filters.SortBy = strings.TrimSpace(values.Get("sort_by"))
+	if err := validateInputSafe(filters.SortBy, "sort_by"); err != nil {
+		return query.ListSiswaFilter{}, err
+	}
 
 	if sortDescRaw := strings.TrimSpace(values.Get("sort_desc")); sortDescRaw != "" {
 		sortDesc, err := strconv.ParseBool(sortDescRaw)
