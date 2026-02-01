@@ -36,6 +36,7 @@ type fakeSessionRepo struct {
 	store            map[string]session.Session
 	createSessionErr error
 	revokeSessionErr error
+	hasActiveErr     error
 }
 
 type fakeAccessToken struct {
@@ -171,6 +172,9 @@ func (fakeSession *fakeSessionRepo)GetAllActiveSession(ctx context.Context) ([]s
 }
 
 func (fakeSession *fakeSessionRepo)HasActiveSession(ctx context.Context, userID user.ID) (bool, error) {
+	if fakeSession.hasActiveErr != nil {
+		return false, fakeSession.hasActiveErr
+	}
 	for _, sess := range fakeSession.store {
 		if sess.UserID == userID && !sess.Revoked {
 			return true, nil
@@ -326,7 +330,47 @@ func TestLogin_BasisPaths(t *testing.T) {
 			wantErr: ErrSessionDown,
 		},
 		{
-			name: "P5 access token error -> propagated",
+			name: "P5 has active session error -> propagated",
+			setup: func() (*AuthService, LoginCmd) {
+				authUsers := &fakeAuthUserRepo{
+					byUsername: map[string]user.Pengguna{
+						"admin@example.com": {ID: 1, Username: "admin@example.com", PasswordHashed: "X", Role: "ADMIN", StatusAkun: user.AKTIF},
+					},
+				}
+				users := &fakeUserRepo{}
+				hasher := &fakeHasher{ok: true}
+				sessions := &fakeSessionRepo{hasActiveErr: ErrSessionDown}
+				accessTokens := &fakeAccessToken{}
+				refreshTokens := &fakeRefreshToken{}
+				svc := NewAuthService(authUsers, users, hasher, sessions, accessTokens, refreshTokens)
+				return svc, LoginCmd{Username: "admin@example.com", Password: "password"}
+			},
+			wantErr: ErrSessionDown,
+		},
+		{
+			name: "P6 has active session -> has session",
+			setup: func() (*AuthService, LoginCmd) {
+				authUsers := &fakeAuthUserRepo{
+					byUsername: map[string]user.Pengguna{
+						"admin@example.com": {ID: 1, Username: "admin@example.com", PasswordHashed: "X", Role: "ADMIN", StatusAkun: user.AKTIF},
+					},
+				}
+				users := &fakeUserRepo{}
+				hasher := &fakeHasher{ok: true}
+				sessions := &fakeSessionRepo{
+					store: map[string]session.Session{
+						"sess_1": {SessionID: "sess_1", UserID: 1, ExpiresAt: time.Now().Add(time.Hour)},
+					},
+				}
+				accessTokens := &fakeAccessToken{}
+				refreshTokens := &fakeRefreshToken{}
+				svc := NewAuthService(authUsers, users, hasher, sessions, accessTokens, refreshTokens)
+				return svc, LoginCmd{Username: "admin@example.com", Password: "password"}
+			},
+			wantErr: coreerror.ErrHasSession,
+		},
+		{
+			name: "P7 access token error -> propagated",
 			setup: func() (*AuthService, LoginCmd) {
 				authUsers := &fakeAuthUserRepo{
 					byUsername: map[string]user.Pengguna{
@@ -344,7 +388,7 @@ func TestLogin_BasisPaths(t *testing.T) {
 			wantErr: ErrSignAccessFail,
 		},
 		{
-			name: "P6 refresh token error -> propagated",
+			name: "P8 refresh token error -> propagated",
 			setup: func() (*AuthService, LoginCmd) {
 				authUsers := &fakeAuthUserRepo{
 					byUsername: map[string]user.Pengguna{
@@ -362,7 +406,7 @@ func TestLogin_BasisPaths(t *testing.T) {
 			wantErr: ErrSignRefreshFail,
 		},
 		{
-			name: "P7 success",
+			name: "P9 success",
 			setup: func() (*AuthService, LoginCmd) {
 				authUsers := &fakeAuthUserRepo{
 					byUsername: map[string]user.Pengguna{
