@@ -84,6 +84,38 @@ func (h *UserHandler) CreateGuru(write http.ResponseWriter, req *http.Request, _
 		httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request : invalid request body")
 		return
 	}
+	if err := validateInputSafe(cmd.Username, "username"); err != nil {
+		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
+		return
+	}
+	if err := validateInputSafe(cmd.Email, "email"); err != nil {
+		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
+		return
+	}
+	if err := validateInputSafe(cmd.NamaLengkap, "nama_lengkap"); err != nil {
+		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
+		return
+	}
+	if err := validateInputSafe(cmd.JenisKelamin, "jenis_kelamin"); err != nil {
+		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
+		return
+	}
+	if err := validateInputSafe(cmd.NoHp, "no_hp"); err != nil {
+		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
+		return
+	}
+	if err := validateInputSafe(cmd.Nip, "nip"); err != nil {
+		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
+		return
+	}
+	if err := validateInputSafe(cmd.Jabatan, "jabatan"); err != nil {
+		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
+		return
+	}
+	if err := validateInputSafe(cmd.BidangStudi, "bidang_studi"); err != nil {
+		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
+		return
+	}
 	actor, ok := middleware.ActorFromContext(req.Context())
 	if !ok {
 		httpResponse.WriteErr(write, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error : failed get actor from context")
@@ -231,6 +263,34 @@ func (h *UserHandler) CreateSiswa(write http.ResponseWriter, req *http.Request, 
 		cmd.TempatLahir == "" ||
 		cmd.TanggalLahir.IsZero() {
 		httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request: invalid request body")
+		return
+	}
+	if err := validateInputSafe(cmd.Username, "username"); err != nil {
+		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
+		return
+	}
+	if err := validateInputSafe(cmd.Email, "email"); err != nil {
+		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
+		return
+	}
+	if err := validateInputSafe(cmd.NamaLengkap, "nama_lengkap"); err != nil {
+		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
+		return
+	}
+	if err := validateInputSafe(cmd.JenisKelamin, "jenis_kelamin"); err != nil {
+		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
+		return
+	}
+	if err := validateInputSafe(cmd.NoHp, "no_hp"); err != nil {
+		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
+		return
+	}
+	if err := validateInputSafe(cmd.Nisn, "nisn"); err != nil {
+		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
+		return
+	}
+	if err := validateInputSafe(cmd.TempatLahir, "tempat_lahir"); err != nil {
+		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
 

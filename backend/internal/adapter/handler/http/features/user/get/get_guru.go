@@ -56,8 +56,14 @@ func parseListGuruFilters(req *http.Request) (query.ListGuruFilter, error) {
 	if filters.Search == "" {
 		filters.Search = strings.TrimSpace(values.Get("search"))
 	}
+	if err := validateInputSafe(filters.Search, "search"); err != nil {
+		return query.ListGuruFilter{}, err
+	}
 
 	if statusRaw := strings.TrimSpace(values.Get("status")); statusRaw != "" {
+		if err := validateInputSafe(statusRaw, "status"); err != nil {
+			return query.ListGuruFilter{}, err
+		}
 		status := user.StatusAkun(strings.ToUpper(statusRaw))
 		filters.Status = &status
 	}
@@ -79,6 +85,9 @@ func parseListGuruFilters(req *http.Request) (query.ListGuruFilter, error) {
 	}
 
 	filters.SortBy = strings.TrimSpace(values.Get("sort_by"))
+	if err := validateInputSafe(filters.SortBy, "sort_by"); err != nil {
+		return query.ListGuruFilter{}, err
+	}
 
 	if sortDescRaw := strings.TrimSpace(values.Get("sort_desc")); sortDescRaw != "" {
 		sortDesc, err := strconv.ParseBool(sortDescRaw)
@@ -89,8 +98,14 @@ func parseListGuruFilters(req *http.Request) (query.ListGuruFilter, error) {
 	}
 
 	if bidangRaw := strings.TrimSpace(values.Get("bidang")); bidangRaw != "" {
+		if err := validateInputSafe(bidangRaw, "bidang"); err != nil {
+			return query.ListGuruFilter{}, err
+		}
 		filters.Bidang = &bidangRaw
 	} else if bidangStudiRaw := strings.TrimSpace(values.Get("bidang_studi")); bidangStudiRaw != "" {
+		if err := validateInputSafe(bidangStudiRaw, "bidang_studi"); err != nil {
+			return query.ListGuruFilter{}, err
+		}
 		filters.Bidang = &bidangStudiRaw
 	}
 
