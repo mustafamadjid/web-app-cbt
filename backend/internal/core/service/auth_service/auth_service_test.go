@@ -151,12 +151,13 @@ func (fakeSession *fakeSessionRepo) RevokeSessionAllbyUser(ctx context.Context, 
 	return nil
 }
 
-func (fakeSession *fakeSessionRepo)GetSessionByUserId(ctx context.Context, userId user.ID)(session.Session, error){
-	ss, ok := fakeSession.store[userId]
-	if !ok {
-		return session.Session{}, coreerror.ErrNotFound
+func (fakeSession *fakeSessionRepo) GetSessionByUserId(ctx context.Context, userId user.ID) (session.Session, error) {
+	for _, sess := range fakeSession.store {
+		if sess.UserID == userId {
+			return sess, nil
+		}
 	}
-	return ss, nil
+	return session.Session{}, coreerror.ErrNotFound
 }
 
 func (f *fakeAccessToken) GenerateAccessToken(userID user.ID, role user.Role, username string, tokenDuration time.Duration) (string, error) {
@@ -624,4 +625,32 @@ func TestRefreshAccessToken_BasisPaths(t *testing.T) {
 			assert.ErrorIs(t, err, tt.wantErr)
 		})
 	}
+}
+
+func TestSessionRepository_GetSessionByUserId(t *testing.T) {
+	sessions := &fakeSessionRepo{
+		store: map[string]session.Session{
+			"sess_1": {SessionID: "sess_1", UserID: 1, ExpiresAt: time.Now().Add(time.Hour)},
+			"sess_2": {SessionID: "sess_2", UserID: 2, ExpiresAt: time.Now().Add(time.Hour)},
+		},
+	}
+
+	found, err := sessions.GetSessionByUserId(context.Background(), 2)
+
+	assert.NoError(t, err)
+	assert.Equal(t, "sess_2", found.SessionID)
+	assert.Equal(t, user.ID(2), found.UserID)
+}
+
+func TestSessionRepository_GetSessionByUserId_NotFound(t *testing.T) {
+	sessions := &fakeSessionRepo{
+		store: map[string]session.Session{
+			"sess_1": {SessionID: "sess_1", UserID: 1, ExpiresAt: time.Now().Add(time.Hour)},
+		},
+	}
+
+	_, err := sessions.GetSessionByUserId(context.Background(), 3)
+
+	assert.Error(t, err)
+	assert.ErrorIs(t, err, coreerror.ErrNotFound)
 }
