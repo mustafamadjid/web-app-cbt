@@ -60,19 +60,23 @@ func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSeko
 	router.POST("/auth/logout", auth.Handler.Logout)
 	router.POST("/auth/refresh", auth.Handler.Refresh)
 
-	// Admin
+	// SISWA
 	router.GET("/admin/siswa", requireAdmin(users.GetSiswaHandler.ListSiswa))
 	router.POST("/admin/siswa", requireAdmin(users.CreateHandler.CreateSiswa))
 	router.PATCH("/admin/siswa/:id", requireAdmin(users.UpdateHandler.UpdateSiswa))
 
+	// GURU
 	router.GET("/admin/guru", requireAdmin(users.GetGuruHandler.ListGuru))
-	router.POST("/admin", requireAdmin(users.CreateHandler.CreateGuru))
-	router.PATCH("/admin/:id", requireAdmin(users.UpdateHandler.UpdateGuru))
+	router.POST("/admin/guru", requireAdmin(users.CreateHandler.CreateGuru))
+	router.PATCH("/admin/guru/:id", requireAdmin(users.UpdateHandler.UpdateGuru))
 
-	router.DELETE("admin/pengguna/:id", requireAdmin(users.DeleteHandler.DeleteUser))
+	// PENGGUNA 
+	router.DELETE("/admin/pengguna/:id", requireAdmin(users.DeleteHandler.DeleteUser))
 
+	// PROFIL SEKOLAH
 	router.GET("/admin/profil-sekolah", requireAdmin(profilSekolah.GetHandler.GetProfilSekolah))
 	router.PATCH("/admin/profil-sekolah", requireAdmin(profilSekolah.UpdateHandler.UpdateProfilSekolah))
+
 
 	// Siswa
 
