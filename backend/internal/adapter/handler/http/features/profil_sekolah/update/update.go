@@ -1,13 +1,13 @@
 package httpx
 
 import (
-	"encoding/json"
 	"errors"
 	"net/http"
 	"strings"
 
 	"github.com/julienschmidt/httprouter"
 
+	httphelper "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper"
 	httpResponse "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper/response_envelope"
 	validator "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/validation"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
@@ -16,21 +16,12 @@ import (
 )
 
 type UpdateProfilSekolahHandler struct {
-	svc *profil_sekolah_service.UpdateProfilSekolahService
+	svc        *profil_sekolah_service.UpdateProfilSekolahService
+	storeImage httphelper.ImageStore
 }
 
-func NewUpdateProfilSekolahHandler(svc *profil_sekolah_service.UpdateProfilSekolahService) *UpdateProfilSekolahHandler {
-	return &UpdateProfilSekolahHandler{svc: svc}
-}
-
-type updateProfilSekolahRequest struct {
-	EmailSekolah  string  `json:"email_sekolah"`
-	NoTelpSekolah string  `json:"no_telp_sekolah"`
-	KepalaSekolah string  `json:"kepala_sekolah"`
-	WakaSekolah   string  `json:"waka_sekolah"`
-	NamaSekolah   string  `json:"nama_sekolah"`
-	AlamatSekolah string  `json:"alamat_sekolah"`
-	LogoSekolah   *string `json:"logo_sekolah"`
+func NewUpdateProfilSekolahHandler(svc *profil_sekolah_service.UpdateProfilSekolahService, storeImage httphelper.ImageStore) *UpdateProfilSekolahHandler {
+	return &UpdateProfilSekolahHandler{svc: svc, storeImage: storeImage}
 }
 
 func (h *UpdateProfilSekolahHandler) UpdateProfilSekolah(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -39,78 +30,82 @@ func (h *UpdateProfilSekolahHandler) UpdateProfilSekolah(w http.ResponseWriter, 
 		return
 	}
 
-	if ct := r.Header.Get("Content-Type"); ct != "" && !strings.HasPrefix(ct, "application/json") {
-		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: content type must be application/json")
+	ct := r.Header.Get("Content-Type")
+	if !strings.HasPrefix(ct, "multipart/form-data") {
+		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: content type must be multipart/form-data")
 		return
 	}
 
-	var req updateProfilSekolahRequest
-	decoder := json.NewDecoder(r.Body)
-	decoder.DisallowUnknownFields()
-	if err := decoder.Decode(&req); err != nil {
-		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: invalid JSON body")
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
+		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: invalid multipart form")
 		return
 	}
 
-	req.EmailSekolah = strings.TrimSpace(req.EmailSekolah)
-	req.NoTelpSekolah = strings.TrimSpace(req.NoTelpSekolah)
-	req.KepalaSekolah = strings.TrimSpace(req.KepalaSekolah)
-	req.WakaSekolah = strings.TrimSpace(req.WakaSekolah)
-	req.NamaSekolah = strings.TrimSpace(req.NamaSekolah)
-	req.AlamatSekolah = strings.TrimSpace(req.AlamatSekolah)
+	email := strings.TrimSpace(r.FormValue("email_sekolah"))
+	noTelp := strings.TrimSpace(r.FormValue("no_telp_sekolah"))
+	kepala := strings.TrimSpace(r.FormValue("kepala_sekolah"))
+	waka := strings.TrimSpace(r.FormValue("waka_sekolah"))
+	nama := strings.TrimSpace(r.FormValue("nama_sekolah"))
+	alamat := strings.TrimSpace(r.FormValue("alamat_sekolah"))
 
-	if req.EmailSekolah == "" || req.NoTelpSekolah == "" || req.KepalaSekolah == "" || req.WakaSekolah == "" || req.NamaSekolah == "" || req.AlamatSekolah == "" {
+	if email == "" || noTelp == "" || kepala == "" || waka == "" || nama == "" || alamat == "" {
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: invalid request body")
 		return
 	}
 
-	if err := validator.ValidateInputSafe(req.EmailSekolah, "email_sekolah"); err != nil {
+	if err := validator.ValidateInputSafe(email, "email_sekolah"); err != nil {
 		httpResponse.WriteErr(w, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
-	if err := validator.ValidateInputSafe(req.NoTelpSekolah, "no_telp_sekolah"); err != nil {
+	if err := validator.ValidateInputSafe(noTelp, "no_telp_sekolah"); err != nil {
 		httpResponse.WriteErr(w, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
-	if err := validator.ValidateInputSafe(req.KepalaSekolah, "kepala_sekolah"); err != nil {
+	if err := validator.ValidateInputSafe(kepala, "kepala_sekolah"); err != nil {
 		httpResponse.WriteErr(w, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
-	if err := validator.ValidateInputSafe(req.WakaSekolah, "waka_sekolah"); err != nil {
+	if err := validator.ValidateInputSafe(waka, "waka_sekolah"); err != nil {
 		httpResponse.WriteErr(w, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
-	if err := validator.ValidateInputSafe(req.NamaSekolah, "nama_sekolah"); err != nil {
+	if err := validator.ValidateInputSafe(nama, "nama_sekolah"); err != nil {
 		httpResponse.WriteErr(w, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
-	if err := validator.ValidateInputSafe(req.AlamatSekolah, "alamat_sekolah"); err != nil {
+	if err := validator.ValidateInputSafe(alamat, "alamat_sekolah"); err != nil {
 		httpResponse.WriteErr(w, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
 
 	var logo *string
-	if req.LogoSekolah != nil {
-		trimmed := strings.TrimSpace(*req.LogoSekolah)
-		if trimmed == "" {
-			httpResponse.WriteErr(w, http.StatusBadRequest, "INVALID_INPUT", "invalid input: logo_sekolah cannot be blank")
+	file, fh, err := r.FormFile("logo_sekolah")
+	if err != nil && !errors.Is(err, http.ErrMissingFile) {
+		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: failed reading logo_sekolah")
+		return
+	}
+	if err == nil {
+		defer file.Close()
+		relPath, err := h.storeImage.SavePhotoRelative(file, fh)
+		if err != nil {
+			if errors.Is(err, coreerror.ErrFileTooLarge) {
+				httpResponse.WriteErr(w, http.StatusBadRequest, "FILE_TOO_LARGE", "file too large")
+				return
+			}
+			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: invalid logo_sekolah")
 			return
 		}
-		if err := validator.ValidateInputSafe(trimmed, "logo_sekolah"); err != nil {
-			httpResponse.WriteErr(w, http.StatusBadRequest, "INVALID_INPUT", err.Error())
-			return
-		}
-		logo = &trimmed
+		logo = &relPath
 	}
 
 	cmd := profil_sekolah_service.UpdateProfilSekolahCmd{
 		IDProfil:      profil_sekolah.IDProfil(1),
-		EmailSekolah:  req.EmailSekolah,
-		NoTelpSekolah: req.NoTelpSekolah,
-		KepalaSekolah: req.KepalaSekolah,
-		WakaSekolah:   req.WakaSekolah,
-		NamaSekolah:   req.NamaSekolah,
-		AlamatSekolah: req.AlamatSekolah,
+		EmailSekolah:  email,
+		NoTelpSekolah: noTelp,
+		KepalaSekolah: kepala,
+		WakaSekolah:   waka,
+		NamaSekolah:   nama,
+		AlamatSekolah: alamat,
 		LogoSekolah:   logo,
 	}
 
