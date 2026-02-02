@@ -61,9 +61,9 @@ func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSeko
 	router.POST("/auth/refresh", auth.Handler.Refresh)
 
 	// Admin
-	router.GET("admin/siswa", requireAdmin(users.GetSiswaHandler.ListSiswa))
-	router.POST("admin/siswa", requireAdmin(users.CreateHandler.CreateSiswa))
-	router.PATCH("admin/siswa/:id", requireAdmin(users.UpdateHandler.UpdateSiswa))
+	router.GET("/admin/siswa", requireAdmin(users.GetSiswaHandler.ListSiswa))
+	router.POST("/admin/siswa", requireAdmin(users.CreateHandler.CreateSiswa))
+	router.PATCH("/admin/siswa/:id", requireAdmin(users.UpdateHandler.UpdateSiswa))
 
 	router.GET("/admin/guru", requireAdmin(users.GetGuruHandler.ListGuru))
 	router.POST("/admin", requireAdmin(users.CreateHandler.CreateGuru))
