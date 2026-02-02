@@ -1,6 +1,5 @@
 package app
 
-
 import (
 	"context"
 
@@ -9,11 +8,12 @@ import (
 )
 
 type App struct {
-	Infra  *InfraModule
-	Tokens *TokenModule
-	Auth   *AuthModule
-	Users  *UserModule
-	HTTP   *HTTPModule
+	Infra         *InfraModule
+	Tokens        *TokenModule
+	Auth          *AuthModule
+	Users         *UserModule
+	ProfilSekolah *ProfilSekolahModule
+	HTTP          *HTTPModule
 }
 
 func Build(ctx context.Context, cfg Config, dbURL string, hasher out.PasswordHasher) (*App, error) {
@@ -25,14 +25,16 @@ func Build(ctx context.Context, cfg Config, dbURL string, hasher out.PasswordHas
 	infra := BuildInfraModule(pool)
 	tokens := BuildTokenModule(cfg)
 	auth := BuildAuthModule(cfg, infra, tokens, hasher)
-	users := BuildUserModule(cfg,infra, hasher)
-	httpm := BuildHTTPModule(cfg, auth, users, tokens)
+	users := BuildUserModule(cfg, infra, hasher)
+	profilSekolah := BuildProfilSekolahModule(infra)
+	httpm := BuildHTTPModule(cfg, auth, users, profilSekolah, tokens)
 
 	return &App{
-		Infra:  infra,
-		Tokens: tokens,
-		Auth:   auth,
-		Users:  users,
-		HTTP:   httpm,
+		Infra:         infra,
+		Tokens:        tokens,
+		Auth:          auth,
+		Users:         users,
+		ProfilSekolah: profilSekolah,
+		HTTP:          httpm,
 	}, nil
 }

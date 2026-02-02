@@ -18,7 +18,7 @@ type HTTPModule struct {
 	Server  *http.Server
 }
 
-func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, tokens *TokenModule) *HTTPModule {
+func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSekolah *ProfilSekolahModule, tokens *TokenModule) *HTTPModule {
 	cookies := cookie.CookieConfig{
 		AccessName:  cfg.Cookie.AccessName,
 		RefreshName: cfg.Cookie.RefreshName,
@@ -70,6 +70,9 @@ func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, tokens *To
 	router.PATCH("/admin/:id", requireAdmin(users.UpdateHandler.UpdateGuru))
 
 	router.DELETE("admin/pengguna/:id", requireAdmin(users.DeleteHandler.DeleteUser))
+
+	router.GET("/admin/profil-sekolah", requireAdmin(profilSekolah.GetHandler.GetProfilSekolah))
+	router.PATCH("/admin/profil-sekolah", requireAdmin(profilSekolah.UpdateHandler.UpdateProfilSekolah))
 
 	// Siswa
 
