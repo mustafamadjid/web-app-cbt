@@ -26,7 +26,7 @@ func Build(ctx context.Context, cfg Config, dbURL string, hasher out.PasswordHas
 	tokens := BuildTokenModule(cfg)
 	auth := BuildAuthModule(cfg, infra, tokens, hasher)
 	users := BuildUserModule(cfg, infra, hasher)
-	profilSekolah := BuildProfilSekolahModule(infra)
+	profilSekolah := BuildProfilSekolahModule(cfg, infra)
 	httpm := BuildHTTPModule(cfg, auth, users, profilSekolah, tokens)
 
 	return &App{
