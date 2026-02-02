@@ -51,6 +51,10 @@ func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, tokens *To
 	}
 
 	requireAdmin := requireAccessRole(user.ADMIN)
+	// requireAdminGuru := requireAccessRole(user.ADMIN, user.GURU)
+
+	// requireSiswa := requireAccessRole(user.SISWA)
+	// requireGuru := requireAccessRole(user.GURU)
 
 	router.POST("/auth/login", auth.Handler.Login)
 	router.POST("/auth/logout", auth.Handler.Logout)
