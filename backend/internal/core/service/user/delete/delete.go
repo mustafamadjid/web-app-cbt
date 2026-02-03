@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
+	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
 )
 
@@ -11,14 +12,14 @@ type DeleteUserService struct {
 	users out.UserRepository
 }
 
-
 func NewDeleteUserService(user out.UserRepository) *DeleteUserService {
 	return &DeleteUserService{users: user}
 }
 
-func (s *DeleteUserService)Delete(ctx context.Context, idPengguna user.ID) error {
-	
+func (s *DeleteUserService) Delete(ctx context.Context, idPengguna user.ID) error {
+	logger := corelog.FromContext(ctx)
 	if err := s.users.DeleteUser(ctx, idPengguna); err != nil {
+		logger.Error(ctx, "failed deleting user", "op", "user.delete", "user_id", idPengguna, "err", err)
 		return err
 	}
 

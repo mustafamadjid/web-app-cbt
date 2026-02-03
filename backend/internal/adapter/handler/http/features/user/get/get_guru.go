@@ -12,6 +12,7 @@ import (
 	httpResponse "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper/response_envelope"
 	validator "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/validation"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
+	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 	query "github.com/mustafamadjid/web-app-cbt/internal/core/query/user"
 	user_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/user/get"
 )
@@ -24,8 +25,8 @@ func NewGetGuruHandler(svc *user_service.GetGuruService) *GetGuruHandler {
 	return &GetGuruHandler{svc: svc}
 }
 
-
 func (h *GetGuruHandler) ListGuru(write http.ResponseWriter, req *http.Request, _ httprouter.Params) {
+	logger := corelog.FromContext(req.Context())
 	if req.Method != http.MethodGet {
 		httpResponse.WriteErr(write, http.StatusMethodNotAllowed, "METHOD_NOT_ALLOWED", "method not allowed")
 		return
@@ -33,12 +34,14 @@ func (h *GetGuruHandler) ListGuru(write http.ResponseWriter, req *http.Request, 
 
 	filters, err := parseListGuruFilters(req)
 	if err != nil {
+		logger.Info(req.Context(), "invalid guru filters", "op", "user.list_guru", "err", err)
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
 
 	items, err := h.svc.ListGuru(req.Context(), filters)
 	if err != nil {
+		logger.Error(req.Context(), "failed listing guru", "op", "user.list_guru", "err", err)
 		switch {
 		case errors.Is(err, coreerror.ErrInvalidInput):
 			httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", "invalid input")

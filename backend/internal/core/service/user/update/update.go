@@ -7,6 +7,7 @@ import (
 
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
+	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 	txout "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/tx"
 	outuser "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
 )
@@ -36,6 +37,7 @@ func hasProfilSiswaPatch(p outuser.UpdateProfilSiswaPatch) bool {
 }
 
 func (u *UpdateTx) UpdateGuru(ctx context.Context, cmd UpdateGuruCmd, actor user.Actor) error {
+	logger := corelog.FromContext(ctx)
 	if actor.Role != user.ADMIN {
 		return coreerror.ErrForbidden
 	}
@@ -103,6 +105,7 @@ func (u *UpdateTx) UpdateGuru(ctx context.Context, cmd UpdateGuruCmd, actor user
 	// Transaksi
 	tx, error := u.txm.Begin(ctx)
 	if error != nil {
+		logger.Error(ctx, "failed starting transaction", "op", "user.update_guru", "err", error)
 		return error
 	}
 	defer func() {
@@ -121,6 +124,7 @@ func (u *UpdateTx) UpdateGuru(ctx context.Context, cmd UpdateGuruCmd, actor user
 
 	if hasPenggunaPatch(penggunaPatch) {
 		if error := tx.Pengguna().UpdateUser(ctx, cmd.IdPengguna, penggunaPatch); error != nil {
+			logger.Error(ctx, "failed updating pengguna", "op", "user.update_guru", "user_id", cmd.IdPengguna, "err", error)
 			return error
 		}
 	}
@@ -134,14 +138,20 @@ func (u *UpdateTx) UpdateGuru(ctx context.Context, cmd UpdateGuruCmd, actor user
 
 	if hasProfilPatch(profilPatch) {
 		if error := tx.ProfilGuru().UpdateProfilGuru(ctx, cmd.IdPengguna, profilPatch); error != nil {
+			logger.Error(ctx, "failed updating profil guru", "op", "user.update_guru", "user_id", cmd.IdPengguna, "err", error)
 			return error
 		}
 	}
 
-	return tx.Commit()
+	if err := tx.Commit(); err != nil {
+		logger.Error(ctx, "failed committing transaction", "op", "user.update_guru", "user_id", cmd.IdPengguna, "err", err)
+		return err
+	}
+	return nil
 }
 
 func (u *UpdateTx) UpdateSiswa(ctx context.Context, cmd UpdateSiswaCmd, actor user.Actor) error {
+	logger := corelog.FromContext(ctx)
 	if actor.Role != user.ADMIN {
 		return coreerror.ErrForbidden
 	}
@@ -223,6 +233,7 @@ func (u *UpdateTx) UpdateSiswa(ctx context.Context, cmd UpdateSiswaCmd, actor us
 
 	tx, err := u.txm.Begin(ctx)
 	if err != nil {
+		logger.Error(ctx, "failed starting transaction", "op", "user.update_siswa", "err", err)
 		return err
 	}
 	defer func() {
@@ -240,6 +251,7 @@ func (u *UpdateTx) UpdateSiswa(ctx context.Context, cmd UpdateSiswaCmd, actor us
 
 	if hasPenggunaPatch(penggunaPatch) {
 		if err := tx.Pengguna().UpdateUser(ctx, cmd.IdPengguna, penggunaPatch); err != nil {
+			logger.Error(ctx, "failed updating pengguna", "op", "user.update_siswa", "user_id", cmd.IdPengguna, "err", err)
 			return err
 		}
 	}
@@ -256,9 +268,14 @@ func (u *UpdateTx) UpdateSiswa(ctx context.Context, cmd UpdateSiswaCmd, actor us
 
 	if hasProfilSiswaPatch(profilPatch) {
 		if err := tx.ProfilSiswa().UpdateProfilSiswa(ctx, cmd.IdPengguna, profilPatch); err != nil {
+			logger.Error(ctx, "failed updating profil siswa", "op", "user.update_siswa", "user_id", cmd.IdPengguna, "err", err)
 			return err
 		}
 	}
 
-	return tx.Commit()
+	if err := tx.Commit(); err != nil {
+		logger.Error(ctx, "failed committing transaction", "op", "user.update_siswa", "user_id", cmd.IdPengguna, "err", err)
+		return err
+	}
+	return nil
 }

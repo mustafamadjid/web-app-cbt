@@ -8,15 +8,21 @@ import (
 
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/profil_sekolah"
+	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 	out "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/profil_sekolah"
 )
 
 type ProfilSekolahRepo struct {
-	q Executor
+	q      Executor
+	logger corelog.Logger
 }
 
-func NewProfilSekolahRepo(q Executor) *ProfilSekolahRepo {
-	return &ProfilSekolahRepo{q: q}
+func NewProfilSekolahRepo(q Executor, logger corelog.Logger) *ProfilSekolahRepo {
+	return &ProfilSekolahRepo{q: q, logger: logger}
+}
+
+func (r *ProfilSekolahRepo) loggerFor(ctx context.Context) corelog.Logger {
+	return corelog.FromContextOr(ctx, r.logger)
 }
 
 func (r *ProfilSekolahRepo) UpdateProfilSekolah(ctx context.Context, idProfil profil_sekolah.IDProfil, profil profil_sekolah.ProfilSekolah) error {
@@ -58,6 +64,9 @@ func (r *ProfilSekolahRepo) UpdateProfilSekolah(ctx context.Context, idProfil pr
 		profil.AlamatSekolah,
 		profil.LogoSekolah,
 	)
+	if err != nil {
+		r.loggerFor(ctx).Error(ctx, "failed updating profil sekolah", "op", "profil_sekolah_repo.upsert", "profil_id", idProfil, "err", err)
+	}
 	return err
 }
 
@@ -94,6 +103,7 @@ func (r *ProfilSekolahRepo) GetProfilSekolah(ctx context.Context) (profil_sekola
 		return profil_sekolah.ProfilSekolah{}, coreerror.ErrNotFound
 	}
 	if err != nil {
+		r.loggerFor(ctx).Error(ctx, "failed getting profil sekolah", "op", "profil_sekolah_repo.get", "err", err)
 		return profil_sekolah.ProfilSekolah{}, err
 	}
 

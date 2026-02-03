@@ -7,6 +7,7 @@ import (
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/port/out"
+	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 	txout "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/tx"
 )
 
@@ -24,6 +25,7 @@ func NewCreateSiswaService(txm txout.TxManager, hasher out.PasswordHasher) *Crea
 }
 
 func (uc *CreateTx) CreateGuru(ctx context.Context, cmd CreateGuruCmd, actor user.Actor) (CreateGuruRes, error) {
+	logger := corelog.FromContext(ctx)
 	// Cek role
 	if actor.Role != user.ADMIN {
 		return CreateGuruRes{}, coreerror.ErrForbidden
@@ -61,6 +63,7 @@ func (uc *CreateTx) CreateGuru(ctx context.Context, cmd CreateGuruCmd, actor use
 	// --- Transaksi ----
 	tx, err := uc.txm.Begin(ctx)
 	if err != nil {
+		logger.Error(ctx, "failed starting transaction", "op", "user.create_guru", "err", err)
 		return CreateGuruRes{}, err
 	}
 
@@ -68,6 +71,7 @@ func (uc *CreateTx) CreateGuru(ctx context.Context, cmd CreateGuruCmd, actor use
 
 	existUsername, error := tx.Pengguna().UserExistByUsername(ctx, cmd.Username)
 	if error != nil {
+		logger.Error(ctx, "failed checking username", "op", "user.create_guru", "err", error)
 		return CreateGuruRes{}, error
 	}
 	if existUsername {
@@ -76,6 +80,7 @@ func (uc *CreateTx) CreateGuru(ctx context.Context, cmd CreateGuruCmd, actor use
 
 	existNip, error := tx.ProfilGuru().ExistByNIP(ctx, nipValidated)
 	if error != nil {
+		logger.Error(ctx, "failed checking nip", "op", "user.create_guru", "err", error)
 		return CreateGuruRes{}, error
 	}
 	if existNip {
@@ -96,6 +101,7 @@ func (uc *CreateTx) CreateGuru(ctx context.Context, cmd CreateGuruCmd, actor use
 
 	idPengguna, error := tx.Pengguna().CreateUser(ctx, userData)
 	if error != nil {
+		logger.Error(ctx, "failed creating user", "op", "user.create_guru", "err", error)
 		return CreateGuruRes{}, error
 	}
 
@@ -108,10 +114,12 @@ func (uc *CreateTx) CreateGuru(ctx context.Context, cmd CreateGuruCmd, actor use
 
 	idProfilGuru, error := tx.ProfilGuru().CreateProfilGuru(ctx, profilGuruData)
 	if error != nil {
+		logger.Error(ctx, "failed creating profil guru", "op", "user.create_guru", "user_id", idPengguna, "err", error)
 		return CreateGuruRes{}, error
 	}
 
 	if error := tx.Commit(); error != nil {
+		logger.Error(ctx, "failed committing transaction", "op", "user.create_guru", "user_id", idPengguna, "err", error)
 		return CreateGuruRes{}, error
 	}
 
@@ -123,6 +131,7 @@ func (uc *CreateTx) CreateGuru(ctx context.Context, cmd CreateGuruCmd, actor use
 }
 
 func (uc *CreateTx) CreateSiswa(ctx context.Context, cmd CreateSiswaCmd, actor user.Actor) (CreateSiswaRes, error) {
+	logger := corelog.FromContext(ctx)
 	if actor.Role != user.ADMIN {
 		return CreateSiswaRes{}, coreerror.ErrForbidden
 	}
@@ -162,6 +171,7 @@ func (uc *CreateTx) CreateSiswa(ctx context.Context, cmd CreateSiswaCmd, actor u
 
 	tx, err := uc.txm.Begin(ctx)
 	if err != nil {
+		logger.Error(ctx, "failed starting transaction", "op", "user.create_siswa", "err", err)
 		return CreateSiswaRes{}, err
 	}
 
@@ -169,6 +179,7 @@ func (uc *CreateTx) CreateSiswa(ctx context.Context, cmd CreateSiswaCmd, actor u
 
 	existUsername, err := tx.Pengguna().UserExistByUsername(ctx, cmd.Username)
 	if err != nil {
+		logger.Error(ctx, "failed checking username", "op", "user.create_siswa", "err", err)
 		return CreateSiswaRes{}, err
 	}
 	if existUsername {
@@ -177,6 +188,7 @@ func (uc *CreateTx) CreateSiswa(ctx context.Context, cmd CreateSiswaCmd, actor u
 
 	existNisn, err := tx.ProfilSiswa().ExistByNISN(ctx, string(nisnValidated))
 	if err != nil {
+		logger.Error(ctx, "failed checking nisn", "op", "user.create_siswa", "err", err)
 		return CreateSiswaRes{}, err
 	}
 	if existNisn {
@@ -197,6 +209,7 @@ func (uc *CreateTx) CreateSiswa(ctx context.Context, cmd CreateSiswaCmd, actor u
 
 	idPengguna, err := tx.Pengguna().CreateUser(ctx, userData)
 	if err != nil {
+		logger.Error(ctx, "failed creating user", "op", "user.create_siswa", "err", err)
 		return CreateSiswaRes{}, err
 	}
 
@@ -213,10 +226,12 @@ func (uc *CreateTx) CreateSiswa(ctx context.Context, cmd CreateSiswaCmd, actor u
 
 	idProfilSiswa, err := tx.ProfilSiswa().CreateProfilSiswa(ctx, profilSiswaData)
 	if err != nil {
+		logger.Error(ctx, "failed creating profil siswa", "op", "user.create_siswa", "user_id", idPengguna, "err", err)
 		return CreateSiswaRes{}, err
 	}
 
 	if err := tx.Commit(); err != nil {
+		logger.Error(ctx, "failed committing transaction", "op", "user.create_siswa", "user_id", idPengguna, "err", err)
 		return CreateSiswaRes{}, err
 	}
 

@@ -11,6 +11,7 @@ import (
 	"github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/cookie"
 	"github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/middleware"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
+	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 )
 
 type HTTPModule struct {
@@ -18,7 +19,7 @@ type HTTPModule struct {
 	Server  *http.Server
 }
 
-func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSekolah *ProfilSekolahModule, tokens *TokenModule) *HTTPModule {
+func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSekolah *ProfilSekolahModule, tokens *TokenModule, logger corelog.Logger) *HTTPModule {
 	cookies := cookie.CookieConfig{
 		AccessName:  cfg.Cookie.AccessName,
 		RefreshName: cfg.Cookie.RefreshName,
@@ -70,13 +71,12 @@ func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSeko
 	router.POST("/admin/guru", requireAdmin(users.CreateHandler.CreateGuru))
 	router.PATCH("/admin/guru/:id", requireAdmin(users.UpdateHandler.UpdateGuru))
 
-	// PENGGUNA 
+	// PENGGUNA
 	router.DELETE("/admin/pengguna/:id", requireAdmin(users.DeleteHandler.DeleteUser))
 
 	// PROFIL SEKOLAH
 	router.GET("/admin/profil-sekolah", requireAdmin(profilSekolah.GetHandler.GetProfilSekolah))
 	router.PATCH("/admin/profil-sekolah", requireAdmin(profilSekolah.UpdateHandler.UpdateProfilSekolah))
-
 
 	// Siswa
 
@@ -99,13 +99,14 @@ func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSeko
 		http.ServeFile(w, r, full)
 	}))
 
+	handler := middleware.RequestLogger(router, logger)
 	server := &http.Server{
 		Addr:    cfg.HTTP.Addr,
-		Handler: router,
+		Handler: handler,
 	}
 
 	return &HTTPModule{
-		Handler: router,
+		Handler: handler,
 		Server:  server,
 	}
 }

@@ -10,16 +10,22 @@ import (
 
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
+	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 	outuser "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
 	query "github.com/mustafamadjid/web-app-cbt/internal/core/query/user"
 )
 
 type ProfilSiswaRepo struct {
-	q Executor
+	q      Executor
+	logger corelog.Logger
 }
 
-func NewProfilSiswaRepo(q Executor) *ProfilSiswaRepo {
-	return &ProfilSiswaRepo{q: q}
+func NewProfilSiswaRepo(q Executor, logger corelog.Logger) *ProfilSiswaRepo {
+	return &ProfilSiswaRepo{q: q, logger: logger}
+}
+
+func (r *ProfilSiswaRepo) loggerFor(ctx context.Context) corelog.Logger {
+	return corelog.FromContextOr(ctx, r.logger)
 }
 
 func (r *ProfilSiswaRepo) FindProfilSiswaByID(ctx context.Context, id user.ID) (user.ProfilSiswa, error) {
@@ -54,6 +60,7 @@ func (r *ProfilSiswaRepo) FindProfilSiswaByID(ctx context.Context, id user.ID) (
 		return user.ProfilSiswa{}, coreerror.ErrNotFound
 	}
 	if err != nil {
+		r.loggerFor(ctx).Error(ctx, "failed finding profil siswa", "op", "profil_siswa_repo.find_by_id", "user_id", id, "err", err)
 		return user.ProfilSiswa{}, err
 	}
 
@@ -66,6 +73,7 @@ func (r *ProfilSiswaRepo) ExistByNISN(ctx context.Context, nisn string) (bool, e
 
 	var exists bool
 	if err := r.q.QueryRow(ctx, query, nisn).Scan(&exists); err != nil {
+		r.loggerFor(ctx).Error(ctx, "failed checking nisn existence", "op", "profil_siswa_repo.exists_by_nisn", "nisn", nisn, "err", err)
 		return false, err
 	}
 
@@ -102,6 +110,7 @@ func (r *ProfilSiswaRepo) CreateProfilSiswa(ctx context.Context, profilSiswa use
 		profilSiswa.TanggalLahir,
 	).Scan(&id)
 	if err != nil {
+		r.loggerFor(ctx).Error(ctx, "failed creating profil siswa", "op", "profil_siswa_repo.create", "user_id", profilSiswa.IdPengguna, "err", err)
 		return 0, err
 	}
 
@@ -147,6 +156,9 @@ func (r *ProfilSiswaRepo) UpdateProfilSiswa(ctx context.Context, idPengguna user
 	q := fmt.Sprintf(`UPDATE profil_siswa SET %s WHERE id_pengguna=$%d`, strings.Join(set, ", "), len(args))
 
 	_, err := r.q.Exec(ctx, q, args...)
+	if err != nil {
+		r.loggerFor(ctx).Error(ctx, "failed updating profil siswa", "op", "profil_siswa_repo.update", "user_id", idPengguna, "err", err)
+	}
 	return err
 }
 
@@ -229,6 +241,7 @@ func (r *ProfilSiswaRepo) GetListSiswa(ctx context.Context, filter query.ListSis
 
 	rows, err := r.q.Query(ctx, baseQuery, args...)
 	if err != nil {
+		r.loggerFor(ctx).Error(ctx, "failed listing siswa", "op", "profil_siswa_repo.list", "err", err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -253,6 +266,7 @@ func (r *ProfilSiswaRepo) GetListSiswa(ctx context.Context, filter query.ListSis
 			&item.TingkatKelas,
 			&item.Angkatan,
 		); err != nil {
+			r.loggerFor(ctx).Error(ctx, "failed scanning siswa list", "op", "profil_siswa_repo.list_scan", "err", err)
 			return nil, err
 		}
 
@@ -269,6 +283,7 @@ func (r *ProfilSiswaRepo) GetListSiswa(ctx context.Context, filter query.ListSis
 	}
 
 	if err := rows.Err(); err != nil {
+		r.loggerFor(ctx).Error(ctx, "failed iterating siswa list", "op", "profil_siswa_repo.list_iter", "err", err)
 		return nil, err
 	}
 

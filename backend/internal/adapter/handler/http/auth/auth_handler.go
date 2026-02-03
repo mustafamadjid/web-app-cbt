@@ -12,6 +12,7 @@ import (
 	httpResponse "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper/response_envelope"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	authin "github.com/mustafamadjid/web-app-cbt/internal/core/port/in/auth_port_in"
+	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 
 	"github.com/mustafamadjid/web-app-cbt/internal/core/service/auth_service"
 )
@@ -33,17 +34,20 @@ func NewAuthHandler(svc authin.AuthUsecase, cookies cookie.CookieConfig, accessT
 }
 
 func (h *AuthHandler) Login(write http.ResponseWriter, req *http.Request, _ httprouter.Params) {
+	logger := corelog.FromContext(req.Context())
 	var reqBody LoginRequest
 
 	dec := json.NewDecoder(req.Body)
 	dec.DisallowUnknownFields()
 	if err := dec.Decode(&reqBody); err != nil {
+		logger.Error(req.Context(), "failed decoding login request", "op", "auth.login", "err", err)
 		httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request")
 		return
 	}
 
 	re := regexp.MustCompile(`^[a-zA-Z0-9._]{3,13}$`)
 	if !re.MatchString(reqBody.Username) {
+		logger.Info(req.Context(), "invalid login input", "op", "auth.login", "err", "invalid_username")
 		httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request : invalid character. It must be 3-16 characters long and contain only letters, numbers, and underscores.")
 		return
 	}
@@ -57,6 +61,7 @@ func (h *AuthHandler) Login(write http.ResponseWriter, req *http.Request, _ http
 
 	res, err := h.svc.Login(req.Context(), reqCmd)
 	if err != nil {
+		logger.Error(req.Context(), "login failed", "op", "auth.login", "err", err)
 		switch {
 		case errors.Is(err, coreerror.ErrInvalidCreds):
 			httpResponse.WriteErr(write, http.StatusUnauthorized, "INVALID_CREDENTIALS", "unauthorized : invalid credentials")
@@ -80,13 +85,17 @@ func (h *AuthHandler) Login(write http.ResponseWriter, req *http.Request, _ http
 }
 
 func (h *AuthHandler) Logout(write http.ResponseWriter, req *http.Request, _ httprouter.Params) {
+	logger := corelog.FromContext(req.Context())
 	c, err := req.Cookie(h.cookies.RefreshName)
 	if err != nil || c.Value == "" {
+		logger.Info(req.Context(), "missing refresh token", "op", "auth.logout", "err", "missing_refresh_token")
 		httpResponse.WriteErr(write, http.StatusUnauthorized, "INVALID_TOKEN", "unauthorized : invalid token")
 		return
 	}
 
-	_ = h.svc.Logout(req.Context(), c.Value, time.Now())
+	if err := h.svc.Logout(req.Context(), c.Value, time.Now()); err != nil {
+		logger.Error(req.Context(), "logout failed", "op", "auth.logout", "err", err)
+	}
 
 	cookie.ClearAuthCookies(write, h.cookies)
 
@@ -94,14 +103,17 @@ func (h *AuthHandler) Logout(write http.ResponseWriter, req *http.Request, _ htt
 }
 
 func (h *AuthHandler) Refresh(write http.ResponseWriter, req *http.Request, _ httprouter.Params) {
+	logger := corelog.FromContext(req.Context())
 	c, err := req.Cookie(h.cookies.RefreshName)
 	if err != nil || c.Value == "" {
+		logger.Info(req.Context(), "missing refresh token", "op", "auth.refresh", "err", "missing_refresh_token")
 		httpResponse.WriteErr(write, http.StatusUnauthorized, "INVALID_TOKEN", "unauthorized : invalid token")
 		return
 	}
 
 	newAccessToken, err := h.svc.RefreshAccessToken(req.Context(), c.Value, h.accessTTL)
 	if err != nil {
+		logger.Error(req.Context(), "refresh token failed", "op", "auth.refresh", "err", err)
 		httpResponse.WriteErr(write, http.StatusUnauthorized, "INVALID_TOKEN", "unauthorized : invalid token")
 		return
 	}
@@ -112,8 +124,8 @@ func (h *AuthHandler) Refresh(write http.ResponseWriter, req *http.Request, _ ht
 
 }
 
-
-func (h *AuthHandler)AdminRevokeUser(write http.ResponseWriter, req *http.Request, _ httprouter.Params) {
+func (h *AuthHandler) AdminRevokeUser(write http.ResponseWriter, req *http.Request, _ httprouter.Params) {
+	logger := corelog.FromContext(req.Context())
 	if req.Method != http.MethodPut {
 		httpResponse.WriteErr(write, http.StatusMethodNotAllowed, "METHOD_NOT_ALLOWED", "method not allowed")
 		return
@@ -123,11 +135,13 @@ func (h *AuthHandler)AdminRevokeUser(write http.ResponseWriter, req *http.Reques
 	dec := json.NewDecoder(req.Body)
 	dec.DisallowUnknownFields()
 	if err := dec.Decode(&reqBody); err != nil {
+		logger.Error(req.Context(), "failed decoding revoke request", "op", "auth.admin_revoke", "err", err)
 		httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request")
 		return
 	}
 
-	if err := h.svc.AdminRevokingSession(req.Context(),reqBody.SessionId); err != nil {
+	if err := h.svc.AdminRevokingSession(req.Context(), reqBody.SessionId); err != nil {
+		logger.Error(req.Context(), "failed revoking session", "op", "auth.admin_revoke", "session_id", reqBody.SessionId, "err", err)
 		switch {
 		case errors.Is(err, coreerror.ErrNotFound):
 			httpResponse.WriteErr(write, http.StatusNotFound, "NOT_FOUND", "Session not found")

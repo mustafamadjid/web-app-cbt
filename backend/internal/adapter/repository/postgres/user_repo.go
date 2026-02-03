@@ -11,16 +11,22 @@ import (
 
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
+	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 	outuser "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
 )
 
 type UserRepo struct {
-	q Executor
-}
-func NewUserRepo(q Executor) *UserRepo {
-	return &UserRepo{q: q}
+	q      Executor
+	logger corelog.Logger
 }
 
+func NewUserRepo(q Executor, logger corelog.Logger) *UserRepo {
+	return &UserRepo{q: q, logger: logger}
+}
+
+func (r *UserRepo) loggerFor(ctx context.Context) corelog.Logger {
+	return corelog.FromContextOr(ctx, r.logger)
+}
 
 func (r *UserRepo) FindUserByID(ctx context.Context, id user.ID) (user.Pengguna, error) {
 	const query = `
@@ -61,6 +67,7 @@ func (r *UserRepo) FindUserByID(ctx context.Context, id user.ID) (user.Pengguna,
 		return user.Pengguna{}, coreerror.ErrNotFound
 	}
 	if err != nil {
+		r.loggerFor(ctx).Error(ctx, "failed finding user", "op", "user_repo.find_by_id", "user_id", id, "err", err)
 		return user.Pengguna{}, err
 	}
 
@@ -82,6 +89,7 @@ func (r *UserRepo) UserExistByUsername(ctx context.Context, username string) (bo
 
 	var exists bool
 	if err := r.q.QueryRow(ctx, query, username).Scan(&exists); err != nil {
+		r.loggerFor(ctx).Error(ctx, "failed checking username existence", "op", "user_repo.user_exists", "username", username, "err", err)
 		return false, err
 	}
 
@@ -135,13 +143,14 @@ func (r *UserRepo) CreateUser(ctx context.Context, pengguna user.Pengguna) (user
 		string(pengguna.StatusAkun),
 	).Scan(&id)
 	if err != nil {
+		r.loggerFor(ctx).Error(ctx, "failed creating user", "op", "user_repo.create", "err", err)
 		return 0, err
 	}
 
 	return id, nil
 }
 
-func (r *UserRepo) UpdateUser(ctx context.Context,idPengguna user.ID,pengguna outuser.UpdatePenggunaPatch) error{
+func (r *UserRepo) UpdateUser(ctx context.Context, idPengguna user.ID, pengguna outuser.UpdatePenggunaPatch) error {
 	set := make([]string, 0, 6)
 	args := make([]any, 0, 7)
 
@@ -177,6 +186,9 @@ func (r *UserRepo) UpdateUser(ctx context.Context,idPengguna user.ID,pengguna ou
 	q := fmt.Sprintf(`UPDATE pengguna SET %s WHERE id_pengguna=$%d`, strings.Join(set, ", "), len(args))
 
 	_, err := r.q.Exec(ctx, q, args...)
+	if err != nil {
+		r.loggerFor(ctx).Error(ctx, "failed updating user", "op", "user_repo.update", "user_id", idPengguna, "err", err)
+	}
 	return err
 }
 
@@ -185,6 +197,7 @@ func (r *UserRepo) DeleteUser(ctx context.Context, id user.ID) error {
 
 	result, err := r.q.Exec(ctx, query, id)
 	if err != nil {
+		r.loggerFor(ctx).Error(ctx, "failed deleting user", "op", "user_repo.delete", "user_id", id, "err", err)
 		return err
 	}
 	if result.RowsAffected() == 0 {
@@ -213,6 +226,7 @@ func (r *UserRepo) ListUser(ctx context.Context) ([]user.Pengguna, error) {
 
 	rows, err := r.q.Query(ctx, query)
 	if err != nil {
+		r.loggerFor(ctx).Error(ctx, "failed listing users", "op", "user_repo.list", "err", err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -237,6 +251,7 @@ func (r *UserRepo) ListUser(ctx context.Context) ([]user.Pengguna, error) {
 			&status,
 			&item.Foto,
 		); err != nil {
+			r.loggerFor(ctx).Error(ctx, "failed scanning users", "op", "user_repo.list_scan", "err", err)
 			return nil, err
 		}
 
@@ -254,6 +269,7 @@ func (r *UserRepo) ListUser(ctx context.Context) ([]user.Pengguna, error) {
 	}
 
 	if err := rows.Err(); err != nil {
+		r.loggerFor(ctx).Error(ctx, "failed iterating users", "op", "user_repo.list_iter", "err", err)
 		return nil, err
 	}
 
