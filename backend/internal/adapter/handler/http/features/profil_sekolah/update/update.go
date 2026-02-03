@@ -12,6 +12,7 @@ import (
 	validator "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/validation"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/profil_sekolah"
+	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 	profil_sekolah_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/profil_sekolah/update"
 )
 
@@ -25,6 +26,7 @@ func NewUpdateProfilSekolahHandler(svc *profil_sekolah_service.UpdateProfilSekol
 }
 
 func (h *UpdateProfilSekolahHandler) UpdateProfilSekolah(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	logger := corelog.FromContext(r.Context())
 	if r.Method != http.MethodPatch {
 		httpResponse.WriteErr(w, http.StatusMethodNotAllowed, "METHOD_NOT_ALLOWED", "method not allowed")
 		return
@@ -37,6 +39,7 @@ func (h *UpdateProfilSekolahHandler) UpdateProfilSekolah(w http.ResponseWriter, 
 	}
 
 	if err := r.ParseMultipartForm(10 << 20); err != nil {
+		logger.Error(r.Context(), "failed parsing multipart form", "op", "profil_sekolah.update", "err", err)
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: invalid multipart form")
 		return
 	}
@@ -81,6 +84,7 @@ func (h *UpdateProfilSekolahHandler) UpdateProfilSekolah(w http.ResponseWriter, 
 	var logo *string
 	file, fh, err := r.FormFile("logo_sekolah")
 	if err != nil && !errors.Is(err, http.ErrMissingFile) {
+		logger.Error(r.Context(), "failed reading logo", "op", "profil_sekolah.update", "err", err)
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: failed reading logo_sekolah")
 		return
 	}
@@ -89,9 +93,11 @@ func (h *UpdateProfilSekolahHandler) UpdateProfilSekolah(w http.ResponseWriter, 
 		relPath, err := h.storeImage.SavePhotoRelative(file, fh)
 		if err != nil {
 			if errors.Is(err, coreerror.ErrFileTooLarge) {
+				logger.Info(r.Context(), "logo too large", "op", "profil_sekolah.update", "err", err)
 				httpResponse.WriteErr(w, http.StatusBadRequest, "FILE_TOO_LARGE", "file too large")
 				return
 			}
+			logger.Error(r.Context(), "failed saving logo", "op", "profil_sekolah.update", "err", err)
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: invalid logo_sekolah")
 			return
 		}
@@ -110,6 +116,7 @@ func (h *UpdateProfilSekolahHandler) UpdateProfilSekolah(w http.ResponseWriter, 
 	}
 
 	if err := h.svc.UpdateProfilSekolah(r.Context(), cmd); err != nil {
+		logger.Error(r.Context(), "failed updating profil sekolah", "op", "profil_sekolah.update", "err", err)
 		switch {
 		case errors.Is(err, coreerror.ErrInvalidInput):
 			httpResponse.WriteErr(w, http.StatusBadRequest, "INVALID_INPUT", "invalid input")

@@ -9,9 +9,10 @@ import (
 	"os"
 	"time"
 
-	"github.com/mustafamadjid/web-app-cbt/internal/adapter/securtity/bcrypt"
+	"github.com/mustafamadjid/web-app-cbt/internal/adapter/security/bcrypt"
 	"github.com/mustafamadjid/web-app-cbt/internal/app"
 	"github.com/mustafamadjid/web-app-cbt/internal/infra/db"
+	"github.com/mustafamadjid/web-app-cbt/internal/infra/logging"
 )
 
 func main() {
@@ -22,10 +23,10 @@ func main() {
 	// }
 	// fmt.Println(env)
 
-	
+	logger := logging.NewLogger(os.Getenv("ENV"))
 
 	cookieSecure := true
-	if os.Getenv("ENV") == "dev"  || os.Getenv("ENV") == "" {
+	if os.Getenv("ENV") == "dev" || os.Getenv("ENV") == "" {
 		cookieSecure = false
 	}
 
@@ -38,8 +39,6 @@ func main() {
 	if baseURL == "" {
 		baseURL = "http://localhost:8080"
 	}
-	
-	
 
 	cfg := app.Config{
 		HTTP: app.HTTPConfig{
@@ -60,16 +59,15 @@ func main() {
 			SameSite:    http.SameSiteLaxMode,
 		},
 		ImageStore: app.ImageStoreConfig{
-			Dir:uploadDir,
-			BaseURL:baseURL,
-			Route:"/uploads",
-			MaxBytes:5<<20,
+			Dir:      uploadDir,
+			BaseURL:  baseURL,
+			Route:    "/uploads",
+			MaxBytes: 5 << 20,
 		},
 	}
-	
 
-	pool, err := db.OpenPgxPool(ctx,db.PgxConfig{
-		DbURL:             os.Getenv("POSTGRES_DBURL"),
+	pool, err := db.OpenPgxPool(ctx, db.PgxConfig{
+		DbURL:           os.Getenv("POSTGRES_DBURL"),
 		MaxConns:        20,
 		MinConns:        5,
 		MaxConnLifetime: 30 * time.Minute,
@@ -78,26 +76,23 @@ func main() {
 	})
 
 	if err != nil {
-		log.Fatalf("DB init failed: %v",err)
+		log.Fatalf("DB init failed: %v", err)
 		log.Fatal("Exiting....")
 	}
 	log.Println("DB init success")
 	defer pool.Close()
 
-	
-
-
-	infra := app.BuildInfraModule(pool)
+	infra := app.BuildInfraModule(pool, logger)
 	tokens := app.BuildTokenModule(cfg)
 	hasher := bcrypt.NewHasher(0)
 
-	authMod := app.BuildAuthModule(cfg,infra,tokens,hasher)
-	userMod := app.BuildUserModule(cfg,infra,hasher)
-	profilSekolahMod := app.BuildProfilSekolahModule(infra)
+	authMod := app.BuildAuthModule(cfg, infra, tokens, hasher)
+	userMod := app.BuildUserModule(cfg, infra, hasher)
+	profilSekolahMod := app.BuildProfilSekolahModule(cfg, infra)
 
-	httpMod := app.BuildHTTPModule(cfg,authMod,userMod,profilSekolahMod,tokens)
+	httpMod := app.BuildHTTPModule(cfg, authMod, userMod, profilSekolahMod, tokens, logger)
 
-	log.Println("Listening on" , cfg.HTTP.Addr)
+	log.Println("Listening on", cfg.HTTP.Addr)
 	if err := httpMod.Server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatal(err)
 	}

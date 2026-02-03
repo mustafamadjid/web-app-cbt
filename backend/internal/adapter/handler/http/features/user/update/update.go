@@ -8,13 +8,14 @@ import (
 	"time"
 
 	"github.com/julienschmidt/httprouter"
-	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 	"github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/middleware"
+	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 
-	validator "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/validation"
 	httphelper "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper"
 	httpResponse "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper/response_envelope"
+	validator "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/validation"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
+	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 	user_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/user/update"
 )
 
@@ -36,6 +37,7 @@ func NewUpdateUserHandler(svc *user_service.UpdateTx, storeImage httphelper.Imag
 }
 
 func (h *UpdateHandler) UpdateGuru(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	logger := corelog.FromContext(r.Context())
 	if r.Method != http.MethodPatch {
 		httpResponse.WriteErr(w, http.StatusMethodNotAllowed, "METHOD_NOT_ALLOWED", "method not allowed")
 		return
@@ -43,17 +45,20 @@ func (h *UpdateHandler) UpdateGuru(w http.ResponseWriter, r *http.Request, ps ht
 
 	cmd, err := h.parseUpdateGuruMultipart(r, ps)
 	if err != nil {
+		logger.Error(r.Context(), "failed parsing update guru request", "op", "user.update_guru", "err", err)
 		h.writeRequestError(w, err)
 		return
 	}
 
 	actor, ok := middleware.ActorFromContext(r.Context())
 	if !ok {
+		logger.Error(r.Context(), "missing actor in context", "op", "user.update_guru", "err", "actor_not_found")
 		httpResponse.WriteErr(w, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error : failed get actor from context")
 		return
 	}
 
 	if err := h.svc.UpdateGuru(r.Context(), cmd, actor); err != nil {
+		logger.Error(r.Context(), "failed updating guru", "op", "user.update_guru", "user_id", cmd.IdPengguna, "err", err)
 		h.writeUpdateError(w, err, "guru")
 		return
 	}
@@ -62,6 +67,7 @@ func (h *UpdateHandler) UpdateGuru(w http.ResponseWriter, r *http.Request, ps ht
 }
 
 func (h *UpdateHandler) UpdateSiswa(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	logger := corelog.FromContext(r.Context())
 	if r.Method != http.MethodPatch {
 		httpResponse.WriteErr(w, http.StatusMethodNotAllowed, "METHOD_NOT_ALLOWED", "method not allowed")
 		return
@@ -69,17 +75,20 @@ func (h *UpdateHandler) UpdateSiswa(w http.ResponseWriter, r *http.Request, ps h
 
 	cmd, err := h.parseUpdateSiswaMultipart(r, ps)
 	if err != nil {
+		logger.Error(r.Context(), "failed parsing update siswa request", "op", "user.update_siswa", "err", err)
 		h.writeRequestError(w, err)
 		return
 	}
 
 	actor, ok := middleware.ActorFromContext(r.Context())
 	if !ok {
+		logger.Error(r.Context(), "missing actor in context", "op", "user.update_siswa", "err", "actor_not_found")
 		httpResponse.WriteErr(w, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error : failed get actor from context")
 		return
 	}
 
 	if err := h.svc.UpdateSiswa(r.Context(), cmd, actor); err != nil {
+		logger.Error(r.Context(), "failed updating siswa", "op", "user.update_siswa", "user_id", cmd.IdPengguna, "err", err)
 		h.writeUpdateError(w, err, "siswa")
 		return
 	}

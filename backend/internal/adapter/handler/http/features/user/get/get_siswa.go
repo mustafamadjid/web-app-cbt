@@ -12,6 +12,7 @@ import (
 	httpResponse "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper/response_envelope"
 	validator "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/validation"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
+	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 	query "github.com/mustafamadjid/web-app-cbt/internal/core/query/user"
 	user_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/user/get"
 )
@@ -25,6 +26,7 @@ func NewGetSiswaHandler(svc *user_service.GetSiswaService) *GetSiswaHandler {
 }
 
 func (h *GetSiswaHandler) ListSiswa(write http.ResponseWriter, req *http.Request, _ httprouter.Params) {
+	logger := corelog.FromContext(req.Context())
 	if req.Method != http.MethodGet {
 		httpResponse.WriteErr(write, http.StatusMethodNotAllowed, "METHOD_NOT_ALLOWED", "method not allowed")
 		return
@@ -32,12 +34,14 @@ func (h *GetSiswaHandler) ListSiswa(write http.ResponseWriter, req *http.Request
 
 	filters, err := parseListSiswaFilters(req)
 	if err != nil {
+		logger.Info(req.Context(), "invalid siswa filters", "op", "user.list_siswa", "err", err)
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
 
 	items, err := h.svc.ListSiswa(req.Context(), filters)
 	if err != nil {
+		logger.Error(req.Context(), "failed listing siswa", "op", "user.list_siswa", "err", err)
 		switch {
 		case errors.Is(err, coreerror.ErrInvalidInput):
 			httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", "invalid input")

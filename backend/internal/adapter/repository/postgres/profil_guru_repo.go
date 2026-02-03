@@ -10,16 +10,22 @@ import (
 
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
+	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 	outuser "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
 	query "github.com/mustafamadjid/web-app-cbt/internal/core/query/user"
 )
 
 type ProfilgGuruRepo struct {
-	q Executor
+	q      Executor
+	logger corelog.Logger
 }
 
-func NewProfilgGuruRepo(q Executor) *ProfilgGuruRepo {
-	return &ProfilgGuruRepo{q: q}
+func NewProfilgGuruRepo(q Executor, logger corelog.Logger) *ProfilgGuruRepo {
+	return &ProfilgGuruRepo{q: q, logger: logger}
+}
+
+func (r *ProfilgGuruRepo) loggerFor(ctx context.Context) corelog.Logger {
+	return corelog.FromContextOr(ctx, r.logger)
 }
 
 func (r *ProfilgGuruRepo) FindProfilGuruByID(ctx context.Context, id user.ID) (user.ProfilGuru, error) {
@@ -46,6 +52,7 @@ func (r *ProfilgGuruRepo) FindProfilGuruByID(ctx context.Context, id user.ID) (u
 		return user.ProfilGuru{}, coreerror.ErrNotFound
 	}
 	if err != nil {
+		r.loggerFor(ctx).Error(ctx, "failed finding profil guru", "op", "profil_guru_repo.find_by_id", "user_id", id, "err", err)
 		return user.ProfilGuru{}, err
 	}
 
@@ -58,6 +65,7 @@ func (r *ProfilgGuruRepo) ExistByNIP(ctx context.Context, nip user.NIP) (bool, e
 
 	var exists bool
 	if err := r.q.QueryRow(ctx, query, string(nip)).Scan(&exists); err != nil {
+		r.loggerFor(ctx).Error(ctx, "failed checking nip existence", "op", "profil_guru_repo.exists_by_nip", "nip", nip, "err", err)
 		return false, err
 	}
 
@@ -86,6 +94,7 @@ func (r *ProfilgGuruRepo) CreateProfilGuru(ctx context.Context, profilGuru user.
 		profilGuru.BidangStudi,
 	).Scan(&id)
 	if err != nil {
+		r.loggerFor(ctx).Error(ctx, "failed creating profil guru", "op", "profil_guru_repo.create", "user_id", profilGuru.IdPengguna, "err", err)
 		return 0, err
 	}
 
@@ -119,6 +128,9 @@ func (r *ProfilgGuruRepo) UpdateProfilGuru(ctx context.Context, idPengguna user.
 	q := fmt.Sprintf(`UPDATE profil_guru SET %s WHERE id_pengguna=$%d`, strings.Join(set, ", "), len(args))
 
 	_, err := r.q.Exec(ctx, q, args...)
+	if err != nil {
+		r.loggerFor(ctx).Error(ctx, "failed updating profil guru", "op", "profil_guru_repo.update", "user_id", idPengguna, "err", err)
+	}
 	return err
 }
 
@@ -191,6 +203,7 @@ func (r *ProfilgGuruRepo) GetListGuru(ctx context.Context, filter query.ListGuru
 
 	rows, err := r.q.Query(ctx, baseQuery, args...)
 	if err != nil {
+		r.loggerFor(ctx).Error(ctx, "failed listing guru", "op", "profil_guru_repo.list", "err", err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -218,6 +231,7 @@ func (r *ProfilgGuruRepo) GetListGuru(ctx context.Context, filter query.ListGuru
 			&item.Foto,
 			&jenisKelamin,
 		); err != nil {
+			r.loggerFor(ctx).Error(ctx, "failed scanning guru list", "op", "profil_guru_repo.list_scan", "err", err)
 			return nil, err
 		}
 
@@ -236,6 +250,7 @@ func (r *ProfilgGuruRepo) GetListGuru(ctx context.Context, filter query.ListGuru
 	}
 
 	if err := rows.Err(); err != nil {
+		r.loggerFor(ctx).Error(ctx, "failed iterating guru list", "op", "profil_guru_repo.list_iter", "err", err)
 		return nil, err
 	}
 

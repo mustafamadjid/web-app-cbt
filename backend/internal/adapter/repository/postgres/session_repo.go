@@ -10,16 +10,21 @@ import (
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/auth/session"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
+	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 )
 
 type SessionRepo struct {
-	q Executor
+	q      Executor
+	logger corelog.Logger
 }
 
-func NewSessionRepo(q Executor) *SessionRepo {
-	return &SessionRepo{q: q}
+func NewSessionRepo(q Executor, logger corelog.Logger) *SessionRepo {
+	return &SessionRepo{q: q, logger: logger}
 }
 
+func (r *SessionRepo) loggerFor(ctx context.Context) corelog.Logger {
+	return corelog.FromContextOr(ctx, r.logger)
+}
 
 func (r *SessionRepo) CreateSession(ctx context.Context, userID user.ID, expiresAt time.Time) (string, error) {
 	const query = `
@@ -30,6 +35,7 @@ func (r *SessionRepo) CreateSession(ctx context.Context, userID user.ID, expires
 
 	var sessionID string
 	if err := r.q.QueryRow(ctx, query, userID, expiresAt).Scan(&sessionID); err != nil {
+		r.loggerFor(ctx).Error(ctx, "failed creating session", "op", "session_repo.create", "user_id", userID, "err", err)
 		return "", err
 	}
 
@@ -58,6 +64,7 @@ func (r *SessionRepo) GetSession(ctx context.Context, sessionID string) (session
 		return session.Session{}, coreerror.ErrNotFound
 	}
 	if err != nil {
+		r.loggerFor(ctx).Error(ctx, "failed getting session", "op", "session_repo.get", "session_id", sessionID, "err", err)
 		return session.Session{}, err
 	}
 
@@ -65,7 +72,7 @@ func (r *SessionRepo) GetSession(ctx context.Context, sessionID string) (session
 	return result, nil
 }
 
-func (r *SessionRepo)GetSessionByUserId(ctx context.Context, userID user.ID) (session.Session, error) {
+func (r *SessionRepo) GetSessionByUserId(ctx context.Context, userID user.ID) (session.Session, error) {
 	const query = `
 		SELECT id,
 			id_pengguna,
@@ -90,6 +97,7 @@ func (r *SessionRepo)GetSessionByUserId(ctx context.Context, userID user.ID) (se
 		return session.Session{}, coreerror.ErrNotFound
 	}
 	if err != nil {
+		r.loggerFor(ctx).Error(ctx, "failed getting session by user", "op", "session_repo.get_by_user", "user_id", userID, "err", err)
 		return session.Session{}, err
 	}
 
@@ -97,7 +105,7 @@ func (r *SessionRepo)GetSessionByUserId(ctx context.Context, userID user.ID) (se
 	return result, nil
 }
 
-func (r *SessionRepo) GetAllActiveSession(ctx context.Context)([]session.Session,error){
+func (r *SessionRepo) GetAllActiveSession(ctx context.Context) ([]session.Session, error) {
 	const query = `
 	SELECT id,
 		   id_pengguna,
@@ -108,8 +116,9 @@ func (r *SessionRepo) GetAllActiveSession(ctx context.Context)([]session.Session
 	AND expires_at > now()
 	`
 
-	rows, err := r.q.Query(ctx,query)
+	rows, err := r.q.Query(ctx, query)
 	if err != nil {
+		r.loggerFor(ctx).Error(ctx, "failed listing sessions", "op", "session_repo.list_active", "err", err)
 		return nil, err
 	}
 
@@ -125,6 +134,7 @@ func (r *SessionRepo) GetAllActiveSession(ctx context.Context)([]session.Session
 			&item.ExpiresAt,
 			&revokedAt,
 		); err != nil {
+			r.loggerFor(ctx).Error(ctx, "failed scanning sessions", "op", "session_repo.list_active_scan", "err", err)
 			return nil, err
 		}
 		item.Revoked = revokedAt != nil
@@ -132,8 +142,9 @@ func (r *SessionRepo) GetAllActiveSession(ctx context.Context)([]session.Session
 	}
 
 	if err := rows.Err(); err != nil {
-    return nil, err
-}
+		r.loggerFor(ctx).Error(ctx, "failed iterating sessions", "op", "session_repo.list_active_iter", "err", err)
+		return nil, err
+	}
 	return results, nil
 }
 
@@ -150,6 +161,7 @@ func (r *SessionRepo) HasActiveSession(ctx context.Context, userID user.ID) (boo
 
 	var exists bool
 	if err := r.q.QueryRow(ctx, query, userID).Scan(&exists); err != nil {
+		r.loggerFor(ctx).Error(ctx, "failed checking active session", "op", "session_repo.has_active", "user_id", userID, "err", err)
 		return false, err
 	}
 
@@ -166,6 +178,7 @@ func (r *SessionRepo) RevokeSession(ctx context.Context, sessionID string) error
 
 	result, err := r.q.Exec(ctx, query, sessionID)
 	if err != nil {
+		r.loggerFor(ctx).Error(ctx, "failed revoking session", "op", "session_repo.revoke", "session_id", sessionID, "err", err)
 		return err
 	}
 	if result.RowsAffected() == 0 {
@@ -186,6 +199,7 @@ func (r *SessionRepo) RevokeSessionAllbyUser(ctx context.Context, userID user.ID
 
 	ct, err := r.q.Exec(ctx, query, now, userID)
 	if err != nil {
+		r.loggerFor(ctx).Error(ctx, "failed revoking sessions for user", "op", "session_repo.revoke_by_user", "user_id", userID, "err", err)
 		return err
 	}
 
