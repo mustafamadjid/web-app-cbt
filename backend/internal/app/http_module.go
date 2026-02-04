@@ -11,6 +11,7 @@ import (
 	"github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/cookie"
 	"github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/middleware"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
+	
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 )
 
@@ -60,6 +61,7 @@ func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSeko
 	router.POST("/auth/login", auth.Handler.Login)
 	router.POST("/auth/logout", auth.Handler.Logout)
 	router.POST("/auth/refresh", auth.Handler.Refresh)
+	router.GET("/auth/me", requireAccess(auth.Handler.AuthMe))
 
 	// SISWA
 	router.GET("/admin/siswa", requireAdmin(users.GetSiswaHandler.ListSiswa))

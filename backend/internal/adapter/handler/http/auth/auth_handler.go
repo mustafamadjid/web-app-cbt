@@ -9,17 +9,18 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/cookie"
+	"github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/middleware"
+	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/aktivitas_user"
+	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
+	"github.com/mustafamadjid/web-app-cbt/internal/core/service/auth_service"
+
 	httphelper "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper"
 	httpResponse "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper/response_envelope"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
-	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/aktivitas_user"
-	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 	authin "github.com/mustafamadjid/web-app-cbt/internal/core/port/in/auth_port_in"
 	out "github.com/mustafamadjid/web-app-cbt/internal/core/port/out"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
-
 	aktivitas_user_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/aktivitas_user"
-	"github.com/mustafamadjid/web-app-cbt/internal/core/service/auth_service"
 )
 
 type AuthHandler struct {
@@ -194,4 +195,27 @@ func (h *AuthHandler) AdminRevokeUser(write http.ResponseWriter, req *http.Reque
 		return
 	}
 	httpResponse.WriteOKNoData(write, http.StatusOK, "success")
+}
+
+
+func (h *AuthHandler) AuthMe(write http.ResponseWriter, req *http.Request, _ httprouter.Params) {
+	logger := corelog.FromContext(req.Context())
+	if req.Method != http.MethodGet {
+		httpResponse.WriteErr(write, http.StatusMethodNotAllowed, "METHOD_NOT_ALLOWED", "method not allowed")
+		return
+	}
+
+	actor,ok := middleware.ActorFromContext(req.Context())
+	if !ok {
+		logger.Error(req.Context(), "failed getting actor", "op", "auth.auth_me", "err", "actor_not_found")
+		httpResponse.WriteErr(write, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error")
+		return
+	}
+	responseData := AuthMeResponse {
+		IdPengguna: actor.IdPengguna,
+		Username: actor.Username,
+		Role: actor.Role,
+	}
+
+	httpResponse.WriteOK(write, http.StatusOK, responseData, "success")
 }

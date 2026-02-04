@@ -7,6 +7,7 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 
+	httpx "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/profil_sekolah"
 	httpResponse "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper/response_envelope"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
@@ -21,18 +22,7 @@ func NewGetProfilSekolahHandler(svc *profil_sekolah_service.GetProfilSekolahServ
 	return &GetProfilSekolahHandler{svc: svc}
 }
 
-type profilSekolahResponse struct {
-	IDProfil      int     `json:"id_profil"`
-	EmailSekolah  string  `json:"email_sekolah"`
-	NoTelpSekolah string  `json:"no_telp_sekolah"`
-	KepalaSekolah string  `json:"kepala_sekolah"`
-	WakaSekolah   string  `json:"waka_sekolah"`
-	NamaSekolah   string  `json:"nama_sekolah"`
-	AlamatSekolah string  `json:"alamat_sekolah"`
-	LogoSekolah   *string `json:"logo_sekolah"`
-	CreatedAt     string  `json:"created_at"`
-	UpdatedAt     string  `json:"updated_at"`
-}
+
 
 func (h *GetProfilSekolahHandler) GetProfilSekolah(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	logger := corelog.FromContext(r.Context())
@@ -53,7 +43,7 @@ func (h *GetProfilSekolahHandler) GetProfilSekolah(w http.ResponseWriter, r *htt
 		return
 	}
 
-	response := profilSekolahResponse{
+	response := httpx.ProfilSekolahResponse{
 		IDProfil:      int(profil.IDProfil),
 		EmailSekolah:  profil.EmailSekolah,
 		NoTelpSekolah: profil.NoTelpSekolah,

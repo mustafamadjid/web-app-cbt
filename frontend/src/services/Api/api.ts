@@ -2,7 +2,7 @@
 import axios from "axios";
 import type { AxiosError, AxiosRequestConfig } from "axios";
 
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
 
 export type ApiErrorBody = {
   code: string;
@@ -99,17 +99,25 @@ async function refreshSession(): Promise<void> {
 }
 
 /** unwrap envelope sukses */
-function unwrapEnvelope<T>(env: ApiEnvelope<T>): T {
+function unwrapEnvelope<T>(env: ApiEnvelope<T>, path?: string): T {
   if (env?.error)
     throw new ApiError(env.error.message, 400, env, env.error.code);
+
   if (!env || typeof env !== "object" || !("data" in env)) {
     throw new ApiError("Invalid API response envelope", 500, env);
   }
+
   if (env.data === null) {
+    // treat null as unauthenticated ONLY for auth-check endpoints
+    if (path && (path === "/auth/me" || path.startsWith("/auth/"))) {
+      throw new ApiError("Unauthenticated", 401, env, "UNAUTHENTICATED");
+    }
     throw new ApiError("API returned null data", 500, env);
   }
+
   return env.data;
 }
+
 
 /** helper utama */
 export async function api<T>(
@@ -125,7 +133,7 @@ export async function api<T>(
       headers: { ...(headers ?? {}) },
     });
 
-    return unwrapEnvelope(res.data);
+    return unwrapEnvelope(res.data,path);
   } catch (err) {
     const apiErr = toApiError(err);
 
