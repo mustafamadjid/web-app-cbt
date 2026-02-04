@@ -1,5 +1,5 @@
 import React from "react";
-import { Navigate, Outlet } from "react-router";
+import { Navigate, Outlet, useLocation } from "react-router";
 
 import Spinner from "@/components/ui/spinner";
 import { useAuth } from "@/contexts/AuthContext";
@@ -18,6 +18,7 @@ const roleHomeMap: Partial<Record<Role, string>> = {
 
 const PublicOnlyRoute = ({ children }: PublicOnlyRouteProps) => {
   const { status, user } = useAuth();
+  const location = useLocation();
 
   if (status === "loading") {
     return (
@@ -31,6 +32,9 @@ const PublicOnlyRoute = ({ children }: PublicOnlyRouteProps) => {
     const role = user?.role as Role | undefined;
     const fallback =
       (role && roleHomeMap[role]) ?? paths.dashboard.home_admin ?? "/";
+    if (location.pathname === fallback) {
+      return <>{children ?? <Outlet />}</>;
+    }
     return <Navigate to={fallback} replace />;
   }
 

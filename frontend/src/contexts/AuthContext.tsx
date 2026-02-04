@@ -15,8 +15,14 @@ import type {
   AuthStatus,
   LoginPayload,
 } from "@/types/Auth/Auth";
+import type { Role } from "@/types/Sidebar/SidebarMenu";
 
 const AuthContext = createContext<AuthContextValue | null>(null);
+
+const validRoles = new Set<Role>(["ADMIN", "GURU", "SISWA"]);
+
+const isValidRole = (role: unknown): role is Role =>
+  typeof role === "string" && validRoles.has(role as Role);
 
 function getDebugAuthUser(): User | null {
   if (!import.meta.env.DEV) return null;
@@ -25,7 +31,7 @@ function getDebugAuthUser(): User | null {
 
   try {
     const parsed = JSON.parse(raw) as Partial<User>;
-    if (!parsed.username || !parsed.role) return null;
+    if (!parsed.username || !isValidRole(parsed.role)) return null;
     return {
       id: typeof parsed.id === "number" ? parsed.id : 0,
       username: parsed.username,
@@ -68,6 +74,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const refetchMe = useCallback(async () => {
     try {
       const me = await api<User>("/auth/me", { method: "GET" });
+      if (!isValidRole(me.role)) {
+        forceGuest();
+        return null;
+      }
       setUser({ id: me.id, username: me.username, role: me.role });
       setStatus("authenticated");
       return me;
@@ -75,7 +85,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!handleAuthError(e)) throw e;
       return null;
     }
-  }, [handleAuthError]);
+  }, [forceGuest, handleAuthError]);
 
   const boot = useCallback(async () => {
     setStatus("loading");
