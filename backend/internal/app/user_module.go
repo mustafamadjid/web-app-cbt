@@ -23,7 +23,7 @@ type UserModule struct {
 	GetGuruHandler  *httpget.GetGuruHandler
 }
 
-func BuildUserModule(cfg Config, infra *InfraModule, hasher out.PasswordHasher) *UserModule {
+func BuildUserModule(cfg Config, infra *InfraModule, hasher out.PasswordHasher, aktivitasUser *AktivitasUserModule) *UserModule {
 	store := httpx.ImageStore{
 		Dir:      cfg.ImageStore.Dir,
 		BaseURL:  cfg.ImageStore.BaseURL,
@@ -38,9 +38,9 @@ func BuildUserModule(cfg Config, infra *InfraModule, hasher out.PasswordHasher) 
 	getSiswaSvc := get.NewGetListSiswaService(infra.profilSiswa)
 	getGuruSvc := get.NewGetListGuruService(infra.profilGuru)
 
-	handlerCreate := httpcreate.NewCreateUserHandler(createSvc, store)
-	handlerUpdate := httpupdate.NewUpdateUserHandler(updateSvc, store)
-	handlerDelete := httpdelete.NewDeleteUserHandler(deleteSvc)
+	handlerCreate := httpcreate.NewCreateUserHandler(createSvc, store, aktivitasUser.Service)
+	handlerUpdate := httpupdate.NewUpdateUserHandler(updateSvc, store, aktivitasUser.Service)
+	handlerDelete := httpdelete.NewDeleteUserHandler(deleteSvc, aktivitasUser.Service)
 
 	handlerGetSiswa := httpget.NewGetSiswaHandler(getSiswaSvc)
 	handlerGetGuru := httpget.NewGetGuruHandler(getGuruSvc)

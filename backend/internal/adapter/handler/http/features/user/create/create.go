@@ -9,6 +9,7 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/middleware"
+	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/aktivitas_user"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 
 	httpx "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper"
@@ -18,16 +19,18 @@ import (
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 
 	// out "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
+	aktivitas_user_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/aktivitas_user"
 	user_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/user/create"
 )
 
 type UserHandler struct {
-	svc        *user_service.CreateTx
-	storeImage httpx.ImageStore
+	svc           *user_service.CreateTx
+	storeImage    httpx.ImageStore
+	aktivitasUser *aktivitas_user_service.AktivitasUserService
 }
 
-func NewCreateUserHandler(svc *user_service.CreateTx, storeImage httpx.ImageStore) *UserHandler {
-	return &UserHandler{svc: svc, storeImage: storeImage}
+func NewCreateUserHandler(svc *user_service.CreateTx, storeImage httpx.ImageStore, aktivitasUser *aktivitas_user_service.AktivitasUserService) *UserHandler {
+	return &UserHandler{svc: svc, storeImage: storeImage, aktivitasUser: aktivitasUser}
 }
 
 func (h *UserHandler) CreateGuru(write http.ResponseWriter, req *http.Request, _ httprouter.Params) {
@@ -155,6 +158,18 @@ func (h *UserHandler) CreateGuru(write http.ResponseWriter, req *http.Request, _
 		default:
 			httpResponse.WriteErr(write, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error: failed create guru")
 			return
+		}
+	}
+
+	if h.aktivitasUser != nil {
+		aktivitasCmd := aktivitas_user_service.AktivitasUserCmd{
+			IdPengguna:  actor.IdPengguna,
+			Action:      aktivitas_user.CREATE,
+			Description: "Membuat akun guru",
+			IpAddress:   httpx.GetClientIP(req),
+		}
+		if err := h.aktivitasUser.CreateAktivitasUserService(req.Context(), aktivitasCmd); err != nil {
+			logger.Error(req.Context(), "failed creating aktivitas user", "op", "user.create_guru.activity", "err", err)
 		}
 	}
 
@@ -340,6 +355,18 @@ func (h *UserHandler) CreateSiswa(write http.ResponseWriter, req *http.Request, 
 		default:
 			httpResponse.WriteErr(write, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error: failed create guru")
 			return
+		}
+	}
+
+	if h.aktivitasUser != nil {
+		aktivitasCmd := aktivitas_user_service.AktivitasUserCmd{
+			IdPengguna:  actor.IdPengguna,
+			Action:      aktivitas_user.CREATE,
+			Description: "Membuat akun siswa",
+			IpAddress:   httpx.GetClientIP(req),
+		}
+		if err := h.aktivitasUser.CreateAktivitasUserService(req.Context(), aktivitasCmd); err != nil {
+			logger.Error(req.Context(), "failed creating aktivitas user", "op", "user.create_siswa.activity", "err", err)
 		}
 	}
 

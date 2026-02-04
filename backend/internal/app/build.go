@@ -14,6 +14,7 @@ type App struct {
 	Auth          *AuthModule
 	Users         *UserModule
 	ProfilSekolah *ProfilSekolahModule
+	AktivitasUser *AktivitasUserModule
 	HTTP          *HTTPModule
 }
 
@@ -25,10 +26,11 @@ func Build(ctx context.Context, cfg Config, dbURL string, hasher out.PasswordHas
 
 	infra := BuildInfraModule(pool, logger)
 	tokens := BuildTokenModule(cfg)
-	auth := BuildAuthModule(cfg, infra, tokens, hasher)
-	users := BuildUserModule(cfg, infra, hasher)
+	aktivitasUser := BuildAktivitasUserModule(infra)
+	auth := BuildAuthModule(cfg, infra, tokens, hasher, aktivitasUser)
+	users := BuildUserModule(cfg, infra, hasher, aktivitasUser)
 	profilSekolah := BuildProfilSekolahModule(cfg, infra)
-	httpm := BuildHTTPModule(cfg, auth, users, profilSekolah, tokens, logger)
+	httpm := BuildHTTPModule(cfg, auth, users, profilSekolah, aktivitasUser, tokens, logger)
 
 	return &App{
 		Infra:         infra,
@@ -36,6 +38,7 @@ func Build(ctx context.Context, cfg Config, dbURL string, hasher out.PasswordHas
 		Auth:          auth,
 		Users:         users,
 		ProfilSekolah: profilSekolah,
+		AktivitasUser: aktivitasUser,
 		HTTP:          httpm,
 	}, nil
 }

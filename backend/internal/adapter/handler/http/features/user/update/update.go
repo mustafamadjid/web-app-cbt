@@ -9,6 +9,7 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/middleware"
+	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/aktivitas_user"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 
 	httphelper "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper"
@@ -16,12 +17,14 @@ import (
 	validator "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/validation"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
+	aktivitas_user_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/aktivitas_user"
 	user_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/user/update"
 )
 
 type UpdateHandler struct {
-	svc        *user_service.UpdateTx
-	storeImage httphelper.ImageStore
+	svc           *user_service.UpdateTx
+	storeImage    httphelper.ImageStore
+	aktivitasUser *aktivitas_user_service.AktivitasUserService
 }
 
 type requestError struct {
@@ -32,8 +35,8 @@ type requestError struct {
 
 func (e requestError) Error() string { return e.message }
 
-func NewUpdateUserHandler(svc *user_service.UpdateTx, storeImage httphelper.ImageStore) *UpdateHandler {
-	return &UpdateHandler{svc: svc, storeImage: storeImage}
+func NewUpdateUserHandler(svc *user_service.UpdateTx, storeImage httphelper.ImageStore, aktivitasUser *aktivitas_user_service.AktivitasUserService) *UpdateHandler {
+	return &UpdateHandler{svc: svc, storeImage: storeImage, aktivitasUser: aktivitasUser}
 }
 
 func (h *UpdateHandler) UpdateGuru(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -61,6 +64,18 @@ func (h *UpdateHandler) UpdateGuru(w http.ResponseWriter, r *http.Request, ps ht
 		logger.Error(r.Context(), "failed updating guru", "op", "user.update_guru", "user_id", cmd.IdPengguna, "err", err)
 		h.writeUpdateError(w, err, "guru")
 		return
+	}
+
+	if h.aktivitasUser != nil {
+		aktivitasCmd := aktivitas_user_service.AktivitasUserCmd{
+			IdPengguna:  actor.IdPengguna,
+			Action:      aktivitas_user.UPDATE,
+			Description: "Memperbarui data guru",
+			IpAddress:   httphelper.GetClientIP(r),
+		}
+		if err := h.aktivitasUser.CreateAktivitasUserService(r.Context(), aktivitasCmd); err != nil {
+			logger.Error(r.Context(), "failed creating aktivitas user", "op", "user.update_guru.activity", "err", err)
+		}
 	}
 
 	httpResponse.WriteOKNoData(w, http.StatusOK, "Success")
@@ -91,6 +106,18 @@ func (h *UpdateHandler) UpdateSiswa(w http.ResponseWriter, r *http.Request, ps h
 		logger.Error(r.Context(), "failed updating siswa", "op", "user.update_siswa", "user_id", cmd.IdPengguna, "err", err)
 		h.writeUpdateError(w, err, "siswa")
 		return
+	}
+
+	if h.aktivitasUser != nil {
+		aktivitasCmd := aktivitas_user_service.AktivitasUserCmd{
+			IdPengguna:  actor.IdPengguna,
+			Action:      aktivitas_user.UPDATE,
+			Description: "Memperbarui data siswa",
+			IpAddress:   httphelper.GetClientIP(r),
+		}
+		if err := h.aktivitasUser.CreateAktivitasUserService(r.Context(), aktivitasCmd); err != nil {
+			logger.Error(r.Context(), "failed creating aktivitas user", "op", "user.update_siswa.activity", "err", err)
+		}
 	}
 
 	httpResponse.WriteOKNoData(w, http.StatusOK, "Success")
