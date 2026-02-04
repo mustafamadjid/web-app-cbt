@@ -29,8 +29,6 @@ func(r *AktivitasUserRepo)CreateAktivitasUser(ctx context.Context, aktivitasUser
 	if err != nil {
 		r.loggerFor(ctx).Error(ctx,"Failed creating aktivitas user","op","aktivitas_user_repo.insert","err",err)
 	}
-
-	r.loggerFor(ctx).Info(ctx,"Successfully created aktivitas user","op","aktivitas_user_repo.insert")
 	return err
 }
 
@@ -63,6 +61,6 @@ func (r *AktivitasUserRepo)GetAktivitasUser(ctx context.Context) ([]aktivitas_us
 		results = append(results, item)
 	}
 
-	r.loggerFor(ctx).Info(ctx,"Successfully listed aktivitas user","op","aktivitas_user_repo.list")
+	
 	return results, nil
 }

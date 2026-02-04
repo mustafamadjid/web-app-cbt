@@ -45,7 +45,7 @@ func (svc *AktivitasUserService)CreateAktivitasUserService(ctx context.Context, 
 		return err
 	}
 
-	logger.Info(ctx,"Success create aktivitas user","op","aktivitas_user_service.CreateAktivitasUserService")
+
 	return nil
 }
 
