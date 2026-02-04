@@ -16,6 +16,8 @@ var (
 	ErrSessionExpired = errors.New("session expired")
 	ErrHasSession = errors.New("user already has session")
 	ErrNoSessionId = errors.New("no session id")
+	ErrInvalidActionActivity = errors.New("invalid action activity")
+	ErrInvalidIpAddress = errors.New("invalid ip address")
 	
 	ErrNoFieldToUpdate = errors.New("no field to update")
 	ErrUsernameTaken = errors.New("username taken")
