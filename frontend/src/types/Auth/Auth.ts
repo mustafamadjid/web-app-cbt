@@ -16,5 +16,5 @@ export type AuthContextValue = {
   status: AuthStatus;
   login: (payload: LoginPayload) => Promise<void>;
   logout: () => Promise<void>;
-  refetchMe: () => Promise<void>;
+  refetchMe: () => Promise<User | null>;
 };

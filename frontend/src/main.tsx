@@ -10,7 +10,8 @@ import {router} from './routes/AppRouter'
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <AuthProvider >
-      <RouterProvider router={router}/>
+      <RouterProvider router={router} >
+      </RouterProvider>
     </AuthProvider>
   
   </StrictMode>,

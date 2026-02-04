@@ -2,135 +2,146 @@
 import axios from "axios";
 import type { AxiosError, AxiosRequestConfig } from "axios";
 
-import { authToken } from "../auth/token";
-
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
-export type ApiEnvelope<T> = { data: T; message?: string; meta?: unknown,error: T };
+export type ApiErrorBody = {
+  code: string;
+  message: string;
+};
+
+export type ApiEnvelope<T> = {
+  data: T | null;
+  message?: string;
+  meta?: unknown;
+  error?: ApiErrorBody | null;
+};
 
 export type RequestOptions = Omit<
   AxiosRequestConfig,
   "url" | "baseURL" | "headers"
 > & {
-  /** Optional: override token untuk request ini saja */
-  token?: string | null;
   headers?: Record<string, string>;
-  /** Internal */
+
   _retry?: boolean;
 };
 
 export class ApiError extends Error {
   status?: number;
   data?: unknown;
+  code?: string;
 
-  constructor(message: string, status?: number, data?: unknown) {
+  constructor(message: string, status?: number, data?: unknown, code?: string) {
     super(message);
     this.name = "ApiError";
     this.status = status;
     this.data = data;
+    this.code = code;
   }
 }
 
-
-
-/** ===== Axios clients ===== */
+/** ===== Axios clients (cookie-based auth) ===== */
 const client = axios.create({
   baseURL: API_URL,
-  withCredentials: true, // penting: kirim refresh cookie
- 
+  withCredentials: true,
 });
 
-// client khusus refresh supaya tidak terjebak interceptor/loop
+
 const refreshClient = axios.create({
   baseURL: API_URL,
   withCredentials: true,
-  headers: {
-    "Content-Type": "application/json",
-  },
+  headers: { "Content-Type": "application/json" },
 });
 
-/** ===== Refresh concurrency control ===== */
+/** ===== Refresh concurrency control (single-flight) ===== */
 let isRefreshing = false;
-let pending: Array<(t: string | null) => void> = [];
+let pending: Array<(ok: boolean, err?: ApiError) => void> = [];
 
-function subscribeRefresh(cb: (t: string | null) => void) {
+function subscribeRefresh(cb: (ok: boolean, err?: ApiError) => void) {
   pending.push(cb);
 }
-function flushSubscribers(t: string | null) {
-  pending.forEach((cb) => cb(t));
+function flushSubscribers(ok: boolean, err?: ApiError) {
+  pending.forEach((cb) => cb(ok, err));
   pending = [];
 }
 
-async function refreshAccessToken(): Promise<string> {
-  const r = await refreshClient.post<{ accessToken: string }>("/auth/refresh");
-  const newToken = r.data?.accessToken;
-
-  if (!newToken || typeof newToken !== "string") {
-    throw new ApiError(
-      "Refresh succeeded but no accessToken returned",
-      500,
-      r.data
-    );
-  }
-
-  authToken.set(newToken);
-  return newToken;
-}
-
-/** helper untuk convert AxiosError -> ApiError */
+/** Convert AxiosError -> ApiError, paham envelope backend kamu */
 function toApiError(err: unknown): ApiError {
   const e = err as AxiosError;
   const status = e.response?.status;
-  const data = e.response?.data;
+  const data = e.response?.data as any;
 
-  const backendMsg =
-    typeof data === "object" && data && "message" in (data as any)
-      ? String((data as any).message)
+  // backend error: { data:null, error:{code,message} }
+  const backendErrorMsg =
+    data?.error?.message && typeof data.error.message === "string"
+      ? data.error.message
       : undefined;
 
-  return new ApiError(backendMsg ?? e.message, status, data);
+  const backendErrorCode =
+    data?.error?.code && typeof data.error.code === "string"
+      ? data.error.code
+      : undefined;
+
+  // backend sukses biasanya punya "message" top-level (optional)
+  const backendTopMsg =
+    data?.message && typeof data.message === "string"
+      ? data.message
+      : undefined;
+
+  const msg = backendErrorMsg ?? backendTopMsg ?? e.message;
+  return new ApiError(msg, status, data, backendErrorCode);
 }
 
-/** ===== helper utama ===== */
+/**
+ * Refresh session
+ */
+async function refreshSession(): Promise<void> {
+  await refreshClient.post("/auth/login/refresh");
+}
+
+/** unwrap envelope sukses */
+function unwrapEnvelope<T>(env: ApiEnvelope<T>): T {
+  if (env?.error)
+    throw new ApiError(env.error.message, 400, env, env.error.code);
+  if (!env || typeof env !== "object" || !("data" in env)) {
+    throw new ApiError("Invalid API response envelope", 500, env);
+  }
+  if (env.data === null) {
+    throw new ApiError("API returned null data", 500, env);
+  }
+  return env.data;
+}
+
+/** helper utama */
 export async function api<T>(
   path: string,
-  opts: RequestOptions = {}
+  opts: RequestOptions = {},
 ): Promise<T> {
-  const { token, headers, _retry, ...rest } = opts;
-
-  // token precedence: opts.token > global authToken
-  const usedToken = token ?? authToken.get();
+  const { headers, _retry, ...rest } = opts;
 
   try {
-    const res = await client.request<T>({
+    const res = await client.request<ApiEnvelope<T>>({
       url: path,
       ...rest,
-      headers: {
-        ...(usedToken ? { Authorization: `Bearer ${usedToken}` } : {}),
-        ...(headers ?? {}),
-      },
+      headers: { ...(headers ?? {}) },
     });
 
-    return res.data;
+    return unwrapEnvelope(res.data);
   } catch (err) {
     const apiErr = toApiError(err);
 
     // hanya tangani 401 dan hanya sekali retry
-    if (apiErr.status !== 401 || _retry) {
-      throw apiErr;
-    }
+    if (apiErr.status !== 401 || _retry) throw apiErr;
+
+    // jangan refresh kalau request ini sendiri adalah refresh endpoint
+    if (String(path).includes("/auth/login/refresh")) throw apiErr;
 
     // kalau refresh sedang berjalan, tunggu hasilnya lalu retry
     if (isRefreshing) {
       return new Promise<T>((resolve, reject) => {
-        subscribeRefresh(async (t) => {
-          if (!t) return reject(apiErr);
+        subscribeRefresh(async (ok, refreshErr) => {
+          if (!ok) return reject(refreshErr ?? apiErr);
           try {
-            const data = await api<T>(path, {
-              ...opts,
-              token: t,
-              _retry: true,
-            });
+            const data = await api<T>(path, { ...opts, _retry: true });
             resolve(data);
           } catch (e2) {
             reject(e2);
@@ -139,18 +150,21 @@ export async function api<T>(
       });
     }
 
-    // mulai refresh
+    // mulai refresh (single-flight)
     isRefreshing = true;
     try {
-      const newToken = await refreshAccessToken();
-      flushSubscribers(newToken);
+      await refreshSession();
+      flushSubscribers(true);
 
-      // retry request original dengan token baru
-      return await api<T>(path, { ...opts, token: newToken, _retry: true });
+      // retry request original setelah refresh sukses
+      return await api<T>(path, { ...opts, _retry: true });
     } catch (refreshErr) {
-      authToken.clear();
-      flushSubscribers(null);
-      throw toApiError(refreshErr);
+      const rErr = toApiError(refreshErr);
+       if (rErr.status === 401 ) {
+         rErr.code = rErr.code ?? "SESSION_EXPIRED";
+       }
+      flushSubscribers(false, rErr);
+      throw rErr;
     } finally {
       isRefreshing = false;
     }

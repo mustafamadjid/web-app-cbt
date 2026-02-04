@@ -1,3 +1,4 @@
+// src/routes/ProtectedRoute.tsx
 import React from "react";
 import { Navigate, Outlet, useLocation } from "react-router";
 
@@ -29,25 +30,41 @@ const ProtectedRoute = ({ allowedRoles, children }: ProtectedRouteProps) => {
     );
   }
 
+  // Jika belum autentik, redirect ke login (simpan lokasi asal untuk redirect setelah login)
   if (status === "guest") {
     return (
       <Navigate
         to={paths.public.login}
         replace
-        state={{ from: location }}
+        state={{
+          from: { pathname: location.pathname, search: location.search },
+        }}
       />
     );
   }
 
-  
-
   const role = user?.role as Role | undefined;
 
-  if (allowedRoles && role && !allowedRoles.includes(role)) {
-    const fallback = roleHomeMap[role] ?? paths.public.login;
-    return <Navigate to={fallback} replace />;
+  // Jika ada allowedRoles, pastikan user punya role dan role termasuk di allowedRoles.
+  if (allowedRoles) {
+    if (!role) {
+      // user tidak punya role => treat as unauthorized
+      return (
+        <Navigate
+          to={paths.public.login}
+          replace
+          state={{ from: { pathname: location.pathname } }}
+        />
+      );
+    }
+
+    if (!allowedRoles.includes(role)) {
+      const fallback = roleHomeMap[role] ?? paths.public.login;
+      return <Navigate to={fallback} replace />;
+    }
   }
 
+  // Render children jika ada, kalau tidak render nested routes via Outlet
   return <>{children ?? <Outlet />}</>;
 };
 

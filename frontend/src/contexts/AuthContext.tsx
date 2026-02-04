@@ -1,38 +1,36 @@
-// src/auth/AuthContext.tsx
+// src/contexts/AuthContext.tsx
 import React, {
   createContext,
   useContext,
   useEffect,
   useMemo,
   useState,
+  useCallback,
 } from "react";
 import { api, ApiError } from "@/services/Api/api";
-import { authToken } from "@/services/auth/token";
 
-import type { User,AuthContextValue,AuthStatus,LoginPayload } from "@/types/Auth/Auth";
-
-
+import type {
+  User,
+  AuthContextValue,
+  AuthStatus,
+  LoginPayload,
+} from "@/types/Auth/Auth";
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-// Hanya untuk mode development
-function getDebugAuthUser(): {
-  id?: number;
-  username: string;
-  role: string;
-} | null {
+function getDebugAuthUser(): User | null {
   if (!import.meta.env.DEV) return null;
   const raw = localStorage.getItem("debug:auth");
   if (!raw) return null;
 
   try {
-    const parsed = JSON.parse(raw) as {
-      id?: number;
-      username?: string;
-      role?: string;
-    };
+    const parsed = JSON.parse(raw) as Partial<User>;
     if (!parsed.username || !parsed.role) return null;
-    return { id: parsed.id, username: parsed.username, role: parsed.role };
+    return {
+      id: typeof parsed.id === "number" ? parsed.id : 0,
+      username: parsed.username,
+      role: parsed.role,
+    };
   } catch {
     return null;
   }
@@ -42,68 +40,86 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [status, setStatus] = useState<AuthStatus>("loading");
 
-  const refetchMe = async () => {
-    const me = await api<User>("/auth/me", { method: "GET" });
-    setUser({ id: me.id, username: me.username, role: me.role });
-    setStatus("authenticated");
-  };
+  const forceGuest = useCallback(() => {
+    setUser(null);
+    setStatus("guest");
+  }, []);
 
-  const boot = async () => {
+  const handleAuthError = useCallback(
+    (e: unknown) => {
+      const err = e as ApiError;
+
+
+      if (err.code === "SESSION_EXPIRED") {
+        forceGuest();
+        return true;
+      }
+
+      if (err.status === 401) {
+        forceGuest();
+        return true;
+      }
+
+      return false;
+    },
+    [forceGuest],
+  );
+
+  const refetchMe = useCallback(async () => {
+    try {
+      const me = await api<User>("/auth/me", { method: "GET" });
+      setUser({ id: me.id, username: me.username, role: me.role });
+      setStatus("authenticated");
+      return me;
+    } catch (e) {
+      if (!handleAuthError(e)) throw e;
+      return null;
+    }
+  }, [handleAuthError]);
+
+  const boot = useCallback(async () => {
     setStatus("loading");
 
-    // Hanya untuk development
     const debugUser = getDebugAuthUser();
     if (debugUser) {
       setUser(debugUser);
       setStatus("authenticated");
-      return; // stop: ini mock total
+      return;
+    }
 
-      // Jalankan di console browser
-      // localStorage.setItem("debug:auth", JSON.stringify({ username: "dev", role: "ADMIN" }))
-    }
     try {
-      // Catatan: kalau access token belum ada, /me kemungkinan 401.
-      // Wrapper api() akan mencoba refresh otomatis jika 401 (karena interceptor-like logic ada di wrapper).
       await refetchMe();
-    } catch (e) {
-      // Jika refresh gagal / tidak ada sesi refresh cookie, jatuh ke guest.
-      authToken.clear();
-      setUser(null);
-      setStatus("guest");
+    } catch {
+      // kalau error non-auth, kamu bisa log kalau mau
+      forceGuest();
     }
-  };
+  }, [refetchMe, forceGuest]);
 
   useEffect(() => {
     void boot();
-  }, []);
+  }, [boot]);
 
-  const login = async (payload: LoginPayload) => {
-    // Login: dapat accessToken, simpan di memory
-    const res = await api<{ accessToken: string }>("/auth/login", {
-      method: "POST",
-      data: payload,
-    });
+  const login = useCallback(
+    async (payload: LoginPayload) => {
+      // login gagal karena kredensial salah: biarkan page login yang handle error message
+      await api<null>("/auth/login", { method: "POST", data: payload });
+      await refetchMe();
+    },
+    [refetchMe],
+  );
 
-    authToken.set(res.accessToken);
-
-    // Ambil user (source of truth)
-    await refetchMe();
-  };
-
-  const logout = async () => {
+  const logout = useCallback(async () => {
     try {
-      await api<void>("/auth/logout", { method: "POST" });
+      await api<null>("/auth/logout", { method: "POST" });
     } catch (e) {
       const err = e as ApiError;
       console.warn("Logout error:", err.status, err.message);
     } finally {
-      authToken.clear();
-      setUser(null);
-      setStatus("guest");
+      forceGuest();
     }
-  };
+  }, [forceGuest]);
 
-  const value = useMemo(
+  const value = useMemo<AuthContextValue>(
     () => ({
       user,
       status,
@@ -111,7 +127,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       logout,
       refetchMe,
     }),
-    [user, status]
+    [user, status, login, logout, refetchMe],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
