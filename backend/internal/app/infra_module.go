@@ -18,9 +18,11 @@ type InfraModule struct {
 
 	Sessions      out.SessionRepository
 	AuthUsers     outauth.AuthUserrepository
+
 	users         outuser.UserRepository
 	profilSiswa   outuser.GetListSiswaRepo
 	profilGuru    outuser.GetGuruListRepo
+	
 	profilSekolah outprofil.ProfilSekolahRepository
 }
 

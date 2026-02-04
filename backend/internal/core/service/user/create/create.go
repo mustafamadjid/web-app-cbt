@@ -235,6 +235,7 @@ func (uc *CreateTx) CreateSiswa(ctx context.Context, cmd CreateSiswaCmd, actor u
 		return CreateSiswaRes{}, err
 	}
 
+	logger.Info(ctx, "success creating user", "op", "user.create_siswa", "user_id", idPengguna)
 	return CreateSiswaRes{
 		IdPengguna:    idPengguna,
 		IdProfilSiswa: idProfilSiswa,

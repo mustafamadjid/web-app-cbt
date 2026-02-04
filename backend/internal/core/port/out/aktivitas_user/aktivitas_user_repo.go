@@ -8,4 +8,5 @@ import (
 
 type AktivitasUserRepository interface {
 	CreateAktivitasUser(ctx context.Context, aktivitasUser aktivitas_user.AktivitasUser)error
+	GetAktivitasUser(ctx context.Context) ([]aktivitas_user.AktivitasUser, error)
 }
