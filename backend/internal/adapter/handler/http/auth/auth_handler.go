@@ -9,27 +9,36 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/cookie"
+	httphelper "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper"
 	httpResponse "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper/response_envelope"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
+	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/aktivitas_user"
+	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 	authin "github.com/mustafamadjid/web-app-cbt/internal/core/port/in/auth_port_in"
+	out "github.com/mustafamadjid/web-app-cbt/internal/core/port/out"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 
+	aktivitas_user_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/aktivitas_user"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/service/auth_service"
 )
 
 type AuthHandler struct {
-	svc        authin.AuthUsecase
-	cookies    cookie.CookieConfig
-	accessTTL  time.Duration
-	refreshTTL time.Duration
+	svc           authin.AuthUsecase
+	cookies       cookie.CookieConfig
+	accessTTL     time.Duration
+	refreshTTL    time.Duration
+	aktivitasUser *aktivitas_user_service.AktivitasUserService
+	accessTokens  out.AccessTokenService
 }
 
-func NewAuthHandler(svc authin.AuthUsecase, cookies cookie.CookieConfig, accessTTL time.Duration, refreshTTL time.Duration) *AuthHandler {
+func NewAuthHandler(svc authin.AuthUsecase, cookies cookie.CookieConfig, accessTTL time.Duration, refreshTTL time.Duration, aktivitasUser *aktivitas_user_service.AktivitasUserService, accessTokens out.AccessTokenService) *AuthHandler {
 	return &AuthHandler{
-		svc:        svc,
-		cookies:    cookies,
-		accessTTL:  accessTTL,
-		refreshTTL: refreshTTL,
+		svc:           svc,
+		cookies:       cookies,
+		accessTTL:     accessTTL,
+		refreshTTL:    refreshTTL,
+		aktivitasUser: aktivitasUser,
+		accessTokens:  accessTokens,
 	}
 }
 
@@ -81,6 +90,18 @@ func (h *AuthHandler) Login(write http.ResponseWriter, req *http.Request, _ http
 	cookie.SetAccessCookie(write, h.cookies, res.AccessToken, now.Add(h.accessTTL))
 	cookie.SetRefreshCookie(write, h.cookies, res.RefreshToken, now.Add(h.refreshTTL))
 
+	if h.aktivitasUser != nil {
+		aktivitasCmd := aktivitas_user_service.AktivitasUserCmd{
+			IdPengguna:  res.IdPengguna,
+			Action:      aktivitas_user.LOGIN,
+			Description: "Login pengguna",
+			IpAddress:   httphelper.GetClientIP(req),
+		}
+		if err := h.aktivitasUser.CreateAktivitasUserService(req.Context(), aktivitasCmd); err != nil {
+			logger.Error(req.Context(), "failed creating aktivitas user", "op", "auth.login.activity", "err", err)
+		}
+	}
+
 	httpResponse.WriteOK(write, http.StatusOK, responseData, "success")
 }
 
@@ -93,11 +114,33 @@ func (h *AuthHandler) Logout(write http.ResponseWriter, req *http.Request, _ htt
 		return
 	}
 
+	var userID user.ID
+	if h.accessTokens != nil {
+		if accessCookie, err := req.Cookie(h.cookies.AccessName); err == nil && accessCookie.Value != "" {
+			uid, _, _, err := h.accessTokens.VerifyAccessToken(accessCookie.Value, time.Now())
+			if err == nil {
+				userID = uid
+			}
+		}
+	}
+
 	if err := h.svc.Logout(req.Context(), c.Value, time.Now()); err != nil {
 		logger.Error(req.Context(), "logout failed", "op", "auth.logout", "err", err)
 	}
 
 	cookie.ClearAuthCookies(write, h.cookies)
+
+	if h.aktivitasUser != nil && userID > 0 {
+		aktivitasCmd := aktivitas_user_service.AktivitasUserCmd{
+			IdPengguna:  userID,
+			Action:      aktivitas_user.LOGOUT,
+			Description: "Logout pengguna",
+			IpAddress:   httphelper.GetClientIP(req),
+		}
+		if err := h.aktivitasUser.CreateAktivitasUserService(req.Context(), aktivitasCmd); err != nil {
+			logger.Error(req.Context(), "failed creating aktivitas user", "op", "auth.logout.activity", "err", err)
+		}
+	}
 
 	httpResponse.WriteOKNoData(write, http.StatusOK, "success")
 }

@@ -86,11 +86,12 @@ func main() {
 	tokens := app.BuildTokenModule(cfg)
 	hasher := bcrypt.NewHasher(0)
 
-	authMod := app.BuildAuthModule(cfg, infra, tokens, hasher)
-	userMod := app.BuildUserModule(cfg, infra, hasher)
+	aktivitasUserMod := app.BuildAktivitasUserModule(infra)
+	authMod := app.BuildAuthModule(cfg, infra, tokens, hasher, aktivitasUserMod)
+	userMod := app.BuildUserModule(cfg, infra, hasher, aktivitasUserMod)
 	profilSekolahMod := app.BuildProfilSekolahModule(cfg, infra)
 
-	httpMod := app.BuildHTTPModule(cfg, authMod, userMod, profilSekolahMod, tokens, logger)
+	httpMod := app.BuildHTTPModule(cfg, authMod, userMod, profilSekolahMod, aktivitasUserMod, tokens, logger)
 
 	log.Println("Listening on", cfg.HTTP.Addr)
 	if err := httpMod.Server.ListenAndServe(); err != nil && err != http.ErrServerClosed {

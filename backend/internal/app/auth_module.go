@@ -12,8 +12,7 @@ type AuthModule struct {
 	Handler *httpx.AuthHandler
 }
 
-
-func BuildAuthModule(cfg Config, infra *InfraModule, tokens *TokenModule, hasher out.PasswordHasher) *AuthModule {
+func BuildAuthModule(cfg Config, infra *InfraModule, tokens *TokenModule, hasher out.PasswordHasher, aktivitasUser *AktivitasUserModule) *AuthModule {
 	svc := auth_service.NewAuthService(
 		infra.AuthUsers,
 		infra.users,
@@ -31,7 +30,7 @@ func BuildAuthModule(cfg Config, infra *InfraModule, tokens *TokenModule, hasher
 		SameSite:    cfg.Cookie.SameSite,
 	}
 
-	h := httpx.NewAuthHandler(svc, cookies, cfg.JWT.AccessTTL, cfg.JWT.RefreshTTL)
+	h := httpx.NewAuthHandler(svc, cookies, cfg.JWT.AccessTTL, cfg.JWT.RefreshTTL, aktivitasUser.Service, tokens.AccessTokenSvc)
 
 	return &AuthModule{Service: svc, Handler: h}
 }
