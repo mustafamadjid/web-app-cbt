@@ -7,7 +7,12 @@ import React, {
   useState,
   useCallback,
 } from "react";
-import { api, ApiError } from "@/services/Api/api";
+import { ApiError } from "@/services/Api/api";
+import {
+  getAuthMe,
+  login as loginService,
+  logout as logoutService,
+} from "@/services/Api/auth-api/auth.service";
 
 import type {
   User,
@@ -73,7 +78,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refetchMe = useCallback(async () => {
     try {
-      const me = await api<User>("/auth/me", { method: "GET" });
+      const me = await getAuthMe();
       if (!isValidRole(me.role)) {
         forceGuest();
         return null;
@@ -112,7 +117,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = useCallback(
     async (payload: LoginPayload) => {
       // login gagal karena kredensial salah: biarkan page login yang handle error message
-      await api<null>("/auth/login", { method: "POST", data: payload });
+      await loginService(payload);
       await refetchMe();
     },
     [refetchMe],
@@ -120,7 +125,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(async () => {
     try {
-      await api<null>("/auth/logout", { method: "POST" });
+      await logoutService();
     } catch (e) {
       const err = e as ApiError;
       console.warn("Logout error:", err.status, err.message);
