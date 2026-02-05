@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 
 	"github.com/jackc/pgx/v5"
@@ -87,14 +88,20 @@ func (r *ProfilSekolahRepo) GetProfilSekolah(ctx context.Context) (profil_sekola
 	`
 
 	var profil profil_sekolah.ProfilSekolah
+	var emailSekolah sql.NullString
+	var noTelpSekolah sql.NullString
+	var kepalaSekolah sql.NullString
+	var wakaSekolah sql.NullString
+	var namaSekolah sql.NullString
+	var alamatSekolah sql.NullString
 	err := r.q.QueryRow(ctx, query).Scan(
 		&profil.IDProfil,
-		&profil.EmailSekolah,
-		&profil.NoTelpSekolah,
-		&profil.KepalaSekolah,
-		&profil.WakaSekolah,
-		&profil.NamaSekolah,
-		&profil.AlamatSekolah,
+		&emailSekolah,
+		&noTelpSekolah,
+		&kepalaSekolah,
+		&wakaSekolah,
+		&namaSekolah,
+		&alamatSekolah,
 		&profil.LogoSekolah,
 		&profil.CreatedAt,
 		&profil.UpdatedAt,
@@ -105,6 +112,24 @@ func (r *ProfilSekolahRepo) GetProfilSekolah(ctx context.Context) (profil_sekola
 	if err != nil {
 		r.loggerFor(ctx).Error(ctx, "failed getting profil sekolah", "op", "profil_sekolah_repo.get", "err", err)
 		return profil_sekolah.ProfilSekolah{}, err
+	}
+	if emailSekolah.Valid {
+		profil.EmailSekolah = emailSekolah.String
+	}
+	if noTelpSekolah.Valid {
+		profil.NoTelpSekolah = noTelpSekolah.String
+	}
+	if kepalaSekolah.Valid {
+		profil.KepalaSekolah = kepalaSekolah.String
+	}
+	if wakaSekolah.Valid {
+		profil.WakaSekolah = wakaSekolah.String
+	}
+	if namaSekolah.Valid {
+		profil.NamaSekolah = namaSekolah.String
+	}
+	if alamatSekolah.Valid {
+		profil.AlamatSekolah = alamatSekolah.String
 	}
 
 	return profil, nil
