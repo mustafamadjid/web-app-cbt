@@ -24,23 +24,23 @@ const validRoles = new Set<Role>(["ADMIN", "GURU", "SISWA"]);
 const isValidRole = (role: unknown): role is Role =>
   typeof role === "string" && validRoles.has(role as Role);
 
-function getDebugAuthUser(): User | null {
-  if (!import.meta.env.DEV) return null;
-  const raw = localStorage.getItem("debug:auth");
-  if (!raw) return null;
+// function getDebugAuthUser(): User | null {
+//   if (!import.meta.env.DEV) return null;
+//   const raw = localStorage.getItem("debug:auth");
+//   if (!raw) return null;
 
-  try {
-    const parsed = JSON.parse(raw) as Partial<User>;
-    if (!parsed.username || !isValidRole(parsed.role)) return null;
-    return {
-      id_pengguna: typeof parsed.id_pengguna === "number" ? parsed.id_pengguna : 0,
-      username: parsed.username,
-      role: parsed.role,
-    };
-  } catch {
-    return null;
-  }
-}
+//   try {
+//     const parsed = JSON.parse(raw) as Partial<User>;
+//     if (!parsed.username || !isValidRole(parsed.role)) return null;
+//     return {
+//       id_pengguna: typeof parsed.id_pengguna === "number" ? parsed.id_pengguna : 0,
+//       username: parsed.username,
+//       role: parsed.role,
+//     };
+//   } catch {
+//     return null;
+//   }
+// }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -90,12 +90,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const boot = useCallback(async () => {
     setStatus("loading");
 
-    const debugUser = getDebugAuthUser();
-    if (debugUser) {
-      setUser(debugUser);
-      setStatus("authenticated");
-      return;
-    }
+    // const debugUser = getDebugAuthUser();
+    // if (debugUser) {
+    //   setUser(debugUser);
+    //   setStatus("authenticated");
+    //   return;
+    // }
 
     try {
       await refetchMe();

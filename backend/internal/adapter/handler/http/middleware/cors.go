@@ -24,7 +24,7 @@ func CORSPolicy(next http.Handler) http.Handler {
 	c := cors.New(cors.Options{
 		AllowedOrigins:   allowed,
 		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Content-Type", "Authorization"},
+		AllowedHeaders:   []string{"*"},
 		AllowCredentials: true,
 		MaxAge:           300,
 	})
