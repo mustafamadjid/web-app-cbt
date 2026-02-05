@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"strings"
@@ -40,13 +41,15 @@ func (r *ProfilgGuruRepo) FindProfilGuruByID(ctx context.Context, id user.ID) (u
 	`
 
 	var result user.ProfilGuru
-	var nip string
+	var nip sql.NullString
+	var jabatan sql.NullString
+	var bidangStudi sql.NullString
 	err := r.q.QueryRow(ctx, query, id).Scan(
 		&result.ID,
 		&result.IdPengguna,
 		&nip,
-		&result.Jabatan,
-		&result.BidangStudi,
+		&jabatan,
+		&bidangStudi,
 	)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return user.ProfilGuru{}, coreerror.ErrNotFound
@@ -56,7 +59,15 @@ func (r *ProfilgGuruRepo) FindProfilGuruByID(ctx context.Context, id user.ID) (u
 		return user.ProfilGuru{}, err
 	}
 
-	result.Nip = user.NIP(nip)
+	if nip.Valid {
+		result.Nip = user.NIP(nip.String)
+	}
+	if jabatan.Valid {
+		result.Jabatan = jabatan.String
+	}
+	if bidangStudi.Valid {
+		result.BidangStudi = bidangStudi.String
+	}
 	return result, nil
 }
 
@@ -213,22 +224,26 @@ func (r *ProfilgGuruRepo) GetListGuru(ctx context.Context, filter query.ListGuru
 		var item query.GuruListItem
 		var jenisKelamin int16
 		var status string
-		var email string
+		var email sql.NullString
 		var role string
-		var nip string
+		var nip sql.NullString
+		var jabatan sql.NullString
+		var bidangStudi sql.NullString
+		var noHp sql.NullString
+		var foto sql.NullString
 
 		if err := rows.Scan(
 			&item.IdPengguna,
 			&role,
 			&item.Username,
-			&item.NoHp,
+			&noHp,
 			&email,
 			&item.NamaLengkap,
 			&status,
 			&nip,
-			&item.Jabatan,
-			&item.BidangStudi,
-			&item.Foto,
+			&jabatan,
+			&bidangStudi,
+			&foto,
 			&jenisKelamin,
 		); err != nil {
 			r.loggerFor(ctx).Error(ctx, "failed scanning guru list", "op", "profil_guru_repo.list_scan", "err", err)
@@ -240,11 +255,27 @@ func (r *ProfilgGuruRepo) GetListGuru(ctx context.Context, filter query.ListGuru
 			return nil, err
 		}
 
-		item.Email = user.Email(email)
-		item.Nip = user.NIP(nip)
+		if email.Valid {
+			item.Email = user.Email(email.String)
+		}
+		if nip.Valid {
+			item.Nip = user.NIP(nip.String)
+		}
 		item.JenisKelamin = jenisKelaminValue
 		item.StatusAkun = user.StatusAkun(status)
 		item.Role = user.Role(role)
+		if jabatan.Valid {
+			item.Jabatan = jabatan.String
+		}
+		if bidangStudi.Valid {
+			item.BidangStudi = bidangStudi.String
+		}
+		if noHp.Valid {
+			item.NoHp = noHp.String
+		}
+		if foto.Valid {
+			item.Foto = foto.String
+		}
 
 		results = append(results, item)
 	}

@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"strings"
@@ -44,17 +45,21 @@ func (r *ProfilSiswaRepo) FindProfilSiswaByID(ctx context.Context, id user.ID) (
 	`
 
 	var result user.ProfilSiswa
-	var nisn string
+	var nisn sql.NullString
+	var tempatLahir sql.NullString
+	var tanggalLahir sql.NullTime
+	var noAbsen sql.NullInt32
+	var angkatan sql.NullInt32
 	err := r.q.QueryRow(ctx, query, id).Scan(
 		&result.ID,
 		&result.IdPengguna,
 		&result.IdTingkatKelas,
 		&result.IdNamaKelas,
 		&nisn,
-		&result.NoAbsen,
-		&result.Angkatan,
-		&result.TempatLahir,
-		&result.TanggalLahir,
+		&noAbsen,
+		&angkatan,
+		&tempatLahir,
+		&tanggalLahir,
 	)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return user.ProfilSiswa{}, coreerror.ErrNotFound
@@ -64,7 +69,21 @@ func (r *ProfilSiswaRepo) FindProfilSiswaByID(ctx context.Context, id user.ID) (
 		return user.ProfilSiswa{}, err
 	}
 
-	result.Nisn = user.NISN(nisn)
+	if nisn.Valid {
+		result.Nisn = user.NISN(nisn.String)
+	}
+	if noAbsen.Valid {
+		result.NoAbsen = int(noAbsen.Int32)
+	}
+	if angkatan.Valid {
+		result.Angkatan = int(angkatan.Int32)
+	}
+	if tempatLahir.Valid {
+		result.TempatLahir = tempatLahir.String
+	}
+	if tanggalLahir.Valid {
+		result.TanggalLahir = tanggalLahir.Time
+	}
 	return result, nil
 }
 
@@ -251,7 +270,10 @@ func (r *ProfilSiswaRepo) GetListSiswa(ctx context.Context, filter query.ListSis
 		var item query.SiswaListItem
 		var jenisKelamin int16
 		var status string
-		var email string
+		var email sql.NullString
+		var noHp sql.NullString
+		var foto sql.NullString
+		var angkatan sql.NullInt32
 
 		if err := rows.Scan(
 			&item.IdPengguna,
@@ -259,12 +281,12 @@ func (r *ProfilSiswaRepo) GetListSiswa(ctx context.Context, filter query.ListSis
 			&email,
 			&item.NamaLengkap,
 			&jenisKelamin,
-			&item.NoHp,
-			&item.Foto,
+			&noHp,
+			&foto,
 			&status,
 			&item.NamaKelas,
 			&item.TingkatKelas,
-			&item.Angkatan,
+			&angkatan,
 		); err != nil {
 			r.loggerFor(ctx).Error(ctx, "failed scanning siswa list", "op", "profil_siswa_repo.list_scan", "err", err)
 			return nil, err
@@ -275,9 +297,20 @@ func (r *ProfilSiswaRepo) GetListSiswa(ctx context.Context, filter query.ListSis
 			return nil, err
 		}
 
-		item.Email = user.Email(email)
+		if email.Valid {
+			item.Email = user.Email(email.String)
+		}
 		item.JenisKelamin = jenisKelaminValue
 		item.StatusAkun = user.StatusAkun(status)
+		if noHp.Valid {
+			item.NoHp = noHp.String
+		}
+		if foto.Valid {
+			item.Foto = foto.String
+		}
+		if angkatan.Valid {
+			item.Angkatan = int(angkatan.Int32)
+		}
 
 		results = append(results, item)
 	}

@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"strconv"
@@ -49,7 +50,9 @@ func (r *UserRepo) FindUserByID(ctx context.Context, id user.ID) (user.Pengguna,
 	var jenisKelamin int16
 	var roleName string
 	var status string
-	var email string
+	var email sql.NullString
+	var noHp sql.NullString
+	var foto sql.NullString
 
 	err := r.q.QueryRow(ctx, query, id).Scan(
 		&result.ID,
@@ -58,10 +61,10 @@ func (r *UserRepo) FindUserByID(ctx context.Context, id user.ID) (user.Pengguna,
 		&result.PasswordHashed,
 		&result.NamaLengkap,
 		&jenisKelamin,
-		&result.NoHp,
+		&noHp,
 		&roleName,
 		&status,
-		&result.Foto,
+		&foto,
 	)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return user.Pengguna{}, coreerror.ErrNotFound
@@ -76,10 +79,18 @@ func (r *UserRepo) FindUserByID(ctx context.Context, id user.ID) (user.Pengguna,
 		return user.Pengguna{}, err
 	}
 
-	result.Email = user.Email(email)
+	if email.Valid {
+		result.Email = user.Email(email.String)
+	}
 	result.JenisKelamin = jenisKelaminValue
 	result.Role = user.Role(roleName)
 	result.StatusAkun = user.StatusAkun(status)
+	if noHp.Valid {
+		result.NoHp = noHp.String
+	}
+	if foto.Valid {
+		result.Foto = foto.String
+	}
 
 	return result, nil
 }
@@ -237,7 +248,9 @@ func (r *UserRepo) ListUser(ctx context.Context) ([]user.Pengguna, error) {
 		var jenisKelamin int16
 		var roleName string
 		var status string
-		var email string
+		var email sql.NullString
+		var noHp sql.NullString
+		var foto sql.NullString
 
 		if err := rows.Scan(
 			&item.ID,
@@ -246,10 +259,10 @@ func (r *UserRepo) ListUser(ctx context.Context) ([]user.Pengguna, error) {
 			&item.PasswordHashed,
 			&item.NamaLengkap,
 			&jenisKelamin,
-			&item.NoHp,
+			&noHp,
 			&roleName,
 			&status,
-			&item.Foto,
+			&foto,
 		); err != nil {
 			r.loggerFor(ctx).Error(ctx, "failed scanning users", "op", "user_repo.list_scan", "err", err)
 			return nil, err
@@ -260,10 +273,18 @@ func (r *UserRepo) ListUser(ctx context.Context) ([]user.Pengguna, error) {
 			return nil, err
 		}
 
-		item.Email = user.Email(email)
+		if email.Valid {
+			item.Email = user.Email(email.String)
+		}
 		item.JenisKelamin = jenisKelaminValue
 		item.Role = user.Role(roleName)
 		item.StatusAkun = user.StatusAkun(status)
+		if noHp.Valid {
+			item.NoHp = noHp.String
+		}
+		if foto.Valid {
+			item.Foto = foto.String
+		}
 
 		results = append(results, item)
 	}
