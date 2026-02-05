@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { useLogin } from "../../../hooks/Auth/useLogin";
+import { ApiError } from "@/services/Api/api";
+import { useAuth } from "@/contexts/AuthContext";
 
 // CSS
 import "../../../index.css";
@@ -18,13 +19,24 @@ type LoginFormProps = {
 const LoginForm = ({ onSuccess }: LoginFormProps) => {
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-  const { login, loading, error } = useLogin();
+  const { login } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Submit handling
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    await login({ username, password });
-    onSuccess();
+    setLoading(true);
+    setError(null);
+    try {
+      await login({ username, password });
+      onSuccess();
+    } catch (e) {
+      const message = e instanceof ApiError ? e.message : "Login gagal.";
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
   };
   return (
     <>
