@@ -63,7 +63,7 @@ const JadwalUjianWidget: React.FC<JadwalUjianProps> = ({
       </header>
 
       {/* Content Section */}
-      <div className="flex-1 border-t border-gray-100 bg-gray-50/50 p-4">
+      <div className="flex-1 border-t border-gray-100 bg-gray-50/50 p-4 overflow-y-scroll">
         {items.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-gray-300 bg-white py-12 text-center">
             <CalendarDays className="h-10 w-10 text-gray-300" />
