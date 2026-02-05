@@ -48,8 +48,10 @@ func main() {
 			Issuer:        "web-app-cbt",
 			AccessSecret:  os.Getenv("JWT_ACCESS_SECRET"),
 			RefreshSecret: os.Getenv("JWT_REFRESH_SECRET"),
-			AccessTTL:     15 * time.Minute,
+			// AccessTTL:     15 * time.Minute,
+			AccessTTL:     15 * time.Second,
 			RefreshTTL:    14 * 24 * time.Hour,
+			// RefreshTTL:    30 * time.Second,
 		},
 		Cookie: app.CookieConfig{
 			AccessName:  "access_token",

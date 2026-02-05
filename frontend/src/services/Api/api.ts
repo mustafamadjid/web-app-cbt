@@ -95,7 +95,7 @@ function toApiError(err: unknown): ApiError {
  * Refresh session
  */
 async function refreshSession(): Promise<void> {
-  await refreshClient.post("/auth/login/refresh");
+  await refreshClient.post("/auth/refresh");
 }
 
 /** unwrap envelope sukses */

@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/julienschmidt/httprouter"
-	"github.com/rs/cors"
 
 	"github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/cookie"
 	"github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/middleware"
@@ -107,32 +106,7 @@ func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSeko
 
 	handler := middleware.RequestLogger(router, logger)
 
-	c := cors.New(cors.Options{
-    AllowOriginFunc: func(origin string) bool {
-        // 1) Dev origins
-        if origin == "http://localhost:3000" || origin == "http://127.0.0.1:3000" {
-            return true
-        }
-
-        // 2) Production exact
-        if origin == "https://app.example.com" {
-            return true
-        }
-
-        // 3) Allow subdomains: https://*.example.com)
-        if strings.HasPrefix(origin, "https://") && strings.HasSuffix(origin, ".example.com") {
-            return true
-        }
-
-        return false
-    },
-
-    AllowedMethods: []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-    AllowedHeaders: []string{"Content-Type", "Authorization"},
-    AllowCredentials: true,
-    MaxAge: 300,
-})
-	corsHandler := c.Handler(handler)
+	corsHandler := middleware.CORSPolicy(handler)
 
 	protectCSRF := middleware.PreventCSRF(corsHandler)
 
