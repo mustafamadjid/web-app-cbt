@@ -23,3 +23,5 @@ randomstring
 *.njsproj
 *.sln
 *.sw?
+
+.env
