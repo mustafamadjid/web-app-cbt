@@ -151,14 +151,14 @@ func (h *AuthHandler) Refresh(write http.ResponseWriter, req *http.Request, _ ht
 	c, err := req.Cookie(h.cookies.RefreshName)
 	if err != nil || c.Value == "" {
 		logger.Info(req.Context(), "missing refresh token", "op", "auth.refresh", "err", "missing_refresh_token")
-		httpResponse.WriteErr(write, http.StatusUnauthorized, "INVALID_TOKEN", "unauthorized : invalid token")
+		httpResponse.WriteErr(write, http.StatusUnauthorized, "INVALID_TOKEN", "unauthorized : invalid token refresh token empty")
 		return
 	}
 
 	newAccessToken, err := h.svc.RefreshAccessToken(req.Context(), c.Value, h.accessTTL)
 	if err != nil {
 		logger.Error(req.Context(), "refresh token failed", "op", "auth.refresh", "err", err)
-		httpResponse.WriteErr(write, http.StatusUnauthorized, "INVALID_TOKEN", "unauthorized : invalid token")
+		httpResponse.WriteErr(write, http.StatusUnauthorized, "INVALID_TOKEN", "unauthorized : invalid token refresh token failed to generate")
 		return
 	}
 
