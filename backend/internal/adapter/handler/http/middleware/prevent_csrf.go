@@ -1,9 +1,12 @@
 package middleware
 
 import (
+	"log"
 	"net/http"
 	"os"
 	"strings"
+
+	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 )
 
 func PreventCSRF(next http.Handler) http.Handler {
@@ -18,11 +21,19 @@ func PreventCSRF(next http.Handler) http.Handler {
 			continue
 		}
 		if err := cop.AddTrustedOrigin(o); err != nil {
-			// TODO : Tambahkan log 
+			log.Printf("csrf: invalid trusted origin %q: %v", o, err)
 		}
 	}
 
 	cop.SetDenyHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		logger := corelog.FromContext(r.Context())
+		logger.Error(r.Context(), "csrf origin denied",
+			"op", "middleware.csrf",
+			"origin", r.Header.Get("Origin"),
+			"referer", r.Header.Get("Referer"),
+			"method", r.Method,
+			"path", r.URL.Path,
+		)
 		http.Error(w, "CSRF check failed", http.StatusForbidden)
 	}))
 
