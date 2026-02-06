@@ -163,7 +163,7 @@ func (h *AuthHandler) Refresh(write http.ResponseWriter, req *http.Request, _ ht
 	}
 
 	now := time.Now()
-	cookie.SetAccessCookie(write, h.cookies, newAccessToken, now)
+	cookie.SetAccessCookie(write, h.cookies, newAccessToken, now.Add(h.accessTTL))
 	httpResponse.WriteOKNoData(write, http.StatusOK, "success")
 
 }
