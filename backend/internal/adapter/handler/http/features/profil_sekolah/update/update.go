@@ -56,14 +56,7 @@ func (h *UpdateProfilSekolahHandler) UpdateProfilSekolah(w http.ResponseWriter, 
 		return strings.TrimSpace(vals[0]), true
 	}
 
-	var (
-		emailPtr  *string
-		noTelpPtr *string
-		kepalaPtr *string
-		wakaPtr   *string
-		namaPtr   *string
-		alamatPtr *string
-	)
+	var updateRequest updateProfilSekolahRequest
 
 	if email, ok := getOptional("email_sekolah"); ok {
 		if email == "" {
@@ -74,7 +67,7 @@ func (h *UpdateProfilSekolahHandler) UpdateProfilSekolah(w http.ResponseWriter, 
 			httpResponse.WriteErr(w, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 			return
 		}
-		emailPtr = &email
+		updateRequest.EmailSekolah = &email
 	}
 	if noTelp, ok := getOptional("no_telp_sekolah"); ok {
 		if noTelp == "" {
@@ -85,7 +78,7 @@ func (h *UpdateProfilSekolahHandler) UpdateProfilSekolah(w http.ResponseWriter, 
 			httpResponse.WriteErr(w, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 			return
 		}
-		noTelpPtr = &noTelp
+		updateRequest.NoTelpSekolah = &noTelp
 	}
 	if kepala, ok := getOptional("kepala_sekolah"); ok {
 		if kepala == "" {
@@ -96,7 +89,7 @@ func (h *UpdateProfilSekolahHandler) UpdateProfilSekolah(w http.ResponseWriter, 
 			httpResponse.WriteErr(w, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 			return
 		}
-		kepalaPtr = &kepala
+		updateRequest.KepalaSekolah = &kepala
 	}
 	if waka, ok := getOptional("waka_sekolah"); ok {
 		if waka == "" {
@@ -107,7 +100,7 @@ func (h *UpdateProfilSekolahHandler) UpdateProfilSekolah(w http.ResponseWriter, 
 			httpResponse.WriteErr(w, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 			return
 		}
-		wakaPtr = &waka
+		updateRequest.WakaSekolah = &waka
 	}
 	if nama, ok := getOptional("nama_sekolah"); ok {
 		if nama == "" {
@@ -118,7 +111,7 @@ func (h *UpdateProfilSekolahHandler) UpdateProfilSekolah(w http.ResponseWriter, 
 			httpResponse.WriteErr(w, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 			return
 		}
-		namaPtr = &nama
+		updateRequest.NamaSekolah = &nama
 	}
 	if alamat, ok := getOptional("alamat_sekolah"); ok {
 		if alamat == "" {
@@ -129,7 +122,7 @@ func (h *UpdateProfilSekolahHandler) UpdateProfilSekolah(w http.ResponseWriter, 
 			httpResponse.WriteErr(w, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 			return
 		}
-		alamatPtr = &alamat
+		updateRequest.AlamatSekolah = &alamat
 	}
 
 	var logoPtr *string
@@ -155,19 +148,19 @@ func (h *UpdateProfilSekolahHandler) UpdateProfilSekolah(w http.ResponseWriter, 
 		logoPtr = &relPath
 	}
 
-	if emailPtr == nil && noTelpPtr == nil && kepalaPtr == nil && wakaPtr == nil && namaPtr == nil && alamatPtr == nil && logoPtr == nil {
+	if updateRequest.IsEmpty() && logoPtr == nil {
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "no fields to update")
 		return
 	}
 
 	cmd := profil_sekolah_service.UpdateProfilSekolahCmd{
 		IDProfil:      profil_sekolah.IDProfil(1),
-		EmailSekolah:  emailPtr,
-		NoTelpSekolah: noTelpPtr,
-		KepalaSekolah: kepalaPtr,
-		WakaSekolah:   wakaPtr,
-		NamaSekolah:   namaPtr,
-		AlamatSekolah: alamatPtr,
+		EmailSekolah:  updateRequest.EmailSekolah,
+		NoTelpSekolah: updateRequest.NoTelpSekolah,
+		KepalaSekolah: updateRequest.KepalaSekolah,
+		WakaSekolah:   updateRequest.WakaSekolah,
+		NamaSekolah:   updateRequest.NamaSekolah,
+		AlamatSekolah: updateRequest.AlamatSekolah,
 		LogoSekolah:   logoPtr,
 	}
 
