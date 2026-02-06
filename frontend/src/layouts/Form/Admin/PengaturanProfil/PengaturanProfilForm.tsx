@@ -63,7 +63,8 @@ const PengaturanProfilForm = () => {
 
         const logo = data.logo_sekolah ?? "";
         setServerLogoUrl(logo);
-        setLogoUrl(logo);
+        setLogoUrl(`${import.meta.env.VITE_API_URL}${logo}`);
+        
       } catch (error) {
         console.error("Gagal memuat profil sekolah:", error);
       }
@@ -147,6 +148,10 @@ const PengaturanProfilForm = () => {
         return value as any;
       },
     });
+
+    if (values.logo_sekolah) {
+      formData.append("logo_sekolah", values.logo_sekolah);
+    }
 
     await updateProfilSekolah(formData);
   };
