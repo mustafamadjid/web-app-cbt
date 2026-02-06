@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import toast from "react-hot-toast";
 
 import ImageUpload from "@/components/features/Upload/ImageUpload";
 import InputField from "@/components/common/Input/InputField";
@@ -67,6 +68,9 @@ const PengaturanProfilForm = () => {
         
       } catch (error) {
         console.error("Gagal memuat profil sekolah:", error);
+        toast.error("Gagal memuat profil sekolah.", {
+          position: "top-center",
+        });
       }
     };
 
@@ -153,7 +157,23 @@ const PengaturanProfilForm = () => {
       formData.append("logo_sekolah", values.logo_sekolah);
     }
 
-    await updateProfilSekolah(formData);
+    const toastId = toast.loading("Menyimpan perubahan...", {
+      position: "top-center",
+    });
+
+    try {
+      await updateProfilSekolah(formData);
+      toast.success("Profil sekolah berhasil diperbarui.", {
+        id: toastId,
+        position: "top-center",
+      });
+    } catch (error) {
+      console.error("Gagal memperbarui profil sekolah:", error);
+      toast.error("Gagal memperbarui profil sekolah.", {
+        id: toastId,
+        position: "top-center",
+      });
+    }
   };
 
   const clearLogo = () => {
