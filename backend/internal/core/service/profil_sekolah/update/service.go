@@ -15,12 +15,12 @@ type UpdateProfilSekolahService struct {
 
 type UpdateProfilSekolahCmd struct {
 	IDProfil      profil_sekolah.IDProfil
-	EmailSekolah  string
-	NoTelpSekolah string
-	KepalaSekolah string
-	WakaSekolah   string
-	NamaSekolah   string
-	AlamatSekolah string
+	EmailSekolah  *string
+	NoTelpSekolah *string
+	KepalaSekolah *string
+	WakaSekolah   *string
+	NamaSekolah   *string
+	AlamatSekolah *string
 	LogoSekolah   *string
 }
 
@@ -33,58 +33,80 @@ func (s *UpdateProfilSekolahService) UpdateProfilSekolah(ctx context.Context, cm
 		return coreerror.ErrInvalidInput
 	}
 
-	email, err := normalizeRequired(cmd.EmailSekolah)
-	if err != nil {
-		return err
+	if cmd.EmailSekolah == nil &&
+		cmd.NoTelpSekolah == nil &&
+		cmd.KepalaSekolah == nil &&
+		cmd.WakaSekolah == nil &&
+		cmd.NamaSekolah == nil &&
+		cmd.AlamatSekolah == nil &&
+		cmd.LogoSekolah == nil {
+		return coreerror.ErrNoFieldToUpdate
 	}
-	noTelp, err := normalizeRequired(cmd.NoTelpSekolah)
-	if err != nil {
-		return err
-	}
-	kepala, err := normalizeRequired(cmd.KepalaSekolah)
-	if err != nil {
-		return err
-	}
-	waka, err := normalizeRequired(cmd.WakaSekolah)
-	if err != nil {
-		return err
-	}
-	nama, err := normalizeRequired(cmd.NamaSekolah)
-	if err != nil {
-		return err
-	}
-	alamat, err := normalizeRequired(cmd.AlamatSekolah)
+
+	profil, err := s.repo.GetProfilSekolah(ctx)
 	if err != nil {
 		return err
 	}
 
-	var logo *string
-	if cmd.LogoSekolah != nil {
-		trimmed := strings.TrimSpace(*cmd.LogoSekolah)
-		if trimmed == "" {
-			return coreerror.ErrInvalidInput
+	if cmd.EmailSekolah != nil {
+		email, err := normalizeOptional(cmd.EmailSekolah)
+		if err != nil {
+			return err
 		}
-		logo = &trimmed
+		profil.EmailSekolah = *email
+	}
+	if cmd.NoTelpSekolah != nil {
+		noTelp, err := normalizeOptional(cmd.NoTelpSekolah)
+		if err != nil {
+			return err
+		}
+		profil.NoTelpSekolah = *noTelp
+	}
+	if cmd.KepalaSekolah != nil {
+		kepala, err := normalizeOptional(cmd.KepalaSekolah)
+		if err != nil {
+			return err
+		}
+		profil.KepalaSekolah = *kepala
+	}
+	if cmd.WakaSekolah != nil {
+		waka, err := normalizeOptional(cmd.WakaSekolah)
+		if err != nil {
+			return err
+		}
+		profil.WakaSekolah = *waka
+	}
+	if cmd.NamaSekolah != nil {
+		nama, err := normalizeOptional(cmd.NamaSekolah)
+		if err != nil {
+			return err
+		}
+		profil.NamaSekolah = *nama
+	}
+	if cmd.AlamatSekolah != nil {
+		alamat, err := normalizeOptional(cmd.AlamatSekolah)
+		if err != nil {
+			return err
+		}
+		profil.AlamatSekolah = *alamat
+	}
+	if cmd.LogoSekolah != nil {
+		logo, err := normalizeOptional(cmd.LogoSekolah)
+		if err != nil {
+			return err
+		}
+		profil.LogoSekolah = logo
 	}
 
-	profil := profil_sekolah.ProfilSekolah{
-		IDProfil:      cmd.IDProfil,
-		EmailSekolah:  email,
-		NoTelpSekolah: noTelp,
-		KepalaSekolah: kepala,
-		WakaSekolah:   waka,
-		NamaSekolah:   nama,
-		AlamatSekolah: alamat,
-		LogoSekolah:   logo,
-	}
+	profil.IDProfil = cmd.IDProfil
 
 	return s.repo.UpdateProfilSekolah(ctx, cmd.IDProfil, profil)
 }
 
-func normalizeRequired(value string) (string, error) {
-	trimmed := strings.TrimSpace(value)
+func normalizeOptional(value *string) (*string, error) {
+	trimmed := strings.TrimSpace(*value)
 	if trimmed == "" {
-		return "", coreerror.ErrInvalidInput
+		return nil, coreerror.ErrInvalidInput
 	}
-	return trimmed, nil
+	return &trimmed, nil
 }
