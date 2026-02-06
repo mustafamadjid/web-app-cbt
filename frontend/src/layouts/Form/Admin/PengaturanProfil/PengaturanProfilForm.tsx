@@ -23,7 +23,7 @@ import {
   updateProfilSekolah,
 } from "@/services/Api/features-api/ProfilSekolah/profil_sekolah.service";
 
-const initialValues: ProfilSekolahFormValues = {
+const initialFormValues: ProfilSekolahFormValues = {
   nama_sekolah: "",
   alamat_sekolah: "",
   no_telp_sekolah: "",
@@ -37,7 +37,11 @@ const sectionTitle = "text-sm font-semibold text-slate-800";
 const helperText = "text-xs text-slate-500";
 
 const PengaturanProfilForm = () => {
-  const [values, setValues] = useState<ProfilSekolahFormValues>(initialValues);
+  const [values, setValues] =
+    useState<ProfilSekolahFormValues>(initialFormValues);
+  const [initialValues, setInitialValues] = useState<ProfilSekolahFormValues>(
+    initialFormValues,
+  );
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [logoUrl, setLogoUrl] = useState<string>("");
   const [serverLogoUrl, setServerLogoUrl] = useState<string>("");
@@ -47,15 +51,21 @@ const PengaturanProfilForm = () => {
   const loadProfilSekolah = async () => {
     const data = await getProfilSekolah();
 
-    setValues((prev) => ({
-      ...prev,
+    const nextValues: ProfilSekolahFormValues = {
       nama_sekolah: data.nama_sekolah ?? "",
       alamat_sekolah: data.alamat_sekolah ?? "",
       no_telp_sekolah: data.no_telp_sekolah ?? "",
       email_sekolah: data.email_sekolah ?? "",
       kepala_sekolah: data.kepala_sekolah ?? "",
       waka_sekolah: data.waka_sekolah ?? "",
+      logo_sekolah: null,
+    };
+
+    setValues((prev) => ({
+      ...prev,
+      ...nextValues,
     }));
+    setInitialValues(nextValues);
 
     const logo = data.logo_sekolah ?? "";
     setServerLogoUrl(`${import.meta.env.VITE_API_URL}${logo}`);
@@ -100,6 +110,15 @@ const PengaturanProfilForm = () => {
     setTouched((prev) => ({ ...prev, [name]: true }));
   };
 
+  const normalizeValues = (formValues: ProfilSekolahFormValues) => ({
+    nama_sekolah: formValues.nama_sekolah.trim(),
+    alamat_sekolah: formValues.alamat_sekolah.trim(),
+    no_telp_sekolah: formValues.no_telp_sekolah.trim(),
+    email_sekolah: formValues.email_sekolah.trim(),
+    kepala_sekolah: formValues.kepala_sekolah.trim(),
+    waka_sekolah: formValues.waka_sekolah.trim(),
+  });
+
   const validate = createValidator<ProfilSekolahFormValues>({
     nama_sekolah: [requiredString("Nama sekolah wajib diisi.")],
     alamat_sekolah: [requiredString("Alamat sekolah wajib diisi.")],
@@ -136,14 +155,28 @@ const PengaturanProfilForm = () => {
     const currentErrors = validate(values);
     if (Object.keys(currentErrors).length > 0) return;
 
-    const payload: ProfilSekolahUpdatePayload = {
-      nama_sekolah: values.nama_sekolah,
-      alamat_sekolah: values.alamat_sekolah,
-      no_telp_sekolah: values.no_telp_sekolah,
-      email_sekolah: values.email_sekolah,
-      kepala_sekolah: values.kepala_sekolah,
-      waka_sekolah: values.waka_sekolah,
-    };
+    const normalizedValues = normalizeValues(values);
+    const normalizedInitialValues = normalizeValues(initialValues);
+    const payload = Object.keys(normalizedValues).reduce(
+      (acc, key) => {
+        const typedKey = key as keyof ProfilSekolahUpdatePayload;
+        if (normalizedValues[typedKey] !== normalizedInitialValues[typedKey]) {
+          acc[typedKey] = normalizedValues[typedKey];
+        }
+        return acc;
+      },
+      {} as Partial<ProfilSekolahUpdatePayload>,
+    );
+
+    const hasPayloadChanges = Object.keys(payload).length > 0;
+    const hasLogoChange = Boolean(values.logo_sekolah);
+
+    if (!hasPayloadChanges && !hasLogoChange) {
+      toast("Tidak ada perubahan untuk disimpan.", {
+        position: "top-center",
+      });
+      return;
+    }
 
     const formData = buildFormData(payload, {
       transform: (key, value) => {
