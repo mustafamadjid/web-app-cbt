@@ -23,7 +23,7 @@ type SidebarProps = {
 
 
 const Sidebar = ({ isOpen, onToggle, onClose }: SidebarProps) => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const role = (user?.role ?? "SISWA") as Role;
 
 
@@ -207,6 +207,10 @@ const filteredFooterMenuItems = useMemo(
       </li>
     );
   };
+  const handleLogout = async () => {
+    await logout();
+    onClose();
+  };
 
   return (
     <>
@@ -297,6 +301,18 @@ const filteredFooterMenuItems = useMemo(
             <ul className="space-y-2 font-medium">
               {filteredFooterMenuItems.map((item) => renderMenuItem(item))}
             </ul>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className={[
+                "mt-4 flex w-full items-center gap-3 rounded-base px-3 py-2 text-sm font-semibold text-white",
+                "bg-white/10 hover:bg-white/20 transition-colors",
+                "focus:outline-none focus:ring-4 focus:ring-white/20",
+              ].join(" ")}
+            >
+              {SvgIcons.logout("h-5 w-5 text-white")}
+              Keluar
+            </button>
           </div>
         </div>
       </aside>
