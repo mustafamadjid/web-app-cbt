@@ -62,7 +62,7 @@ const PengaturanProfilForm = () => {
         }));
 
         const logo = data.logo_sekolah ?? "";
-        setServerLogoUrl(logo);
+        setServerLogoUrl(`${import.meta.env.VITE_API_URL}${logo}`);
         setLogoUrl(`${import.meta.env.VITE_API_URL}${logo}`);
         
       } catch (error) {
