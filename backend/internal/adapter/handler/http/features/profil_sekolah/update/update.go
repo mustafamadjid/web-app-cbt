@@ -44,44 +44,95 @@ func (h *UpdateProfilSekolahHandler) UpdateProfilSekolah(w http.ResponseWriter, 
 		return
 	}
 
-	email := strings.TrimSpace(r.FormValue("email_sekolah"))
-	noTelp := strings.TrimSpace(r.FormValue("no_telp_sekolah"))
-	kepala := strings.TrimSpace(r.FormValue("kepala_sekolah"))
-	waka := strings.TrimSpace(r.FormValue("waka_sekolah"))
-	nama := strings.TrimSpace(r.FormValue("nama_sekolah"))
-	alamat := strings.TrimSpace(r.FormValue("alamat_sekolah"))
-
-	if email == "" || noTelp == "" || kepala == "" || waka == "" || nama == "" || alamat == "" {
-		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: invalid request body")
-		return
+	mf := r.MultipartForm
+	getOptional := func(key string) (string, bool) {
+		if mf == nil || mf.Value == nil {
+			return "", false
+		}
+		vals, ok := mf.Value[key]
+		if !ok || len(vals) == 0 {
+			return "", false
+		}
+		return strings.TrimSpace(vals[0]), true
 	}
 
-	if err := validator.ValidateInputSafe(email, "email_sekolah"); err != nil {
-		httpResponse.WriteErr(w, http.StatusBadRequest, "INVALID_INPUT", err.Error())
-		return
+	var (
+		emailPtr  *string
+		noTelpPtr *string
+		kepalaPtr *string
+		wakaPtr   *string
+		namaPtr   *string
+		alamatPtr *string
+	)
+
+	if email, ok := getOptional("email_sekolah"); ok {
+		if email == "" {
+			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: email_sekolah is required")
+			return
+		}
+		if err := validator.ValidateInputSafe(email, "email_sekolah"); err != nil {
+			httpResponse.WriteErr(w, http.StatusBadRequest, "INVALID_INPUT", err.Error())
+			return
+		}
+		emailPtr = &email
 	}
-	if err := validator.ValidateInputSafe(noTelp, "no_telp_sekolah"); err != nil {
-		httpResponse.WriteErr(w, http.StatusBadRequest, "INVALID_INPUT", err.Error())
-		return
+	if noTelp, ok := getOptional("no_telp_sekolah"); ok {
+		if noTelp == "" {
+			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: no_telp_sekolah is required")
+			return
+		}
+		if err := validator.ValidateInputSafe(noTelp, "no_telp_sekolah"); err != nil {
+			httpResponse.WriteErr(w, http.StatusBadRequest, "INVALID_INPUT", err.Error())
+			return
+		}
+		noTelpPtr = &noTelp
 	}
-	if err := validator.ValidateInputSafe(kepala, "kepala_sekolah"); err != nil {
-		httpResponse.WriteErr(w, http.StatusBadRequest, "INVALID_INPUT", err.Error())
-		return
+	if kepala, ok := getOptional("kepala_sekolah"); ok {
+		if kepala == "" {
+			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: kepala_sekolah is required")
+			return
+		}
+		if err := validator.ValidateInputSafe(kepala, "kepala_sekolah"); err != nil {
+			httpResponse.WriteErr(w, http.StatusBadRequest, "INVALID_INPUT", err.Error())
+			return
+		}
+		kepalaPtr = &kepala
 	}
-	if err := validator.ValidateInputSafe(waka, "waka_sekolah"); err != nil {
-		httpResponse.WriteErr(w, http.StatusBadRequest, "INVALID_INPUT", err.Error())
-		return
+	if waka, ok := getOptional("waka_sekolah"); ok {
+		if waka == "" {
+			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: waka_sekolah is required")
+			return
+		}
+		if err := validator.ValidateInputSafe(waka, "waka_sekolah"); err != nil {
+			httpResponse.WriteErr(w, http.StatusBadRequest, "INVALID_INPUT", err.Error())
+			return
+		}
+		wakaPtr = &waka
 	}
-	if err := validator.ValidateInputSafe(nama, "nama_sekolah"); err != nil {
-		httpResponse.WriteErr(w, http.StatusBadRequest, "INVALID_INPUT", err.Error())
-		return
+	if nama, ok := getOptional("nama_sekolah"); ok {
+		if nama == "" {
+			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: nama_sekolah is required")
+			return
+		}
+		if err := validator.ValidateInputSafe(nama, "nama_sekolah"); err != nil {
+			httpResponse.WriteErr(w, http.StatusBadRequest, "INVALID_INPUT", err.Error())
+			return
+		}
+		namaPtr = &nama
 	}
-	if err := validator.ValidateInputSafe(alamat, "alamat_sekolah"); err != nil {
-		httpResponse.WriteErr(w, http.StatusBadRequest, "INVALID_INPUT", err.Error())
-		return
+	if alamat, ok := getOptional("alamat_sekolah"); ok {
+		if alamat == "" {
+			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: alamat_sekolah is required")
+			return
+		}
+		if err := validator.ValidateInputSafe(alamat, "alamat_sekolah"); err != nil {
+			httpResponse.WriteErr(w, http.StatusBadRequest, "INVALID_INPUT", err.Error())
+			return
+		}
+		alamatPtr = &alamat
 	}
 
-	var logo *string
+	var logoPtr *string
 	file, fh, err := r.FormFile("logo_sekolah")
 	if err != nil && !errors.Is(err, http.ErrMissingFile) {
 		logger.Error(r.Context(), "failed reading logo", "op", "profil_sekolah.update", "err", err)
@@ -101,23 +152,30 @@ func (h *UpdateProfilSekolahHandler) UpdateProfilSekolah(w http.ResponseWriter, 
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: invalid logo_sekolah")
 			return
 		}
-		logo = &relPath
+		logoPtr = &relPath
+	}
+
+	if emailPtr == nil && noTelpPtr == nil && kepalaPtr == nil && wakaPtr == nil && namaPtr == nil && alamatPtr == nil && logoPtr == nil {
+		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "no fields to update")
+		return
 	}
 
 	cmd := profil_sekolah_service.UpdateProfilSekolahCmd{
 		IDProfil:      profil_sekolah.IDProfil(1),
-		EmailSekolah:  email,
-		NoTelpSekolah: noTelp,
-		KepalaSekolah: kepala,
-		WakaSekolah:   waka,
-		NamaSekolah:   nama,
-		AlamatSekolah: alamat,
-		LogoSekolah:   logo,
+		EmailSekolah:  emailPtr,
+		NoTelpSekolah: noTelpPtr,
+		KepalaSekolah: kepalaPtr,
+		WakaSekolah:   wakaPtr,
+		NamaSekolah:   namaPtr,
+		AlamatSekolah: alamatPtr,
+		LogoSekolah:   logoPtr,
 	}
 
 	if err := h.svc.UpdateProfilSekolah(r.Context(), cmd); err != nil {
 		logger.Error(r.Context(), "failed updating profil sekolah", "op", "profil_sekolah.update", "err", err)
 		switch {
+		case errors.Is(err, coreerror.ErrNoFieldToUpdate):
+			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "no fields to update")
 		case errors.Is(err, coreerror.ErrInvalidInput):
 			httpResponse.WriteErr(w, http.StatusBadRequest, "INVALID_INPUT", "invalid input")
 		default:
