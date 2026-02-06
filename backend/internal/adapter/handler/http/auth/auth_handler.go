@@ -127,6 +127,8 @@ func (h *AuthHandler) Logout(write http.ResponseWriter, req *http.Request, _ htt
 
 	if err := h.svc.Logout(req.Context(), c.Value, time.Now()); err != nil {
 		logger.Error(req.Context(), "logout failed", "op", "auth.logout", "err", err)
+		httpResponse.WriteErr(write, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error")
+		return
 	}
 
 	cookie.ClearAuthCookies(write, h.cookies)

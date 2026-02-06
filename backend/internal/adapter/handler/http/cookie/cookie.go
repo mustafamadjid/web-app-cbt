@@ -30,7 +30,7 @@ func SetRefreshCookie(w http.ResponseWriter, cfg CookieConfig, token string, exp
 	http.SetCookie(w, &http.Cookie{
 		Name:     cfg.RefreshName,
 		Value:    token,
-		Path:     "/auth/refresh",
+		Path:     "/auth",
 		Expires:  exp,
 		HttpOnly: true,
 		Secure:   cfg.Secure,
@@ -52,7 +52,7 @@ func ClearAuthCookies(w http.ResponseWriter, cfg CookieConfig) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     cfg.RefreshName,
 		Value:    "",
-		Path:     "/auth/refresh",
+		Path:     "/auth",
 		Expires:  time.Unix(0, 0),
 		MaxAge:   -1,
 		HttpOnly: true,

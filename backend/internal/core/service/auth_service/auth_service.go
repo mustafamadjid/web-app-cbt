@@ -77,7 +77,7 @@ func (authService *AuthService) Login(ctx context.Context, cmd LoginCmd) (LoginR
 
 func (authService *AuthService) Logout(ctx context.Context, refreshtoken string, now time.Time) error {
 	logger := corelog.FromContext(ctx)
-	sid, err := authService.refreshTokens.VerifyRefreshToken(refreshtoken, time.Time{})
+	sid, err := authService.refreshTokens.VerifyRefreshToken(refreshtoken, now)
 	if err != nil {
 		logger.Info(ctx, "invalid refresh token", "op", "auth.logout", "err", err)
 		return coreerror.ErrInvalidToken

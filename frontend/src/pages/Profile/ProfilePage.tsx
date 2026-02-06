@@ -42,7 +42,7 @@ const ProfilePage = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user?.id) {
+    if (!user?.id_pengguna) {
       setState("error");
       setErrorMessage("Data profil belum tersedia.");
       return;
@@ -50,7 +50,7 @@ const ProfilePage = () => {
 
     let isActive = true;
     setState("loading");
-    void getProfileByUserId(user.id)
+    void getProfileByUserId(user.id_pengguna)
       .then((data) => {
         if (!isActive) return;
         setProfile(data);
@@ -67,7 +67,7 @@ const ProfilePage = () => {
     return () => {
       isActive = false;
     };
-  }, [user?.id]);
+  }, [user?.id_pengguna]);
 
   const displayName = profile?.namaLengkap ?? "-";
   const displayRole = profile?.role ? roleLabels[profile.role] ?? profile.role : "-";
