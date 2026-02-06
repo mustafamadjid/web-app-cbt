@@ -3,8 +3,12 @@ import React, { useEffect, useRef, useState } from "react";
 import ImageUpload from "@/components/features/Upload/ImageUpload";
 import InputField from "@/components/common/Input/InputField";
 
-import type { ProfilSekolahFormValues } from "@/types/ProfilSekolah/ProfilSekolah";
+import type {
+  ProfilSekolahFormValues,
+  ProfilSekolahUpdatePayload,
+} from "@/types/ProfilSekolah/ProfilSekolah";
 
+import { buildFormData } from "@/helper/FormData/BuildFormData";
 import { createSetField } from "@/helper/setField/setField";
 import {
   createValidator,
@@ -13,6 +17,10 @@ import {
   fileTypeStartsWith,
   requiredString,
 } from "@/helper/validate/validateForm";
+import {
+  getProfilSekolah,
+  updateProfilSekolah,
+} from "@/services/Api/features-api/ProfilSekolah/profil_sekolah.service";
 
 const initialValues: ProfilSekolahFormValues = {
   nama_sekolah: "",
@@ -20,10 +28,8 @@ const initialValues: ProfilSekolahFormValues = {
   no_telp_sekolah: "",
   email_sekolah: "",
   kepala_sekolah: "",
-  wakil_kepala_sekolah: "",
+  waka_sekolah: "",
   logo_sekolah: null,
-  semester: "Ganjil",
-  tahun_ajaran: "2025/2026",
 };
 
 const sectionTitle = "text-sm font-semibold text-slate-800";
@@ -33,12 +39,46 @@ const PengaturanProfilForm = () => {
   const [values, setValues] = useState<ProfilSekolahFormValues>(initialValues);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [logoUrl, setLogoUrl] = useState<string>("");
+  const [serverLogoUrl, setServerLogoUrl] = useState<string>("");
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
+    let isMounted = true;
+
+    const loadProfilSekolah = async () => {
+      try {
+        const data = await getProfilSekolah();
+        if (!isMounted) return;
+
+        setValues((prev) => ({
+          ...prev,
+          nama_sekolah: data.nama_sekolah ?? "",
+          alamat_sekolah: data.alamat_sekolah ?? "",
+          no_telp_sekolah: data.no_telp_sekolah ?? "",
+          email_sekolah: data.email_sekolah ?? "",
+          kepala_sekolah: data.kepala_sekolah ?? "",
+          waka_sekolah: data.waka_sekolah ?? "",
+        }));
+
+        const logo = data.logo_sekolah ?? "";
+        setServerLogoUrl(logo);
+        setLogoUrl(logo);
+      } catch (error) {
+        console.error("Gagal memuat profil sekolah:", error);
+      }
+    };
+
+    loadProfilSekolah();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
     if (!values.logo_sekolah) {
-      setLogoUrl("");
+      setLogoUrl(serverLogoUrl);
       return;
     }
 
@@ -48,7 +88,7 @@ const PengaturanProfilForm = () => {
     return () => {
       URL.revokeObjectURL(url);
     };
-  }, [values.logo_sekolah]);
+  }, [serverLogoUrl, values.logo_sekolah]);
 
   const setField = createSetField(setValues);
 
@@ -65,9 +105,7 @@ const PengaturanProfilForm = () => {
       emailFormat("Format email tidak valid."),
     ],
     kepala_sekolah: [requiredString("Nama kepala sekolah wajib diisi.")],
-    wakil_kepala_sekolah: [
-      requiredString("Nama wakil kepala sekolah wajib diisi."),
-    ],
+    waka_sekolah: [requiredString("Nama waka sekolah wajib diisi.")],
     logo_sekolah: [
       fileMaxSize(2 * 1024 * 1024, "Ukuran logo maksimal 2MB."),
       fileTypeStartsWith("image/", "File harus berupa gambar."),
@@ -78,7 +116,7 @@ const PengaturanProfilForm = () => {
   const hasError = (name: keyof ProfilSekolahFormValues) =>
     !!errors[name] && !!touched[name];
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     setTouched({
@@ -87,24 +125,30 @@ const PengaturanProfilForm = () => {
       no_telp_sekolah: true,
       email_sekolah: true,
       kepala_sekolah: true,
-      wakil_kepala_sekolah: true,
+      waka_sekolah: true,
       logo_sekolah: true,
     });
 
     const currentErrors = validate(values);
     if (Object.keys(currentErrors).length > 0) return;
 
-    const formData = new FormData();
-    formData.append("nama_sekolah", values.nama_sekolah.trim());
-    formData.append("alamat_sekolah", values.alamat_sekolah.trim());
-    formData.append("no_telp_sekolah", values.no_telp_sekolah.trim());
-    formData.append("email_sekolah", values.email_sekolah.trim());
-    formData.append("kepala_sekolah", values.kepala_sekolah.trim());
-    formData.append("wakil_kepala_sekolah", values.wakil_kepala_sekolah.trim());
-    if (values.logo_sekolah)
-      formData.append("logo_sekolah", values.logo_sekolah);
+    const payload: ProfilSekolahUpdatePayload = {
+      nama_sekolah: values.nama_sekolah,
+      alamat_sekolah: values.alamat_sekolah,
+      no_telp_sekolah: values.no_telp_sekolah,
+      email_sekolah: values.email_sekolah,
+      kepala_sekolah: values.kepala_sekolah,
+      waka_sekolah: values.waka_sekolah,
+    };
 
-    console.log("READY_TO_SUBMIT", Object.fromEntries(formData.entries()));
+    const formData = buildFormData(payload, {
+      transform: (key, value) => {
+        if (typeof value === "string") return value.trim();
+        return value as any;
+      },
+    });
+
+    await updateProfilSekolah(formData);
   };
 
   const clearLogo = () => {
@@ -229,22 +273,22 @@ const PengaturanProfilForm = () => {
 
               <div>
                 <InputField
-                  id="wakil_kepala_sekolah"
-                  label="Wakil Kepala Sekolah"
-                  value={values.wakil_kepala_sekolah}
-                  onChange={(v) => setField("wakil_kepala_sekolah", v)}
-                  onBlur={() => onBlur("wakil_kepala_sekolah")}
-                  placeholder="Nama wakil kepala sekolah"
+                  id="waka_sekolah"
+                  label="Waka Sekolah"
+                  value={values.waka_sekolah}
+                  onChange={(v) => setField("waka_sekolah", v)}
+                  onBlur={() => onBlur("waka_sekolah")}
+                  placeholder="Nama waka sekolah"
                   inputClassName={
-                    hasError("wakil_kepala_sekolah")
+                    hasError("waka_sekolah")
                       ? "border-rose-300 ring-rose-100"
                       : ""
                   }
                   required
                 />
-                {hasError("wakil_kepala_sekolah") && (
+                {hasError("waka_sekolah") && (
                   <p className="mt-1 text-xs text-rose-500">
-                    {errors.wakil_kepala_sekolah}
+                    {errors.waka_sekolah}
                   </p>
                 )}
               </div>
