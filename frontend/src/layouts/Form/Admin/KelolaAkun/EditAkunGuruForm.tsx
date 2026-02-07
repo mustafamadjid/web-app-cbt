@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import InputField from "@/components/common/Input/InputField";
 import ImageUpload from "@/components/features/Upload/ImageUpload";
 
-import type { TeacherRegisterFormValues } from "@/types/KelolaAkun/AkunGuru";
+import type { TeacherUpdateFormValues } from "@/types/KelolaAkun/AkunGuru";
 import type { StatusAkun } from "@/types/OpsiTypes/Option";
 
 import { createSetField } from "@/helper/setField/setField";
@@ -12,16 +12,15 @@ import {
   emailFormat,
   fileMaxSize,
   fileTypeStartsWith,
-  minLength,
   requiredString,
   requiredValue,
 } from "@/helper/validate/validateForm";
 import { ApiError } from "@/services/Api/api";
 
 type EditAkunGuruFormProps = {
-  initialValues: TeacherRegisterFormValues;
+  initialValues: TeacherUpdateFormValues;
   initialFotoUrl?: string;
-  onSubmit: (values: TeacherRegisterFormValues) => Promise<void>;
+  onSubmit: (values: TeacherUpdateFormValues) => Promise<void>;
   loading?: boolean;
   submitting?: boolean;
 };
@@ -36,7 +35,7 @@ const EditAkunGuruForm = ({
   loading = false,
   submitting = false,
 }: EditAkunGuruFormProps) => {
-  const [values, setValues] = useState<TeacherRegisterFormValues>(initialValues);
+  const [values, setValues] = useState<TeacherUpdateFormValues>(initialValues);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [fotoUrl, setFotoUrl] = useState<string>(initialFotoUrl ?? "");
@@ -60,25 +59,24 @@ const EditAkunGuruForm = ({
 
   const setField = createSetField(setValues);
 
-  const onBlur = (name: keyof TeacherRegisterFormValues) => {
+  const onBlur = (name: keyof TeacherUpdateFormValues) => {
     setTouched((prev) => ({ ...prev, [name]: true }));
   };
 
-  const validate = createValidator<TeacherRegisterFormValues>({
+  const validate = createValidator<TeacherUpdateFormValues>({
     role: [requiredString("Role wajib diisi.")],
-    namaLengkap: [requiredString("Nama lengkap wajib diisi.")],
+    nama_lengkap: [requiredString("Nama lengkap wajib diisi.")],
     email: [
       requiredString("Email wajib diisi."),
       emailFormat("Format email tidak valid."),
     ],
     username: [requiredString("Username wajib diisi.")],
-    password: [minLength(8, "Password minimal 8 karakter.")],
-    noHp: [requiredString("Nomor HP wajib diisi.")],
+    no_hp: [requiredString("Nomor HP wajib diisi.")],
     nip: [requiredString("NIP wajib diisi.")],
     jabatan: [requiredString("Jabatan wajib diisi.")],
-    bidangStudi: [requiredString("Bidang studi wajib diisi.")],
-    jenisKelamin: [requiredValue("Jenis kelamin wajib dipilih.")],
-    statusAkun: [requiredValue("Status akun wajib dipilih.")],
+    bidang_studi: [requiredString("Bidang studi wajib diisi.")],
+    jenis_kelamin: [requiredValue("Jenis kelamin wajib dipilih.")],
+    status_akun: [requiredValue("Status akun wajib dipilih.")],
     foto_profil: [
       fileMaxSize(2 * 1024 * 1024, "Ukuran foto maksimal 2MB."),
       fileTypeStartsWith("image/", "File harus berupa gambar."),
@@ -86,7 +84,7 @@ const EditAkunGuruForm = ({
   });
 
   const errors = validate(values);
-  const hasError = (name: keyof TeacherRegisterFormValues) =>
+  const hasError = (name: keyof TeacherUpdateFormValues) =>
     !!errors[name] && !!touched[name];
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -95,16 +93,15 @@ const EditAkunGuruForm = ({
 
     setTouched({
       role: true,
-      namaLengkap: true,
+      nama_lengkap: true,
       email: true,
       username: true,
-      password: true,
-      noHp: true,
-      jenisKelamin: true,
-      statusAkun: true,
+      no_hp: true,
+      jenis_kelamin: true,
+      status_akun: true,
       nip: true,
       jabatan: true,
-      bidangStudi: true,
+      bidang_studi: true,
       foto_profil: true,
     });
 
@@ -154,23 +151,23 @@ const EditAkunGuruForm = ({
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <InputField
-                  id="namaLengkap"
+                  id="nama_lengkap"
                   label="Nama Lengkap"
-                  value={values.namaLengkap}
-                  onChange={(v) => setField("namaLengkap", v)}
-                  onBlur={() => onBlur("namaLengkap")}
+                  value={values.nama_lengkap}
+                  onChange={(v) => setField("nama_lengkap", v)}
+                  onBlur={() => onBlur("nama_lengkap")}
                   placeholder="Contoh: Budi Santoso"
                   inputClassName={
-                    hasError("namaLengkap")
+                    hasError("nama_lengkap")
                       ? "border-rose-300 ring-rose-100"
                       : ""
                   }
                   disabled={isDisabled}
                   required
                 />
-                {hasError("namaLengkap") && (
+                {hasError("nama_lengkap") && (
                   <p className="mt-1 text-xs text-rose-600">
-                    {errors.namaLengkap}
+                    {errors.nama_lengkap}
                   </p>
                 )}
               </div>
@@ -219,53 +216,32 @@ const EditAkunGuruForm = ({
               </div>
 
               <div>
-                <InputField
-                  id="password"
-                  type="password"
-                  label="Password Baru"
-                  value={values.password}
-                  onChange={(v) => setField("password", v)}
-                  onBlur={() => onBlur("password")}
-                  placeholder="Biarkan kosong jika tidak diganti"
-                  inputClassName={
-                    hasError("password")
-                      ? "border-rose-300 ring-rose-100"
-                      : ""
-                  }
-                  disabled={isDisabled}
-                  required={false}
-                />
-                {hasError("password") && (
-                  <p className="mt-1 text-xs text-rose-600">
-                    {errors.password}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className="text-xs font-medium text-slate-600" htmlFor="jenisKelamin">
+                <label className="text-xs font-medium text-slate-600" htmlFor="jenis_kelamin">
                   Jenis Kelamin
                 </label>
                 <select
-                  id="jenisKelamin"
+                  id="jenis_kelamin"
                   className={`w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-[#397e50] focus:ring-2 focus:ring-[#397e50] disabled:bg-slate-50 disabled:text-slate-500 ${
-                    hasError("jenisKelamin")
+                    hasError("jenis_kelamin")
                       ? "border-rose-300 ring-rose-100"
                       : ""
                   }`}
-                  value={values.jenisKelamin}
+                  value={values.jenis_kelamin}
                   onChange={(e) =>
-                    setField("jenisKelamin", e.target.value as "LAKI_LAKI" | "PEREMPUAN")
+                    setField(
+                      "jenis_kelamin",
+                      e.target.value as "LAKI_LAKI" | "PEREMPUAN"
+                    )
                   }
-                  onBlur={() => onBlur("jenisKelamin")}
+                  onBlur={() => onBlur("jenis_kelamin")}
                   disabled={isDisabled}
                 >
                   <option value="LAKI_LAKI">Laki-laki</option>
                   <option value="PEREMPUAN">Perempuan</option>
                 </select>
-                {hasError("jenisKelamin") && (
+                {hasError("jenis_kelamin") && (
                   <p className="mt-1 text-xs text-rose-600">
-                    {errors.jenisKelamin}
+                    {errors.jenis_kelamin}
                   </p>
                 )}
               </div>
@@ -291,51 +267,50 @@ const EditAkunGuruForm = ({
               </div>
 
               <div>
-                <label className="text-xs font-medium text-slate-600" htmlFor="statusAkun">
+                <label className="text-xs font-medium text-slate-600" htmlFor="status_akun">
                   Status Akun
                 </label>
                 <select
-                  id="statusAkun"
+                  id="status_akun"
                   className={`w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-[#397e50] focus:ring-2 focus:ring-[#397e50] disabled:bg-slate-50 disabled:text-slate-500 ${
-                    hasError("statusAkun")
+                    hasError("status_akun")
                       ? "border-rose-300 ring-rose-100"
                       : ""
                   }`}
-                  value={values.statusAkun}
+                  value={values.status_akun}
                   onChange={(e) =>
-                    setField("statusAkun", e.target.value as StatusAkun)
+                    setField("status_akun", e.target.value as StatusAkun)
                   }
-                  onBlur={() => onBlur("statusAkun")}
+                  onBlur={() => onBlur("status_akun")}
                   disabled={isDisabled}
                 >
-                  <option value="aktif">Aktif</option>
-                  <option value="nonaktif">Nonaktif</option>
-                  <option value="dibekukan">Dibekukan</option>
+                  <option value="AKTIF">Aktif</option>
+                  <option value="NONAKTIF">Nonaktif</option>
                 </select>
-                {hasError("statusAkun") && (
+                {hasError("status_akun") && (
                   <p className="mt-1 text-xs text-rose-600">
-                    {errors.statusAkun}
+                    {errors.status_akun}
                   </p>
                 )}
               </div>
 
               <div>
                 <InputField
-                  id="noHp"
+                  id="no_hp"
                   type="tel"
                   label="Nomor HP"
-                  value={values.noHp}
-                  onChange={(v) => setField("noHp", v)}
-                  onBlur={() => onBlur("noHp")}
+                  value={values.no_hp}
+                  onChange={(v) => setField("no_hp", v)}
+                  onBlur={() => onBlur("no_hp")}
                   placeholder="Contoh: 081234567890"
                   inputClassName={
-                    hasError("noHp") ? "border-rose-300 ring-rose-100" : ""
+                    hasError("no_hp") ? "border-rose-300 ring-rose-100" : ""
                   }
                   disabled={isDisabled}
                   required
                 />
-                {hasError("noHp") && (
-                  <p className="mt-1 text-xs text-rose-600">{errors.noHp}</p>
+                {hasError("no_hp") && (
+                  <p className="mt-1 text-xs text-rose-600">{errors.no_hp}</p>
                 )}
               </div>
             </div>
@@ -388,23 +363,23 @@ const EditAkunGuruForm = ({
 
               <div className="md:col-span-2">
                 <InputField
-                  id="bidangStudi"
+                  id="bidang_studi"
                   label="Bidang Studi"
-                  value={values.bidangStudi}
-                  onChange={(v) => setField("bidangStudi", v)}
-                  onBlur={() => onBlur("bidangStudi")}
+                  value={values.bidang_studi}
+                  onChange={(v) => setField("bidang_studi", v)}
+                  onBlur={() => onBlur("bidang_studi")}
                   placeholder="Contoh: Matematika"
                   inputClassName={
-                    hasError("bidangStudi")
+                    hasError("bidang_studi")
                       ? "border-rose-300 ring-rose-100"
                       : ""
                   }
                   disabled={isDisabled}
                   required
                 />
-                {hasError("bidangStudi") && (
+                {hasError("bidang_studi") && (
                   <p className="mt-1 text-xs text-rose-600">
-                    {errors.bidangStudi}
+                    {errors.bidang_studi}
                   </p>
                 )}
               </div>
