@@ -29,38 +29,57 @@ func (r *ProfilgGuruRepo) loggerFor(ctx context.Context) corelog.Logger {
 	return corelog.FromContextOr(ctx, r.logger)
 }
 
-func (r *ProfilgGuruRepo) FindProfilGuruByID(ctx context.Context, id user.ID) (user.ProfilGuru, error) {
+func (r *ProfilgGuruRepo) FindProfilGuruByID(ctx context.Context, id user.ID) (user.DataGuru, error) {
 	const query = `
-		SELECT id_guru,
-			id_pengguna,
-			nip,
-			jabatan,
-			bidang_studi
-		FROM profil_guru
-		WHERE id_pengguna = $1
+		SELECT 
+			p.id_pengguna,
+			p.id_guru,
+			u.username,
+			u.email,
+			u.nama_lengkap,
+			u.jenis_kelamin,
+			u.no_hp,
+			u.foto,
+			p.nip,
+			p.jabatan,
+			p.bidang_studi
+		FROM profil_guru p
+		JOIN pengguna u ON p.id_pengguna = u.id_pengguna
+		WHERE p.id_guru = $1
 	`
 
-	var result user.ProfilGuru
+	var result user.DataGuru
+
 	var nip sql.NullString
 	var jabatan sql.NullString
 	var bidangStudi sql.NullString
+	var jenisKelamin int16
+	
+
 	err := r.q.QueryRow(ctx, query, id).Scan(
-		&result.ID,
 		&result.IdPengguna,
+		&result.IdGuru,
+		&result.Username,
+		&result.Email,
+		&result.NamaLengkap,
+		&jenisKelamin,
+		&result.NoHp,
+		&result.Foto,
 		&nip,
 		&jabatan,
 		&bidangStudi,
 	)
+
 	if errors.Is(err, pgx.ErrNoRows) {
-		return user.ProfilGuru{}, coreerror.ErrNotFound
+		return user.DataGuru{}, coreerror.ErrNotFound
 	}
 	if err != nil {
-		r.loggerFor(ctx).Error(ctx, "failed finding profil guru", "op", "profil_guru_repo.find_by_id", "user_id", id, "err", err)
-		return user.ProfilGuru{}, err
+		r.loggerFor(ctx).Error(ctx, "failed finding profil guru", "op", "profil_guru_repo.find_by_id", "id_guru", id, "err", err)
+		return user.DataGuru{}, err
 	}
 
 	if nip.Valid {
-		result.Nip = user.NIP(nip.String)
+		result.Nip = nip.String
 	}
 	if jabatan.Valid {
 		result.Jabatan = jabatan.String
@@ -68,6 +87,13 @@ func (r *ProfilgGuruRepo) FindProfilGuruByID(ctx context.Context, id user.ID) (u
 	if bidangStudi.Valid {
 		result.BidangStudi = bidangStudi.String
 	}
+
+	jenisKelaminValue,err := formatJenisKelamin(jenisKelamin)
+	if err != nil {
+		return user.DataGuru{}, err
+	}
+	result.JenisKelamin = jenisKelaminValue
+	
 	return result, nil
 }
 

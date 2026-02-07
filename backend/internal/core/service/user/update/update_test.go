@@ -76,7 +76,7 @@ func (r *fakeProfilGuruRepo) UpdateProfilGuru(ctx context.Context, idPengguna us
 	return nil
 }
 
-func (r *fakeProfilGuruRepo) FindProfilGuruByID(ctx context.Context, id user.ID) (user.ProfilGuru, error) {
+func (r *fakeProfilGuruRepo) FindProfilGuruByID(ctx context.Context, id user.ID) (user.DataGuru, error) {
 	panic("not used in this test")
 }
 

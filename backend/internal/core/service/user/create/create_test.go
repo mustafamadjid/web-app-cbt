@@ -91,7 +91,7 @@ func (r *fakeProfilGuruRepo) CreateProfilGuru(ctx context.Context, g user.Profil
 	return r.createID, nil
 }
 
-func (r *fakeProfilGuruRepo) FindProfilGuruByID(ctx context.Context, id user.ID) (user.ProfilGuru, error) {
+func (r *fakeProfilGuruRepo) FindProfilGuruByID(ctx context.Context, id user.ID) (user.DataGuru, error) {
 	panic("not used in this test")
 }
 

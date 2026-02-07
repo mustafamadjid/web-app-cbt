@@ -16,7 +16,7 @@ type UpdateProfilGuruPatch struct {
 
 
 type ProfilGuruRepository interface {
-	FindProfilGuruByID(ctx context.Context, id user.ID) (user.ProfilGuru, error)
+	FindProfilGuruByID(ctx context.Context, id user.ID) (user.DataGuru, error)
 	ExistByNIP(ctx context.Context, nip user.NIP) (bool, error)
 	CreateProfilGuru(ctx context.Context, profilGuru user.ProfilGuru) (user.ID, error)
 	UpdateProfilGuru(ctx context.Context,idPengguna user.ID, profilGuru UpdateProfilGuruPatch) error

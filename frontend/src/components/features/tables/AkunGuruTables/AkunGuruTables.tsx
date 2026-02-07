@@ -20,6 +20,8 @@ import type { StatusAkun } from "@/types/OpsiTypes/Option";
 import type { DataGuru } from "@/types/KelolaAkun/AkunGuru";
 import { paths } from "@/routes/paths";
 import { GetAllGuru } from "@/services/Api/features-api/KelolaAkun/akunguru.service";
+import { DeletePengguna } from "@/services/Api/features-api/KelolaAkun/akun.service";
+import toast from "react-hot-toast";
 
 // --- Helper Functions ---
 const getStatusBadge = (status: StatusAkun) => {
@@ -66,7 +68,7 @@ const AkunGuruTables: React.FC = () => {
   useEffect(() => {
     const handle = window.setTimeout(() => {
       setKataKunciDebounce(kataKunci.trim());
-    }, 350);
+    }, 500);
 
     return () => {
       window.clearTimeout(handle);
@@ -118,6 +120,20 @@ const AkunGuruTables: React.FC = () => {
   };
 
   const navigate = useNavigate();
+
+
+  const DeleteUser = async (id : number) => {
+    try{
+      await DeletePengguna(id);
+
+      const data = await GetAllGuru({ q: kataKunciDebounce });
+      setDaftarPengguna(data);
+
+      toast.success("Berhasil menghapus akun guru");
+    }catch{
+      toast.error("Gagal menghapus akun guru");
+    }
+  }
 
   const jumlahTerpilih = idTerpilih.size;
 
@@ -337,6 +353,7 @@ const AkunGuruTables: React.FC = () => {
                         <button
                           className="rounded-lg p-2 text-slate-400 cursor-pointer hover:bg-slate-100 hover:text-red-600 transition-colors"
                           title="Detail"
+                          onClick={()=>DeleteUser(Number(p.id_pengguna))}
                         >
                           <Trash className="h-4 w-4" />
                         </button>

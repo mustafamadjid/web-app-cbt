@@ -322,9 +322,9 @@ func parseJenisKelamin(value string) (int16, error) {
 func formatJenisKelamin(value int16) (string, error) {
 	switch value {
 	case 1:
-		return "L", nil
+		return "LAKI_LAKI", nil
 	case 2:
-		return "P", nil
+		return "PEREMPUAN", nil
 	default:
 		return "", coreerror.ErrInvalidInput
 	}

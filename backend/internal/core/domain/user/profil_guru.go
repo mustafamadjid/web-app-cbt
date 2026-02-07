@@ -22,6 +22,21 @@ var (
 	ErrInvalidNIP = errors.New("invalid NIP")	
 )
 
+type DataGuru struct {
+	IdPengguna 	 ID
+	IdGuru	 ID
+	Username     string
+	Email        string
+	NamaLengkap  string
+	JenisKelamin string
+	NoHp         string
+	Foto         string
+
+	Nip         string
+	Jabatan     string
+	BidangStudi string
+}
+
 func CheckNewNip(nip string) (NIP, error) {
 	s := strings.TrimSpace(nip)
 
