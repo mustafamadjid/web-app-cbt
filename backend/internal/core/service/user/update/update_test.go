@@ -52,6 +52,10 @@ func (r *fakeUserRepo) DeleteUser(ctx context.Context, id user.ID) error {
 	panic("not used in this test")
 }
 
+func (r *fakeUserRepo) DeleteUsers(ctx context.Context, ids []user.ID) (int64, error) {
+	panic("not used in this test")
+}
+
 func (r *fakeUserRepo) ListUser(ctx context.Context) ([]user.Pengguna, error) {
 	panic("not used in this test")
 }

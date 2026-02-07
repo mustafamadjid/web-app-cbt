@@ -27,6 +27,13 @@ func (r *fakeDeleteUserRepo) DeleteUser(ctx context.Context, id user.ID) error {
 	return nil
 }
 
+func (r *fakeDeleteUserRepo) DeleteUsers(ctx context.Context, ids []user.ID) (int64, error) {
+	if r.deleteErr != nil {
+		return 0, r.deleteErr
+	}
+	return int64(len(ids)), nil
+}
+
 func (r *fakeDeleteUserRepo) FindUserByID(ctx context.Context, id user.ID) (user.Pengguna, error) {
 	panic("not used in this test")
 }

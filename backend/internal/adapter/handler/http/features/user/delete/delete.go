@@ -1,6 +1,7 @@
 package httpx
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 	"strconv"
@@ -79,4 +80,79 @@ func (h *DeleteHandler) DeleteUser(write http.ResponseWriter, req *http.Request,
 	}
 
 	httpResponse.WriteOKNoData(write, http.StatusOK, "Success")
+}
+
+func (h *DeleteHandler) DeleteUsers(write http.ResponseWriter, req *http.Request, _ httprouter.Params) {
+	logger := corelog.FromContext(req.Context())
+	if req.Method != http.MethodDelete {
+		httpResponse.WriteErr(write, http.StatusMethodNotAllowed, "METHOD_NOT_ALLOWED", "method not allowed")
+		return
+	}
+
+	var reqBody DeleteUsersRequest
+	dec := json.NewDecoder(req.Body)
+	dec.DisallowUnknownFields()
+	if err := dec.Decode(&reqBody); err != nil {
+		logger.Error(req.Context(), "failed decoding delete users request", "op", "user.delete_many", "err", err)
+		httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request")
+		return
+	}
+
+	if len(reqBody.Ids) == 0 {
+		httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request : ids is required")
+		return
+	}
+
+	actor, ok := middleware.ActorFromContext(req.Context())
+	if !ok {
+		logger.Error(req.Context(), "missing actor in context", "op", "user.delete_many", "err", "actor_not_found")
+		httpResponse.WriteErr(write, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error : failed get actor from context")
+		return
+	}
+
+	ids := make([]user.ID, 0, len(reqBody.Ids))
+	seen := make(map[user.ID]struct{}, len(reqBody.Ids))
+	for _, rawID := range reqBody.Ids {
+		if rawID <= 0 {
+			httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request : invalid id")
+			return
+		}
+		id := user.ID(rawID)
+		if _, exists := seen[id]; exists {
+			continue
+		}
+		seen[id] = struct{}{}
+		ids = append(ids, id)
+	}
+
+	if len(ids) == 0 {
+		httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request : ids is required")
+		return
+	}
+
+	affected, err := h.svc.DeleteMany(req.Context(), ids)
+	if err != nil {
+		logger.Error(req.Context(), "failed deleting users", "op", "user.delete_many", "err", err)
+		switch {
+		case errors.Is(err, coreerror.ErrNotFound):
+			httpResponse.WriteErr(write, http.StatusNotFound, "NOT_FOUND", "data not found")
+		default:
+			httpResponse.WriteErr(write, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error: failed delete users")
+		}
+		return
+	}
+
+	if h.aktivitasUser != nil {
+		aktivitasCmd := aktivitas_user_service.AktivitasUserCmd{
+			IdPengguna:  actor.IdPengguna,
+			Action:      aktivitas_user.DELETE,
+			Description: "Menghapus beberapa pengguna",
+			IpAddress:   httphelper.GetClientIP(req),
+		}
+		if err := h.aktivitasUser.CreateAktivitasUserService(req.Context(), aktivitasCmd); err != nil {
+			logger.Error(req.Context(), "failed creating aktivitas user", "op", "user.delete_many.activity", "err", err)
+		}
+	}
+
+	httpResponse.WriteOK(write, http.StatusOK, map[string]int64{"deleted": affected}, "Success")
 }

@@ -89,6 +89,10 @@ func (fakeRepo *fakeUserRepo) DeleteUser(ctx context.Context, id user.ID) error 
 	return nil
 }
 
+func (fakeRepo *fakeUserRepo) DeleteUsers(ctx context.Context, ids []user.ID) (int64, error) {
+	return int64(len(ids)), nil
+}
+
 func (fakeRepo *fakeUserRepo) ListUser(ctx context.Context) ([]user.Pengguna, error) {
 	return []user.Pengguna{}, nil
 }
@@ -161,7 +165,7 @@ func (fakeSession *fakeSessionRepo) GetSessionByUserId(ctx context.Context, user
 	return session.Session{}, coreerror.ErrNotFound
 }
 
-func (fakeSession *fakeSessionRepo)GetAllActiveSession(ctx context.Context) ([]session.Session, error) {
+func (fakeSession *fakeSessionRepo) GetAllActiveSession(ctx context.Context) ([]session.Session, error) {
 	var sessions []session.Session
 	for _, sess := range fakeSession.store {
 		if !sess.Revoked {
@@ -171,7 +175,7 @@ func (fakeSession *fakeSessionRepo)GetAllActiveSession(ctx context.Context) ([]s
 	return sessions, nil
 }
 
-func (fakeSession *fakeSessionRepo)HasActiveSession(ctx context.Context, userID user.ID) (bool, error) {
+func (fakeSession *fakeSessionRepo) HasActiveSession(ctx context.Context, userID user.ID) (bool, error) {
 	if fakeSession.hasActiveErr != nil {
 		return false, fakeSession.hasActiveErr
 	}

@@ -75,6 +75,7 @@ func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSeko
 	router.PATCH("/admin/guru/:id", requireAdmin(users.UpdateHandler.UpdateGuru))
 
 	// PENGGUNA
+	router.DELETE("/admin/pengguna", requireAdmin(users.DeleteHandler.DeleteUsers))
 	router.DELETE("/admin/pengguna/:id", requireAdmin(users.DeleteHandler.DeleteUser))
 
 	// AKTIVITAS USER

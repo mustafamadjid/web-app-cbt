@@ -19,7 +19,10 @@ import type { StatusAkun } from "@/types/OpsiTypes/Option";
 import type { DataGuru } from "@/types/KelolaAkun/AkunGuru";
 import { paths } from "@/routes/paths";
 import { GetAllGuru } from "@/services/Api/features-api/KelolaAkun/akunguru.service";
-import { DeletePengguna } from "@/services/Api/features-api/KelolaAkun/akun.service";
+import {
+  DeletePengguna,
+  DeletePenggunaBulk,
+} from "@/services/Api/features-api/KelolaAkun/akun.service";
 import toast from "react-hot-toast";
 
 // --- Helper Functions ---
@@ -132,20 +135,47 @@ const AkunGuruTables: React.FC = () => {
 
   const navigate = useNavigate();
 
+  const fetchGuruList = async () => {
+    return GetAllGuru({
+      q: kataKunciDebounce,
+      status: statusFilter,
+      limit: batasData,
+      offset: (halamanSaatIni - 1) * batasData,
+    });
+  };
 
   const DeleteUser = async (id: number) => {
     try {
       await DeletePengguna(id);
 
-      const data = await GetAllGuru({
-        q: kataKunciDebounce,
-        status: statusFilter,
-      });
+      const data = await fetchGuruList();
       setDaftarPengguna(data);
+      setIdTerpilih((sebelumnya) => {
+        const berikutnya = new Set(sebelumnya);
+        berikutnya.delete(id);
+        return berikutnya;
+      });
 
       toast.success("Berhasil menghapus akun guru");
     } catch {
       toast.error("Gagal menghapus akun guru");
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (idTerpilih.size === 0) return;
+    const ids = Array.from(idTerpilih);
+    try {
+      await DeletePenggunaBulk(ids);
+
+      const data = await fetchGuruList();
+      setDaftarPengguna(data);
+      setIdTerpilih(new Set());
+      setDropdownAksiTerbuka(false);
+
+      toast.success("Berhasil menghapus akun guru terpilih");
+    } catch {
+      toast.error("Gagal menghapus akun guru terpilih");
     }
   };
 
@@ -254,7 +284,10 @@ const AkunGuruTables: React.FC = () => {
                       <button className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">
                         <Archive className="h-4 w-4 text-slate-400" /> Arsipkan
                       </button>
-                      <button className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-rose-600 hover:bg-rose-50">
+                      <button
+                        className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-rose-600 hover:bg-rose-50"
+                        onClick={handleBulkDelete}
+                      >
                         <Trash2 className="h-4 w-4" /> Hapus Data
                       </button>
                     </div>

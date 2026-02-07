@@ -1,6 +1,5 @@
 package httpx
 
-
 import (
 	"time"
 
@@ -14,10 +13,10 @@ type CreateGuruRequest struct {
 	NamaLengkap  string
 	JenisKelamin string
 	NoHp         string
-	Foto         string 
-	Nip          string 
-	Jabatan      string 
-	BidangStudi  string 
+	Foto         string
+	Nip          string
+	Jabatan      string
+	BidangStudi  string
 }
 
 type CreateSiswaRequest struct {
@@ -73,4 +72,8 @@ type UpdateSiswaRequest struct {
 
 type DeleteUserRequest struct {
 	IdPengguna user.ID `json:"id_pengguna"`
+}
+
+type DeleteUsersRequest struct {
+	Ids []int `json:"ids"`
 }
