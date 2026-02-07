@@ -1,18 +1,18 @@
 import type { StatusAkun,JenisKelamin } from "../OpsiTypes/Option";
 
 export type TeacherRegisterFormValues = {
-  role:string
-  namaLengkap: string;
-  email: string;
   username: string;
+  email: string;
+  // role?: string;
+  nama_lengkap: string;
   password: string;
-  noHp: string;
-  jenisKelamin: JenisKelamin;
-  statusAkun: StatusAkun;
+  no_hp: string;
+  jenis_kelamin: JenisKelamin;
+  // status_akun: StatusAkun;
   nip: string;
   jabatan: string;
-  bidangStudi: string;
-  fotoProfil: File | null;
+  bidang_studi: string;
+  foto_profil: File | null;
 };
 
 export type DataGuru = Omit<TeacherRegisterFormValues, "fotoProfil" | "password"> &{

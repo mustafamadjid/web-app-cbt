@@ -17,8 +17,6 @@ import (
 	validator "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/validation"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
-
-	// out "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
 	aktivitas_user_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/aktivitas_user"
 	user_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/user/create"
 )
@@ -92,7 +90,7 @@ func (h *UserHandler) CreateGuru(write http.ResponseWriter, req *http.Request, _
 		Foto:         relPath,
 	}
 
-	if cmd.Username == "" || cmd.Email == "" || cmd.Password == "" || cmd.NamaLengkap == "" || cmd.JenisKelamin == "" || cmd.NoHp == "" || cmd.Nip == "" || cmd.Jabatan == "" || cmd.BidangStudi == "" || cmd.Foto == "" {
+	if cmd.Username == "" || cmd.Email == "" || cmd.Password == "" || cmd.NamaLengkap == "" || cmd.JenisKelamin == "" || cmd.NoHp == "" || cmd.Nip == "" || cmd.Jabatan == "" || cmd.BidangStudi == ""  {
 		httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request : invalid request body")
 		return
 	}

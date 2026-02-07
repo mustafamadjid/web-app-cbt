@@ -22,18 +22,16 @@ import {
 } from "@/helper/validate/validateForm";
 
 const initialValues: TeacherRegisterFormValues = {
-  role: "guru",
-  namaLengkap: "",
+  nama_lengkap: "",
   email: "",
   username: "",
   password: "",
-  noHp: "",
-  jenisKelamin: "LAKI_LAKI",
-  statusAkun: "aktif",
+  no_hp: "",
+  jenis_kelamin: "LAKI_LAKI",
   nip: "",
   jabatan: "",
-  bidangStudi: "",
-  fotoProfil: null,
+  bidang_studi: "",
+  foto_profil: null,
 };
 
 const sectionTitle = "text-sm font-semibold text-slate-800";
@@ -51,16 +49,16 @@ const AkunGuruForm = () => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
-    if (!values.fotoProfil) {
+    if (!values.foto_profil) {
       setFotoUrl("");
       return;
     }
 
-    const url = URL.createObjectURL(values.fotoProfil);
+    const url = URL.createObjectURL(values.foto_profil);
     setFotoUrl(url);
 
     return () => URL.revokeObjectURL(url);
-  }, [values.fotoProfil]);
+  }, [values.foto_profil]);
 
   const setField = createSetField(setValues);
 
@@ -69,8 +67,7 @@ const AkunGuruForm = () => {
   };
 
   const validate = createValidator<TeacherRegisterFormValues>({
-    role: [requiredString("Role wajib diisi.")],
-    namaLengkap: [requiredString("Nama lengkap wajib diisi.")],
+    nama_lengkap: [requiredString("Nama lengkap wajib diisi.")],
     email: [
       requiredString("Email wajib diisi."),
       emailFormat("Format email tidak valid."),
@@ -80,12 +77,12 @@ const AkunGuruForm = () => {
       requiredString("Password wajib diisi."),
       minLength(8, "Password minimal 8 karakter."),
     ],
-    noHp: [requiredString("Nomor HP wajib diisi.")],
+    no_hp: [requiredString("Nomor HP wajib diisi.")],
     nip: [requiredString("NIP wajib diisi.")],
     jabatan: [requiredString("Jabatan wajib diisi.")],
-    bidangStudi: [requiredString("Bidang studi wajib diisi.")],
-    jenisKelamin: [requiredValue("Jenis kelamin wajib dipilih.")],
-    fotoProfil: [
+    bidang_studi: [requiredString("Bidang studi wajib diisi.")],
+    jenis_kelamin: [requiredValue("Jenis kelamin wajib dipilih.")],
+    foto_profil: [
       fileMaxSize(2 * 1024 * 1024, "Ukuran foto maksimal 2MB."),
       fileTypeStartsWith("image/", "File harus berupa gambar."),
     ],
@@ -100,17 +97,16 @@ const AkunGuruForm = () => {
     setSubmitError(null);
 
     setTouched({
-      namaLengkap: true,
+      nama_lengkap: true,
       email: true,
       username: true,
       password: true,
-      noHp: true,
-      jenisKelamin: true,
-      statusAkun: true,
+      no_hp: true,
+      jenis_kelamin: true,
       nip: true,
       jabatan: true,
-      bidangStudi: true,
-      fotoProfil: true,
+      bidang_studi: true,
+      foto_profil: true,
     });
 
     const currentErrors = validate(values);
@@ -141,7 +137,7 @@ const AkunGuruForm = () => {
   };
 
   const clearFoto = () => {
-    setField("fotoProfil", null);
+    setField("foto_profil", null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -180,22 +176,22 @@ const AkunGuruForm = () => {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <InputField
-                  id="namaLengkap"
+                  id="nama_lengkap"
                   label="Nama Lengkap"
-                  value={values.namaLengkap}
-                  onChange={(v) => setField("namaLengkap", v)}
-                  onBlur={() => onBlur("namaLengkap")}
+                  value={values.nama_lengkap}
+                  onChange={(v) => setField("nama_lengkap", v)}
+                  onBlur={() => onBlur("nama_lengkap")}
                   placeholder="Contoh: Budi Santoso"
                   inputClassName={
-                    hasError("namaLengkap")
+                    hasError("nama_lengkap")
                       ? "border-rose-300 ring-rose-100"
                       : ""
                   }
                   required
                 />
-                {hasError("namaLengkap") && (
+                {hasError("nama_lengkap") && (
                   <p className="mt-1 text-xs text-rose-600">
-                    {errors.namaLengkap}
+                    {errors.nama_lengkap}
                   </p>
                 )}
               </div>
@@ -264,88 +260,54 @@ const AkunGuruForm = () => {
               <div>
                 <label
                   className="text-xs font-medium text-slate-600"
-                  htmlFor="jenisKelamin"
+                  htmlFor="jenis_kelamin"
                 >
                   Jenis Kelamin
                 </label>
                 <select
-                  id="jenisKelamin"
+                  id="jenis_kelamin"
                   className={`w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-[#397e50] focus:ring-2 focus:ring-[#397e50] disabled:bg-slate-50 disabled:text-slate-500 ${
-                    hasError("jenisKelamin")
+                    hasError("jenis_kelamin")
                       ? "border-rose-300 ring-rose-100"
                       : ""
                   }`}
-                  value={values.jenisKelamin}
+                  value={values.jenis_kelamin}
                   onChange={(e) =>
-                    setField("jenisKelamin", e.target.value as JenisKelamin)
+                    setField("jenis_kelamin", e.target.value as JenisKelamin)
                   }
-                  onBlur={() => onBlur("jenisKelamin")}
+                  onBlur={() => onBlur("jenis_kelamin")}
                   required
                 >
                   <option value="LAKI_LAKI">Laki-laki</option>
                   <option value="PEREMPUAN">Perempuan</option>
                 </select>
-                {hasError("jenisKelamin") && (
+                {hasError("jenis_kelamin") && (
                   <p className="mt-1 text-xs text-rose-600">
-                    {errors.jenisKelamin}
+                    {errors.jenis_kelamin}
                   </p>
                 )}
               </div>
 
-              {/* Role */}
-              <div>
-                <label
-                  className="text-xs font-medium text-slate-600"
-                  htmlFor="jenisKelamin"
-                >
-                  Role Akun
-                </label>
-                <select
-                  id="role"
-                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-[#397e50] focus:ring-2 focus:ring-[#397e50] disabled:bg-slate-50 disabled:text-slate-500"
-                  value={values.role}
-                  onChange={(e) => setField("role", e.target.value)}
-                  onBlur={() => onBlur("role")}
-                  required
-                >
-                  <option value="GURU">Guru</option>
-                  <option value="ADMIN">Admin</option>
-                </select>
-                {hasError("role") && (
-                  <p className="mt-1 text-xs text-rose-600">{errors.role}</p>
-                )}
-              </div>
+              
+
+              
 
               <div>
                 <InputField
-                  id="statusAkun"
-                  label="Status Akun"
-                  value={values.statusAkun}
-                  onChange={() => {}}
-                  disabled
-                  required={false}
-                />
-                <p className="mt-1 text-xs text-slate-500">
-                  Default aktif saat registrasi.
-                </p>
-              </div>
-
-              <div>
-                <InputField
-                  id="noHp"
+                  id="no_hp"
                   type="tel"
                   label="Nomor HP"
-                  value={values.noHp}
-                  onChange={(v) => setField("noHp", v)}
-                  onBlur={() => onBlur("noHp")}
+                  value={values.no_hp}
+                  onChange={(v) => setField("no_hp", v)}
+                  onBlur={() => onBlur("no_hp")}
                   placeholder="Contoh: 081234567890"
                   inputClassName={
-                    hasError("noHp") ? "border-rose-300 ring-rose-100" : ""
+                    hasError("no_hp") ? "border-rose-300 ring-rose-100" : ""
                   }
                   required
                 />
-                {hasError("noHp") && (
-                  <p className="mt-1 text-xs text-rose-600">{errors.noHp}</p>
+                {hasError("no_hp") && (
+                  <p className="mt-1 text-xs text-rose-600">{errors.no_hp}</p>
                 )}
               </div>
             </div>
@@ -397,22 +359,22 @@ const AkunGuruForm = () => {
 
               <div className="md:col-span-2">
                 <InputField
-                  id="bidangStudi"
+                  id="bidang_studi"
                   label="Bidang Studi"
-                  value={values.bidangStudi}
-                  onChange={(v) => setField("bidangStudi", v)}
-                  onBlur={() => onBlur("bidangStudi")}
+                  value={values.bidang_studi}
+                  onChange={(v) => setField("bidang_studi", v)}
+                  onBlur={() => onBlur("bidang_studi")}
                   placeholder="Contoh: Matematika"
                   inputClassName={
-                    hasError("bidangStudi")
+                    hasError("bidang_studi")
                       ? "border-rose-300 ring-rose-100"
                       : ""
                   }
                   required
                 />
-                {hasError("bidangStudi") && (
+                {hasError("bidang_studi") && (
                   <p className="mt-1 text-xs text-rose-600">
-                    {errors.bidangStudi}
+                    {errors.bidang_studi}
                   </p>
                 )}
               </div>
@@ -431,23 +393,23 @@ const AkunGuruForm = () => {
               imgAlt="Preview foto profil"
               type="file"
               accept="image/*"
-              imageFileCheck={!!values.fotoProfil}
-              fileName={values.fotoProfil?.name}
+              imageFileCheck={!!values.foto_profil}
+              fileName={values.foto_profil?.name}
               size={
-                values.fotoProfil
-                  ? Number((values.fotoProfil.size / (1024 * 1024)).toFixed(2))
+                values.foto_profil
+                  ? Number((values.foto_profil.size / (1024 * 1024)).toFixed(2))
                   : undefined
               }
               onChange={(e) => {
                 const file = e.target.files?.[0] ?? null;
-                setField("fotoProfil", file);
-                onBlur("fotoProfil");
+                setField("foto_profil", file);
+                onBlur("foto_profil");
               }}
               onClick={clearFoto}
             />
 
-            {hasError("fotoProfil") && (
-              <p className="mt-2 text-xs text-rose-600">{errors.fotoProfil}</p>
+            {hasError("foto_profil") && (
+              <p className="mt-2 text-xs text-rose-600">{errors.foto_profil}</p>
             )}
           </div>
 
