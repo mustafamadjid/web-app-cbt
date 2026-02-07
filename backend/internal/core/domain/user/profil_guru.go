@@ -24,7 +24,12 @@ var (
 
 func CheckNewNip(nip string) (NIP, error) {
 	s := strings.TrimSpace(nip)
-	if len(s) != 18 {
+
+	if s == "-" {
+		return NIP(s), nil
+	}
+
+	if len(s) > 18 {
 		return "", ErrInvalidNIP
 	}
 

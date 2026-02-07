@@ -20,6 +20,7 @@ import {
   requiredString,
   requiredValue,
 } from "@/helper/validate/validateForm";
+import toast from "react-hot-toast";
 
 const initialValues: TeacherRegisterFormValues = {
   nama_lengkap: "",
@@ -119,11 +120,11 @@ const AkunGuruForm = () => {
       setSubmitting(true);
       await submitTeacherRegister(values);
 
-      alert("Akun guru berhasil dibuat.");
+      toast.success("Registrasi akun guru berhasil.");
       setTimeout(
         () =>
           navigate(
-            `dashboard/administrator/${paths.dashboard.kelola_akun_guru}`
+            `${paths.dashboard.kelola_akun_guru}`
           ),
         1500
       );

@@ -43,16 +43,22 @@ func (uc *CreateTx) CreateGuru(ctx context.Context, cmd CreateGuruCmd, actor use
 	cmd.Jabatan = strings.TrimSpace(cmd.Jabatan)
 	cmd.BidangStudi = strings.TrimSpace(cmd.BidangStudi)
 
+
+	var nipValidated user.NIP
+
+	
+	if cmd.Nip != "" && cmd.Nip != "-" {
+		v, err := user.CheckNewNip(cmd.Nip)
+		if err != nil { return CreateGuruRes{}, err }
+		nipValidated = v
+	}
+
 	// Validasi
 	emailValidated, error := user.CheckNewEmail(cmd.Email)
 	if error != nil {
 		return CreateGuruRes{}, error
 	}
 
-	nipValidated, error := user.CheckNewNip(cmd.Nip)
-	if error != nil {
-		return CreateGuruRes{}, error
-	}
 
 	// Hash password
 	hashedPassword, error := uc.hasher.GenerateHash(cmd.Password)
