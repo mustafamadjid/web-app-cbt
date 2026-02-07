@@ -16,7 +16,7 @@ import {
 import AddButton from "@/components/common/Button/AddButton";
 import { useNavigate } from "react-router";
 
-import type { StatusAkun} from "@/types/OpsiTypes/Option";
+import type { StatusAkun } from "@/types/OpsiTypes/Option";
 import type { DataGuru } from "@/types/KelolaAkun/AkunGuru";
 import { paths } from "@/routes/paths";
 import { GetAllGuru } from "@/services/Api/features-api/KelolaAkun/akunguru.service";
@@ -24,36 +24,30 @@ import { GetAllGuru } from "@/services/Api/features-api/KelolaAkun/akunguru.serv
 // --- Helper Functions ---
 const getStatusBadge = (status: StatusAkun) => {
   switch (status) {
-    case "aktif":
+    case "AKTIF":
       return (
         <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
           <CheckCircle2 className="h-3 w-3" /> Aktif
         </span>
       );
-    case "nonaktif":
+    case "NONAKTIF":
       return (
         <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-2.5 py-0.5 text-xs font-medium text-rose-700 ring-1 ring-inset ring-rose-600/20">
           <XCircle className="h-3 w-3" /> Nonaktif
         </span>
       );
-    case "dibekukan":
-      return (
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-50 px-2.5 py-0.5 text-xs font-medium text-slate-600 ring-1 ring-inset ring-slate-500/20">
-          <ShieldAlert className="h-3 w-3" /> Dibekukan
-        </span>
-      );
   }
 };
 
-function samarkanNomorHp(nomorHp: string) {
-  const digit = nomorHp.replace(/\s+/g, "");
+function samarkanNomorHp(nomorHp?: string | null) {
+  const digit = String(nomorHp ?? "").replace(/\s+/g, "");
   if (digit.length <= 4) return digit;
   const terlihat = digit.slice(-3);
   return `${digit.slice(0, 3)}****${terlihat}`;
 }
 
-function samarkanNip(nip: string) {
-  const digit = nip.replace(/\s+/g, "");
+function samarkanNip(nip?: string | null) {
+  const digit = String(nip ?? "").replace(/\s+/g, "");
   if (digit.length <= 6) return digit;
   const terlihat = digit.slice(-4);
   return `${digit.slice(0, 4)}****${terlihat}`;
@@ -89,15 +83,15 @@ const AkunGuruTables: React.FC = () => {
 
   const semuaTerlihatTerpilih =
     penggunaTersaring.length > 0 &&
-    penggunaTersaring.every((p) => idTerpilih.has(p.id));
+    penggunaTersaring.every((p) => idTerpilih.has(p.id_pengguna));
 
   const togglePilihSemuaTerlihat = () => {
     setIdTerpilih((sebelumnya) => {
       const berikutnya = new Set(sebelumnya);
       if (semuaTerlihatTerpilih) {
-        penggunaTersaring.forEach((p) => berikutnya.delete(p.id));
+        penggunaTersaring.forEach((p) => berikutnya.delete(p.id_pengguna));
       } else {
-        penggunaTersaring.forEach((p) => berikutnya.add(p.id));
+        penggunaTersaring.forEach((p) => berikutnya.add(p.id_pengguna));
       }
       return berikutnya;
     });
@@ -248,17 +242,17 @@ const AkunGuruTables: React.FC = () => {
               {penggunaTersaring.length > 0 ? (
                 penggunaTersaring.map((p) => (
                   <tr
-                    key={p.id}
+                    key={p.id_pengguna}
                     className={`transition-colors hover:bg-slate-50 ${
-                      idTerpilih.has(p.id) ? "bg-indigo-50/30" : ""
+                      idTerpilih.has(p.id_pengguna) ? "bg-indigo-50/30" : ""
                     }`}
                   >
                     <td className="p-4">
                       <div className="flex items-center">
                         <input
                           type="checkbox"
-                          checked={idTerpilih.has(p.id)}
-                          onChange={() => togglePilihBaris(p.id)}
+                          checked={idTerpilih.has(p.id_pengguna)}
+                          onChange={() => togglePilihBaris(p.id_pengguna)}
                           className="h-4 w-4 rounded border-slate-300 text-[#397e50] focus:ring-[#397e50]"
                         />
                       </div>
@@ -267,12 +261,12 @@ const AkunGuruTables: React.FC = () => {
                       <div className="flex items-center gap-3">
                         <img
                           className="h-10 w-10 rounded-full object-cover ring-2 ring-white"
-                          src={p.urlGambarProfil}
+                          src={`${import.meta.env.VITE_API_URL}${p.foto_profil}`}
                           alt=""
                         />
                         <div className="flex flex-col">
                           <span className="font-semibold text-slate-900">
-                            {p.namaLengkap}
+                            {p.nama_lengkap}
                           </span>
                           <span className="text-xs text-slate-500">
                             @{p.username}
@@ -290,8 +284,8 @@ const AkunGuruTables: React.FC = () => {
                         </span>
                         <span className="text-xs text-slate-500">
                           {samarkanDataSensitif
-                            ? samarkanNomorHp(p.noHp)
-                            : p.noHp}
+                            ? samarkanNomorHp(p.no_hp)
+                            : p.no_hp}
                         </span>
                       </div>
                     </td>
@@ -299,17 +293,17 @@ const AkunGuruTables: React.FC = () => {
                       <div className="flex flex-col">
                         <span className="text-slate-900">{p.jabatan}</span>
                         <span className="text-xs text-slate-500">
-                          {p.bidangStudi}
+                          {p.bidang_studi}
                         </span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      {getStatusBadge(p.statusAkun)}
+                      {getStatusBadge(p.status_akun)}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-semibold text-slate-500 text-center">
-                          {p.role}
+                          {p.role} 
                         </span>
                       </div>
                     </td>
@@ -322,7 +316,7 @@ const AkunGuruTables: React.FC = () => {
                             navigate(
                               paths.dashboard.edit_guru.replace(
                                 ":id",
-                                String(p.id),
+                                String(p.id_pengguna),
                               ),
                             )
                           }

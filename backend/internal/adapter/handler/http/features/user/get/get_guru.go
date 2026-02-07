@@ -51,7 +51,26 @@ func (h *GetGuruHandler) ListGuru(write http.ResponseWriter, req *http.Request, 
 		return
 	}
 
-	httpResponse.WriteOK(write, http.StatusOK, items, "Success")
+	responseData := make([]GuruResponseItem,0,len(items))
+	for _, item := range items{
+		responseData = append(responseData, GuruResponseItem{
+			IdPengguna: item.IdPengguna,
+			Username: item.Username,
+			NoHp: item.NoHp,
+			Email: item.Email,
+			NamaLengkap: item.NamaLengkap,
+			StatusAkun: item.StatusAkun,
+			Nip: item.Nip,
+			Jabatan: item.Jabatan,
+			BidangStudi: item.BidangStudi,
+			Foto: item.Foto,
+			Role: item.Role,
+			JenisKelamin: item.JenisKelamin,
+		})
+	}
+	
+
+	httpResponse.WriteOK(write, http.StatusOK, responseData, "Success")
 }
 
 func parseListGuruFilters(req *http.Request) (query.ListGuruFilter, error) {

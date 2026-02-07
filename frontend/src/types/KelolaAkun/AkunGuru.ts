@@ -16,8 +16,10 @@ export type TeacherRegisterFormValues = {
 };
 
 export type DataGuru = Omit<TeacherRegisterFormValues, "fotoProfil" | "password"> &{
-  id:number;
-  urlGambarProfil:string;
+  id_pengguna:number;
+  foto_profil:string;
+  role:string
+  status_akun:StatusAkun
 }
 
 export type TeacherRegisterResponse = { id: number };
