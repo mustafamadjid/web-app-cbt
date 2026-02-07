@@ -1,9 +1,12 @@
-export type UserRole = "admin" | "guru" | "siswa";
+export type UserRole = "ADMIN" | "GURU" | "SISWA";
+
 export type AktivitasLogItem = {
-  id: number;
+  id_aktivitas: string;
+  id_pengguna: number;
   username: string;
   role: UserRole;
-  aksi: string;
-  deskripsi: string; 
-  waktu?: string; 
+  action: string;
+  description: string;
+  ip_address: string;
+  created_at: string;
 };

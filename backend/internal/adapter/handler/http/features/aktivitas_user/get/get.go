@@ -7,22 +7,12 @@ import (
 	"github.com/julienschmidt/httprouter"
 	httpResponse "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper/response_envelope"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/aktivitas_user"
-	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 	aktivitas_user_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/aktivitas_user"
 )
 
 type AktivitasUserHandler struct {
 	svc *aktivitas_user_service.AktivitasUserService
-}
-
-type AktivitasUserResponse struct {
-	IdAktivitas aktivitas_user.AktivitasID `json:"id_aktivitas"`
-	IdPengguna  user.ID                    `json:"id_pengguna"`
-	Action      aktivitas_user.Action      `json:"action"`
-	Description string                     `json:"description"`
-	IpAddress   string                     `json:"ip_address"`
-	CreatedAt   string                     `json:"created_at"`
 }
 
 func NewAktivitasUserHandler(svc *aktivitas_user_service.AktivitasUserService) *AktivitasUserHandler {
@@ -48,6 +38,8 @@ func (h *AktivitasUserHandler) GetAktivitasUser(w http.ResponseWriter, r *http.R
 		response = append(response, AktivitasUserResponse{
 			IdAktivitas: item.IdAktivitas,
 			IdPengguna:  item.IdPengguna,
+			Username:    item.Username,
+			Role:        item.Role,
 			Action:      item.Action,
 			Description: item.Description,
 			IpAddress:   item.IpAddress,

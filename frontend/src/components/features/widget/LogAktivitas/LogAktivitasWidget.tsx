@@ -30,19 +30,19 @@ type AktivitasLogWidgetProps = {
 
 function roleBadge(role: UserRole) {
   switch (role) {
-    case "admin":
+    case "ADMIN":
       return {
         label: "Admin",
         className: "bg-[#397e50] text-white",
         Icon: Shield,
       };
-    case "guru":
+    case "GURU":
       return {
         label: "Guru",
         className: "bg-emerald-100 text-emerald-800",
         Icon: GraduationCap,
       };
-    case "siswa":
+    case "SISWA":
       return {
         label: "Siswa",
         className: "bg-sky-100 text-sky-800",
@@ -175,12 +175,12 @@ const LogAktivitasWidget = ({
             <div className="space-y-6">
               {items.map((it) => {
                 const rb = roleBadge(it.role);
-                const am = aksiMeta(it.aksi);
+                const am = aksiMeta(it.action);
                 const AksiIcon = am.Icon;
                 const RoleIcon = rb.Icon;
 
                 return (
-                  <div key={it.id} className="group relative flex gap-4">
+                  <div key={it.id_aktivitas} className="group relative flex gap-4">
                     {/* Timeline Node (Icon Aksi) */}
                     <div
                       className={[
@@ -223,7 +223,7 @@ const LogAktivitasWidget = ({
                         {/* Waktu */}
                         <div className="flex items-center gap-1 text-2xs font-medium text-gray-400">
                           <Clock className="h-3 w-3" />
-                          {it.waktu}
+                          {it.created_at}
                         </div>
                       </div>
 
@@ -233,14 +233,17 @@ const LogAktivitasWidget = ({
                           <span className="font-semibold text-gray-800 mr-1">
                             {am.label}:
                           </span>
-                          {it.deskripsi}
+                          {it.description}
                         </p>
                       </div>
 
                       {/* Footer: Meta Aksi (Raw) */}
-                      <div className="flex items-center gap-1 text-2xs text-gray-400">
+                      <div className="flex flex-wrap items-center gap-2 text-2xs text-gray-400">
                         <span className="font-mono bg-gray-50 px-1 py-0.5 rounded text-gray-500">
-                          {it.aksi}
+                          {it.action}
+                        </span>
+                        <span className="font-mono bg-gray-50 px-1 py-0.5 rounded text-gray-500">
+                          {it.ip_address}
                         </span>
                       </div>
                     </div>

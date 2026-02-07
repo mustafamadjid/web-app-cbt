@@ -10,7 +10,7 @@ type AktivitasID string
 type Action string
 
 const (
-	LOGIN Action = "LOGIN"
+	LOGIN  Action = "LOGIN"
 	LOGOUT Action = "LOGOUT"
 	CREATE Action = "CREATE"
 	UPDATE Action = "UPDATE"
@@ -20,6 +20,8 @@ const (
 type AktivitasUser struct {
 	IdAktivitas AktivitasID
 	IdPengguna  user.ID
+	Username    string
+	Role        user.Role
 	Action      Action
 	Description string
 	IpAddress   string
@@ -35,8 +37,8 @@ func (action Action) ValidAction() bool {
 	}
 }
 
-func ValidIpAddress(ip string)bool{
-	if ip == ""{
+func ValidIpAddress(ip string) bool {
+	if ip == "" {
 		return false
 	}
 

@@ -5,6 +5,7 @@ import (
 	"database/sql"
 
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/aktivitas_user"
+	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 )
 
@@ -36,7 +37,20 @@ func (r *AktivitasUserRepo) CreateAktivitasUser(ctx context.Context, aktivitasUs
 
 func (r *AktivitasUserRepo) GetAktivitasUser(ctx context.Context) ([]aktivitas_user.AktivitasUser, error) {
 	const query = `
-		SELECT id_aktivitas, id_pengguna, action, description, ip_address, created_at FROM aktivitas_user
+		SELECT
+			au.id_aktivitas,
+			au.id_pengguna,
+			p.username,
+			r.nama_role,
+			au.action,
+			au.description,
+			au.ip_address,
+			au.created_at
+		FROM aktivitas_user au
+		JOIN pengguna p ON au.id_pengguna = p.id_pengguna
+		JOIN role r ON p.id_role = r.id_role
+		ORDER BY au.created_at DESC
+		LIMIT 30
 	`
 
 	rows, err := r.q.Query(ctx, query)
@@ -51,9 +65,12 @@ func (r *AktivitasUserRepo) GetAktivitasUser(ctx context.Context) ([]aktivitas_u
 		var item aktivitas_user.AktivitasUser
 		var description sql.NullString
 		var ipAddress sql.NullString
+		var roleName string
 		if err := rows.Scan(
 			&item.IdAktivitas,
 			&item.IdPengguna,
+			&item.Username,
+			&roleName,
 			&item.Action,
 			&description,
 			&ipAddress,
@@ -68,6 +85,7 @@ func (r *AktivitasUserRepo) GetAktivitasUser(ctx context.Context) ([]aktivitas_u
 		if ipAddress.Valid {
 			item.IpAddress = ipAddress.String
 		}
+		item.Role = user.Role(roleName)
 		results = append(results, item)
 	}
 

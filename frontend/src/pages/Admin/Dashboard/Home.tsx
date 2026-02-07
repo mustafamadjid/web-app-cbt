@@ -15,6 +15,8 @@ import type { AktivitasLogItem } from "@/types/Log/LogAktivitas";
 import type { UjianBerlangsungItem } from "@/types/Widget/UjianBerlangsung";
 import type { Role } from "@/types/Sidebar/SidebarMenu";
 import { useAuth } from "@/contexts/AuthContext";
+import { getLogAktivitas } from "@/services/Api/features-api/LogAktivitas/log-aktivitas.service";
+import { useEffect, useState } from "react";
 
 // --- DUMMY DATA ---
 const pengumuman: PengumumanItem[] = [
@@ -79,28 +81,34 @@ export const dummyJadwalUjian: JadwalUjianItem[] = [
 
 export const dummyAktivitas: AktivitasLogItem[] = [
   {
-    id: 1,
+    id_aktivitas: "1",
+    id_pengguna: 1,
     username: "admin01",
-    role: "admin",
-    aksi: "LOGIN",
-    deskripsi: "Masuk ke sistem melalui halaman admin.",
-    waktu: "08:12",
+    role: "ADMIN",
+    action: "LOGIN",
+    description: "Masuk ke sistem melalui halaman admin.",
+    ip_address: "127.0.0.1",
+    created_at: "08:12",
   },
   {
-    id: 2,
+    id_aktivitas: "2",
+    id_pengguna: 2,
     username: "guru_sri",
-    role: "guru",
-    aksi: "UPDATE",
-    deskripsi: "Mengubah nilai ujian Matematika kelas XI IPA 1.",
-    waktu: "09:05",
+    role: "GURU",
+    action: "UPDATE",
+    description: "Mengubah nilai ujian Matematika kelas XI IPA 1.",
+    ip_address: "127.0.0.1",
+    created_at: "09:05",
   },
   {
-    id: 3,
+    id_aktivitas: "3",
+    id_pengguna: 3,
     username: "siswa_andi",
-    role: "siswa",
-    aksi: "CREATE",
-    deskripsi: "Mengumpulkan tugas Bahasa Indonesia.",
-    waktu: "10:41",
+    role: "SISWA",
+    action: "CREATE",
+    description: "Mengumpulkan tugas Bahasa Indonesia.",
+    ip_address: "127.0.0.1",
+    created_at: "10:41",
   },
 ];
 
@@ -133,6 +141,26 @@ export const dummyUjianBerlangsung: UjianBerlangsungItem[] = [
 export const Home = () => {
   const {user} = useAuth(); 
   const role = (user?.role ?? "SISWA") as Role;
+  const [aktivitasItems, setAktivitasItems] =
+    useState<AktivitasLogItem[]>(dummyAktivitas);
+
+  useEffect(() => {
+    const fetchAktivitas = async () => {
+      if (role !== "ADMIN") {
+        return;
+      }
+
+      try {
+        const data = await getLogAktivitas();
+        setAktivitasItems(data);
+      } catch (error) {
+        console.error("Gagal memuat log aktivitas", error);
+        setAktivitasItems(dummyAktivitas);
+      }
+    };
+
+    fetchAktivitas();
+  }, [role]);
 
 
   return (
@@ -220,7 +248,7 @@ export const Home = () => {
 
             {role === "ADMIN" && (
               <LogAktivitasWidget
-                items={dummyAktivitas}
+                items={aktivitasItems}
                 lihatSemuaTo="/log-aktivitas"
                 className="flex-1 min-h-0"
                 maxHeightClassName="h-full"
