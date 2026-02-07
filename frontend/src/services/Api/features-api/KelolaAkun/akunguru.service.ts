@@ -6,6 +6,7 @@ import type {
   DataUpdateGuru,
   TeacherRegisterFormValues,
   TeacherRegisterResponse,
+  TeacherUpdatePayload,
 } from "@/types/KelolaAkun/AkunGuru";
 import type { ApiEnvelope } from "../../api";
 
@@ -99,13 +100,15 @@ export async function getGuruById(id: number): Promise<DataUpdateGuru | null> {
   });
 }
 
-export async function updateGuru(id: number, values: TeacherRegisterFormValues) {
-  const formData = buildFormData(values, {
+export async function updateGuru(
+  id: number,
+  payload: TeacherUpdatePayload
+) {
+  const formData = buildFormData(payload, {
     transform: (key, value) => {
       if (value instanceof Blob) return value;
       if (typeof value === "string") {
         if (key === "email") return value.trim().toLowerCase();
-        if (key === "password") return value;
         return value.trim();
       }
       return value as any;
@@ -114,9 +117,9 @@ export async function updateGuru(id: number, values: TeacherRegisterFormValues) 
   });
 
   const res = await api<ApiEnvelope<TeacherRegisterResponse>>(
-    `/teachers/${id}`,
+    `/admin/guru/${id}`,
     {
-      method: "PUT",
+      method: "PATCH",
       data: formData,
     }
   );

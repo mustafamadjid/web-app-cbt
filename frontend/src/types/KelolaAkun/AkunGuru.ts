@@ -1,5 +1,4 @@
-import type { O } from "node_modules/react-router/dist/development/router-5fbeEIMQ.d.mts";
-import type { StatusAkun,JenisKelamin } from "../OpsiTypes/Option";
+import type { StatusAkun, JenisKelamin } from "../OpsiTypes/Option";
 
 export type TeacherRegisterFormValues = {
   username: string;
@@ -29,5 +28,13 @@ export type DataUpdateGuruComplete = Omit<
 };
 
 export type DataUpdateGuru = Omit<DataGuru,"password">
+
+export type TeacherUpdateFormValues = Omit<TeacherRegisterFormValues, "password"> & {
+  role: string;
+  status_akun: StatusAkun;
+  id_pengguna?: number;
+};
+
+export type TeacherUpdatePayload = Partial<TeacherUpdateFormValues>;
 
 export type TeacherRegisterResponse = { id: number };

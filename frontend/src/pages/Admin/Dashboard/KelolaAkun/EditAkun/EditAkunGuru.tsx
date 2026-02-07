@@ -2,12 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 
 import EditAkunGuruForm from "@/layouts/Form/Admin/KelolaAkun/EditAkunGuruForm";
-import type { DataUpdateGuru, TeacherRegisterFormValues } from "@/types/KelolaAkun/AkunGuru";
+import type { TeacherUpdateFormValues } from "@/types/KelolaAkun/AkunGuru";
 import { getGuruById, updateGuru } from "@/services/Api/features-api/KelolaAkun/akunguru.service";
 import { ApiError } from "@/services/Api/api";
 import { paths } from "@/routes/paths";
 
-const buildInitialValues = (): DataUpdateGuru => ({
+const buildInitialValues = (): TeacherUpdateFormValues => ({
   id_pengguna: 0,
   role: "GURU",
   nama_lengkap: "",
@@ -19,14 +19,14 @@ const buildInitialValues = (): DataUpdateGuru => ({
   nip: "",
   jabatan: "",
   bidang_studi: "",
-  foto_profil: "",
+  foto_profil: null,
 });
 
 const EditAkunGuru = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [initialValues, setInitialValues] =
-    useState<DataUpdateGuru>(buildInitialValues());
+    useState<TeacherUpdateFormValues>(buildInitialValues());
   const [fotoUrl, setFotoUrl] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
   const [submitting, setSubmitting] = useState<boolean>(false);
@@ -57,7 +57,7 @@ const EditAkunGuru = () => {
           nip: data.nip,
           jabatan: data.jabatan,
           bidang_studi: data.bidang_studi,
-          foto_profil: "",
+          foto_profil: null,
         });
         setFotoUrl(data.foto_profil ?? "");
       } finally {
@@ -72,7 +72,7 @@ const EditAkunGuru = () => {
     };
   }, [guruId, id]);
 
-  const handleSubmit = async (values: TeacherRegisterFormValues) => {
+  const handleSubmit = async (values: TeacherUpdateFormValues) => {
     if (!id || Number.isNaN(guruId)) {
       throw new ApiError("ID guru tidak ditemukan.");
     }
