@@ -26,3 +26,14 @@ func (s *DeleteUserService) Delete(ctx context.Context, idPengguna user.ID) erro
 	return nil
 
 }
+
+func (s *DeleteUserService) DeleteMany(ctx context.Context, ids []user.ID) (int64, error) {
+	logger := corelog.FromContext(ctx)
+	affected, err := s.users.DeleteUsers(ctx, ids)
+	if err != nil {
+		logger.Error(ctx, "failed deleting users", "op", "user.delete_many", "err", err)
+		return 0, err
+	}
+
+	return affected, nil
+}

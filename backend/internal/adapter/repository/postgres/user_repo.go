@@ -219,6 +219,25 @@ func (r *UserRepo) DeleteUser(ctx context.Context, id user.ID) error {
 	return nil
 }
 
+func (r *UserRepo) DeleteUsers(ctx context.Context, ids []user.ID) (int64, error) {
+	if len(ids) == 0 {
+		return 0, coreerror.ErrNotFound
+	}
+
+	const query = `DELETE FROM pengguna WHERE id_pengguna = ANY($1)`
+
+	result, err := r.q.Exec(ctx, query, pgx.Array(ids))
+	if err != nil {
+		r.loggerFor(ctx).Error(ctx, "failed deleting users", "op", "user_repo.delete_many", "err", err)
+		return 0, err
+	}
+	if result.RowsAffected() == 0 {
+		return 0, coreerror.ErrNotFound
+	}
+
+	return result.RowsAffected(), nil
+}
+
 func (r *UserRepo) ListUser(ctx context.Context) ([]user.Pengguna, error) {
 	const query = `
 		SELECT p.id_pengguna,

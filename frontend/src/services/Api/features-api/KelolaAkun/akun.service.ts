@@ -27,3 +27,10 @@ export async function DeletePengguna(id: number) {
         method: "DELETE",
     })
 }
+
+export async function DeletePenggunaBulk(ids: number[]) {
+  return api<any>("/admin/pengguna", {
+    method: "DELETE",
+    data: { ids },
+  });
+}

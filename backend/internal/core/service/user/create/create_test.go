@@ -50,11 +50,15 @@ func (r *fakeUserRepo) FindUserByID(ctx context.Context, id user.ID) (user.Pengg
 	panic("not used in this test")
 }
 
-func (r *fakeUserRepo) UpdateUser(ctx context.Context,idPengguna user.ID,pengguna outuser.UpdatePenggunaPatch) error {
+func (r *fakeUserRepo) UpdateUser(ctx context.Context, idPengguna user.ID, pengguna outuser.UpdatePenggunaPatch) error {
 	panic("not used in this test")
 }
 
 func (r *fakeUserRepo) DeleteUser(ctx context.Context, id user.ID) error {
+	panic("not used in this test")
+}
+
+func (r *fakeUserRepo) DeleteUsers(ctx context.Context, ids []user.ID) (int64, error) {
 	panic("not used in this test")
 }
 
@@ -95,15 +99,15 @@ func (r *fakeProfilGuruRepo) FindProfilGuruByID(ctx context.Context, id user.ID)
 	panic("not used in this test")
 }
 
-func (r *fakeProfilGuruRepo) UpdateProfilGuru(ctx context.Context,idPengguna user.ID, profilGuru outuser.UpdateProfilGuruPatch) error {
+func (r *fakeProfilGuruRepo) UpdateProfilGuru(ctx context.Context, idPengguna user.ID, profilGuru outuser.UpdateProfilGuruPatch) error {
 	panic("not used in this test")
 }
 
 // ===== minimal fake profil siswa repo =====
 
 type fakeProfilSiswaRepo struct {
-	existsNisn bool
-	existNisnErr   error
+	existsNisn   bool
+	existNisnErr error
 
 	createID  user.ID
 	createErr error
@@ -132,7 +136,7 @@ func (r *fakeProfilSiswaRepo) FindProfilSiswaByID(ctx context.Context, id user.I
 	panic("not used in this test")
 }
 
-func (r *fakeProfilSiswaRepo) UpdateProfilSiswa(ctx context.Context,idPengguna user.ID,profilSiswa outuser.UpdateProfilSiswaPatch) error {
+func (r *fakeProfilSiswaRepo) UpdateProfilSiswa(ctx context.Context, idPengguna user.ID, profilSiswa outuser.UpdateProfilSiswaPatch) error {
 	panic("not used in this test")
 }
 
