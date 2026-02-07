@@ -226,7 +226,7 @@ func (r *UserRepo) DeleteUsers(ctx context.Context, ids []user.ID) (int64, error
 
 	const query = `DELETE FROM pengguna WHERE id_pengguna = ANY($1)`
 
-	result, err := r.q.Exec(ctx, query, pgx.Array(ids))
+	result, err := r.q.Exec(ctx, query, ids)
 	if err != nil {
 		r.loggerFor(ctx).Error(ctx, "failed deleting users", "op", "user_repo.delete_many", "err", err)
 		return 0, err
