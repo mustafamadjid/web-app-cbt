@@ -186,7 +186,8 @@ func (r *UserRepo) UpdateUser(ctx context.Context, idPengguna user.ID, pengguna 
 		add("status_akun", string(*pengguna.StatusAkun))
 	}
 	if pengguna.Role != nil {
-		add("id_role", *pengguna.Role)
+		args = append(args, string(*pengguna.Role))
+		set = append(set, fmt.Sprintf("id_role=(SELECT id_role FROM role WHERE nama_role = $%d)", len(args)))
 	}
 
 	if len(set) == 0 {
