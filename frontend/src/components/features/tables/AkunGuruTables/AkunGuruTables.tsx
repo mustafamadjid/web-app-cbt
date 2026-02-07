@@ -428,12 +428,12 @@ const AkunGuruTables: React.FC = () => {
               </p>
             </div>
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 text-sm text-slate-600">
+              <div className=" cursor-pointer flex items-center gap-2 text-sm text-slate-600">
                 <span>Tampilkan</span>
                 <select
                   value={batasData}
                   onChange={(event) => setBatasData(Number(event.target.value))}
-                  className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-sm text-slate-700 focus:border-[#397e50] focus:outline-none focus:ring-1 focus:ring-[#397e50]"
+                  className="cursor-pointer appearance-none rounded-lg border border-slate-200 bg-white px-7 py-1 text-sm text-slate-700 focus:border-[#397e50] focus:outline-none focus:ring-1 focus:ring-[#397e50]"
                 >
                   {[10, 20, 30, 40, 50].map((opsi) => (
                     <option key={opsi} value={opsi}>
