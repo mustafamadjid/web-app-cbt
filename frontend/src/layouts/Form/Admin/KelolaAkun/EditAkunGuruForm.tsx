@@ -48,15 +48,15 @@ const EditAkunGuruForm = ({
   }, [initialValues]);
 
   useEffect(() => {
-    if (values.fotoProfil) {
-      const url = URL.createObjectURL(values.fotoProfil);
+    if (values.foto_profil) {
+      const url = URL.createObjectURL(values.foto_profil);
       setFotoUrl(url);
       return () => URL.revokeObjectURL(url);
     }
 
     setFotoUrl(initialFotoUrl ?? "");
     return undefined;
-  }, [initialFotoUrl, values.fotoProfil]);
+  }, [initialFotoUrl, values.foto_profil]);
 
   const setField = createSetField(setValues);
 
@@ -79,7 +79,7 @@ const EditAkunGuruForm = ({
     bidangStudi: [requiredString("Bidang studi wajib diisi.")],
     jenisKelamin: [requiredValue("Jenis kelamin wajib dipilih.")],
     statusAkun: [requiredValue("Status akun wajib dipilih.")],
-    fotoProfil: [
+    foto_profil: [
       fileMaxSize(2 * 1024 * 1024, "Ukuran foto maksimal 2MB."),
       fileTypeStartsWith("image/", "File harus berupa gambar."),
     ],
@@ -105,7 +105,7 @@ const EditAkunGuruForm = ({
       nip: true,
       jabatan: true,
       bidangStudi: true,
-      fotoProfil: true,
+      foto_profil: true,
     });
 
     const currentErrors = validate(values);
@@ -124,7 +124,7 @@ const EditAkunGuruForm = ({
   };
 
   const clearFoto = () => {
-    setField("fotoProfil", null);
+    setField("foto_profil", null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -416,18 +416,18 @@ const EditAkunGuruForm = ({
             helperText="Unggah foto profil (maks. 2MB)."
             formatText="Format: JPG/PNG"
             imgSrc={fotoUrl}
-            fileName={values.fotoProfil?.name}
-            size={values.fotoProfil?.size ? Number((values.fotoProfil.size / (1024 * 1024)).toFixed(2)) : undefined}
-            imageFileCheck={!!values.fotoProfil}
+            fileName={values.foto_profil?.name}
+            size={values.foto_profil?.size ? Number((values.foto_profil.size / (1024 * 1024)).toFixed(2)) : undefined}
+            imageFileCheck={!!values.foto_profil}
             onChange={(e) => {
               const file = e.target.files?.[0] ?? null;
-              setField("fotoProfil", file);
-              onBlur("fotoProfil");
+              setField("foto_profil", file);
+              onBlur("foto_profil");
             }}
             onClick={clearFoto}
           />
-          {hasError("fotoProfil") && (
-            <p className="-mt-4 text-xs text-rose-600">{errors.fotoProfil}</p>
+          {hasError("foto_profil") && (
+            <p className="-mt-4 text-xs text-rose-600">{errors.foto_profil}</p>
           )}
 
           {submitError && (

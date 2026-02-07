@@ -1,61 +1,9 @@
-// // services/users.service.ts
-// import { api } from "./api";
-
-// export type User = {
-//   id: string;
-//   name: string;
-//   email: string;
-// };
-
-// // untuk update (biasanya partial)
-// export type UpdateUserPayload = {
-//   name?: string;
-//   email?: string;
-// };
-
-// export async function getUserById(userId: string, token?: string | null) {
-//   return api<User>(`/users/${encodeURIComponent(userId)}`, {
-//     method: "GET",
-//     token,
-//   });
-// }
-
-// export async function updateUser(
-//   userId: string,
-//   payload: UpdateUserPayload,
-//   token?: string | null
-// ) {
-//   return api<User>(`/users/${encodeURIComponent(userId)}`, {
-//     method: "PATCH", // atau "PUT" tergantung backend
-//     data: payload,
-//     token,
-//   });
-// }
-
-// export async function listUsers(
-//   params: { q?: string; page?: number; limit?: number },
-//   token?: string | null
-// ) {
-//   return api<User[]>("/users", {
-//     method: "GET",
-//     params,
-//     token,
-//   });
-// }
-
-// export async function deleteUser(userId: string, token?: string | null) {
-//   return api<void>(`/users/${encodeURIComponent(userId)}`, {
-//     method: "DELETE",
-//     token,
-//   });
-// }
-
-
 import { api } from "../../api";
 import { buildFormData } from "@/helper/FormData/BuildFormData";
 
 import type {
   DataGuru,
+  DataUpdateGuru,
   TeacherRegisterFormValues,
   TeacherRegisterResponse,
 } from "@/types/KelolaAkun/AkunGuru";
@@ -145,17 +93,11 @@ export async function submitTeacherRegister(values: TeacherRegisterFormValues) {
   })
 }
 
-// export async function getGuruById(id: number): Promise<DataGuru | null> {
-//   // if (!USE_DUMMY) {
-//   //   const res = await api<ApiEnvelope<DataGuru>>(`/teachers/${id}`, {
-//   //     method: "GET",
-//   //   });
-//   //   return res.data;
-//   // }
-
-//   await sleep(150);
-//   return daftarPengguna.find((guru) => guru.id === id) ?? null;
-// }
+export async function getGuruById(id: number): Promise<DataUpdateGuru | null> {
+  return api<DataUpdateGuru | null>(`/admin/guru/${id}`,{
+    method: "GET"
+  });
+}
 
 export async function updateGuru(id: number, values: TeacherRegisterFormValues) {
   const formData = buildFormData(values, {
