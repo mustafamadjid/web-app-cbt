@@ -40,12 +40,15 @@ func (r *ProfilgGuruRepo) FindProfilGuruByID(ctx context.Context, id user.ID) (u
 			u.jenis_kelamin,
 			u.no_hp,
 			u.foto,
+			r.nama_role,
+			u.status_akun,
 			p.nip,
 			p.jabatan,
 			p.bidang_studi
 		FROM profil_guru p
 		JOIN pengguna u ON p.id_pengguna = u.id_pengguna
-		WHERE p.id_guru = $1
+		JOIN role r ON u.id_role = r.id_role
+		WHERE p.id_pengguna = $1
 	`
 
 	var result user.DataGuru
@@ -65,6 +68,8 @@ func (r *ProfilgGuruRepo) FindProfilGuruByID(ctx context.Context, id user.ID) (u
 		&jenisKelamin,
 		&result.NoHp,
 		&result.Foto,
+		&result.Role,
+		&result.StatusAkun,
 		&nip,
 		&jabatan,
 		&bidangStudi,

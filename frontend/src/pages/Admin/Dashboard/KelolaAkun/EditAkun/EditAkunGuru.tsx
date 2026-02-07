@@ -6,6 +6,7 @@ import type { TeacherUpdateFormValues } from "@/types/KelolaAkun/AkunGuru";
 import { getGuruById, updateGuru } from "@/services/Api/features-api/KelolaAkun/akunguru.service";
 import { ApiError } from "@/services/Api/api";
 import { paths } from "@/routes/paths";
+import toast from "react-hot-toast";
 
 const buildInitialValues = (): TeacherUpdateFormValues => ({
   id_pengguna: 0,
@@ -59,7 +60,7 @@ const EditAkunGuru = () => {
           bidang_studi: data.bidang_studi,
           foto_profil: null,
         });
-        setFotoUrl(data.foto_profil ?? "");
+        setFotoUrl(`${import.meta.env.VITE_API_URL}${data.foto_profil}`);
       } finally {
         if (active) setLoading(false);
       }
@@ -80,6 +81,7 @@ const EditAkunGuru = () => {
     setSubmitting(true);
     try {
       await updateGuru(guruId, values);
+      toast.success("Akun guru berhasil diperbarui.");
       navigate(paths.dashboard.kelola_akun_guru);
     } finally {
       setSubmitting(false);

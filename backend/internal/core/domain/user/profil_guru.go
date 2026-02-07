@@ -24,17 +24,20 @@ var (
 
 type DataGuru struct {
 	IdPengguna 	 ID
-	IdGuru	 ID
+	IdGuru	 	 ID
 	Username     string
 	Email        string
 	NamaLengkap  string
 	JenisKelamin string
 	NoHp         string
 	Foto         string
+	Role         Role
+	StatusAkun   StatusAkun
 
 	Nip         string
 	Jabatan     string
 	BidangStudi string
+	
 }
 
 func CheckNewNip(nip string) (NIP, error) {

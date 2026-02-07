@@ -115,6 +115,8 @@ func (h *GetGuruHandler) GetGuruByID(write http.ResponseWriter, req *http.Reques
 		BidangStudi:  result.BidangStudi,
 		Foto:         result.Foto,
 		JenisKelamin: result.JenisKelamin,
+		Role: result.Role,
+		StatusAkun:   result.StatusAkun,
 	}
 
 	httpResponse.WriteOK(write, http.StatusOK, responseData, "Success")
