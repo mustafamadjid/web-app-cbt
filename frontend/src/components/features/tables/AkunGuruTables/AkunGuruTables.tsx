@@ -62,6 +62,8 @@ const AkunGuruTables: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<StatusAkun>("AKTIF");
   const [idTerpilih, setIdTerpilih] = useState<Set<number>>(new Set());
   const [samarkanDataSensitif, setSamarkanDataSensitif] = useState(true);
+  const [batasData, setBatasData] = useState(10);
+  const [halamanSaatIni, setHalamanSaatIni] = useState(1);
 
   const [daftarPengguna, setDaftarPengguna] = useState<DataGuru[]>([]);
 
@@ -76,12 +78,18 @@ const AkunGuruTables: React.FC = () => {
   }, [kataKunci]);
 
   useEffect(() => {
+    setHalamanSaatIni(1);
+  }, [kataKunciDebounce, statusFilter, batasData]);
+
+  useEffect(() => {
     let aktif = true;
 
     const fetchGuru = async () => {
       const data = await GetAllGuru({
         q: kataKunciDebounce,
         status: statusFilter,
+        limit: batasData,
+        offset: (halamanSaatIni - 1) * batasData,
       });
       if (aktif) {
         setDaftarPengguna(data);
@@ -93,7 +101,7 @@ const AkunGuruTables: React.FC = () => {
     return () => {
       aktif = false;
     };
-  }, [kataKunciDebounce, statusFilter]);
+  }, [kataKunciDebounce, statusFilter, batasData, halamanSaatIni]);
 
   const penggunaTersaring = daftarPengguna;
 
@@ -142,6 +150,12 @@ const AkunGuruTables: React.FC = () => {
   };
 
   const jumlahTerpilih = idTerpilih.size;
+  const totalTerlihat = daftarPengguna.length;
+  const awalData = totalTerlihat === 0 ? 0 : (halamanSaatIni - 1) * batasData + 1;
+  const akhirData =
+    totalTerlihat === 0 ? 0 : (halamanSaatIni - 1) * batasData + totalTerlihat;
+  const bisaSebelumnya = halamanSaatIni > 1;
+  const bisaSelanjutnya = totalTerlihat === batasData;
 
   return (
     <div className="w-full space-y-6">
@@ -405,13 +419,55 @@ const AkunGuruTables: React.FC = () => {
         </div>
         {/* Pagination Dummy */}
         <div className="flex items-center justify-between border-t border-slate-200 bg-white px-4 py-3 sm:px-6">
-          <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+          <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-sm text-slate-700">
-                Menampilkan <span className="font-medium">1</span> sampai{" "}
-                <span className="font-medium">{penggunaTersaring.length}</span>{" "}
-                dari <span className="font-medium">100</span> hasil
+                Menampilkan <span className="font-medium">{awalData}</span>{" "}
+                sampai <span className="font-medium">{akhirData}</span> dari{" "}
+                <span className="font-medium">{akhirData}</span> hasil
               </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 text-sm text-slate-600">
+                <span>Tampilkan</span>
+                <select
+                  value={batasData}
+                  onChange={(event) => setBatasData(Number(event.target.value))}
+                  className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-sm text-slate-700 focus:border-[#397e50] focus:outline-none focus:ring-1 focus:ring-[#397e50]"
+                >
+                  {[10, 20, 30, 40, 50].map((opsi) => (
+                    <option key={opsi} value={opsi}>
+                      {opsi}
+                    </option>
+                  ))}
+                </select>
+                <span>baris</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setHalamanSaatIni((sebelumnya) => Math.max(1, sebelumnya - 1))
+                  }
+                  disabled={!bisaSebelumnya}
+                  className="rounded-lg border border-slate-200 px-3 py-1 text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:text-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Sebelumnya
+                </button>
+                <span className="text-sm text-slate-600">
+                  Halaman {halamanSaatIni}
+                </span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setHalamanSaatIni((sebelumnya) => sebelumnya + 1)
+                  }
+                  disabled={!bisaSelanjutnya}
+                  className="rounded-lg border border-slate-200 px-3 py-1 text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:text-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Selanjutnya
+                </button>
+              </div>
             </div>
           </div>
         </div>

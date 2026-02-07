@@ -237,11 +237,17 @@ func (r *ProfilgGuruRepo) GetListGuru(ctx context.Context, filter query.ListGuru
 
 	baseQuery = fmt.Sprintf("%s ORDER BY %s %s", baseQuery, sortColumn, direction)
 
-	args = append(args, filter.Limit)
-	limitIndex := len(args)
-	args = append(args, filter.Offset)
-	offsetIndex := len(args)
-	baseQuery = fmt.Sprintf("%s LIMIT $%d OFFSET $%d", baseQuery, limitIndex, offsetIndex)
+	if filter.Limit > 0 {
+		args = append(args, filter.Limit)
+		limitIndex := len(args)
+		args = append(args, filter.Offset)
+		offsetIndex := len(args)
+		baseQuery = fmt.Sprintf("%s LIMIT $%d OFFSET $%d", baseQuery, limitIndex, offsetIndex)
+	} else if filter.Offset > 0 {
+		args = append(args, filter.Offset)
+		offsetIndex := len(args)
+		baseQuery = fmt.Sprintf("%s OFFSET $%d", baseQuery, offsetIndex)
+	}
 
 	rows, err := r.q.Query(ctx, baseQuery, args...)
 	if err != nil {
