@@ -57,16 +57,27 @@ function samarkanNip(nip?: string | null) {
 const AkunGuruTables: React.FC = () => {
   const [dropdownAksiTerbuka, setDropdownAksiTerbuka] = useState(false);
   const [kataKunci, setKataKunci] = useState("");
+  const [kataKunciDebounce, setKataKunciDebounce] = useState("");
   const [idTerpilih, setIdTerpilih] = useState<Set<number>>(new Set());
   const [samarkanDataSensitif, setSamarkanDataSensitif] = useState(true);
 
   const [daftarPengguna, setDaftarPengguna] = useState<DataGuru[]>([]);
 
   useEffect(() => {
+    const handle = window.setTimeout(() => {
+      setKataKunciDebounce(kataKunci.trim());
+    }, 350);
+
+    return () => {
+      window.clearTimeout(handle);
+    };
+  }, [kataKunci]);
+
+  useEffect(() => {
     let aktif = true;
 
     const fetchGuru = async () => {
-      const data = await GetAllGuru({ q: kataKunci });
+      const data = await GetAllGuru({ q: kataKunciDebounce });
       if (aktif) {
         setDaftarPengguna(data);
       }
@@ -77,7 +88,7 @@ const AkunGuruTables: React.FC = () => {
     return () => {
       aktif = false;
     };
-  }, [kataKunci]);
+  }, [kataKunciDebounce]);
 
   const penggunaTersaring = daftarPengguna;
 
