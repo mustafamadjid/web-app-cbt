@@ -14,6 +14,8 @@ import type { ApiEnvelope } from "../../api";
 export type GuruFilterParams = {
   q?: string;
   status?: StatusAkun;
+  limit?: number;
+  offset?: number;
 };
 // // Data Dummy
 // export const daftarPengguna: DataGuru[] = [
@@ -183,6 +185,8 @@ export async function GetAllGuru(
   const queryParams: Record<string, string | undefined> = {
     q: params.q || undefined,
     status: params.status || undefined,
+    limit: params.limit ? String(params.limit) : undefined,
+    offset: params.offset ? String(params.offset) : undefined,
   };
 
   
