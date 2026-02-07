@@ -3,10 +3,10 @@ package user_service
 import (
 	"context"
 	"strings"
+	"github.com/mustafamadjid/web-app-cbt/internal/core/port/out"
+	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
-	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
-	"github.com/mustafamadjid/web-app-cbt/internal/core/port/out"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 	txout "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/tx"
 )
@@ -44,14 +44,22 @@ func (uc *CreateTx) CreateGuru(ctx context.Context, cmd CreateGuruCmd, actor use
 	cmd.BidangStudi = strings.TrimSpace(cmd.BidangStudi)
 
 
-	var nipValidated user.NIP
 
+	isDashedNip := cmd.Nip == "-"
+
+	nipToStore := user.NIP(cmd.Nip)
+
+	var nipValidated user.NIP
 	
-	if cmd.Nip != "" && cmd.Nip != "-" {
-		v, err := user.CheckNewNip(cmd.Nip)
-		if err != nil { return CreateGuruRes{}, err }
+	if !isDashedNip {
+		v, error := user.CheckNewNip(cmd.Nip)
+	if error != nil {
+		return CreateGuruRes{}, error
+		}
 		nipValidated = v
+		nipToStore = v
 	}
+
 
 	// Validasi
 	emailValidated, error := user.CheckNewEmail(cmd.Email)
@@ -59,7 +67,7 @@ func (uc *CreateTx) CreateGuru(ctx context.Context, cmd CreateGuruCmd, actor use
 		return CreateGuruRes{}, error
 	}
 
-
+	
 	// Hash password
 	hashedPassword, error := uc.hasher.GenerateHash(cmd.Password)
 	if error != nil {
@@ -84,7 +92,9 @@ func (uc *CreateTx) CreateGuru(ctx context.Context, cmd CreateGuruCmd, actor use
 		return CreateGuruRes{}, coreerror.ErrUsernameTaken
 	}
 
-	existNip, error := tx.ProfilGuru().ExistByNIP(ctx, nipValidated)
+
+	if !isDashedNip {
+		existNip, error := tx.ProfilGuru().ExistByNIP(ctx, nipValidated)
 	if error != nil {
 		logger.Error(ctx, "failed checking nip", "op", "user.create_guru", "err", error)
 		return CreateGuruRes{}, error
@@ -92,6 +102,8 @@ func (uc *CreateTx) CreateGuru(ctx context.Context, cmd CreateGuruCmd, actor use
 	if existNip {
 		return CreateGuruRes{}, coreerror.ErrNipTaken
 	}
+	}
+	
 
 	userData := user.Pengguna{
 		Username:       cmd.Username,
@@ -113,7 +125,7 @@ func (uc *CreateTx) CreateGuru(ctx context.Context, cmd CreateGuruCmd, actor use
 
 	profilGuruData := user.ProfilGuru{
 		IdPengguna:  idPengguna,
-		Nip:         nipValidated,
+		Nip:         nipToStore,
 		Jabatan:     cmd.Jabatan,
 		BidangStudi: cmd.BidangStudi,
 	}
