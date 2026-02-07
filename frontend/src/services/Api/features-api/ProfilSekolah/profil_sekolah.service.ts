@@ -1,4 +1,5 @@
 import { api } from "@/services/Api/api";
+import { buildFormData } from "@/helper/FormData/BuildFormData";
 
 import type {
   ProfilSekolahResponse,
@@ -15,8 +16,20 @@ export async function getProfilSekolah(): Promise<ProfilSekolahResponse> {
 
 
 export async function updateProfilSekolah(
-  formData: FormData,
+  payload: Partial<ProfilSekolahUpdatePayload>,
+  logoFile?: File | null,
 ): Promise<ProfilSekolahUpdatePayload> {
+  const formData = buildFormData(payload, {
+    transform: (_key, value) => {
+      if (typeof value === "string") return value.trim();
+      return value as any;
+    },
+  });
+
+  if (logoFile) {
+    formData.append("logo_sekolah", logoFile);
+  }
+
   return api<ProfilSekolahUpdatePayload>(PROFIL_SEKOLAH_ENDPOINT, {
     method: "PATCH",
     data: formData,

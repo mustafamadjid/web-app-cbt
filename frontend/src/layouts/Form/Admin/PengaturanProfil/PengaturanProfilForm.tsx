@@ -9,7 +9,6 @@ import type {
   ProfilSekolahUpdatePayload,
 } from "@/types/ProfilSekolah/ProfilSekolah";
 
-import { buildFormData } from "@/helper/FormData/BuildFormData";
 import { createSetField } from "@/helper/setField/setField";
 import {
   createValidator,
@@ -178,23 +177,12 @@ const PengaturanProfilForm = () => {
       return;
     }
 
-    const formData = buildFormData(payload, {
-      transform: (key, value) => {
-        if (typeof value === "string") return value.trim();
-        return value as any;
-      },
-    });
-
-    if (values.logo_sekolah) {
-      formData.append("logo_sekolah", values.logo_sekolah);
-    }
-
     const toastId = toast.loading("Menyimpan perubahan...", {
       position: "top-center",
     });
 
     try {
-      await updateProfilSekolah(formData);
+      await updateProfilSekolah(payload, values.logo_sekolah);
       toast.success("Profil sekolah berhasil diperbarui.", {
         id: toastId,
         position: "top-center",
