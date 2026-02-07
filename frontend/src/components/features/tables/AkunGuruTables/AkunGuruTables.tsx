@@ -8,7 +8,6 @@ import {
   Archive,
   Edit3,
   User,
-  ShieldAlert,
   CheckCircle2,
   XCircle,
   Trash,
@@ -60,6 +59,9 @@ const AkunGuruTables: React.FC = () => {
   const [dropdownAksiTerbuka, setDropdownAksiTerbuka] = useState(false);
   const [kataKunci, setKataKunci] = useState("");
   const [kataKunciDebounce, setKataKunciDebounce] = useState("");
+  const [statusFilter, setStatusFilter] = useState<StatusAkun | "SEMUA">(
+    "SEMUA",
+  );
   const [idTerpilih, setIdTerpilih] = useState<Set<number>>(new Set());
   const [samarkanDataSensitif, setSamarkanDataSensitif] = useState(true);
 
@@ -79,7 +81,10 @@ const AkunGuruTables: React.FC = () => {
     let aktif = true;
 
     const fetchGuru = async () => {
-      const data = await GetAllGuru({ q: kataKunciDebounce });
+      const data = await GetAllGuru({
+        q: kataKunciDebounce,
+        status: statusFilter === "SEMUA" ? undefined : statusFilter,
+      });
       if (aktif) {
         setDaftarPengguna(data);
       }
@@ -90,7 +95,7 @@ const AkunGuruTables: React.FC = () => {
     return () => {
       aktif = false;
     };
-  }, [kataKunciDebounce]);
+  }, [kataKunciDebounce, statusFilter]);
 
   const penggunaTersaring = daftarPengguna;
 
@@ -122,18 +127,21 @@ const AkunGuruTables: React.FC = () => {
   const navigate = useNavigate();
 
 
-  const DeleteUser = async (id : number) => {
-    try{
+  const DeleteUser = async (id: number) => {
+    try {
       await DeletePengguna(id);
 
-      const data = await GetAllGuru({ q: kataKunciDebounce });
+      const data = await GetAllGuru({
+        q: kataKunciDebounce,
+        status: statusFilter === "SEMUA" ? undefined : statusFilter,
+      });
       setDaftarPengguna(data);
 
       toast.success("Berhasil menghapus akun guru");
-    }catch{
+    } catch {
       toast.error("Gagal menghapus akun guru");
     }
-  }
+  };
 
   const jumlahTerpilih = idTerpilih.size;
 
@@ -180,17 +188,35 @@ const AkunGuruTables: React.FC = () => {
 
       {/* --- Filter & Action Bar --- */}
       <div className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
-        <div className="relative w-full sm:w-80">
-          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-            <Search className="h-4 w-4 text-slate-400" />
+        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
+          <div className="relative w-full sm:w-80">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+              <Search className="h-4 w-4 text-slate-400" />
+            </div>
+            <input
+              type="text"
+              value={kataKunci}
+              onChange={(e) => setKataKunci(e.target.value)}
+              className="block w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-10 pr-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#397e50] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#397e50]"
+              placeholder="Cari nama, NIP, atau email..."
+            />
           </div>
-          <input
-            type="text"
-            value={kataKunci}
-            onChange={(e) => setKataKunci(e.target.value)}
-            className="block w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-10 pr-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#397e50] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#397e50]"
-            placeholder="Cari nama, NIP, atau email..."
-          />
+          <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+            {(["SEMUA", "AKTIF", "NONAKTIF"] as const).map((status) => (
+              <button
+                key={status}
+                type="button"
+                onClick={() => setStatusFilter(status)}
+                className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
+                  statusFilter === status
+                    ? "border-[#397e50] bg-[#397e50]/10 text-[#2f6b44]"
+                    : "border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-700"
+                }`}
+              >
+                {status === "SEMUA" ? "Semua Status" : status}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
