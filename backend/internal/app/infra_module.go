@@ -20,9 +20,10 @@ type InfraModule struct {
 	Sessions  out.SessionRepository
 	AuthUsers outauth.AuthUserrepository
 
-	users       outuser.UserRepository
-	profilSiswa outuser.GetListSiswaRepo
-	profilGuru  outuser.GetGuruListRepo
+	users          outuser.UserRepository
+	profilSiswa    outuser.GetListSiswaRepo
+	profilGuru     outuser.GetGuruListRepo
+	profilGuruRepo outuser.ProfilGuruRepository
 
 	profilSekolah outprofil.ProfilSekolahRepository
 	aktivitasUser outaktivitas.AktivitasUserRepository
@@ -31,15 +32,18 @@ type InfraModule struct {
 func BuildInfraModule(pool *pgxpool.Pool, logger corelog.Logger) *InfraModule {
 	txm := pg.NewTxManager(pool, logger)
 
+	profilGuruRepo := pg.NewProfilgGuruRepo(pool, logger)
+
 	return &InfraModule{
-		Pool:          pool,
-		Txm:           txm,
-		Sessions:      pg.NewSessionRepo(pool, logger),
-		AuthUsers:     pg.NewAuthUserRepo(pool, logger),
-		users:         pg.NewUserRepo(pool, logger),
-		profilSiswa:   pg.NewProfilSiswaRepo(pool, logger),
-		profilGuru:    pg.NewProfilgGuruRepo(pool, logger),
-		profilSekolah: pg.NewProfilSekolahRepo(pool, logger),
-		aktivitasUser: pg.NewAktivitasUserRepo(pool, logger),
+		Pool:           pool,
+		Txm:            txm,
+		Sessions:       pg.NewSessionRepo(pool, logger),
+		AuthUsers:      pg.NewAuthUserRepo(pool, logger),
+		users:          pg.NewUserRepo(pool, logger),
+		profilSiswa:    pg.NewProfilSiswaRepo(pool, logger),
+		profilGuru:     profilGuruRepo,
+		profilGuruRepo: profilGuruRepo,
+		profilSekolah:  pg.NewProfilSekolahRepo(pool, logger),
+		aktivitasUser:  pg.NewAktivitasUserRepo(pool, logger),
 	}
 }

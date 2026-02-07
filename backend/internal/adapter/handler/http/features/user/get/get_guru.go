@@ -51,24 +51,71 @@ func (h *GetGuruHandler) ListGuru(write http.ResponseWriter, req *http.Request, 
 		return
 	}
 
-	responseData := make([]GuruResponseItem,0,len(items))
-	for _, item := range items{
+	responseData := make([]GuruResponseItem, 0, len(items))
+	for _, item := range items {
 		responseData = append(responseData, GuruResponseItem{
-			IdPengguna: item.IdPengguna,
-			Username: item.Username,
-			NoHp: item.NoHp,
-			Email: item.Email,
-			NamaLengkap: item.NamaLengkap,
-			StatusAkun: item.StatusAkun,
-			Nip: item.Nip,
-			Jabatan: item.Jabatan,
-			BidangStudi: item.BidangStudi,
-			Foto: item.Foto,
-			Role: item.Role,
+			IdPengguna:   item.IdPengguna,
+			Username:     item.Username,
+			NoHp:         item.NoHp,
+			Email:        item.Email,
+			NamaLengkap:  item.NamaLengkap,
+			StatusAkun:   item.StatusAkun,
+			Nip:          item.Nip,
+			Jabatan:      item.Jabatan,
+			BidangStudi:  item.BidangStudi,
+			Foto:         item.Foto,
+			Role:         item.Role,
 			JenisKelamin: item.JenisKelamin,
 		})
 	}
-	
+
+	httpResponse.WriteOK(write, http.StatusOK, responseData, "Success")
+}
+
+func (h *GetGuruHandler) GetGuruByID(write http.ResponseWriter, req *http.Request, params httprouter.Params) {
+	logger := corelog.FromContext(req.Context())
+	if req.Method != http.MethodGet {
+		httpResponse.WriteErr(write, http.StatusMethodNotAllowed, "METHOD_NOT_ALLOWED", "method not allowed")
+		return
+	}
+
+	rawID := strings.TrimSpace(params.ByName("id"))
+	if rawID == "" {
+		httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request : id is required")
+		return
+	}
+
+	parsedID, err := strconv.Atoi(rawID)
+	if err != nil || parsedID <= 0 {
+		logger.Info(req.Context(), "invalid guru id", "op", "user.get_guru", "err", err)
+		httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request : invalid id")
+		return
+	}
+
+	result, err := h.svc.FindProfilGuruByID(req.Context(), user.ID(parsedID))
+	if err != nil {
+		logger.Error(req.Context(), "failed getting guru", "op", "user.get_guru", "err", err)
+		switch {
+		case errors.Is(err, coreerror.ErrNotFound):
+			httpResponse.WriteErr(write, http.StatusNotFound, "NOT_FOUND", "data not found")
+		default:
+			httpResponse.WriteErr(write, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error: failed get guru")
+		}
+		return
+	}
+
+	responseData := GuruResponseItem{
+		IdPengguna:   result.IdPengguna,
+		Username:     result.Username,
+		NoHp:         result.NoHp,
+		Email:        user.Email(result.Email),
+		NamaLengkap:  result.NamaLengkap,
+		Nip:          user.NIP(result.Nip),
+		Jabatan:      result.Jabatan,
+		BidangStudi:  result.BidangStudi,
+		Foto:         result.Foto,
+		JenisKelamin: result.JenisKelamin,
+	}
 
 	httpResponse.WriteOK(write, http.StatusOK, responseData, "Success")
 }

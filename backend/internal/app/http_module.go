@@ -70,6 +70,7 @@ func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSeko
 
 	// GURU
 	router.GET("/admin/guru", requireAdmin(users.GetGuruHandler.ListGuru))
+	router.GET("/admin/guru/:id", requireAdmin(users.GetGuruHandler.GetGuruByID))
 	router.POST("/admin/guru", requireAdmin(users.CreateHandler.CreateGuru))
 	router.PATCH("/admin/guru/:id", requireAdmin(users.UpdateHandler.UpdateGuru))
 
