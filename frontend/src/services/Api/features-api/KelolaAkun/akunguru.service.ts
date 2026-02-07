@@ -8,10 +8,12 @@ import type {
   TeacherRegisterResponse,
   TeacherUpdatePayload,
 } from "@/types/KelolaAkun/AkunGuru";
+import type { StatusAkun } from "@/types/OpsiTypes/Option";
 import type { ApiEnvelope } from "../../api";
 
 export type GuruFilterParams = {
   q?: string;
+  status?: StatusAkun;
 };
 // // Data Dummy
 // export const daftarPengguna: DataGuru[] = [
@@ -180,6 +182,7 @@ export async function GetAllGuru(
 
   const queryParams: Record<string, string | undefined> = {
     q: params.q || undefined,
+    status: params.status || undefined,
   };
 
   
