@@ -7,6 +7,7 @@ import (
 
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
+	outuser "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
 	query "github.com/mustafamadjid/web-app-cbt/internal/core/query/user"
 	user_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/user/get"
 	"github.com/stretchr/testify/assert"
@@ -26,6 +27,22 @@ func (f *fakeGetGuruRepo) GetListGuru(ctx context.Context, q query.ListGuruFilte
 		return nil, f.err
 	}
 	return f.items, nil
+}
+
+func (f *fakeGetGuruRepo) FindProfilGuruByID(ctx context.Context, id user.ID) (user.DataGuru, error) {
+	return user.DataGuru{}, nil
+}
+
+func (f *fakeGetGuruRepo) ExistByNIP(ctx context.Context, nip user.NIP) (bool, error) {
+	return false, nil
+}
+
+func (f *fakeGetGuruRepo) CreateProfilGuru(ctx context.Context, g user.ProfilGuru) (user.ID, error) {
+	return 0, nil
+}
+
+func (f *fakeGetGuruRepo) UpdateProfilGuru(ctx context.Context, idPengguna user.ID, profilGuru outuser.UpdateProfilGuruPatch) error {
+	return nil
 }
 
 func TestGetGuruService_ListGuru(t *testing.T) {
@@ -124,7 +141,7 @@ func TestGetGuruService_ListGuru(t *testing.T) {
 	for _, tc := range tests {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			service := user_service.NewGetListGuruService(tc.repo)
+			service := user_service.NewGetListGuruService(tc.repo, tc.repo)
 
 			result, err := service.ListGuru(ctx, tc.filter)
 

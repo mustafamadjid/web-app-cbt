@@ -36,7 +36,7 @@ func BuildUserModule(cfg Config, infra *InfraModule, hasher out.PasswordHasher, 
 	deleteSvc := delete.NewDeleteUserService(infra.users)
 
 	getSiswaSvc := get.NewGetListSiswaService(infra.profilSiswa)
-	getGuruSvc := get.NewGetListGuruService(infra.profilGuru)
+	getGuruSvc := get.NewGetListGuruService(infra.profilGuru, infra.profilGuruRepo)
 
 	handlerCreate := httpcreate.NewCreateUserHandler(createSvc, store, aktivitasUser.Service)
 	handlerUpdate := httpupdate.NewUpdateUserHandler(updateSvc, store, aktivitasUser.Service)

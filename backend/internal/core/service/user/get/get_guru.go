@@ -13,11 +13,12 @@ import (
 )
 
 type GetGuruService struct {
-	guruSvc out.GetGuruListRepo
+	guruSvc      out.GetGuruListRepo
+	profilGuruSv out.ProfilGuruRepository
 }
 
-func NewGetListGuruService(guruSvc out.GetGuruListRepo) *GetGuruService {
-	return &GetGuruService{guruSvc: guruSvc}
+func NewGetListGuruService(guruSvc out.GetGuruListRepo, profilGuruSv out.ProfilGuruRepository) *GetGuruService {
+	return &GetGuruService{guruSvc: guruSvc, profilGuruSv: profilGuruSv}
 }
 
 var allowedSortGuru = map[string]struct{}{
@@ -73,4 +74,8 @@ func (s *GetGuruService) ListGuru(ctx context.Context, filter query.ListGuruFilt
 	}
 
 	return items, nil
+}
+
+func (s *GetGuruService) FindProfilGuruByID(ctx context.Context, id user.ID) (user.DataGuru, error) {
+	return s.profilGuruSv.FindProfilGuruByID(ctx, id)
 }
