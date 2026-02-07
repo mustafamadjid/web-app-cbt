@@ -48,6 +48,12 @@ function roleBadge(role: UserRole) {
         className: "bg-sky-100 text-sky-800",
         Icon: User,
       };
+    case "unknown":
+      return {
+        label: "Pengguna",
+        className: "bg-gray-100 text-gray-700",
+        Icon: User,
+      };
     default:
       return {
         label: role,
@@ -174,7 +180,7 @@ const LogAktivitasWidget = ({
 
             <div className="space-y-6">
               {items.map((it) => {
-                const rb = roleBadge(it.role);
+                const rb = roleBadge(it.role ?? "unknown");
                 const am = aksiMeta(it.aksi);
                 const AksiIcon = am.Icon;
                 const RoleIcon = rb.Icon;

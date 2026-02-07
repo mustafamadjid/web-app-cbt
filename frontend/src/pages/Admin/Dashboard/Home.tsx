@@ -1,5 +1,7 @@
 
 // Widgets
+import { useEffect, useState } from "react";
+
 import StatistikWidget from "@/components/features/widget/Soal/StatistikWidget";
 import SimpleStatWidget from "@/components/features/widget/Soal/StatistikWidgetSimpler";
 import { PengumumanWidget } from "@/components/features/widget/Pengumuman/PengumumanWidget";
@@ -11,10 +13,14 @@ import UjianBerlangsungWidget from "@/components/features/widget/UjianBerlangsun
 // Types
 import type { PengumumanItem } from "@/types/Widget/Pengumuman";
 import type { JadwalUjianItem } from "@/types/Ujian/jadwalUjian";
-import type { AktivitasLogItem } from "@/types/Log/LogAktivitas";
+import type {
+  AktivitasLogItem,
+  LogAktivitasApiItem,
+} from "@/types/Log/LogAktivitas";
 import type { UjianBerlangsungItem } from "@/types/Widget/UjianBerlangsung";
 import type { Role } from "@/types/Sidebar/SidebarMenu";
 import { useAuth } from "@/contexts/AuthContext";
+import { getLogAktivitas } from "@/services/Api/features-api/LogAktivitas/log-aktivitas.service";
 
 // --- DUMMY DATA ---
 const pengumuman: PengumumanItem[] = [
@@ -77,33 +83,6 @@ export const dummyJadwalUjian: JadwalUjianItem[] = [
   },
 ];
 
-export const dummyAktivitas: AktivitasLogItem[] = [
-  {
-    id: 1,
-    username: "admin01",
-    role: "admin",
-    aksi: "LOGIN",
-    deskripsi: "Masuk ke sistem melalui halaman admin.",
-    waktu: "08:12",
-  },
-  {
-    id: 2,
-    username: "guru_sri",
-    role: "guru",
-    aksi: "UPDATE",
-    deskripsi: "Mengubah nilai ujian Matematika kelas XI IPA 1.",
-    waktu: "09:05",
-  },
-  {
-    id: 3,
-    username: "siswa_andi",
-    role: "siswa",
-    aksi: "CREATE",
-    deskripsi: "Mengumpulkan tugas Bahasa Indonesia.",
-    waktu: "10:41",
-  },
-];
-
 export const dummyUjianBerlangsung: UjianBerlangsungItem[] = [
   {
     id: 101,
@@ -130,9 +109,53 @@ export const dummyUjianBerlangsung: UjianBerlangsungItem[] = [
   },
 ];
 
+const mapLogAktivitasToWidget = (
+  item: LogAktivitasApiItem
+): AktivitasLogItem => ({
+  id: item.id_aktivitas,
+  username: `Pengguna ${item.id_pengguna}`,
+  role: "unknown",
+  aksi: item.action,
+  deskripsi: item.description || "-",
+  waktu: item.created_at,
+});
+
 export const Home = () => {
   const {user} = useAuth(); 
   const role = (user?.role ?? "SISWA") as Role;
+  const [logAktivitas, setLogAktivitas] = useState<AktivitasLogItem[]>([]);
+  const [logAktivitasError, setLogAktivitasError] = useState<string | null>(
+    null
+  );
+
+  const logAktivitasTitle = logAktivitasError
+    ? "Log Aktivitas (Gagal Memuat)"
+    : "Log Aktivitas";
+
+  useEffect(() => {
+    if (role !== "ADMIN") return;
+
+    let isActive = true;
+    setLogAktivitasError(null);
+
+    void getLogAktivitas()
+      .then((data) => {
+        if (!isActive) return;
+        const mapped = data.map(mapLogAktivitasToWidget);
+        setLogAktivitas(mapped);
+      })
+      .catch((error: Error) => {
+        if (!isActive) return;
+        setLogAktivitas([]);
+        setLogAktivitasError(
+          error.message || "Gagal memuat log aktivitas."
+        );
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, [role]);
 
 
   return (
@@ -220,7 +243,8 @@ export const Home = () => {
 
             {role === "ADMIN" && (
               <LogAktivitasWidget
-                items={dummyAktivitas}
+                title={logAktivitasTitle}
+                items={logAktivitas}
                 lihatSemuaTo="/log-aktivitas"
                 className="flex-1 min-h-0"
                 maxHeightClassName="h-full"
