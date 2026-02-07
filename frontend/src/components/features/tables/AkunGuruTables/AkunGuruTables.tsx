@@ -59,9 +59,7 @@ const AkunGuruTables: React.FC = () => {
   const [dropdownAksiTerbuka, setDropdownAksiTerbuka] = useState(false);
   const [kataKunci, setKataKunci] = useState("");
   const [kataKunciDebounce, setKataKunciDebounce] = useState("");
-  const [statusFilter, setStatusFilter] = useState<StatusAkun | "SEMUA">(
-    "SEMUA",
-  );
+  const [statusFilter, setStatusFilter] = useState<StatusAkun>("AKTIF");
   const [idTerpilih, setIdTerpilih] = useState<Set<number>>(new Set());
   const [samarkanDataSensitif, setSamarkanDataSensitif] = useState(true);
 
@@ -83,7 +81,7 @@ const AkunGuruTables: React.FC = () => {
     const fetchGuru = async () => {
       const data = await GetAllGuru({
         q: kataKunciDebounce,
-        status: statusFilter === "SEMUA" ? undefined : statusFilter,
+        status: statusFilter,
       });
       if (aktif) {
         setDaftarPengguna(data);
@@ -133,7 +131,7 @@ const AkunGuruTables: React.FC = () => {
 
       const data = await GetAllGuru({
         q: kataKunciDebounce,
-        status: statusFilter === "SEMUA" ? undefined : statusFilter,
+        status: statusFilter,
       });
       setDaftarPengguna(data);
 
@@ -202,7 +200,7 @@ const AkunGuruTables: React.FC = () => {
             />
           </div>
           <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
-            {(["SEMUA", "AKTIF", "NONAKTIF"] as const).map((status) => (
+            {(["AKTIF", "NONAKTIF"] as const).map((status) => (
               <button
                 key={status}
                 type="button"
@@ -213,7 +211,7 @@ const AkunGuruTables: React.FC = () => {
                     : "border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-700"
                 }`}
               >
-                {status === "SEMUA" ? "Semua Status" : status}
+                {status === "AKTIF" ? "Aktif" : "Nonaktif"}
               </button>
             ))}
           </div>
