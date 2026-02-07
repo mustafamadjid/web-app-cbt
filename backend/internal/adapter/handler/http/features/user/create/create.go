@@ -50,7 +50,7 @@ func (h *UserHandler) CreateGuru(write http.ResponseWriter, req *http.Request, _
 		return
 	}
 
-	file, fh, err := req.FormFile("foto")
+	file, fh, err := req.FormFile("foto_profil")
 	if err != nil {
 		if errors.Is(err, http.ErrMissingFile) {
 			logger.Info(req.Context(), "missing foto file", "op", "user.create_guru", "err", err)
@@ -193,7 +193,7 @@ func (h *UserHandler) CreateSiswa(write http.ResponseWriter, req *http.Request, 
 		return
 	}
 
-	file, fh, err := req.FormFile("foto")
+	file, fh, err := req.FormFile("foto_profil")
 	if err != nil {
 		if errors.Is(err, http.ErrMissingFile) {
 			logger.Info(req.Context(), "missing foto file", "op", "user.create_siswa", "err", err)

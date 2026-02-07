@@ -139,17 +139,10 @@ export async function submitTeacherRegister(values: TeacherRegisterFormValues) {
     
   });
 
-  // Penting: jangan set Content-Type manual untuk FormData
-  const res = await api<ApiEnvelope<TeacherRegisterResponse>>(
-    "/teachers/register",
-    {
-      method: "POST",
-      data: formData,
-      
-    }
-  );
-
-  return res.data;
+  return api<TeacherRegisterFormValues>("/admin/guru",{
+    method: "POST",
+    data: formData
+  })
 }
 
 export async function getGuruById(id: number): Promise<DataGuru | null> {
