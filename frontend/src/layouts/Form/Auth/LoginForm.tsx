@@ -32,7 +32,12 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
       await login({ username, password });
       onSuccess();
     } catch (e) {
-      const message = e instanceof ApiError ? e.message : "Login gagal.";
+      const message =
+        e instanceof ApiError
+          ? e.code === "HAS_SESSION"
+            ? "Login gagal. Silakan logout terlebih dahulu pada device sebelumnya"
+            : "Login Gagal. Silakan Coba lagi"
+          : "Login gagal.";
       setError(message);
     } finally {
       setLoading(false);
