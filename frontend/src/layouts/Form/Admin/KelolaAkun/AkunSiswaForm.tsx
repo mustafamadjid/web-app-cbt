@@ -6,20 +6,12 @@ import ImageUpload from "@/components/features/Upload/ImageUpload";
 
 import type { JenisKelamin } from "@/types/OpsiTypes/Option";
 import type { StudentRegisterFormValues } from "@/types/KelolaAkun/AkunSiswa";
-import type {
-  FullDataKelas,
-  NamaKelas,
-  TingkatKelas,
-} from "@/types/DataMaster/Kelas";
+import type { FullDataKelas, NamaKelas } from "@/types/DataMaster/Kelas";
 
 import { submitStudentRegister } from "@/services/Api/features-api/KelolaAkun/akunsiswa.service";
 import { paths } from "@/routes/paths";
 import { ApiError } from "@/services/Api/api";
-import {
-  GetDataKelasFull,
-  getNamaKelas,
-} from "@/services/Api/features-api/DataMaster/kelas.service";
-import { getTingkatKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
+import { GetDataKelasFull } from "@/services/Api/features-api/DataMaster/kelas.service";
 
 import { createSetField } from "@/helper/setField/setField";
 import {
@@ -90,42 +82,23 @@ const AkunSiswaForm = () => {
     };
   }, [values.foto_profil]);
 
-  // const [TingkatKelass, setTingkatKelass] = useState<TingkatKelas[]>([]);
-  // const [daftarKelas, setDaftarKelas] = useState<NamaKelas[]>([]);
   const [namaKelasOptions, setNamaKelasOptions] = useState<NamaKelas[]>([]);
 
-  const [dataKelas, setDataKelas] = useState<FullDataKelas[]>([]);
+  const [daftarKelas, setDaftarKelas] = useState<FullDataKelas | null>(null);
 
   useEffect(() => {
     let akitf = true;
     const loadKelas = async () => {
       const data = await GetDataKelasFull();
       if (akitf) {
-        setDataKelas(data);
+        setDaftarKelas(data);
       }
     };
     loadKelas();
     return () => {
       akitf = false;
     };
-  },[]);
-
-  // useEffect(() => {
-  //   let active = true;
-  //   const loadKelas = async () => {
-  //     const [tingkat, kelas] = await Promise.all([
-  //       getTingkatKelas(),
-  //       getNamaKelas(),
-  //     ]);
-  //     if (!active) return;
-  //     setTingkatKelass(tingkat);
-  //     setDaftarKelas(kelas);
-  //   };
-  //   loadKelas();
-  //   return () => {
-  //     active = false;
-  //   };
-  // }, []);
+  }, []);
 
   useEffect(() => {
     if (!values.id_tingkat_kelas) {
@@ -136,7 +109,7 @@ const AkunSiswaForm = () => {
       return;
     }
 
-    const filtered = dataKelas.filter(
+    const filtered = (daftarKelas?.item_nama_kelas ?? []).filter(
       (kelas) => kelas.id_tingkat_kelas === values.id_tingkat_kelas,
     );
     setNamaKelasOptions(filtered);
@@ -255,7 +228,7 @@ const AkunSiswaForm = () => {
       setSubmitting(true);
 
       // FIX: cari kelas berdasarkan id_tingkat_kelas (number) dan id kelas (string)
-      const kelasTerpilih = daftarKelas.find(
+      const kelasTerpilih = daftarKelas?.item_nama_kelas.find(
         (kelas) =>
           kelas.id_tingkat_kelas === values.id_tingkat_kelas &&
           String(kelas.id_nama_kelas) === values.id_nama_kelas,
@@ -553,8 +526,11 @@ const AkunSiswaForm = () => {
                   </option>
 
                   {/* FIX: value harus id_tingkat_kelas (bukan tingkat_kelas) */}
-                  {TingkatKelass.map((tingkat) => (
-                    <option key={tingkat.id_kelas} value={tingkat.id_kelas}>
+                  {(daftarKelas?.item_tingkat_kelas ?? []).map((tingkat) => (
+                    <option
+                      key={tingkat.id_tingkat_kelas}
+                      value={tingkat.id_tingkat_kelas}
+                    >
                       Kelas {tingkat.tingkat_kelas}
                     </option>
                   ))}

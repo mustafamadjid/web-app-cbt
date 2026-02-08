@@ -4,7 +4,7 @@ export type KelasFormValues = {
 };
 
 export type TingkatKelas = {
-  id_kelas: number;
+  id_tingkat_kelas: number;
   tingkat_kelas: number;
 };
 export type NamaKelas = {
@@ -14,9 +14,9 @@ export type NamaKelas = {
 };
 
 export type FullDataKelas = {
-  item_tingkat_kelas : TingkatKelas[],
-  item_nama_kelas : NamaKelas[]
-}
+  item_tingkat_kelas: TingkatKelas[];
+  item_nama_kelas: NamaKelas[];
+};
 
 export type KelasFilterParams = {
   search?: string;
@@ -26,5 +26,4 @@ export type KelasFilterParams = {
 export type KelasSubmitResponse = {
   id: number;
 };
-
 
