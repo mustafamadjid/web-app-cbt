@@ -1,4 +1,4 @@
-import { api, type ApiEnvelope } from "@/services/Api/api";
+import { api } from "@/services/Api/api";
 import type { DataAkunSiswa } from "@/types/KelolaAkun/AkunSiswa";
 import type { DataGuru } from "@/types/KelolaAkun/AkunGuru";
 
@@ -9,10 +9,8 @@ export async function getProfileByUserId(userId: number) {
     id: userId,
   };
 
-  const res = await api<ApiEnvelope<ProfileData>>("/profile", {
+  return api<ProfileData>("/profile", {
     method: "GET",
     params: queryParams,
   });
-
-  return res.data;
 }

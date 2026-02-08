@@ -8,7 +8,6 @@ import {
   Archive,
   Edit3,
   User,
-  ShieldAlert,
   CheckCircle2,
   Trash,
   XCircle,
@@ -20,9 +19,13 @@ import { useNavigate } from "react-router";
 import type { TingkatKelas } from "@/types/DataMaster/Kelas";
 
 import {
-  getSiswa,
+  GetListSiswa,
   type BarisSiswa,
 } from "@/services/Api/features-api/KelolaAkun/akunsiswa.service";
+import {
+  DeletePengguna,
+  DeletePenggunaBulk,
+} from "@/services/Api/features-api/KelolaAkun/akun.service";
 import {
   getAngkatanOptions,
   getJenisKelaminOptions,
@@ -35,24 +38,20 @@ import { paths } from "@/routes/paths";
 /** ===== Helpers ===== */
 const getStatusBadge = (status: StatusAkun) => {
   switch (status) {
-    case "aktif":
+    case "AKTIF":
       return (
         <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
           <CheckCircle2 className="h-3 w-3" /> Aktif
         </span>
       );
-    case "nonaktif":
+    case "NONAKTIF":
       return (
         <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-2.5 py-0.5 text-xs font-medium text-rose-700 ring-1 ring-inset ring-rose-600/20">
           <XCircle className="h-3 w-3" /> Nonaktif
         </span>
       );
-    case "dibekukan":
-      return (
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-50 px-2.5 py-0.5 text-xs font-medium text-slate-600 ring-1 ring-inset ring-slate-500/20">
-          <ShieldAlert className="h-3 w-3" /> Dibekukan
-        </span>
-      );
+    default:
+      return null;
   }
 };
 
@@ -162,10 +161,10 @@ const AkunSiswaTables: React.FC = () => {
         setLoading(true);
         setErrorMsg("");
 
-        const data = await getSiswa({
+        const data = await GetListSiswa({
           q: debouncedKataKunci.trim() || undefined,
           angkatan: angkatan ? Number(angkatan) : undefined,
-          tingkatKelasId: tingkatKelasId ?? undefined,
+          tingkatKelas: tingkatKelasId ?? undefined,
           jenisKelamin: (jenisKelamin as JenisKelamin) || undefined,
         });
 
@@ -176,7 +175,7 @@ const AkunSiswaTables: React.FC = () => {
         // bersihkan selection yang tidak ada lagi di hasil
         setIdTerpilih((prev) => {
           if (prev.size === 0) return prev;
-          const ids = new Set(data.map((x) => x.id));
+          const ids = new Set(data.map((x) => x.id_pengguna));
           const next = new Set<number>();
           prev.forEach((id) => {
             if (ids.has(id)) next.add(id);
@@ -198,23 +197,23 @@ const AkunSiswaTables: React.FC = () => {
 
   const semuaTerlihatTerpilih =
     siswaTersaring.length > 0 &&
-    siswaTersaring.every((s) => idTerpilih.has(s.id));
+    siswaTersaring.every((s) => idTerpilih.has(s.id_pengguna));
 
   const togglePilihSemuaTerlihat = () => {
     setIdTerpilih((prev) => {
       const next = new Set(prev);
       if (semuaTerlihatTerpilih)
-        siswaTersaring.forEach((s) => next.delete(s.id));
-      else siswaTersaring.forEach((s) => next.add(s.id));
+        siswaTersaring.forEach((s) => next.delete(s.id_pengguna));
+      else siswaTersaring.forEach((s) => next.add(s.id_pengguna));
       return next;
     });
   };
 
-  const togglePilihBaris = (id: number) => {
+  const togglePilihBaris = (id_pengguna: number) => {
     setIdTerpilih((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(id_pengguna)) next.delete(id_pengguna);
+      else next.add(id_pengguna);
       return next;
     });
   };
@@ -226,6 +225,36 @@ const AkunSiswaTables: React.FC = () => {
     setAngkatan("");
     setTingkatKelasId(null);
     setJenisKelamin("");
+  };
+
+  const handleDeleteSiswa = async (id_pengguna: number) => {
+    const confirmed = window.confirm("Hapus akun siswa ini?");
+    if (!confirmed) return;
+
+    await DeletePengguna(id_pengguna);
+    setDaftarSiswa((prev) =>
+      prev.filter((item) => item.id_pengguna !== id_pengguna),
+    );
+    setIdTerpilih((prev) => {
+      const next = new Set(prev);
+      next.delete(id_pengguna);
+      return next;
+    });
+  };
+
+  const handleBulkDelete = async () => {
+    if (idTerpilih.size === 0) return;
+    const confirmed = window.confirm(
+      `Hapus ${idTerpilih.size} akun siswa terpilih?`,
+    );
+    if (!confirmed) return;
+
+    const ids = Array.from(idTerpilih);
+    await DeletePenggunaBulk(ids);
+    setDaftarSiswa((prev) =>
+      prev.filter((item) => !idTerpilih.has(item.id_pengguna)),
+    );
+    setIdTerpilih(new Set());
   };
 
   return (
@@ -390,7 +419,10 @@ const AkunSiswaTables: React.FC = () => {
                       <div className="p-1">
                         <button
                           className="flex w-full cursor-pointer items-center gap-2 rounded-md px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
-                          onClick={() => setDropdownAksiTerbuka(false)}
+                          onClick={() => {
+                            setDropdownAksiTerbuka(false);
+                            void handleBulkDelete();
+                          }}
                         >
                           <Archive className="h-4 w-4 text-slate-400" />{" "}
                           Arsipkan
@@ -467,8 +499,11 @@ const AkunSiswaTables: React.FC = () => {
             <tbody className="divide-y divide-slate-200">
               {siswaTersaring.length > 0 ? (
                 siswaTersaring.map((s) => {
-                  const hpRaw = (s.noHp ?? "").trim();
+                  const hpRaw = (s.no_hp ?? "").trim();
                   const emailRaw = (s.email ?? "").trim();
+                  const fotoUrl = s.foto_profil
+                    ? `${import.meta.env.VITE_API_URL}${s.foto_profil}`
+                    : "";
 
                   const hpTampil = !hpRaw
                     ? "-"
@@ -482,23 +517,23 @@ const AkunSiswaTables: React.FC = () => {
                       ? samarkanEmail(emailRaw)
                       : emailRaw;
 
-                  const ttlTampil = `${s.tempatLahir}, ${formatTanggalIndo(
-                    s.tanggalLahir,
+                  const ttlTampil = `${s.tempat_lahir}, ${formatTanggalIndo(
+                    s.tanggal_lahir,
                   )}`;
 
                   return (
                     <tr
-                      key={s.id}
+                      key={s.id_pengguna}
                       className={`transition-colors hover:bg-slate-50 ${
-                        idTerpilih.has(s.id) ? "bg-indigo-50/30" : ""
+                        idTerpilih.has(s.id_pengguna) ? "bg-indigo-50/30" : ""
                       }`}
                     >
                       <td className="p-4">
                         <div className="flex items-center">
                           <input
                             type="checkbox"
-                            checked={idTerpilih.has(s.id)}
-                            onChange={() => togglePilihBaris(s.id)}
+                            checked={idTerpilih.has(s.id_pengguna)}
+                            onChange={() => togglePilihBaris(s.id_pengguna)}
                             className="h-4 w-4 cursor-pointer rounded border-slate-300 text-[#397e50] focus:ring-[#397e50]"
                           />
                         </div>
@@ -509,15 +544,20 @@ const AkunSiswaTables: React.FC = () => {
                         <div className="flex items-center gap-3">
                           <img
                             className="h-10 w-10 rounded-full object-cover ring-2 ring-white"
-                            src={s.urlGambarProfil}
+                            src={
+                              fotoUrl ||
+                              `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                                s.nama_lengkap,
+                              )}&background=random`
+                            }
                             alt=""
                           />
                           <div className="flex flex-col">
                             <span className="font-semibold text-slate-900">
-                              {s.namaLengkap}
+                              {s.nama_lengkap}
                             </span>
                             <span className="text-xs text-slate-500">
-                              @{s.username} • {labelGender[s.jenisKelamin]}
+                              @{s.username} • {labelGender[s.jenis_kelamin]}
                             </span>
                           </div>
                         </div>
@@ -530,7 +570,7 @@ const AkunSiswaTables: React.FC = () => {
                           <span className="text-xs text-slate-500">
                             No Absen:{" "}
                             <span className="font-medium text-slate-700">
-                              {s.noAbsen}
+                              {s.no_absen}
                             </span>{" "}
                             • Angkatan:{" "}
                             <span className="font-medium text-slate-700">
@@ -542,7 +582,7 @@ const AkunSiswaTables: React.FC = () => {
 
                       {/* TTL */}
                       <td className="px-6 py-4">
-                        <span className="text-slate-700">{ttlTampil}</span>
+                    <span className="text-slate-700">{ttlTampil}</span>
                       </td>
 
                       {/* Kontak */}
@@ -559,7 +599,7 @@ const AkunSiswaTables: React.FC = () => {
 
                       {/* Status */}
                       <td className="px-6 py-4">
-                        {getStatusBadge(s.statusAkun)}
+                        {getStatusBadge(s.status_akun)}
                       </td>
 
                       {/* Aksi */}
@@ -572,7 +612,7 @@ const AkunSiswaTables: React.FC = () => {
                               navigate(
                                 paths.dashboard.edit_siswa.replace(
                                   ":id",
-                                  String(s.id),
+                                  String(s.id_pengguna),
                                 ),
                               )
                             }
@@ -581,8 +621,8 @@ const AkunSiswaTables: React.FC = () => {
                           </button>
                           <button
                             className="cursor-pointer rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-red-600"
-                            title="Detail"
-                            onClick={() => console.log("Detail", s.id)}
+                            title="Hapus"
+                            onClick={() => void handleDeleteSiswa(s.id_pengguna)}
                           >
                             <Trash className="h-4 w-4" />
                           </button>

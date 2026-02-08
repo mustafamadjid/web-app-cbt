@@ -222,22 +222,22 @@ const HasilUjianDetail = () => {
               ) : (
                 daftarSiswa.map((siswa) => (
                   <tr
-                    key={siswa.id}
+                    key={siswa.id_pengguna}
                     className="group transition-colors hover:bg-slate-50"
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <img
                           src={
-                            siswa.urlGambarProfil ||
-                            `https://ui-avatars.com/api/?name=${siswa.namaLengkap}&background=random`
+                            siswa.foto_profil ||
+                            `https://ui-avatars.com/api/?name=${siswa.nama_lengkap}&background=random`
                           }
-                          alt={siswa.namaLengkap}
+                          alt={siswa.nama_lengkap}
                           className="h-9 w-9 rounded-full bg-slate-200 object-cover ring-2 ring-white"
                         />
                         <div>
                           <p className="font-semibold text-slate-800">
-                            {siswa.namaLengkap}
+                            {siswa.nama_lengkap}
                           </p>
                           <p className="text-xs text-slate-500 capitalize">
                             {siswa.role}
@@ -250,11 +250,11 @@ const HasilUjianDetail = () => {
                       <div className="flex flex-col gap-1 text-sm text-slate-600">
                         <div className="flex items-center gap-1.5 font-medium">
                           <GraduationCap size={14} className="text-slate-400" />
-                          {siswa.id_tingkat_kelas} - {siswa.id_nama_kelas}
+                          {siswa.tingkat_kelas} - {siswa.nama_kelas}
                         </div>
                         <div className="flex items-center gap-3 text-xs text-slate-400">
                           <span className="flex items-center gap-1">
-                            <Hash size={12} /> {siswa.noAbsen}
+                            <Hash size={12} /> {siswa.no_absen}
                           </span>
                           <span className="flex items-center gap-1">
                             <Calendar size={12} /> {siswa.angkatan}
@@ -316,7 +316,7 @@ const HasilUjianDetail = () => {
                             ? paths.dashboard.hasil_ujian_detail_admin
                             : paths.dashboard.hasil_ujian_detail_admin_guru
                                 .replace(":id", String(ujianId))
-                                .replace(":siswaId", String(siswa.id))
+                                .replace(":siswaId", String(siswa.id_pengguna))
                         }
                         className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-400 transition-colors hover:border-[#397e50] hover:bg-[#397e50] hover:text-white"
                         title="Lihat Detail"

@@ -20,14 +20,14 @@ export async function getUjianSiswaPreview(params: {
   if (!tingkatKelas) return [];
 
   return DUMMY_SISWA.filter(
-    (siswa) => siswa.id_tingkat_kelas === tingkatKelas,
+    (siswa) => siswa.tingkat_kelas === tingkatKelas,
   ).map((siswa) => ({
-    id: siswa.id,
-    nama: siswa.namaLengkap,
+    id: siswa.id_pengguna,
+    nama: siswa.nama_lengkap,
     username: siswa.username,
-    no_absen: siswa.noAbsen,
-    kelas: String(siswa.id_tingkat_kelas),
-    status_akun: siswa.statusAkun,
+    no_absen: siswa.no_absen,
+    kelas: String(siswa.tingkat_kelas),
+    status_akun: siswa.status_akun,
   }));
 }
 

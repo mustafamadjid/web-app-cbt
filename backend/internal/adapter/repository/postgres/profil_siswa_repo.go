@@ -29,48 +29,84 @@ func (r *ProfilSiswaRepo) loggerFor(ctx context.Context) corelog.Logger {
 	return corelog.FromContextOr(ctx, r.logger)
 }
 
-func (r *ProfilSiswaRepo) FindProfilSiswaByID(ctx context.Context, id user.ID) (user.ProfilSiswa, error) {
+func (r *ProfilSiswaRepo) FindProfilSiswaByID(ctx context.Context, id user.ID) (user.DataSiswa, error) {
 	const query = `
-		SELECT id_siswa,
-			id_pengguna,
-			id_kelas,
-			id_nama_kelas,
-			nisn,
-			no_absen,
-			angkatan,
-			tempat_lahir,
-			tanggal_lahir
-		FROM profil_siswa
-		WHERE id_pengguna = $1
+		SELECT 
+			ps.id_pengguna,
+			ps.id_siswa,
+			u.username,
+			u.email,
+			u.nama_lengkap,
+			u.jenis_kelamin,
+			u.no_hp,
+			u.foto,
+			r.nama_role,
+			u.status_akun,
+			ps.nisn,
+			ps.no_absen,
+			ps.angkatan,
+			ps.tempat_lahir,
+			ps.tanggal_lahir,
+			nk.nama_kelas,
+			k.tingkat_kelas
+		FROM profil_siswa ps
+		JOIN pengguna u ON ps.id_pengguna = u.id_pengguna
+		JOIN role r ON u.id_role = r.id_role
+		JOIN kelas k ON ps.id_kelas = k.id_kelas
+		JOIN nama_kelas nk ON ps.id_nama_kelas = nk.id_nama_kelas
+		WHERE ps.id_pengguna = $1
 	`
 
-	var result user.ProfilSiswa
+	var result user.DataSiswa
+
 	var nisn sql.NullString
-	var tempatLahir sql.NullString
-	var tanggalLahir sql.NullTime
 	var noAbsen sql.NullInt32
 	var angkatan sql.NullInt32
+	var tempatLahir sql.NullString
+	var tanggalLahir sql.NullTime
+	var jenisKelamin int16
+	var email sql.NullString
+	var noHp sql.NullString
+	var foto sql.NullString
+
 	err := r.q.QueryRow(ctx, query, id).Scan(
-		&result.ID,
 		&result.IdPengguna,
-		&result.IdTingkatKelas,
-		&result.IdNamaKelas,
+		&result.IdSiswa,
+		&result.Username,
+		&email,
+		&result.NamaLengkap,
+		&jenisKelamin,
+		&noHp,
+		&foto,
+		&result.Role,
+		&result.StatusAkun,
 		&nisn,
 		&noAbsen,
 		&angkatan,
 		&tempatLahir,
 		&tanggalLahir,
+		&result.NamaKelas,
+		&result.TingkatKelas,
 	)
 	if errors.Is(err, pgx.ErrNoRows) {
-		return user.ProfilSiswa{}, coreerror.ErrNotFound
+		return user.DataSiswa{}, coreerror.ErrNotFound
 	}
 	if err != nil {
 		r.loggerFor(ctx).Error(ctx, "failed finding profil siswa", "op", "profil_siswa_repo.find_by_id", "user_id", id, "err", err)
-		return user.ProfilSiswa{}, err
+		return user.DataSiswa{}, err
 	}
 
+	if email.Valid {
+		result.Email = email.String
+	}
+	if noHp.Valid {
+		result.NoHp = noHp.String
+	}
+	if foto.Valid {
+		result.Foto = foto.String
+	}
 	if nisn.Valid {
-		result.Nisn = user.NISN(nisn.String)
+		result.Nisn = nisn.String
 	}
 	if noAbsen.Valid {
 		result.NoAbsen = int(noAbsen.Int32)
@@ -84,6 +120,13 @@ func (r *ProfilSiswaRepo) FindProfilSiswaByID(ctx context.Context, id user.ID) (
 	if tanggalLahir.Valid {
 		result.TanggalLahir = tanggalLahir.Time
 	}
+
+	jenisKelaminValue, err := formatJenisKelamin(jenisKelamin)
+	if err != nil {
+		return user.DataSiswa{}, err
+	}
+	result.JenisKelamin = jenisKelaminValue
+
 	return result, nil
 }
 
@@ -200,7 +243,9 @@ func (r *ProfilSiswaRepo) GetListSiswa(ctx context.Context, filter query.ListSis
 			p.status_akun,
 			nk.nama_kelas,
 			k.tingkat_kelas,
-			ps.angkatan
+			ps.angkatan,
+			ps.tempat_lahir,
+			ps.tanggal_lahir
 		FROM pengguna p
 		JOIN profil_siswa ps ON ps.id_pengguna = p.id_pengguna
 		JOIN kelas k ON ps.id_kelas = k.id_kelas
@@ -274,6 +319,8 @@ func (r *ProfilSiswaRepo) GetListSiswa(ctx context.Context, filter query.ListSis
 		var noHp sql.NullString
 		var foto sql.NullString
 		var angkatan sql.NullInt32
+		var tempatLahir sql.NullString
+		var tanggalLahir sql.NullTime
 
 		if err := rows.Scan(
 			&item.IdPengguna,
@@ -287,6 +334,8 @@ func (r *ProfilSiswaRepo) GetListSiswa(ctx context.Context, filter query.ListSis
 			&item.NamaKelas,
 			&item.TingkatKelas,
 			&angkatan,
+			&tempatLahir,
+			&tanggalLahir,
 		); err != nil {
 			r.loggerFor(ctx).Error(ctx, "failed scanning siswa list", "op", "profil_siswa_repo.list_scan", "err", err)
 			return nil, err
@@ -310,6 +359,12 @@ func (r *ProfilSiswaRepo) GetListSiswa(ctx context.Context, filter query.ListSis
 		}
 		if angkatan.Valid {
 			item.Angkatan = int(angkatan.Int32)
+		}
+		if tempatLahir.Valid {
+			item.TempatLahir = tempatLahir.String
+		}
+		if tanggalLahir.Valid {
+			item.TanggalLahir = tanggalLahir.Time
 		}
 
 		results = append(results, item)

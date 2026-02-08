@@ -1,3 +1,5 @@
+import type { StatusAkun } from "../OpsiTypes/Option";
+
 export type TipeUjian = "PILIHAN_GANDA" | "ESSAY" | "CAMPURAN";
 
 export type BuatUjianFormValues = {
@@ -54,7 +56,7 @@ export type SiswaPreviewItem = {
   username: string;
   no_absen: number;
   kelas: string;
-  status_akun: "aktif" | "nonaktif" | "dibekukan";
+  status_akun: StatusAkun;
 };
 
 export type BuatUjianSubmitResponse = {
