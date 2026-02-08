@@ -29,6 +29,7 @@ type EditAkunSiswaFormProps = {
 
 const sectionTitle = "text-sm font-semibold text-slate-800";
 const helperText = "text-xs text-slate-500";
+const NISN_LENGTH = 10;
 
 function toIntOrPrev(prev: number, raw: string): number {
   const s = String(raw ?? "").trim();
@@ -37,6 +38,13 @@ function toIntOrPrev(prev: number, raw: string): number {
   const n = Number(s);
   return Number.isSafeInteger(n) ? n : prev;
 }
+
+const normalizeNisnInput = (value: string) => {
+  const trimmed = value.trim();
+  if (trimmed === "-") return "-";
+  const digitsOnly = trimmed.replace(/\D/g, "");
+  return digitsOnly.slice(0, NISN_LENGTH);
+};
 
 const EditAkunSiswaForm = ({
   initialValues,
@@ -140,6 +148,17 @@ const EditAkunSiswaForm = ({
           : "No HP harus berupa 10-15 digit angka.";
       },
     ],
+    nisn: [
+      requiredString("NISN wajib diisi."),
+      (value) => {
+        const trimmed = value.trim();
+        if (trimmed === "-") return null;
+        if (trimmed.length !== NISN_LENGTH) {
+          return "NISN belum valid (kurang dari 10 digit).";
+        }
+        return null;
+      },
+    ],
     no_absen: [
       (value) => (value <= 0 ? "No absen harus lebih dari 0." : null),
     ],
@@ -167,6 +186,7 @@ const EditAkunSiswaForm = ({
 
     setTouched({
       nama_lengkap: true,
+      nisn: true,
       username: true,
       jenis_kelamin: true,
       email: true,
@@ -296,6 +316,26 @@ const EditAkunSiswaForm = ({
                   <p className="mt-1 text-xs text-rose-600">
                     {errors.jenis_kelamin}
                   </p>
+                )}
+              </div>
+
+              <div>
+                <InputField
+                  id="nisn"
+                  type="text"
+                  label="NISN (Jika tidak ada, isi dengan - )"
+                  value={values.nisn ?? ""}
+                  onChange={(v) => setField("nisn", normalizeNisnInput(v))}
+                  onBlur={() => onBlur("nisn")}
+                  placeholder="Contoh: 1234567890"
+                  inputClassName={
+                    hasError("nisn") ? "border-rose-300 ring-rose-100" : ""
+                  }
+                  disabled={isDisabled}
+                  required={false}
+                />
+                {hasError("nisn") && (
+                  <p className="mt-1 text-xs text-rose-600">{errors.nisn}</p>
                 )}
               </div>
 

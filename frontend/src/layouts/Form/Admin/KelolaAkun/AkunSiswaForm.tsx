@@ -43,6 +43,7 @@ const initialValues: StudentRegisterFormValues = {
 
 const sectionTitle = "text-sm font-semibold text-slate-800";
 const helperText = "text-xs text-slate-500";
+const NISN_LENGTH = 10;
 
 /** Konversi input string menjadi integer. Kalau invalid, pertahankan nilai sebelumnya. */
 function toIntOrPrev(prev: number, raw: string): number {
@@ -52,6 +53,13 @@ function toIntOrPrev(prev: number, raw: string): number {
   const n = Number(s);
   return Number.isSafeInteger(n) ? n : prev;
 }
+
+const normalizeNisnInput = (value: string) => {
+  const trimmed = value.trim();
+  if (trimmed === "-") return "-";
+  const digitsOnly = trimmed.replace(/\D/g, "");
+  return digitsOnly.slice(0, NISN_LENGTH);
+};
 
 const AkunSiswaForm = () => {
   const navigate = useNavigate();
@@ -164,7 +172,17 @@ const AkunSiswaForm = () => {
         return null;
       },
     ],
-    nisn: [requiredString("NISN wajib diisi")],
+    nisn: [
+      requiredString("NISN wajib diisi."),
+      (value) => {
+        const trimmed = value.trim();
+        if (trimmed === "-") return null;
+        if (trimmed.length !== NISN_LENGTH) {
+          return "NISN belum valid (kurang dari 10 digit).";
+        }
+        return null;
+      },
+    ],
 
     // ===== numeric: angkatan (4 digit + range) =====
     angkatan: [
@@ -406,7 +424,7 @@ const AkunSiswaForm = () => {
                   type="text"
                   label="NISN (Jika tidak ada, isi dengan - )"
                   value={values.nisn ?? ""}
-                  onChange={(v) => setField("nisn", v)}
+                  onChange={(v) => setField("nisn", normalizeNisnInput(v))}
                   onBlur={() => onBlur("nisn")}
                   placeholder="Contoh: 1234567890"
                   inputClassName={
