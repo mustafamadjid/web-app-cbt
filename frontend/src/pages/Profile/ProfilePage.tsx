@@ -69,18 +69,20 @@ const ProfilePage = () => {
     };
   }, [user?.id_pengguna]);
 
-  const displayName = profile?.namaLengkap ?? "-";
+  const displayName = profile?.nama_lengkap ?? "-";
   const displayRole = profile?.role ? roleLabels[profile.role] ?? profile.role : "-";
-  const avatarUrl = profile?.urlGambarProfil ?? null;
+  const avatarUrl = profile?.foto_profil
+    ? `${import.meta.env.VITE_API_URL}${profile.foto_profil}`
+    : null;
 
   const personalFields = useMemo<ProfileField[]>(
     () => [
-      { label: "Nama Lengkap", value: formatLabel(profile?.namaLengkap) },
+      { label: "Nama Lengkap", value: formatLabel(profile?.nama_lengkap) },
       { label: "Username", value: formatLabel(profile?.username) },
       { label: "Email", value: formatLabel(profile?.email) },
-      { label: "Nomor HP", value: formatLabel(profile?.noHp) },
-      { label: "Jenis Kelamin", value: formatLabel(profile?.jenisKelamin) },
-      { label: "Status Akun", value: formatLabel(profile?.statusAkun) },
+      { label: "Nomor HP", value: formatLabel(profile?.no_hp) },
+      { label: "Jenis Kelamin", value: formatLabel(profile?.jenis_kelamin) },
+      { label: "Status Akun", value: formatLabel(profile?.status_akun) },
     ],
     [profile]
   );
@@ -97,12 +99,12 @@ const ProfilePage = () => {
     }
 
     return [
-      { label: "Nomor Absen", value: formatLabel(profile.noAbsen) },
+      { label: "Nomor Absen", value: formatLabel(profile.no_absen) },
       { label: "Angkatan", value: formatLabel(profile.angkatan) },
-      { label: "Tempat Lahir", value: formatLabel(profile.tempatLahir) },
-      { label: "Tanggal Lahir", value: formatLabel(profile.tanggalLahir) },
-      { label: "Tingkat Kelas", value: formatLabel(profile.id_tingkat_kelas) },
-      { label: "Nama Kelas", value: formatLabel(profile.id_nama_kelas) },
+      { label: "Tempat Lahir", value: formatLabel(profile.tempat_lahir) },
+      { label: "Tanggal Lahir", value: formatLabel(profile.tanggal_lahir) },
+      { label: "Tingkat Kelas", value: formatLabel(profile.tingkat_kelas) },
+      { label: "Nama Kelas", value: formatLabel(profile.nama_kelas) },
     ];
   }, [profile]);
 

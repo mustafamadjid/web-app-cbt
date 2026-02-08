@@ -19,15 +19,14 @@ type UpdateProfilSiswaPatch struct {
 	TanggalLahir   *time.Time
 }
 
-
 type ProfilSiswaRepository interface {
-	FindProfilSiswaByID(ctx context.Context,id user.ID) (user.ProfilSiswa,error)
-	ExistByNISN(ctx context.Context,nisn string) (bool,error)
-	CreateProfilSiswa(ctx context.Context,profilSiswa user.ProfilSiswa) (user.ID,error)
+	FindProfilSiswaByID(ctx context.Context, id user.ID) (user.DataSiswa, error)
+	ExistByNISN(ctx context.Context, nisn string) (bool, error)
+	CreateProfilSiswa(ctx context.Context, profilSiswa user.ProfilSiswa) (user.ID, error)
 
-	UpdateProfilSiswa(ctx context.Context,idPengguna user.ID,profilSiswa UpdateProfilSiswaPatch) error
+	UpdateProfilSiswa(ctx context.Context, idPengguna user.ID, profilSiswa UpdateProfilSiswaPatch) error
 }
 
 type GetListSiswaRepo interface {
-	GetListSiswa(ctx context.Context, filter query.ListSiswaFilter) ([]query.SiswaListItem,error)
+	GetListSiswa(ctx context.Context, filter query.ListSiswaFilter) ([]query.SiswaListItem, error)
 }

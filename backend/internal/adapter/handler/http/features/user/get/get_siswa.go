@@ -51,7 +51,91 @@ func (h *GetSiswaHandler) ListSiswa(write http.ResponseWriter, req *http.Request
 		return
 	}
 
-	httpResponse.WriteOK(write, http.StatusOK, items, "Success")
+	responseData := make([]SiswaResponseItem, 0, len(items))
+	for _, item := range items {
+		var tanggalLahir string
+		if !item.TanggalLahir.IsZero() {
+			tanggalLahir = item.TanggalLahir.Format("2006-01-02")
+		}
+		responseData = append(responseData, SiswaResponseItem{
+			IdPengguna:   item.IdPengguna,
+			Role:         user.SISWA,
+			Username:     item.Username,
+			NoHp:         item.NoHp,
+			Email:        item.Email,
+			NamaLengkap:  item.NamaLengkap,
+			StatusAkun:   item.StatusAkun,
+			NoAbsen:      item.NoAbsen,
+			Angkatan:     item.Angkatan,
+			TempatLahir:  item.TempatLahir,
+			TanggalLahir: tanggalLahir,
+			NamaKelas:    item.NamaKelas,
+			TingkatKelas: item.TingkatKelas,
+			Foto:         item.Foto,
+			JenisKelamin: item.JenisKelamin,
+		})
+	}
+
+	httpResponse.WriteOK(write, http.StatusOK, responseData, "Success")
+}
+
+func (h *GetSiswaHandler) GetSiswaByID(write http.ResponseWriter, req *http.Request, params httprouter.Params) {
+	logger := corelog.FromContext(req.Context())
+	if req.Method != http.MethodGet {
+		httpResponse.WriteErr(write, http.StatusMethodNotAllowed, "METHOD_NOT_ALLOWED", "method not allowed")
+		return
+	}
+
+	rawID := strings.TrimSpace(params.ByName("id"))
+	if rawID == "" {
+		httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request : id is required")
+		return
+	}
+
+	parsedID, err := strconv.Atoi(rawID)
+	if err != nil || parsedID <= 0 {
+		logger.Info(req.Context(), "invalid siswa id", "layer", "adapter.http.handler", "op", "user.get_siswa", "err", err)
+		httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request : invalid id")
+		return
+	}
+
+	result, err := h.svc.FindProfilSiswaByID(req.Context(), user.ID(parsedID))
+	if err != nil {
+		logger.Error(req.Context(), "failed getting siswa", "layer", "adapter.http.handler", "op", "user.get_siswa", "err", err)
+		switch {
+		case errors.Is(err, coreerror.ErrNotFound):
+			httpResponse.WriteErr(write, http.StatusNotFound, "NOT_FOUND", "data not found")
+		default:
+			httpResponse.WriteErr(write, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error: failed get siswa")
+		}
+		return
+	}
+
+	var tanggalLahir string
+	if !result.TanggalLahir.IsZero() {
+		tanggalLahir = result.TanggalLahir.Format("2006-01-02")
+	}
+
+	responseData := SiswaResponseItem{
+		IdPengguna:   result.IdPengguna,
+		Role:         result.Role,
+		Username:     result.Username,
+		NoHp:         result.NoHp,
+		Email:        user.Email(result.Email),
+		NamaLengkap:  result.NamaLengkap,
+		StatusAkun:   result.StatusAkun,
+		Nisn:         result.Nisn,
+		NoAbsen:      result.NoAbsen,
+		Angkatan:     result.Angkatan,
+		TempatLahir:  result.TempatLahir,
+		TanggalLahir: tanggalLahir,
+		NamaKelas:    result.NamaKelas,
+		TingkatKelas: result.TingkatKelas,
+		Foto:         result.Foto,
+		JenisKelamin: result.JenisKelamin,
+	}
+
+	httpResponse.WriteOK(write, http.StatusOK, responseData, "Success")
 }
 
 func parseListSiswaFilters(req *http.Request) (query.ListSiswaFilter, error) {

@@ -2,7 +2,7 @@ package user_service
 
 import (
 	"context"
-	
+
 	"strings"
 	"time"
 
@@ -10,24 +10,27 @@ import (
 	"github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
 
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
-	
+
 	query "github.com/mustafamadjid/web-app-cbt/internal/core/query/user"
 )
 
 type GetSiswaService struct {
-	siswaSvc out.GetListSiswaRepo
+	siswaSvc      out.GetListSiswaRepo
+	profilSiswaSv out.ProfilSiswaRepository
 }
 
-func NewGetListSiswaService(siswaSvc out.GetListSiswaRepo) *GetSiswaService {
-	return &GetSiswaService{siswaSvc: siswaSvc}
+func NewGetListSiswaService(siswaSvc out.GetListSiswaRepo, profilSiswaSv out.ProfilSiswaRepository) *GetSiswaService {
+	return &GetSiswaService{siswaSvc: siswaSvc, profilSiswaSv: profilSiswaSv}
 }
+
 var allowedSort = map[string]struct{}{
-	"nama_lengkap":       {},
-	"created_at": {},
-	"username":   {},
-	"nisn":        {},
+	"nama_lengkap": {},
+	"created_at":   {},
+	"username":     {},
+	"nisn":         {},
 }
-func (s *GetSiswaService) ListSiswa(ctx context.Context, filter query.ListSiswaFilter) ([]query.SiswaListItem,error) {
+
+func (s *GetSiswaService) ListSiswa(ctx context.Context, filter query.ListSiswaFilter) ([]query.SiswaListItem, error) {
 	filter.Search = strings.TrimSpace(filter.Search)
 
 	if filter.Limit <= 0 {
@@ -46,17 +49,14 @@ func (s *GetSiswaService) ListSiswa(ctx context.Context, filter query.ListSiswaF
 		filter.SortBy = "created_at"
 	}
 
-	
-
-	if _,ok := allowedSort[filter.SortBy]; !ok {
+	if _, ok := allowedSort[filter.SortBy]; !ok {
 		return nil, coreerror.ErrInvalidInput
 	}
 
-	
 	if filter.Status == nil {
 		s := user.AKTIF
 		filter.Status = &s
-	}else {
+	} else {
 		if *filter.Status != user.AKTIF && *filter.Status != user.NONAKTIF {
 			return nil, coreerror.ErrInvalidInput
 		}
@@ -70,21 +70,25 @@ func (s *GetSiswaService) ListSiswa(ctx context.Context, filter query.ListSiswaF
 	}
 
 	if filter.TingkatKelas != nil {
-		if *filter.TingkatKelas < 0{
+		if *filter.TingkatKelas < 0 {
 			return nil, coreerror.ErrInvalidInput
 		}
 	}
 
 	if filter.JenisKelamin != nil {
-		if *filter.JenisKelamin <= 0 || *filter.JenisKelamin > 2{
+		if *filter.JenisKelamin <= 0 || *filter.JenisKelamin > 2 {
 			return nil, coreerror.ErrInvalidInput
 		}
 	}
 
-	items, err := s.siswaSvc.GetListSiswa(ctx,filter)
+	items, err := s.siswaSvc.GetListSiswa(ctx, filter)
 	if err != nil {
-		return  nil,err
+		return nil, err
 	}
 
 	return items, nil
+}
+
+func (s *GetSiswaService) FindProfilSiswaByID(ctx context.Context, id user.ID) (user.DataSiswa, error) {
+	return s.profilSiswaSv.FindProfilSiswaByID(ctx, id)
 }

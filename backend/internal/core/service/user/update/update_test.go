@@ -112,7 +112,7 @@ func (r *fakeProfilSiswaRepo) UpdateProfilSiswa(ctx context.Context, idPengguna 
 	return nil
 }
 
-func (r *fakeProfilSiswaRepo) FindProfilSiswaByID(ctx context.Context, id user.ID) (user.ProfilSiswa, error) {
+func (r *fakeProfilSiswaRepo) FindProfilSiswaByID(ctx context.Context, id user.ID) (user.DataSiswa, error) {
 	panic("not used in this test")
 }
 

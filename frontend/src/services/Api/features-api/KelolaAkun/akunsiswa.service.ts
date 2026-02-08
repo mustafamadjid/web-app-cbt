@@ -1,14 +1,15 @@
 import { buildFormData } from "@/helper/FormData/BuildFormData";
 
-import type { JenisKelamin } from "@/types/OpsiTypes/Option";
+import type { JenisKelamin, StatusAkun } from "@/types/OpsiTypes/Option";
 import type {
+  DataAkunSiswa,
+  StudentDetailResponse,
+  StudentListResponseItem,
   StudentRegisterFormValues,
   StudentRegisterResponse,
+  StudentUpdatePayload,
 } from "@/types/KelolaAkun/AkunSiswa";
-import { api, type ApiEnvelope } from "../../api";
-import { getNamaKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
-
-import type { DataAkunSiswa } from "@/types/KelolaAkun/AkunSiswa";
+import { api } from "../../api";
 
 export type BarisSiswa = DataAkunSiswa & {
   kelas: string;
@@ -16,117 +17,58 @@ export type BarisSiswa = DataAkunSiswa & {
 
 export type SiswaFilterParams = {
   q?: string;
+  status?: StatusAkun;
+  limit?: number;
+  offset?: number;
   angkatan?: number;
-  tingkatKelasId?: number;
+  tingkatKelas?: number;
   jenisKelamin?: JenisKelamin;
 };
 
+const mapJenisKelaminFilter = (jenisKelamin?: JenisKelamin) => {
+  if (!jenisKelamin) return undefined;
+  return jenisKelamin === "LAKI_LAKI" ? "1" : "2";
+};
 
 export const DUMMY_SISWA: DataAkunSiswa[] = [
   {
-    id: 1,
+    id_pengguna: 1,
     role: "SISWA",
-    namaLengkap: "Siti Aminah",
+    nama_lengkap: "Siti Aminah",
     username: "siti.aminah",
     email: "siti.aminah@gmail.com",
-    noHp: "081234567890",
-    jenisKelamin: "PEREMPUAN",
-    statusAkun: "aktif",
-    noAbsen: 12,
+    no_hp: "081234567890",
+    jenis_kelamin: "PEREMPUAN",
+    status_akun: "AKTIF",
+    nisn: "1234567890",
+    no_absen: 12,
     angkatan: 2025,
-    tempatLahir: "Bandung",
-    tanggalLahir: "2008-01-31",
-    id_tingkat_kelas: 2,
-    id_nama_kelas: "3",
-    urlGambarProfil: "https://i.pravatar.cc/150?u=s-0001",
+    tempat_lahir: "Bandung",
+    tanggal_lahir: "2008-01-31",
+    tingkat_kelas: 10,
+    nama_kelas: "X IPA 1",
+    foto_profil: "https://i.pravatar.cc/150?u=s-0001",
   },
   {
-    id: 2,
+    id_pengguna: 2,
     role: "SISWA",
-    namaLengkap: "Raka Pratama",
+    nama_lengkap: "Raka Pratama",
     username: "raka.pratama",
     email: "",
-    noHp: "",
-    jenisKelamin: "LAKI_LAKI",
-    statusAkun: "nonaktif",
-    noAbsen: 7,
+    no_hp: "",
+    jenis_kelamin: "LAKI_LAKI",
+    status_akun: "NONAKTIF",
+    nisn: "2234567890",
+    no_absen: 7,
     angkatan: 2024,
-    tempatLahir: "Jakarta",
-    tanggalLahir: "2009-08-12",
-    id_tingkat_kelas: 1,
-    id_nama_kelas: "2",
-    urlGambarProfil: "https://i.pravatar.cc/150?u=s-0002",
-  },
-  {
-    id: 3,
-    role: "SISWA",
-    namaLengkap: "Dimas Saputra",
-    username: "dimas.saputra",
-    email: "dimas.saputra@mail.com",
-    noHp: "082198765432",
-    jenisKelamin: "LAKI_LAKI",
-    statusAkun: "aktif",
-    noAbsen: 3,
-    angkatan: 2025,
-    tempatLahir: "Surabaya",
-    tanggalLahir: "2009-02-20",
-    id_tingkat_kelas: 1,
-    id_nama_kelas: "1",
-    urlGambarProfil: "https://i.pravatar.cc/150?u=s-0003",
-  },
-  {
-    id: 4,
-    role: "SISWA",
-    namaLengkap: "Nadya Putri",
-    username: "nadya.putri",
-    email: "nadya.putri@gmail.com",
-    noHp: "081355500011",
-    jenisKelamin: "PEREMPUAN",
-    statusAkun: "dibekukan",
-    noAbsen: 18,
-    angkatan: 2023,
-    tempatLahir: "Semarang",
-    tanggalLahir: "2008-11-05",
-    id_tingkat_kelas: 2,
-    id_nama_kelas: "4",
-    urlGambarProfil: "https://i.pravatar.cc/150?u=s-0004",
-  },
-  {
-    id: 5,
-    role: "SISWA",
-    namaLengkap: "Bagas Wiratama",
-    username: "bagas.wiratama",
-    email: "bagas.wiratama@school.id",
-    noHp: "081200011122",
-    jenisKelamin: "LAKI_LAKI",
-    statusAkun: "aktif",
-    noAbsen: 9,
-    angkatan: 2024,
-    tempatLahir: "Depok",
-    tanggalLahir: "2007-06-14",
-    id_tingkat_kelas: 3,
-    id_nama_kelas: "6",
-    urlGambarProfil: "https://i.pravatar.cc/150?u=s-0005",
-  },
-  {
-    id: 6,
-    role: "SISWA",
-    namaLengkap: "Alya Maharani",
-    username: "alya.maharani",
-    email: "alya.maharani@mail.com",
-    noHp: "085700099988",
-    jenisKelamin: "PEREMPUAN",
-    statusAkun: "aktif",
-    noAbsen: 21,
-    angkatan: 2025,
-    tempatLahir: "Bogor",
-    tanggalLahir: "2009-09-01",
-    id_tingkat_kelas: 1,
-    id_nama_kelas: "2",
-    urlGambarProfil: "https://i.pravatar.cc/150?u=s-0006",
+    tempat_lahir: "Jakarta",
+    tanggal_lahir: "2009-08-12",
+    tingkat_kelas: 10,
+    nama_kelas: "X IPS 1",
+    foto_profil: "https://i.pravatar.cc/150?u=s-0002",
   },
 ];
-// Submit Data
+
 export async function submitStudentRegister(values: StudentRegisterFormValues) {
   const formData = buildFormData(values, {
     transform: (key, value) => {
@@ -140,37 +82,27 @@ export async function submitStudentRegister(values: StudentRegisterFormValues) {
     },
   });
 
-  const res = await api<ApiEnvelope<StudentRegisterResponse>>(
-    "/students/register",
-    {
-      method: "POST",
-      data: formData,
-    }
-  );
-
-  return res.data;
+  return api<StudentRegisterResponse>("/admin/siswa", {
+    method: "POST",
+    data: formData,
+  });
 }
 
-export async function getSiswaById(id: number): Promise<DataAkunSiswa | null> {
-  const target = DUMMY_SISWA.find((siswa) => siswa.id === id);
-  if (target) return target;
-
-  const res = await api<ApiEnvelope<DataAkunSiswa>>(`/students/${id}`, {
+export async function getSiswaById(
+  id: number,
+): Promise<StudentDetailResponse | null> {
+  if (!id) return null;
+  return api<StudentDetailResponse>(`/admin/siswa/${id}`, {
     method: "GET",
   });
-  return res.data;
 }
 
-export async function updateSiswa(
-  id: number,
-  values: StudentRegisterFormValues
-) {
-  const formData = buildFormData(values, {
+export async function updateSiswa(id: number, payload: StudentUpdatePayload) {
+  const formData = buildFormData(payload, {
     transform: (key, value) => {
       if (value instanceof Blob) return value;
       if (typeof value === "string") {
         if (key === "email") return value.trim().toLowerCase();
-        if (key === "password") return value;
         return value.trim();
       }
       return value as any;
@@ -178,76 +110,32 @@ export async function updateSiswa(
     skipNullish: true,
   });
 
-  const res = await api<ApiEnvelope<StudentRegisterResponse>>(
-    `/students/${id}`,
-    {
-      method: "PUT",
-      data: formData,
-    }
-  );
-
-  return res.data;
+  return api<StudentRegisterResponse>(`/admin/siswa/${id}`, {
+    method: "PATCH",
+    data: formData,
+  });
 }
 
-
-/** === MOCK "API" (simulasikan network delay) === */
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
-function normalize(s: string) {
-  return s.toLowerCase().trim();
-}
-
-export async function getSiswa(
-  params: SiswaFilterParams
+export async function GetListSiswa(
+  params: SiswaFilterParams = {},
 ): Promise<BarisSiswa[]> {
-  await sleep(350);
+  const queryParams: Record<string, string | undefined> = {
+    q: params.q || undefined,
+    status: params.status || undefined,
+    limit: params.limit ? String(params.limit) : undefined,
+    offset: params.offset ? String(params.offset) : undefined,
+    angkatan: params.angkatan ? String(params.angkatan) : undefined,
+    tingkat_kelas: params.tingkatKelas ? String(params.tingkatKelas) : undefined,
+    jenis_kelamin: mapJenisKelaminFilter(params.jenisKelamin),
+  };
 
-  let data = [...DUMMY_SISWA];
-  const daftarKelas = await getNamaKelas();
-  const kelasById = daftarKelas.reduce<Record<string, string>>(
-    (acc, kelas) => {
-      acc[String(kelas.id_nama_kelas)] = kelas.nama_kelas;
-      return acc;
-    },
-    {}
-  );
+  const data = await api<StudentListResponseItem[]>("/admin/siswa", {
+    params: queryParams,
+  });
 
-  if (params.angkatan) {
-    data = data.filter((s) => s.angkatan === params.angkatan);
-  }
-
-  if (params.tingkatKelasId != null) {
-    data = data.filter((s) => s.id_tingkat_kelas === params.tingkatKelasId);
-  }
-
-  if (params.jenisKelamin) {
-    data = data.filter((s) => s.jenisKelamin === params.jenisKelamin);
-  }
-
-  if (params.q) {
-    const q = normalize(params.q);
-    data = data.filter((s) => {
-      const kelasLabel = kelasById[s.id_nama_kelas] ?? "-";
-      const hay = normalize(
-        [
-          s.namaLengkap,
-          s.username,
-          s.email ?? "",
-          s.noHp ?? "",
-          kelasLabel,
-          String(s.noAbsen),
-          String(s.angkatan),
-          s.tempatLahir,
-          s.tanggalLahir,
-          s.statusAkun,
-        ].join(" ")
-      );
-      return hay.includes(q);
-    });
-  }
-
-  return data.map((s) => ({
-    ...s,
-    kelas: kelasById[s.id_nama_kelas] ?? "-",
+  return data.map((item) => ({
+    ...item,
+    nisn: "",
+    kelas: `Kelas ${item.tingkat_kelas} ${item.nama_kelas}`.trim(),
   }));
 }

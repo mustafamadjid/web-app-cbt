@@ -8,6 +8,7 @@ import (
 
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
+	outuser "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
 	query "github.com/mustafamadjid/web-app-cbt/internal/core/query/user"
 	user_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/user/get"
 	"github.com/stretchr/testify/assert"
@@ -27,6 +28,22 @@ func (f *fakeGetSiswaRepo) GetListSiswa(ctx context.Context, filter query.ListSi
 		return nil, f.err
 	}
 	return f.items, nil
+}
+
+func (f *fakeGetSiswaRepo) FindProfilSiswaByID(ctx context.Context, id user.ID) (user.DataSiswa, error) {
+	return user.DataSiswa{}, nil
+}
+
+func (f *fakeGetSiswaRepo) ExistByNISN(ctx context.Context, nisn string) (bool, error) {
+	return false, nil
+}
+
+func (f *fakeGetSiswaRepo) CreateProfilSiswa(ctx context.Context, g user.ProfilSiswa) (user.ID, error) {
+	return 0, nil
+}
+
+func (f *fakeGetSiswaRepo) UpdateProfilSiswa(ctx context.Context, idPengguna user.ID, profilSiswa outuser.UpdateProfilSiswaPatch) error {
+	return nil
 }
 
 func TestGetSiswaService_ListSiswa(t *testing.T) {
@@ -151,7 +168,7 @@ func TestGetSiswaService_ListSiswa(t *testing.T) {
 	for _, tc := range tests {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			service := user_service.NewGetListSiswaService(tc.repo)
+			service := user_service.NewGetListSiswaService(tc.repo, tc.repo)
 
 			result, err := service.ListSiswa(ctx, tc.filter)
 

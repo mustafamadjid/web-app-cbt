@@ -21,15 +21,36 @@ type ProfilSiswa struct {
 	TanggalLahir   time.Time
 }
 
+type DataSiswa struct {
+	IdPengguna   ID
+	IdSiswa      ID
+	Username     string
+	Email        string
+	NamaLengkap  string
+	JenisKelamin string
+	NoHp         string
+	Foto         string
+	Role         Role
+	StatusAkun   StatusAkun
+
+	Nisn         string
+	NoAbsen      int
+	Angkatan     int
+	TempatLahir  string
+	TanggalLahir time.Time
+	NamaKelas    string
+	TingkatKelas int
+}
+
 var (
-	ErrInvalidNISN = errors.New("invalid NISN")
-	ErrInvalidAbsen = errors.New("invalid absen")
+	ErrInvalidNISN     = errors.New("invalid NISN")
+	ErrInvalidAbsen    = errors.New("invalid absen")
 	ErrInvalidAngkatan = errors.New("invalid Angkatan")
 )
 
 func CheckNewNISN(nisn string) (NISN, error) {
 	s := strings.TrimSpace(nisn)
-	if s == "-"{
+	if s == "-" {
 		return NISN(s), nil
 	}
 
@@ -55,6 +76,6 @@ func CheckAbsen(noAbsen int) error {
 func CheckAngkatan(angkatan int) error {
 	if angkatan < 2019 || angkatan > time.Now().Year() {
 		return ErrInvalidAngkatan
-	} 
+	}
 	return nil
 }
