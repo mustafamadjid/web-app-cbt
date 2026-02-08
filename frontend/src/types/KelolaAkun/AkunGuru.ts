@@ -13,6 +13,13 @@ export type TeacherRegisterFormValues = {
   foto_profil: File | null;
 };
 
+export type GuruFilterParams = {
+  q?: string;
+  status?: StatusAkun;
+  limit?: number;
+  offset?: number;
+};
+
 export type DataGuru = Omit<TeacherRegisterFormValues, "foto_profil" | "password"> &{
   id_pengguna:number;
   foto_profil:string;

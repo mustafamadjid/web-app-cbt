@@ -8,15 +8,11 @@ import type {
   TeacherRegisterResponse,
   TeacherUpdatePayload,
 } from "@/types/KelolaAkun/AkunGuru";
-import type { StatusAkun } from "@/types/OpsiTypes/Option";
-import type { ApiEnvelope } from "../../api";
 
-export type GuruFilterParams = {
-  q?: string;
-  status?: StatusAkun;
-  limit?: number;
-  offset?: number;
-};
+import type { ApiEnvelope } from "../../api";
+import type { GuruFilterParams } from "@/types/KelolaAkun/AkunGuru";
+
+
 // // Data Dummy
 // export const daftarPengguna: DataGuru[] = [
 //   {
@@ -131,6 +127,29 @@ export async function updateGuru(
   return res.data;
 }
 
+export async function GetAllGuru(
+  params: GuruFilterParams = {},
+): Promise<DataGuru[]> {
+  // if (USE_DUMMY) {
+  //   await sleep(250);
+  //   const filtered = applyGuruFilters(indexDummy(daftarPengguna), params);
+  //   return stripInternal(filtered);
+  // }
+
+  const queryParams: Record<string, string | undefined> = {
+    q: params.q || undefined,
+    status: params.status || undefined,
+    limit: params.limit ? String(params.limit) : undefined,
+    offset: params.offset ? String(params.offset) : undefined,
+  };
+
+  const result = await api<DataGuru[]>("/admin/guru", {
+    params: queryParams,
+  });
+
+  return result;
+}
+
 // /** === MOCK "API" (simulasikan network delay) === */
 // const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -173,27 +192,4 @@ export async function updateGuru(
 
 // const USE_DUMMY = true;
 
-export async function GetAllGuru(
-  params: GuruFilterParams = {}
-): Promise<DataGuru[]> {
-  // if (USE_DUMMY) {
-  //   await sleep(250);
-  //   const filtered = applyGuruFilters(indexDummy(daftarPengguna), params);
-  //   return stripInternal(filtered);
-  // }
 
-  const queryParams: Record<string, string | undefined> = {
-    q: params.q || undefined,
-    status: params.status || undefined,
-    limit: params.limit ? String(params.limit) : undefined,
-    offset: params.offset ? String(params.offset) : undefined,
-  };
-
-  
-    const result = await api<DataGuru[]>("/admin/guru", {
-      params: queryParams,
-    });
-
- 
-    return result;
-}

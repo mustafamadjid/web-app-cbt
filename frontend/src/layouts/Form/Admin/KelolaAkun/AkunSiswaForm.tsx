@@ -6,12 +6,19 @@ import ImageUpload from "@/components/features/Upload/ImageUpload";
 
 import type { JenisKelamin } from "@/types/OpsiTypes/Option";
 import type { StudentRegisterFormValues } from "@/types/KelolaAkun/AkunSiswa";
-import type { NamaKelas, TingkatKelas } from "@/types/DataMaster/Kelas";
+import type {
+  FullDataKelas,
+  NamaKelas,
+  TingkatKelas,
+} from "@/types/DataMaster/Kelas";
 
 import { submitStudentRegister } from "@/services/Api/features-api/KelolaAkun/akunsiswa.service";
 import { paths } from "@/routes/paths";
 import { ApiError } from "@/services/Api/api";
-import { getNamaKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
+import {
+  GetDataKelasFull,
+  getNamaKelas,
+} from "@/services/Api/features-api/DataMaster/kelas.service";
 import { getTingkatKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
 
 import { createSetField } from "@/helper/setField/setField";
@@ -23,12 +30,6 @@ import {
   requiredString,
   requiredValue,
 } from "@/helper/validate/validateForm";
-
-/**
- * Catatan penting:
- * - Kamu minta tetap pakai number untuk field numeric: noAbsen, angkatan, id_tingkat_kelas.
- * - Karena InputField biasanya mengembalikan string, kita konversi dengan aman di onChange.
- */
 
 const initialValues: StudentRegisterFormValues = {
   nama_lengkap: "",
@@ -76,39 +77,55 @@ const AkunSiswaForm = () => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
-    if (!values.fotoProfil) {
+    if (!values.foto_profil) {
       setFotoUrl("");
       return;
     }
 
-    const url = URL.createObjectURL(values.fotoProfil);
+    const url = URL.createObjectURL(values.foto_profil);
     setFotoUrl(url);
 
     return () => {
       URL.revokeObjectURL(url);
     };
-  }, [values.fotoProfil]);
+  }, [values.foto_profil]);
 
-  const [TingkatKelass, setTingkatKelass] = useState<TingkatKelas[]>([]);
-  const [daftarKelas, setDaftarKelas] = useState<NamaKelas[]>([]);
+  // const [TingkatKelass, setTingkatKelass] = useState<TingkatKelas[]>([]);
+  // const [daftarKelas, setDaftarKelas] = useState<NamaKelas[]>([]);
   const [namaKelasOptions, setNamaKelasOptions] = useState<NamaKelas[]>([]);
 
+  const [dataKelas, setDataKelas] = useState<FullDataKelas[]>([]);
+
   useEffect(() => {
-    let active = true;
+    let akitf = true;
     const loadKelas = async () => {
-      const [tingkat, kelas] = await Promise.all([
-        getTingkatKelas(),
-        getNamaKelas(),
-      ]);
-      if (!active) return;
-      setTingkatKelass(tingkat);
-      setDaftarKelas(kelas);
+      const data = await GetDataKelasFull();
+      if (akitf) {
+        setDataKelas(data);
+      }
     };
     loadKelas();
     return () => {
-      active = false;
+      akitf = false;
     };
-  }, []);
+  },[]);
+
+  // useEffect(() => {
+  //   let active = true;
+  //   const loadKelas = async () => {
+  //     const [tingkat, kelas] = await Promise.all([
+  //       getTingkatKelas(),
+  //       getNamaKelas(),
+  //     ]);
+  //     if (!active) return;
+  //     setTingkatKelass(tingkat);
+  //     setDaftarKelas(kelas);
+  //   };
+  //   loadKelas();
+  //   return () => {
+  //     active = false;
+  //   };
+  // }, []);
 
   useEffect(() => {
     if (!values.id_tingkat_kelas) {
@@ -119,7 +136,7 @@ const AkunSiswaForm = () => {
       return;
     }
 
-    const filtered = daftarKelas.filter(
+    const filtered = dataKelas.filter(
       (kelas) => kelas.id_tingkat_kelas === values.id_tingkat_kelas,
     );
     setNamaKelasOptions(filtered);
@@ -139,13 +156,13 @@ const AkunSiswaForm = () => {
   };
 
   const validate = createValidator<StudentRegisterFormValues>({
-    namaLengkap: [requiredString("Nama lengkap wajib diisi.")],
+    nama_lengkap: [requiredString("Nama lengkap wajib diisi.")],
     username: [requiredString("Username wajib diisi.")],
     password: [
       requiredString("Password wajib diisi."),
       minLength(8, "Password minimal 8 karakter."),
     ],
-    jenisKelamin: [requiredValue("Jenis kelamin wajib dipilih.")],
+    jenis_kelamin: [requiredValue("Jenis kelamin wajib dipilih.")],
     email: [
       (value) => {
         if (!value || !value.trim()) return null;
@@ -154,7 +171,7 @@ const AkunSiswaForm = () => {
           : "Format email tidak valid.";
       },
     ],
-    noHp: [
+    no_hp: [
       (value) => {
         if (!value || !value.trim()) return null;
         const cleaned = value.trim().replace(/\s+/g, "");
@@ -164,8 +181,8 @@ const AkunSiswaForm = () => {
       },
     ],
 
-    // ===== numeric: noAbsen =====
-    noAbsen: [
+    // ===== numeric: no_absen =====
+    no_absen: [
       (value) => {
         if (!Number.isInteger(value) || value <= 0) {
           return "No absen wajib diisi dan harus angka > 0.";
@@ -187,8 +204,8 @@ const AkunSiswaForm = () => {
       },
     ],
 
-    tempatLahir: [requiredString("Tempat lahir wajib diisi.")],
-    tanggalLahir: [requiredString("Tanggal lahir wajib diisi.")],
+    tempat_lahir: [requiredString("Tempat lahir wajib diisi.")],
+    tanggal_lahir: [requiredString("Tanggal lahir wajib diisi.")],
 
     // ===== select numeric: id_tingkat_kelas =====
     id_tingkat_kelas: [
@@ -198,7 +215,7 @@ const AkunSiswaForm = () => {
     // ===== select string: id_nama_kelas =====
     id_nama_kelas: [requiredValue("Nama kelas wajib dipilih.")],
 
-    fotoProfil: [
+    foto_profil: [
       fileMaxSize(2 * 1024 * 1024, "Ukuran foto maksimal 2MB."),
       fileTypeStartsWith("image/", "File harus berupa gambar."),
     ],
@@ -213,19 +230,19 @@ const AkunSiswaForm = () => {
     setSubmitError(null);
 
     setTouched({
-      namaLengkap: true,
+      nama_lengkap: true,
       username: true,
       password: true,
-      jenisKelamin: true,
+      jenis_kelamin: true,
       email: true,
-      noHp: true,
-      noAbsen: true,
+      no_hp: true,
+      no_absen: true,
       angkatan: true,
-      tempatLahir: true,
-      tanggalLahir: true,
+      tempat_lahir: true,
+      tanggal_lahir: true,
       id_tingkat_kelas: true,
       id_nama_kelas: true,
-      fotoProfil: true,
+      foto_profil: true,
     });
 
     const currentErrors = validate(values);
@@ -277,8 +294,8 @@ const AkunSiswaForm = () => {
   };
 
   const clearFoto = () => {
-    setField("fotoProfil", null);
-    onBlur("fotoProfil");
+    setField("foto_profil", null);
+    onBlur("foto_profil");
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -316,22 +333,22 @@ const AkunSiswaForm = () => {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <InputField
-                  id="namaLengkap"
+                  id="nama_lengkap"
                   label="Nama Lengkap"
-                  value={values.namaLengkap}
-                  onChange={(v) => setField("namaLengkap", v)}
-                  onBlur={() => onBlur("namaLengkap")}
+                  value={values.nama_lengkap}
+                  onChange={(v) => setField("nama_lengkap", v)}
+                  onBlur={() => onBlur("nama_lengkap")}
                   placeholder="Contoh: Siti Aminah"
                   inputClassName={
-                    hasError("namaLengkap")
+                    hasError("nama_lengkap")
                       ? "border-rose-300 ring-rose-100"
                       : ""
                   }
                   required
                 />
-                {hasError("namaLengkap") && (
+                {hasError("nama_lengkap") && (
                   <p className="mt-1 text-xs text-rose-600">
-                    {errors.namaLengkap}
+                    {errors.nama_lengkap}
                   </p>
                 )}
               </div>
@@ -379,31 +396,31 @@ const AkunSiswaForm = () => {
 
               <div>
                 <label
-                  htmlFor="jenisKelamin"
+                  htmlFor="jenis_kelamin"
                   className="text-xs font-medium text-slate-600"
                 >
                   Jenis Kelamin
                 </label>
                 <select
-                  id="jenisKelamin"
+                  id="jenis_kelamin"
                   className={`w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-[#397e50] focus:ring-2 focus:ring-[#397e50] disabled:bg-slate-50 disabled:text-slate-500 ${
-                    hasError("jenisKelamin")
+                    hasError("jenis_kelamin")
                       ? "border-rose-300 ring-rose-100"
                       : ""
                   }`}
-                  value={values.jenisKelamin}
+                  value={values.jenis_kelamin}
                   onChange={(e) =>
-                    setField("jenisKelamin", e.target.value as JenisKelamin)
+                    setField("jenis_kelamin", e.target.value as JenisKelamin)
                   }
-                  onBlur={() => onBlur("jenisKelamin")}
+                  onBlur={() => onBlur("jenis_kelamin")}
                   required
                 >
                   <option value="LAKI_LAKI">Laki-laki</option>
                   <option value="PEREMPUAN">Perempuan</option>
                 </select>
-                {hasError("jenisKelamin") && (
+                {hasError("jenis_kelamin") && (
                   <p className="mt-1 text-xs text-rose-600">
-                    {errors.jenisKelamin}
+                    {errors.jenis_kelamin}
                   </p>
                 )}
               </div>
@@ -429,20 +446,20 @@ const AkunSiswaForm = () => {
 
               <div>
                 <InputField
-                  id="noHp"
+                  id="no_hp"
                   type="tel"
                   label="Nomor HP (opsional)"
-                  value={values.noHp ?? ""}
-                  onChange={(v) => setField("noHp", v)}
-                  onBlur={() => onBlur("noHp")}
+                  value={values.no_hp ?? ""}
+                  onChange={(v) => setField("no_hp", v)}
+                  onBlur={() => onBlur("no_hp")}
                   placeholder="Contoh: 081234567890"
                   inputClassName={
-                    hasError("noHp") ? "border-rose-300 ring-rose-100" : ""
+                    hasError("no_hp") ? "border-rose-300 ring-rose-100" : ""
                   }
                   required={false}
                 />
-                {hasError("noHp") && (
-                  <p className="mt-1 text-xs text-rose-600">{errors.noHp}</p>
+                {hasError("no_hp") && (
+                  <p className="mt-1 text-xs text-rose-600">{errors.no_hp}</p>
                 )}
               </div>
             </div>
@@ -458,25 +475,27 @@ const AkunSiswaForm = () => {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <InputField
-                  id="noAbsen"
+                  id="no_absen"
                   type="text"
                   label="No Absen"
-                  value={values.noAbsen ? String(values.noAbsen) : ""}
+                  value={values.no_absen ? String(values.no_absen) : ""}
                   onChange={(v) => {
                     setValues((prev) => ({
                       ...prev,
-                      noAbsen: toIntOrPrev(prev.noAbsen, v),
+                      no_absen: toIntOrPrev(prev.no_absen, v),
                     }));
                   }}
-                  onBlur={() => onBlur("noAbsen")}
+                  onBlur={() => onBlur("no_absen")}
                   placeholder="Contoh: 12"
                   inputClassName={
-                    hasError("noAbsen") ? "border-rose-300 ring-rose-100" : ""
+                    hasError("no_absen") ? "border-rose-300 ring-rose-100" : ""
                   }
                   required
                 />
-                {hasError("noAbsen") && (
-                  <p className="mt-1 text-xs text-rose-600">{errors.noAbsen}</p>
+                {hasError("no_absen") && (
+                  <p className="mt-1 text-xs text-rose-600">
+                    {errors.no_absen}
+                  </p>
                 )}
               </div>
 
@@ -535,10 +554,7 @@ const AkunSiswaForm = () => {
 
                   {/* FIX: value harus id_tingkat_kelas (bukan tingkat_kelas) */}
                   {TingkatKelass.map((tingkat) => (
-                    <option
-                      key={tingkat.id_tingkat_kelas}
-                      value={tingkat.id_tingkat_kelas}
-                    >
+                    <option key={tingkat.id_kelas} value={tingkat.id_kelas}>
                       Kelas {tingkat.tingkat_kelas}
                     </option>
                   ))}
@@ -610,22 +626,22 @@ const AkunSiswaForm = () => {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <InputField
-                  id="tempatLahir"
+                  id="tempat_lahir"
                   label="Tempat Lahir"
-                  value={values.tempatLahir}
-                  onChange={(v) => setField("tempatLahir", v)}
-                  onBlur={() => onBlur("tempatLahir")}
+                  value={values.tempat_lahir}
+                  onChange={(v) => setField("tempat_lahir", v)}
+                  onBlur={() => onBlur("tempat_lahir")}
                   placeholder="Contoh: Bandung"
                   inputClassName={
-                    hasError("tempatLahir")
+                    hasError("tempat_lahir")
                       ? "border-rose-300 ring-rose-100"
                       : ""
                   }
                   required
                 />
-                {hasError("tempatLahir") && (
+                {hasError("tempat_lahir") && (
                   <p className="mt-1 text-xs text-rose-600">
-                    {errors.tempatLahir}
+                    {errors.tempat_lahir}
                   </p>
                 )}
               </div>
@@ -635,19 +651,19 @@ const AkunSiswaForm = () => {
                   id="tanggalLahir"
                   type="date"
                   label="Tanggal Lahir"
-                  value={values.tanggalLahir}
-                  onChange={(v) => setField("tanggalLahir", v)}
-                  onBlur={() => onBlur("tanggalLahir")}
+                  value={values.tanggal_lahir}
+                  onChange={(v) => setField("tanggal_lahir", v)}
+                  onBlur={() => onBlur("tanggal_lahir")}
                   inputClassName={
-                    hasError("tanggalLahir")
+                    hasError("tanggal_lahir")
                       ? "border-rose-300 ring-rose-100"
                       : ""
                   }
                   required
                 />
-                {hasError("tanggalLahir") && (
+                {hasError("tanggal_lahir") && (
                   <p className="mt-1 text-xs text-rose-600">
-                    {errors.tanggalLahir}
+                    {errors.tanggal_lahir}
                   </p>
                 )}
               </div>
@@ -666,23 +682,23 @@ const AkunSiswaForm = () => {
               imgAlt="Preview foto profil"
               type="file"
               accept="image/*"
-              imageFileCheck={!!values.fotoProfil}
-              fileName={values.fotoProfil?.name}
+              imageFileCheck={!!values.foto_profil}
+              fileName={values.foto_profil?.name}
               size={
-                values.fotoProfil
-                  ? Number((values.fotoProfil.size / (1024 * 1024)).toFixed(2))
+                values.foto_profil
+                  ? Number((values.foto_profil.size / (1024 * 1024)).toFixed(2))
                   : undefined
               }
               onChange={(e) => {
                 const file = e.target.files?.[0] ?? null;
-                setField("fotoProfil", file);
-                onBlur("fotoProfil");
+                setField("foto_profil", file);
+                onBlur("foto_profil");
               }}
               onClick={clearFoto}
             />
 
-            {hasError("fotoProfil") && (
-              <p className="mt-2 text-xs text-rose-600">{errors.fotoProfil}</p>
+            {hasError("foto_profil") && (
+              <p className="mt-2 text-xs text-rose-600">{errors.foto_profil}</p>
             )}
           </div>
 

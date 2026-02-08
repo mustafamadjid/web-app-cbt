@@ -5,11 +5,14 @@ import type {
   KelasFilterParams,
   NamaKelas,
   TingkatKelas,
+  FullDataKelas
 } from "@/types/DataMaster/Kelas";
 import type {
   KelasSubmitResponse,
   KelasFormValues,
 } from "@/types/DataMaster/Kelas";
+
+
 import type { ApiEnvelope } from "../../api";
 
 const USE_DUMMY = true; // ✅ set false saat BE sudah siap
@@ -69,6 +72,21 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const normalize = (value: string) => value.toLowerCase().trim();
 
 let cachedTingkatKelas: TingkatKelas[] | null = null;
+
+export async function GetDataKelasFull(
+  params: KelasFilterParams = {},
+):Promise<FullDataKelas[]> {
+
+  const queryParams : Record<string, string | undefined> = {
+    search: params.search || undefined,
+    tingkat_kelas: params.tingkatKelas != null ? String(params.tingkatKelas) : undefined
+  };
+
+  return api<FullDataKelas[]>("/admin/kelas",{
+    method: "GET",
+    params : queryParams
+  })
+}
 
 export async function getNamaKelas(
   params: KelasFilterParams = {},
