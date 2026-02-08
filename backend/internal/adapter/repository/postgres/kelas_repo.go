@@ -2,6 +2,8 @@ package postgres
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/kelas"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
@@ -9,7 +11,7 @@ import (
 )
 
 type KelasRepo struct {
-	q  Executor
+	q      Executor
 	logger corelog.Logger
 }
 
@@ -17,11 +19,11 @@ func NewKelasRepo(q Executor, logger corelog.Logger) *KelasRepo {
 	return &KelasRepo{q: q, logger: logger}
 }
 
-func(r *KelasRepo)loggerFor(ctx context.Context) corelog.Logger {
+func (r *KelasRepo) loggerFor(ctx context.Context) corelog.Logger {
 	return corelog.FromContextOr(ctx, r.logger)
 }
 
-func(r *KelasRepo)GetKelas(ctx context.Context, filter query.ListKelasFilter)([]kelas.FullKelasData, error) {
+func (r *KelasRepo) GetKelas(ctx context.Context, filter query.ListKelasFilter) ([]kelas.FullKelasData, error) {
 	baseQuery := `
 	SELECT 
 	tk.id_kelas,
@@ -31,4 +33,83 @@ func(r *KelasRepo)GetKelas(ctx context.Context, filter query.ListKelasFilter)([]
 	FROM kelas tk
 	JOIN nama_kelas k ON tk.id_kelas = k.id_kelas
 	`
+
+	where := make([]string, 0, 2)
+	args := make([]any, 0, 4)
+
+	if filter.Search != "" {
+		args = append(args, "%"+filter.Search+"%")
+		idx := len(args)
+		where = append(where, fmt.Sprintf("(k.nama_kelas ILIKE $%d OR tk.tingkat_kelas::text ILIKE $%d)", idx, idx))
+	}
+
+	if filter.TingkatKelas != nil {
+		args = append(args, *filter.TingkatKelas)
+		where = append(where, fmt.Sprintf("tk.tingkat_kelas = $%d", len(args)))
+	}
+
+	if len(where) > 0 {
+		baseQuery = fmt.Sprintf("%s WHERE %s", baseQuery, strings.Join(where, " AND "))
+	}
+
+	baseQuery = fmt.Sprintf("%s ORDER BY tk.tingkat_kelas ASC, k.nama_kelas ASC", baseQuery)
+
+	if filter.Limit > 0 {
+		args = append(args, filter.Limit)
+		limitIndex := len(args)
+		args = append(args, filter.Offset)
+		offsetIndex := len(args)
+		baseQuery = fmt.Sprintf("%s LIMIT $%d OFFSET $%d", baseQuery, limitIndex, offsetIndex)
+	}
+
+	rows, err := r.q.Query(ctx, baseQuery, args...)
+	if err != nil {
+		r.loggerFor(ctx).Error(ctx, "failed listing kelas", "op", "kelas_repo.list", "err", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	var (
+		itemsTingkat []kelas.TingkatKelas
+		itemsNama    []kelas.NamaKelas
+	)
+
+	seenTingkat := make(map[int]bool)
+	for rows.Next() {
+		var (
+			idTingkat int
+			tingkat   int
+			idNama    int
+			namaKelas string
+		)
+
+		if err := rows.Scan(&idTingkat, &tingkat, &idNama, &namaKelas); err != nil {
+			r.loggerFor(ctx).Error(ctx, "failed scanning kelas", "op", "kelas_repo.scan", "err", err)
+			return nil, err
+		}
+
+		if !seenTingkat[idTingkat] {
+			seenTingkat[idTingkat] = true
+			itemsTingkat = append(itemsTingkat, kelas.TingkatKelas{
+				IdTingkatKelas: kelas.ID(idTingkat),
+				TingkatKelas:   tingkat,
+			})
+		}
+
+		itemsNama = append(itemsNama, kelas.NamaKelas{
+			IdNamaKelas:    kelas.ID(idNama),
+			IdTingkatKelas: kelas.ID(idTingkat),
+			NamaKelas:      namaKelas,
+		})
+	}
+
+	if err := rows.Err(); err != nil {
+		r.loggerFor(ctx).Error(ctx, "failed iterating kelas", "op", "kelas_repo.iter", "err", err)
+		return nil, err
+	}
+
+	return []kelas.FullKelasData{{
+		ItemsTingkatKelas: itemsTingkat,
+		ItemsNamaKelas:    itemsNama,
+	}}, nil
 }
