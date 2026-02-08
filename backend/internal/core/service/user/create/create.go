@@ -164,12 +164,22 @@ func (uc *CreateTx) CreateSiswa(ctx context.Context, cmd CreateSiswaCmd, actor u
 	cmd.Nisn = strings.TrimSpace(cmd.Nisn)
 	cmd.TempatLahir = strings.TrimSpace(cmd.TempatLahir)
 
-	emailValidated, err := user.CheckNewEmail(cmd.Email)
-	if err != nil {
-		return CreateSiswaRes{}, err
+	isDashedNisn := cmd.Nisn == "-"
+
+	nisnToStore := user.NISN(cmd.Nisn)
+
+	var nisnValidated user.NISN
+
+	if !isDashedNisn {
+		v,err := user.CheckNewNISN(cmd.Nisn)
+		if err != nil {
+			return CreateSiswaRes{}, err
+		}
+		nisnValidated = v
+		nisnToStore = v
 	}
 
-	nisnValidated, err := user.CheckNewNISN(cmd.Nisn)
+	emailValidated, err := user.CheckNewEmail(cmd.Email)
 	if err != nil {
 		return CreateSiswaRes{}, err
 	}
@@ -204,7 +214,8 @@ func (uc *CreateTx) CreateSiswa(ctx context.Context, cmd CreateSiswaCmd, actor u
 		return CreateSiswaRes{}, coreerror.ErrUsernameTaken
 	}
 
-	existNisn, err := tx.ProfilSiswa().ExistByNISN(ctx, string(nisnValidated))
+	if !isDashedNisn {
+		existNisn, err := tx.ProfilSiswa().ExistByNISN(ctx, string(nisnValidated))
 	if err != nil {
 		logger.Error(ctx, "failed checking nisn", "op", "user.create_siswa", "err", err)
 		return CreateSiswaRes{}, err
@@ -212,6 +223,8 @@ func (uc *CreateTx) CreateSiswa(ctx context.Context, cmd CreateSiswaCmd, actor u
 	if existNisn {
 		return CreateSiswaRes{}, coreerror.ErrNisnTaken
 	}
+	}
+	
 
 	userData := user.Pengguna{
 		Username:       cmd.Username,
@@ -235,7 +248,7 @@ func (uc *CreateTx) CreateSiswa(ctx context.Context, cmd CreateSiswaCmd, actor u
 		IdPengguna:     idPengguna,
 		IdTingkatKelas: cmd.IdTingkatKelas,
 		IdNamaKelas:    cmd.IdNamaKelas,
-		Nisn:           nisnValidated,
+		Nisn:           nisnToStore,
 		NoAbsen:        cmd.NoAbsen,
 		Angkatan:       cmd.Angkatan,
 		TempatLahir:    cmd.TempatLahir,

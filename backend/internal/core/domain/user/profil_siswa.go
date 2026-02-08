@@ -29,6 +29,10 @@ var (
 
 func CheckNewNISN(nisn string) (NISN, error) {
 	s := strings.TrimSpace(nisn)
+	if s == "-"{
+		return NISN(s), nil
+	}
+
 	if len(s) != 10 {
 		return "", ErrInvalidNISN
 	}

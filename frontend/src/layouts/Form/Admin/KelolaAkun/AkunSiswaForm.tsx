@@ -31,21 +31,20 @@ import {
  */
 
 const initialValues: StudentRegisterFormValues = {
-  role: "SISWA",
-  namaLengkap: "",
+  nama_lengkap: "",
+  nisn: "",
   username: "",
   password: "",
-  jenisKelamin: "LAKI_LAKI",
+  jenis_kelamin: "LAKI_LAKI",
   email: "",
-  noHp: "",
-  noAbsen: 0,
+  no_hp: "",
+  no_absen: 0,
   angkatan: 0,
-  tempatLahir: "",
-  tanggalLahir: "",
-  id_tingkat_kelas: 0, // 0 = belum pilih
-  id_nama_kelas: "", // string id kelas
-  fotoProfil: null,
-  statusAkun: "aktif",
+  tempat_lahir: "",
+  tanggal_lahir: "",
+  id_tingkat_kelas: 0,
+  id_nama_kelas: "",
+  foto_profil: null,
 };
 
 const sectionTitle = "text-sm font-semibold text-slate-800";

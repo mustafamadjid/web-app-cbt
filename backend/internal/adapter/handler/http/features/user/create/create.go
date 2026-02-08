@@ -263,7 +263,7 @@ func (h *UserHandler) CreateSiswa(write http.ResponseWriter, req *http.Request, 
 	cmd := user_service.CreateSiswaCmd{
 		Username:     strings.TrimSpace(req.FormValue("username")),
 		Email:        strings.TrimSpace(req.FormValue("email")),
-		Password:     req.FormValue("password"), // jangan Trim password
+		Password:     req.FormValue("password"),
 		NamaLengkap:  strings.TrimSpace(req.FormValue("nama_lengkap")),
 		JenisKelamin: strings.TrimSpace(req.FormValue("jenis_kelamin")),
 		NoHp:         strings.TrimSpace(req.FormValue("no_hp")),
