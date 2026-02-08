@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/kelas"
-	"github.com/vertica/vertica-sql-go/logger"
 
 	kelas_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/kelas"
 	query "github.com/mustafamadjid/web-app-cbt/internal/core/query/kelas"

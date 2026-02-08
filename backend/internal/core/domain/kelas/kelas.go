@@ -14,6 +14,6 @@ type NamaKelas struct {
 }
 
 type FullKelasData struct {
-	DataTingkatKelas []TingkatKelas
-	DataNamaKelas []NamaKelas
+	ItemsTingkatKelas []TingkatKelas
+	ItemsNamaKelas []NamaKelas
 } 

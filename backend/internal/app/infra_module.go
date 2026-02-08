@@ -7,6 +7,7 @@ import (
 	out "github.com/mustafamadjid/web-app-cbt/internal/core/port/out"
 	outaktivitas "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/aktivitas_user"
 	outauth "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/auth_port_out"
+	kelas_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/kelas"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 	outprofil "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/profil_sekolah"
 	txout "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/tx"
@@ -27,6 +28,8 @@ type InfraModule struct {
 
 	profilSekolah outprofil.ProfilSekolahRepository
 	aktivitasUser outaktivitas.AktivitasUserRepository
+
+	kelasRepo kelas_repo.KelasRepository
 }
 
 func BuildInfraModule(pool *pgxpool.Pool, logger corelog.Logger) *InfraModule {
@@ -45,5 +48,6 @@ func BuildInfraModule(pool *pgxpool.Pool, logger corelog.Logger) *InfraModule {
 		profilGuruRepo: profilGuruRepo,
 		profilSekolah:  pg.NewProfilSekolahRepo(pool, logger),
 		aktivitasUser:  pg.NewAktivitasUserRepo(pool, logger),
+		kelasRepo: pg.NewKelasRepo(pool,logger),
 	}
 }
