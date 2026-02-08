@@ -14,6 +14,7 @@ type SiswaListItem struct {
 	JenisKelamin string
 	NoHp         string
 	Foto         string
+	NoAbsen      int
 	StatusAkun   user.StatusAkun
 	NamaKelas    string
 	TingkatKelas int
