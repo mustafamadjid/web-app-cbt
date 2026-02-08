@@ -28,7 +28,7 @@ func PreventCSRF(next http.Handler) http.Handler {
 	cop.SetDenyHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		logger := corelog.FromContext(r.Context())
 		logger.Error(r.Context(), "csrf origin denied",
-			"op", "middleware.csrf",
+			"layer", "adapter.http", "op", "middleware.csrf",
 			"origin", r.Header.Get("Origin"),
 			"referer", r.Header.Get("Referer"),
 			"method", r.Method,

@@ -34,14 +34,14 @@ func (h *GetGuruHandler) ListGuru(write http.ResponseWriter, req *http.Request, 
 
 	filters, err := parseListGuruFilters(req)
 	if err != nil {
-		logger.Info(req.Context(), "invalid guru filters", "op", "user.list_guru", "err", err)
+		logger.Info(req.Context(), "invalid guru filters", "layer", "adapter.http.handler", "op", "user.list_guru", "err", err)
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
 
 	items, err := h.svc.ListGuru(req.Context(), filters)
 	if err != nil {
-		logger.Error(req.Context(), "failed listing guru", "op", "user.list_guru", "err", err)
+		logger.Error(req.Context(), "failed listing guru", "layer", "adapter.http.handler", "op", "user.list_guru", "err", err)
 		switch {
 		case errors.Is(err, coreerror.ErrInvalidInput):
 			httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", "invalid input")
@@ -87,14 +87,14 @@ func (h *GetGuruHandler) GetGuruByID(write http.ResponseWriter, req *http.Reques
 
 	parsedID, err := strconv.Atoi(rawID)
 	if err != nil || parsedID <= 0 {
-		logger.Info(req.Context(), "invalid guru id", "op", "user.get_guru", "err", err)
+		logger.Info(req.Context(), "invalid guru id", "layer", "adapter.http.handler", "op", "user.get_guru", "err", err)
 		httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request : invalid id")
 		return
 	}
 
 	result, err := h.svc.FindProfilGuruByID(req.Context(), user.ID(parsedID))
 	if err != nil {
-		logger.Error(req.Context(), "failed getting guru", "op", "user.get_guru", "err", err)
+		logger.Error(req.Context(), "failed getting guru", "layer", "adapter.http.handler", "op", "user.get_guru", "err", err)
 		switch {
 		case errors.Is(err, coreerror.ErrNotFound):
 			httpResponse.WriteErr(write, http.StatusNotFound, "NOT_FOUND", "data not found")

@@ -25,12 +25,12 @@ func (svc *AktivitasUserService) CreateAktivitasUserService(ctx context.Context,
 	aktivitasUser.IpAddress = strings.TrimSpace(aktivitasUser.IpAddress)
 
 	if !aktivitasUser.Action.ValidAction() {
-		logger.Error(ctx, "Invalid action activity", "op", "aktivitas_user_service.CreateAktivitasUserService", "err", coreerror.ErrInvalidActionActivity)
+		logger.Error(ctx, "Invalid action activity", "layer", "core.service", "op", "aktivitas_user_service.CreateAktivitasUserService", "err", coreerror.ErrInvalidActionActivity)
 		return coreerror.ErrInvalidActionActivity
 	}
 
 	if !aktivitas_user.ValidIpAddress(aktivitasUser.IpAddress) {
-		logger.Error(ctx, "Invalid ip address", "op", "aktivitas_user_service.CreateAktivitasUserService", "err", coreerror.ErrInvalidIpAddress)
+		logger.Error(ctx, "Invalid ip address", "layer", "core.service", "op", "aktivitas_user_service.CreateAktivitasUserService", "err", coreerror.ErrInvalidIpAddress)
 		return coreerror.ErrInvalidIpAddress
 	}
 

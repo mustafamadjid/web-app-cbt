@@ -34,14 +34,14 @@ func (h *GetSiswaHandler) ListSiswa(write http.ResponseWriter, req *http.Request
 
 	filters, err := parseListSiswaFilters(req)
 	if err != nil {
-		logger.Info(req.Context(), "invalid siswa filters", "op", "user.list_siswa", "err", err)
+		logger.Info(req.Context(), "invalid siswa filters", "layer", "adapter.http.handler", "op", "user.list_siswa", "err", err)
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
 
 	items, err := h.svc.ListSiswa(req.Context(), filters)
 	if err != nil {
-		logger.Error(req.Context(), "failed listing siswa", "op", "user.list_siswa", "err", err)
+		logger.Error(req.Context(), "failed listing siswa", "layer", "adapter.http.handler", "op", "user.list_siswa", "err", err)
 		switch {
 		case errors.Is(err, coreerror.ErrInvalidInput):
 			httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", "invalid input")

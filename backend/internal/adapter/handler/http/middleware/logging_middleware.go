@@ -32,7 +32,6 @@ func RequestLogger(next http.Handler, baseLogger corelog.Logger) http.Handler {
 		requestID := newRequestID()
 		logger := baseLogger.With(
 			"request_id", requestID,
-			"op", "http_request",
 			"method", r.Method,
 			"path", r.URL.Path,
 		)
@@ -58,6 +57,8 @@ func RequestLogger(next http.Handler, baseLogger corelog.Logger) http.Handler {
 		}
 
 		logAttrs := []any{
+			"layer", "adapter.http",
+			"op", "http_request",
 			"status", recorder.status,
 			"duration_ms", duration.Milliseconds(),
 			"actor_id", actorID,

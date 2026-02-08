@@ -45,7 +45,7 @@ func (h *UserHandler) CreateGuru(write http.ResponseWriter, req *http.Request, _
 	}
 
 	if err := req.ParseMultipartForm(10 << 20); err != nil {
-		logger.Error(req.Context(), "failed parsing multipart form", "op", "user.create_guru", "err", err)
+		logger.Error(req.Context(), "failed parsing multipart form", "layer", "adapter.http.handler", "op", "user.create_guru", "err", err)
 		httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request : invalid content type")
 		return
 	}
@@ -53,12 +53,12 @@ func (h *UserHandler) CreateGuru(write http.ResponseWriter, req *http.Request, _
 	file, fh, err := req.FormFile("foto_profil")
 	if err != nil {
 		if errors.Is(err, http.ErrMissingFile) {
-			logger.Info(req.Context(), "missing foto file", "op", "user.create_guru", "err", err)
+			logger.Info(req.Context(), "missing foto file", "layer", "adapter.http.handler", "op", "user.create_guru", "err", err)
 			httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request : foto is required")
 			return
 		}
 
-		logger.Error(req.Context(), "failed reading foto file", "op", "user.create_guru", "err", err)
+		logger.Error(req.Context(), "failed reading foto file", "layer", "adapter.http.handler", "op", "user.create_guru", "err", err)
 		httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request : failed reading foto")
 		return
 	}
@@ -67,12 +67,12 @@ func (h *UserHandler) CreateGuru(write http.ResponseWriter, req *http.Request, _
 	relPath, err := h.storeImage.SavePhotoRelative(file, fh)
 	if err != nil {
 		if errors.Is(err, coreerror.ErrFileTooLarge) {
-			logger.Info(req.Context(), "file too large", "op", "user.create_guru", "err", err)
+			logger.Info(req.Context(), "file too large", "layer", "adapter.http.handler", "op", "user.create_guru", "err", err)
 			httpResponse.WriteErr(write, http.StatusBadRequest, "FILE_TOO_LARGE", "file too large")
 			return
 		}
 
-		logger.Error(req.Context(), "failed saving photo", "op", "user.create_guru", "err", err)
+		logger.Error(req.Context(), "failed saving photo", "layer", "adapter.http.handler", "op", "user.create_guru", "err", err)
 		httpResponse.WriteErr(write, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error : failed save photo")
 		return
 	}
@@ -128,14 +128,14 @@ func (h *UserHandler) CreateGuru(write http.ResponseWriter, req *http.Request, _
 	}
 	actor, ok := middleware.ActorFromContext(req.Context())
 	if !ok {
-		logger.Error(req.Context(), "missing actor in context", "op", "user.create_guru", "err", "actor_not_found")
+		logger.Error(req.Context(), "missing actor in context", "layer", "adapter.http.handler", "op", "user.create_guru", "err", "actor_not_found")
 		httpResponse.WriteErr(write, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error : failed get actor from context")
 		return
 	}
 
 	res, err := h.svc.CreateGuru(req.Context(), cmd, actor)
 	if err != nil {
-		logger.Error(req.Context(), "failed creating guru", "op", "user.create_guru", "err", err)
+		logger.Error(req.Context(), "failed creating guru", "layer", "adapter.http.handler", "op", "user.create_guru", "err", err)
 		switch {
 
 		case errors.Is(err, coreerror.ErrForbidden):
@@ -167,7 +167,7 @@ func (h *UserHandler) CreateGuru(write http.ResponseWriter, req *http.Request, _
 			IpAddress:   httpx.GetClientIP(req),
 		}
 		if err := h.aktivitasUser.CreateAktivitasUserService(req.Context(), aktivitasCmd); err != nil {
-			logger.Error(req.Context(), "failed creating aktivitas user", "op", "user.create_guru.activity", "err", err)
+			logger.Error(req.Context(), "failed creating aktivitas user", "layer", "adapter.http.handler", "op", "user.create_guru.activity", "err", err)
 		}
 	}
 
@@ -188,7 +188,7 @@ func (h *UserHandler) CreateSiswa(write http.ResponseWriter, req *http.Request, 
 	}
 
 	if err := req.ParseMultipartForm(10 << 20); err != nil {
-		logger.Error(req.Context(), "failed parsing multipart form", "op", "user.create_siswa", "err", err)
+		logger.Error(req.Context(), "failed parsing multipart form", "layer", "adapter.http.handler", "op", "user.create_siswa", "err", err)
 		httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request : invalid content type")
 		return
 	}
@@ -196,12 +196,12 @@ func (h *UserHandler) CreateSiswa(write http.ResponseWriter, req *http.Request, 
 	file, fh, err := req.FormFile("foto_profil")
 	if err != nil {
 		if errors.Is(err, http.ErrMissingFile) {
-			logger.Info(req.Context(), "missing foto file", "op", "user.create_siswa", "err", err)
+			logger.Info(req.Context(), "missing foto file", "layer", "adapter.http.handler", "op", "user.create_siswa", "err", err)
 			httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request : foto is required")
 			return
 		}
 
-		logger.Error(req.Context(), "failed reading foto file", "op", "user.create_siswa", "err", err)
+		logger.Error(req.Context(), "failed reading foto file", "layer", "adapter.http.handler", "op", "user.create_siswa", "err", err)
 		httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request : failed reading foto")
 		return
 	}
@@ -210,12 +210,12 @@ func (h *UserHandler) CreateSiswa(write http.ResponseWriter, req *http.Request, 
 	relPath, err := h.storeImage.SavePhotoRelative(file, fh)
 	if err != nil {
 		if errors.Is(err, coreerror.ErrFileTooLarge) {
-			logger.Info(req.Context(), "file too large", "op", "user.create_siswa", "err", err)
+			logger.Info(req.Context(), "file too large", "layer", "adapter.http.handler", "op", "user.create_siswa", "err", err)
 			httpResponse.WriteErr(write, http.StatusBadRequest, "FILE_TOO_LARGE", "file too large")
 			return
 		}
 
-		logger.Error(req.Context(), "failed saving photo", "op", "user.create_siswa", "err", err)
+		logger.Error(req.Context(), "failed saving photo", "layer", "adapter.http.handler", "op", "user.create_siswa", "err", err)
 		httpResponse.WriteErr(write, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error : failed save photo")
 		return
 	}
@@ -223,14 +223,14 @@ func (h *UserHandler) CreateSiswa(write http.ResponseWriter, req *http.Request, 
 	// parse int fields
 	noAbsen, err := strconv.Atoi(strings.TrimSpace(req.FormValue("no_absen")))
 	if err != nil {
-		logger.Info(req.Context(), "invalid no_absen", "op", "user.create_siswa", "err", err)
+		logger.Info(req.Context(), "invalid no_absen", "layer", "adapter.http.handler", "op", "user.create_siswa", "err", err)
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", "no_absen must be a number")
 		return
 	}
 
 	angkatan, err := strconv.Atoi(strings.TrimSpace(req.FormValue("angkatan")))
 	if err != nil {
-		logger.Info(req.Context(), "invalid angkatan", "op", "user.create_siswa", "err", err)
+		logger.Info(req.Context(), "invalid angkatan", "layer", "adapter.http.handler", "op", "user.create_siswa", "err", err)
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", "angkatan must be a number")
 		return
 	}
@@ -240,14 +240,14 @@ func (h *UserHandler) CreateSiswa(write http.ResponseWriter, req *http.Request, 
 
 	idTingkatKelasInt, err := strconv.ParseInt(idTingkatKelasRaw, 10, 64)
 	if err != nil {
-		logger.Info(req.Context(), "invalid id_tingkat_kelas", "op", "user.create_siswa", "err", err)
+		logger.Info(req.Context(), "invalid id_tingkat_kelas", "layer", "adapter.http.handler", "op", "user.create_siswa", "err", err)
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", "id_tingkat_kelas must be a number")
 		return
 	}
 
 	idNamaKelasInt, err := strconv.ParseInt(idNamaKelasRaw, 10, 64)
 	if err != nil {
-		logger.Info(req.Context(), "invalid id_nama_kelas", "op", "user.create_siswa", "err", err)
+		logger.Info(req.Context(), "invalid id_nama_kelas", "layer", "adapter.http.handler", "op", "user.create_siswa", "err", err)
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", "id_nama_kelas must be a number")
 		return
 	}
@@ -255,7 +255,7 @@ func (h *UserHandler) CreateSiswa(write http.ResponseWriter, req *http.Request, 
 	tanggalLahirStr := strings.TrimSpace(req.FormValue("tanggal_lahir"))
 	tanggalLahir, err := time.Parse("2006-01-02", tanggalLahirStr)
 	if err != nil {
-		logger.Info(req.Context(), "invalid tanggal_lahir", "op", "user.create_siswa", "err", err)
+		logger.Info(req.Context(), "invalid tanggal_lahir", "layer", "adapter.http.handler", "op", "user.create_siswa", "err", err)
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", "tanggal_lahir must be in YYYY-MM-DD format")
 		return
 	}
@@ -280,7 +280,7 @@ func (h *UserHandler) CreateSiswa(write http.ResponseWriter, req *http.Request, 
 
 	actor, ok := middleware.ActorFromContext(req.Context())
 	if !ok {
-		logger.Error(req.Context(), "missing actor in context", "op", "user.create_siswa", "err", "actor_not_found")
+		logger.Error(req.Context(), "missing actor in context", "layer", "adapter.http.handler", "op", "user.create_siswa", "err", "actor_not_found")
 		httpResponse.WriteErr(write, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error : failed get actor from context")
 		return
 	}
@@ -332,7 +332,7 @@ func (h *UserHandler) CreateSiswa(write http.ResponseWriter, req *http.Request, 
 
 	res, err := h.svc.CreateSiswa(req.Context(), cmd, actor)
 	if err != nil {
-		logger.Error(req.Context(), "failed creating siswa", "op", "user.create_siswa", "err", err)
+		logger.Error(req.Context(), "failed creating siswa", "layer", "adapter.http.handler", "op", "user.create_siswa", "err", err)
 		switch {
 
 		case errors.Is(err, coreerror.ErrForbidden):
@@ -364,7 +364,7 @@ func (h *UserHandler) CreateSiswa(write http.ResponseWriter, req *http.Request, 
 			IpAddress:   httpx.GetClientIP(req),
 		}
 		if err := h.aktivitasUser.CreateAktivitasUserService(req.Context(), aktivitasCmd); err != nil {
-			logger.Error(req.Context(), "failed creating aktivitas user", "op", "user.create_siswa.activity", "err", err)
+			logger.Error(req.Context(), "failed creating aktivitas user", "layer", "adapter.http.handler", "op", "user.create_siswa.activity", "err", err)
 		}
 	}
 

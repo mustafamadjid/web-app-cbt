@@ -33,7 +33,7 @@ func (h *GetProfilSekolahHandler) GetProfilSekolah(w http.ResponseWriter, r *htt
 
 	profil, err := h.svc.GetProfilSekolah(r.Context())
 	if err != nil {
-		logger.Error(r.Context(), "failed getting profil sekolah", "op", "profil_sekolah.get", "err", err)
+		logger.Error(r.Context(), "failed getting profil sekolah", "layer", "adapter.http.handler", "op", "profil_sekolah.get", "err", err)
 		switch {
 		case errors.Is(err, coreerror.ErrNotFound):
 			httpResponse.WriteErr(w, http.StatusNotFound, "NOT_FOUND", "profil sekolah tidak ditemukan")

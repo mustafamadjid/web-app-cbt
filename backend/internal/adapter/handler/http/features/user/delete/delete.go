@@ -42,7 +42,7 @@ func (h *DeleteHandler) DeleteUser(write http.ResponseWriter, req *http.Request,
 
 	parsedId, err := strconv.Atoi(rawId)
 	if err != nil || parsedId <= 0 {
-		logger.Info(req.Context(), "invalid user id", "op", "user.delete", "err", err)
+		logger.Info(req.Context(), "invalid user id", "layer", "adapter.http.handler", "op", "user.delete", "err", err)
 		httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request : invalid id")
 		return
 	}
@@ -51,13 +51,13 @@ func (h *DeleteHandler) DeleteUser(write http.ResponseWriter, req *http.Request,
 
 	actor, ok := middleware.ActorFromContext(req.Context())
 	if !ok {
-		logger.Error(req.Context(), "missing actor in context", "op", "user.delete", "err", "actor_not_found")
+		logger.Error(req.Context(), "missing actor in context", "layer", "adapter.http.handler", "op", "user.delete", "err", "actor_not_found")
 		httpResponse.WriteErr(write, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error : failed get actor from context")
 		return
 	}
 
 	if err := h.svc.Delete(req.Context(), uid); err != nil {
-		logger.Error(req.Context(), "failed deleting user", "op", "user.delete", "user_id", uid, "err", err)
+		logger.Error(req.Context(), "failed deleting user", "layer", "adapter.http.handler", "op", "user.delete", "user_id", uid, "err", err)
 		switch {
 		case errors.Is(err, coreerror.ErrNotFound):
 			httpResponse.WriteErr(write, http.StatusNotFound, "NOT_FOUND", "data not found")
@@ -75,7 +75,7 @@ func (h *DeleteHandler) DeleteUser(write http.ResponseWriter, req *http.Request,
 			IpAddress:   httphelper.GetClientIP(req),
 		}
 		if err := h.aktivitasUser.CreateAktivitasUserService(req.Context(), aktivitasCmd); err != nil {
-			logger.Error(req.Context(), "failed creating aktivitas user", "op", "user.delete.activity", "err", err)
+			logger.Error(req.Context(), "failed creating aktivitas user", "layer", "adapter.http.handler", "op", "user.delete.activity", "err", err)
 		}
 	}
 
@@ -93,7 +93,7 @@ func (h *DeleteHandler) DeleteUsers(write http.ResponseWriter, req *http.Request
 	dec := json.NewDecoder(req.Body)
 	dec.DisallowUnknownFields()
 	if err := dec.Decode(&reqBody); err != nil {
-		logger.Error(req.Context(), "failed decoding delete users request", "op", "user.delete_many", "err", err)
+		logger.Error(req.Context(), "failed decoding delete users request", "layer", "adapter.http.handler", "op", "user.delete_many", "err", err)
 		httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request")
 		return
 	}
@@ -105,7 +105,7 @@ func (h *DeleteHandler) DeleteUsers(write http.ResponseWriter, req *http.Request
 
 	actor, ok := middleware.ActorFromContext(req.Context())
 	if !ok {
-		logger.Error(req.Context(), "missing actor in context", "op", "user.delete_many", "err", "actor_not_found")
+		logger.Error(req.Context(), "missing actor in context", "layer", "adapter.http.handler", "op", "user.delete_many", "err", "actor_not_found")
 		httpResponse.WriteErr(write, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error : failed get actor from context")
 		return
 	}
@@ -132,7 +132,7 @@ func (h *DeleteHandler) DeleteUsers(write http.ResponseWriter, req *http.Request
 
 	affected, err := h.svc.DeleteMany(req.Context(), ids)
 	if err != nil {
-		logger.Error(req.Context(), "failed deleting users", "op", "user.delete_many", "err", err)
+		logger.Error(req.Context(), "failed deleting users", "layer", "adapter.http.handler", "op", "user.delete_many", "err", err)
 		switch {
 		case errors.Is(err, coreerror.ErrNotFound):
 			httpResponse.WriteErr(write, http.StatusNotFound, "NOT_FOUND", "data not found")
@@ -150,7 +150,7 @@ func (h *DeleteHandler) DeleteUsers(write http.ResponseWriter, req *http.Request
 			IpAddress:   httphelper.GetClientIP(req),
 		}
 		if err := h.aktivitasUser.CreateAktivitasUserService(req.Context(), aktivitasCmd); err != nil {
-			logger.Error(req.Context(), "failed creating aktivitas user", "op", "user.delete_many.activity", "err", err)
+			logger.Error(req.Context(), "failed creating aktivitas user", "layer", "adapter.http.handler", "op", "user.delete_many.activity", "err", err)
 		}
 	}
 
