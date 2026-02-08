@@ -75,14 +75,14 @@ let cachedTingkatKelas: TingkatKelas[] | null = null;
 
 export async function GetDataKelasFull(
   params: KelasFilterParams = {},
-):Promise<FullDataKelas[]> {
+): Promise<FullDataKelas> {
 
   const queryParams : Record<string, string | undefined> = {
     search: params.search || undefined,
     tingkat_kelas: params.tingkatKelas != null ? String(params.tingkatKelas) : undefined
   };
 
-  return api<FullDataKelas[]>("/admin/kelas",{
+  return api<FullDataKelas>("/admin/kelas",{
     method: "GET",
     params : queryParams
   })
