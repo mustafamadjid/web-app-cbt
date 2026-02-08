@@ -22,6 +22,7 @@ import {
   requiredString,
   requiredValue,
 } from "@/helper/validate/validateForm";
+import toast from "react-hot-toast";
 
 const initialValues: StudentRegisterFormValues = {
   nama_lengkap: "",
@@ -163,6 +164,7 @@ const AkunSiswaForm = () => {
         return null;
       },
     ],
+    nisn: [requiredString("NISN wajib diisi")],
 
     // ===== numeric: angkatan (4 digit + range) =====
     angkatan: [
@@ -203,6 +205,7 @@ const AkunSiswaForm = () => {
     setSubmitError(null);
 
     setTouched({
+      nisn: true,
       nama_lengkap: true,
       username: true,
       password: true,
@@ -247,11 +250,11 @@ const AkunSiswaForm = () => {
       };
 
       await submitStudentRegister(payload);
-      alert("Akun siswa berhasil dibuat.");
+      toast.success("Berhasil membuat akun siswa.");
       setTimeout(
         () =>
           navigate(
-            `dashboard/administrator/${paths.dashboard.kelola_akun_siswa}`,
+            `${paths.dashboard.kelola_akun_siswa}`,
           ),
         1500,
       );
@@ -397,6 +400,24 @@ const AkunSiswaForm = () => {
                   </p>
                 )}
               </div>
+              <div>
+                <InputField
+                  id="nisn"
+                  type="text"
+                  label="NISN (Jika tidak ada, isi dengan - )"
+                  value={values.nisn ?? ""}
+                  onChange={(v) => setField("nisn", v)}
+                  onBlur={() => onBlur("nisn")}
+                  placeholder="Contoh: 1234567890"
+                  inputClassName={
+                    hasError("nisn") ? "border-rose-300 ring-rose-100" : ""
+                  }
+                  required={false}
+                />
+                {hasError("nisn") && (
+                  <p className="mt-1 text-xs text-rose-600">{errors.nisn}</p>
+                )}
+              </div>
 
               <div>
                 <InputField
@@ -531,7 +552,7 @@ const AkunSiswaForm = () => {
                       key={tingkat.id_tingkat_kelas}
                       value={tingkat.id_tingkat_kelas}
                     >
-                      Kelas {tingkat.tingkat_kelas}
+                      {tingkat.tingkat_kelas}
                     </option>
                   ))}
                 </select>

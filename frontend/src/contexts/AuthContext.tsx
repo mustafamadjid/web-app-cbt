@@ -116,7 +116,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = useCallback(
     async (payload: LoginPayload) => {
-      // login gagal karena kredensial salah: biarkan page login yang handle error message
       await loginService(payload);
       await refetchMe();
     },

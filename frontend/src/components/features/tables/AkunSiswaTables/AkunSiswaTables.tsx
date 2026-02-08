@@ -479,6 +479,9 @@ const AkunSiswaTables: React.FC = () => {
                   Siswa
                 </th>
                 <th scope="col" className="px-6 py-3 font-semibold">
+                  NISN
+                </th>
+                <th scope="col" className="px-6 py-3 font-semibold">
                   Kelas & Absen
                 </th>
                 <th scope="col" className="px-6 py-3 font-semibold">
@@ -562,6 +565,12 @@ const AkunSiswaTables: React.FC = () => {
                           </div>
                         </div>
                       </td>
+                      {/* NISN */}
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col gap-1">
+                          <span className="text-slate-900">{s.nisn}</span>  
+                        </div>
+                      </td>
 
                       {/* Kelas & Absen */}
                       <td className="px-6 py-4">
@@ -582,7 +591,7 @@ const AkunSiswaTables: React.FC = () => {
 
                       {/* TTL */}
                       <td className="px-6 py-4">
-                    <span className="text-slate-700">{ttlTampil}</span>
+                        <span className="text-slate-700">{ttlTampil}</span>
                       </td>
 
                       {/* Kontak */}
@@ -622,7 +631,9 @@ const AkunSiswaTables: React.FC = () => {
                           <button
                             className="cursor-pointer rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-red-600"
                             title="Hapus"
-                            onClick={() => void handleDeleteSiswa(s.id_pengguna)}
+                            onClick={() =>
+                              void handleDeleteSiswa(s.id_pengguna)
+                            }
                           >
                             <Trash className="h-4 w-4" />
                           </button>

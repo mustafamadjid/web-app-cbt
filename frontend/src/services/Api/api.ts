@@ -108,8 +108,7 @@ function unwrapEnvelope<T>(env: ApiEnvelope<T>, path?: string): T {
   }
 
   if (env.data === null) {
-    // treat null as unauthenticated ONLY for auth-check endpoints
-    if (path && (path === "/auth/me" || path.startsWith("/auth/"))) {
+    if (path === "/auth/me") {
       throw new ApiError("Unauthenticated", 401, env, "UNAUTHENTICATED");
     }
     throw new ApiError("API returned null data", 500, env);
@@ -137,13 +136,14 @@ export async function api<T>(
   } catch (err) {
     const apiErr = toApiError(err);
 
-    // hanya tangani 401 dan hanya sekali retry
     if (apiErr.status !== 401 || _retry) throw apiErr;
 
-    // jangan refresh kalau request ini sendiri adalah refresh endpoint
-    if (String(path).includes("/auth/login/refresh")) throw apiErr;
+   
+    const p = String(path);
+    if (p.startsWith("/auth/login") || p.startsWith("/auth/refresh"))
+      throw apiErr;
 
-    // kalau refresh sedang berjalan, tunggu hasilnya lalu retry
+  
     if (isRefreshing) {
       return new Promise<T>((resolve, reject) => {
         subscribeRefresh(async (ok, refreshErr) => {
