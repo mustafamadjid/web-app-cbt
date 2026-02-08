@@ -27,6 +27,14 @@ type EditAkunGuruFormProps = {
 
 const sectionTitle = "text-sm font-semibold text-slate-800";
 const helperText = "text-xs text-slate-500";
+const NIP_LENGTH = 18;
+
+const normalizeNipInput = (value: string) => {
+  const trimmed = value.trim();
+  if (trimmed === "-") return "-";
+  const digitsOnly = trimmed.replace(/\D/g, "");
+  return digitsOnly.slice(0, NIP_LENGTH);
+};
 
 const EditAkunGuruForm = ({
   initialValues,
@@ -72,7 +80,17 @@ const EditAkunGuruForm = ({
     ],
     username: [requiredString("Username wajib diisi.")],
     no_hp: [requiredString("Nomor HP wajib diisi.")],
-    nip: [requiredString("NIP wajib diisi.")],
+    nip: [
+      requiredString("NIP wajib diisi."),
+      (value) => {
+        const trimmed = value.trim();
+        if (trimmed === "-") return null;
+        if (trimmed.length !== NIP_LENGTH) {
+          return "NIP belum valid (kurang dari 18 digit).";
+        }
+        return null;
+      },
+    ],
     jabatan: [requiredString("Jabatan wajib diisi.")],
     bidang_studi: [requiredString("Bidang studi wajib diisi.")],
     jenis_kelamin: [requiredValue("Jenis kelamin wajib dipilih.")],
@@ -328,7 +346,7 @@ const EditAkunGuruForm = ({
                   id="nip"
                   label="NIP"
                   value={values.nip}
-                  onChange={(v) => setField("nip", v)}
+                  onChange={(v) => setField("nip", normalizeNipInput(v))}
                   onBlur={() => onBlur("nip")}
                   placeholder="Nomor Induk Pegawai"
                   inputClassName={
