@@ -64,7 +64,7 @@ func (uc *CreateTx) CreateGuru(ctx context.Context, cmd CreateGuruCmd, actor use
 	// Validasi
 	emailValidated, error := user.CheckNewEmail(cmd.Email)
 	if error != nil {
-		logger.Error(ctx, "failed validating email", "op", "user.create_guru", "err", error)
+		logger.Error(ctx, "failed validating email", "layer", "core.service", "op", "user.create_guru", "err", error)
 		return CreateGuruRes{}, error
 	}
 
@@ -72,14 +72,14 @@ func (uc *CreateTx) CreateGuru(ctx context.Context, cmd CreateGuruCmd, actor use
 	// Hash password
 	hashedPassword, error := uc.hasher.GenerateHash(cmd.Password)
 	if error != nil {
-		logger.Error(ctx, "failed hashing password", "op", "user.create_guru", "err", error)
+		logger.Error(ctx, "failed hashing password", "layer", "core.service", "op", "user.create_guru", "err", error)
 		return CreateGuruRes{}, error
 	}
 
 	// --- Transaksi ----
 	tx, err := uc.txm.Begin(ctx)
 	if err != nil {
-		logger.Error(ctx, "failed starting transaction", "op", "user.create_guru", "err", err)
+		logger.Error(ctx, "failed starting transaction", "layer", "core.service", "op", "user.create_guru", "err", err)
 		return CreateGuruRes{}, err
 	}
 
@@ -87,7 +87,7 @@ func (uc *CreateTx) CreateGuru(ctx context.Context, cmd CreateGuruCmd, actor use
 
 	existUsername, error := tx.Pengguna().UserExistByUsername(ctx, cmd.Username)
 	if error != nil {
-		logger.Error(ctx, "failed checking username", "op", "user.create_guru", "err", error)
+		logger.Error(ctx, "failed checking username", "layer", "core.service", "op", "user.create_guru", "err", error)
 		return CreateGuruRes{}, error
 	}
 	if existUsername {
@@ -98,11 +98,11 @@ func (uc *CreateTx) CreateGuru(ctx context.Context, cmd CreateGuruCmd, actor use
 	if !isDashedNip {
 		existNip, error := tx.ProfilGuru().ExistByNIP(ctx, nipValidated)
 	if error != nil {
-		logger.Error(ctx, "failed checking nip", "op", "user.create_guru", "err", error)
+		logger.Error(ctx, "failed checking nip", "layer", "core.service", "op", "user.create_guru", "err", error)
 		return CreateGuruRes{}, error
 	}
 	if existNip {
-		logger.Error(ctx, "failed checking nip", "op", "user.create_guru", "err", coreerror.ErrNipTaken)
+		logger.Error(ctx, "failed checking nip", "layer", "core.service", "op", "user.create_guru", "err", coreerror.ErrNipTaken)
 		return CreateGuruRes{}, coreerror.ErrNipTaken
 	}
 	}
@@ -122,7 +122,7 @@ func (uc *CreateTx) CreateGuru(ctx context.Context, cmd CreateGuruCmd, actor use
 
 	idPengguna, error := tx.Pengguna().CreateUser(ctx, userData)
 	if error != nil {
-		logger.Error(ctx, "failed creating user", "op", "user.create_guru", "err", error)
+		logger.Error(ctx, "failed creating user", "layer", "core.service", "op", "user.create_guru", "err", error)
 		return CreateGuruRes{}, error
 	}
 
@@ -135,12 +135,12 @@ func (uc *CreateTx) CreateGuru(ctx context.Context, cmd CreateGuruCmd, actor use
 
 	idProfilGuru, error := tx.ProfilGuru().CreateProfilGuru(ctx, profilGuruData)
 	if error != nil {
-		logger.Error(ctx, "failed creating profil guru", "op", "user.create_guru", "user_id", idPengguna, "err", error)
+		logger.Error(ctx, "failed creating profil guru", "layer", "core.service", "op", "user.create_guru", "user_id", idPengguna, "err", error)
 		return CreateGuruRes{}, error
 	}
 
 	if error := tx.Commit(); error != nil {
-		logger.Error(ctx, "failed committing transaction", "op", "user.create_guru", "user_id", idPengguna, "err", error)
+		logger.Error(ctx, "failed committing transaction", "layer", "core.service", "op", "user.create_guru", "user_id", idPengguna, "err", error)
 		return CreateGuruRes{}, error
 	}
 
@@ -202,7 +202,7 @@ func (uc *CreateTx) CreateSiswa(ctx context.Context, cmd CreateSiswaCmd, actor u
 
 	tx, err := uc.txm.Begin(ctx)
 	if err != nil {
-		logger.Error(ctx, "failed starting transaction", "op", "user.create_siswa", "err", err)
+		logger.Error(ctx, "failed starting transaction", "layer", "core.service", "op", "user.create_siswa", "err", err)
 		return CreateSiswaRes{}, err
 	}
 
@@ -210,7 +210,7 @@ func (uc *CreateTx) CreateSiswa(ctx context.Context, cmd CreateSiswaCmd, actor u
 
 	existUsername, err := tx.Pengguna().UserExistByUsername(ctx, cmd.Username)
 	if err != nil {
-		logger.Error(ctx, "failed checking username", "op", "user.create_siswa", "err", err)
+		logger.Error(ctx, "failed checking username", "layer", "core.service", "op", "user.create_siswa", "err", err)
 		return CreateSiswaRes{}, err
 	}
 	if existUsername {
@@ -220,7 +220,7 @@ func (uc *CreateTx) CreateSiswa(ctx context.Context, cmd CreateSiswaCmd, actor u
 	if !isDashedNisn {
 		existNisn, err := tx.ProfilSiswa().ExistByNISN(ctx, string(nisnValidated))
 	if err != nil {
-		logger.Error(ctx, "failed checking nisn", "op", "user.create_siswa", "err", err)
+		logger.Error(ctx, "failed checking nisn", "layer", "core.service", "op", "user.create_siswa", "err", err)
 		return CreateSiswaRes{}, err
 	}
 	if existNisn {
@@ -243,7 +243,7 @@ func (uc *CreateTx) CreateSiswa(ctx context.Context, cmd CreateSiswaCmd, actor u
 
 	idPengguna, err := tx.Pengguna().CreateUser(ctx, userData)
 	if err != nil {
-		logger.Error(ctx, "failed creating user", "op", "user.create_siswa", "err", err)
+		logger.Error(ctx, "failed creating user", "layer", "core.service", "op", "user.create_siswa", "err", err)
 		return CreateSiswaRes{}, err
 	}
 
@@ -260,16 +260,16 @@ func (uc *CreateTx) CreateSiswa(ctx context.Context, cmd CreateSiswaCmd, actor u
 
 	idProfilSiswa, err := tx.ProfilSiswa().CreateProfilSiswa(ctx, profilSiswaData)
 	if err != nil {
-		logger.Error(ctx, "failed creating profil siswa", "op", "user.create_siswa", "user_id", idPengguna, "err", err)
+		logger.Error(ctx, "failed creating profil siswa", "layer", "core.service", "op", "user.create_siswa", "user_id", idPengguna, "err", err)
 		return CreateSiswaRes{}, err
 	}
 
 	if err := tx.Commit(); err != nil {
-		logger.Error(ctx, "failed committing transaction", "op", "user.create_siswa", "user_id", idPengguna, "err", err)
+		logger.Error(ctx, "failed committing transaction", "layer", "core.service", "op", "user.create_siswa", "user_id", idPengguna, "err", err)
 		return CreateSiswaRes{}, err
 	}
 
-	logger.Info(ctx, "success creating user", "op", "user.create_siswa", "user_id", idPengguna)
+	logger.Info(ctx, "success creating user", "layer", "core.service", "op", "user.create_siswa", "user_id", idPengguna)
 	return CreateSiswaRes{
 		IdPengguna:    idPengguna,
 		IdProfilSiswa: idProfilSiswa,

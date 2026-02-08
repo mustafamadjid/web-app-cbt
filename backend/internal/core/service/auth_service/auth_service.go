@@ -31,7 +31,7 @@ func (authService *AuthService) Login(ctx context.Context, cmd LoginCmd) (LoginR
 	logger := corelog.FromContext(ctx)
 	u, err := authService.authUsers.FindByUsername(ctx, cmd.Username)
 	if err != nil {
-		logger.Info(ctx, "invalid credentials", "op", "auth.login", "err", err)
+		logger.Info(ctx, "invalid credentials", "layer", "core.service", "op", "auth.login", "err", err)
 		return LoginRes{}, coreerror.ErrInvalidCreds
 	}
 
@@ -45,7 +45,7 @@ func (authService *AuthService) Login(ctx context.Context, cmd LoginCmd) (LoginR
 
 	checkSession, err := authService.sessions.HasActiveSession(ctx, u.ID)
 	if err != nil {
-		logger.Error(ctx, "failed checking active session", "op", "auth.login", "user_id", u.ID, "err", err)
+		logger.Error(ctx, "failed checking active session", "layer", "core.service", "op", "auth.login", "user_id", u.ID, "err", err)
 		return LoginRes{}, err
 	}
 
@@ -56,19 +56,19 @@ func (authService *AuthService) Login(ctx context.Context, cmd LoginCmd) (LoginR
 	refreshExp := time.Now().Add(14 * 24 * time.Hour)
 	sessionId, err := authService.sessions.CreateSession(ctx, u.ID, refreshExp)
 	if err != nil {
-		logger.Error(ctx, "failed creating session", "op", "auth.login", "user_id", u.ID, "err", err)
+		logger.Error(ctx, "failed creating session", "layer", "core.service", "op", "auth.login", "user_id", u.ID, "err", err)
 		return LoginRes{}, err
 	}
 
 	accessToken, err := authService.accessTokens.GenerateAccessToken(u.ID, u.Role, u.Username, time.Minute*15)
 	if err != nil {
-		logger.Error(ctx, "failed generating access token", "op", "auth.login", "user_id", u.ID, "err", err)
+		logger.Error(ctx, "failed generating access token", "layer", "core.service", "op", "auth.login", "user_id", u.ID, "err", err)
 		return LoginRes{}, err
 	}
 
 	refreshToken, err := authService.refreshTokens.GenerateRefreshToken(sessionId, time.Hour*24*14)
 	if err != nil {
-		logger.Error(ctx, "failed generating refresh token", "op", "auth.login", "session_id", sessionId, "err", err)
+		logger.Error(ctx, "failed generating refresh token", "layer", "core.service", "op", "auth.login", "session_id", sessionId, "err", err)
 		return LoginRes{}, err
 	}
 
@@ -79,12 +79,12 @@ func (authService *AuthService) Logout(ctx context.Context, refreshtoken string,
 	logger := corelog.FromContext(ctx)
 	sid, err := authService.refreshTokens.VerifyRefreshToken(refreshtoken, now)
 	if err != nil {
-		logger.Info(ctx, "invalid refresh token", "op", "auth.logout", "err", err)
+		logger.Info(ctx, "invalid refresh token", "layer", "core.service", "op", "auth.logout", "err", err)
 		return coreerror.ErrInvalidToken
 	}
 
 	if err := authService.sessions.RevokeSession(context.Background(), sid); err != nil {
-		logger.Error(ctx, "failed revoking session", "op", "auth.logout", "session_id", sid, "err", err)
+		logger.Error(ctx, "failed revoking session", "layer", "core.service", "op", "auth.logout", "session_id", sid, "err", err)
 		return err
 	}
 	return nil
@@ -99,13 +99,13 @@ func (authService *AuthService) RefreshAccessToken(ctx context.Context, refreshT
 	now := time.Now()
 	sid, err := authService.refreshTokens.VerifyRefreshToken(refreshToken, now)
 	if err != nil {
-		logger.Info(ctx, "invalid refresh token", "op", "auth.refresh", "err", err)
+		logger.Info(ctx, "invalid refresh token", "layer", "core.service", "op", "auth.refresh", "err", err)
 		return "", err
 	}
 
 	sess, err := authService.sessions.GetSession(ctx, sid)
 	if err != nil {
-		logger.Error(ctx, "failed getting session", "op", "auth.refresh", "session_id", sid, "err", err)
+		logger.Error(ctx, "failed getting session", "layer", "core.service", "op", "auth.refresh", "session_id", sid, "err", err)
 		return "", err
 	}
 
@@ -115,13 +115,13 @@ func (authService *AuthService) RefreshAccessToken(ctx context.Context, refreshT
 
 	u, err := authService.users.FindUserByID(ctx, sess.UserID)
 	if err != nil {
-		logger.Error(ctx, "failed finding user", "op", "auth.refresh", "user_id", sess.UserID, "err", err)
+		logger.Error(ctx, "failed finding user", "layer", "core.service", "op", "auth.refresh", "user_id", sess.UserID, "err", err)
 		return "", err
 	}
 
 	accessToken, err := authService.accessTokens.GenerateAccessToken(sess.UserID, u.Role, u.Username, accessTTL)
 	if err != nil {
-		logger.Error(ctx, "failed generating access token", "op", "auth.refresh", "user_id", sess.UserID, "err", err)
+		logger.Error(ctx, "failed generating access token", "layer", "core.service", "op", "auth.refresh", "user_id", sess.UserID, "err", err)
 		return "", err
 	}
 
@@ -134,7 +134,7 @@ func (authService *AuthService) AdminRevokingSession(ctx context.Context, sessio
 		return coreerror.ErrNoSessionId
 	}
 	if err := authService.sessions.RevokeSession(ctx, sessionID); err != nil {
-		logger.Error(ctx, "failed revoking session", "op", "auth.admin_revoke", "session_id", sessionID, "err", err)
+		logger.Error(ctx, "failed revoking session", "layer", "core.service", "op", "auth.admin_revoke", "session_id", sessionID, "err", err)
 		return err
 	}
 	return nil

@@ -39,7 +39,7 @@ func (h *UpdateProfilSekolahHandler) UpdateProfilSekolah(w http.ResponseWriter, 
 	}
 
 	if err := r.ParseMultipartForm(10 << 20); err != nil {
-		logger.Error(r.Context(), "failed parsing multipart form", "op", "profil_sekolah.update", "err", err)
+		logger.Error(r.Context(), "failed parsing multipart form", "layer", "adapter.http.handler", "op", "profil_sekolah.update", "err", err)
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: invalid multipart form")
 		return
 	}
@@ -128,7 +128,7 @@ func (h *UpdateProfilSekolahHandler) UpdateProfilSekolah(w http.ResponseWriter, 
 	var logoPtr *string
 	file, fh, err := r.FormFile("logo_sekolah")
 	if err != nil && !errors.Is(err, http.ErrMissingFile) {
-		logger.Error(r.Context(), "failed reading logo", "op", "profil_sekolah.update", "err", err)
+		logger.Error(r.Context(), "failed reading logo", "layer", "adapter.http.handler", "op", "profil_sekolah.update", "err", err)
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: failed reading logo_sekolah")
 		return
 	}
@@ -137,11 +137,11 @@ func (h *UpdateProfilSekolahHandler) UpdateProfilSekolah(w http.ResponseWriter, 
 		relPath, err := h.storeImage.SavePhotoRelative(file, fh)
 		if err != nil {
 			if errors.Is(err, coreerror.ErrFileTooLarge) {
-				logger.Info(r.Context(), "logo too large", "op", "profil_sekolah.update", "err", err)
+				logger.Info(r.Context(), "logo too large", "layer", "adapter.http.handler", "op", "profil_sekolah.update", "err", err)
 				httpResponse.WriteErr(w, http.StatusBadRequest, "FILE_TOO_LARGE", "file too large")
 				return
 			}
-			logger.Error(r.Context(), "failed saving logo", "op", "profil_sekolah.update", "err", err)
+			logger.Error(r.Context(), "failed saving logo", "layer", "adapter.http.handler", "op", "profil_sekolah.update", "err", err)
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: invalid logo_sekolah")
 			return
 		}
@@ -165,7 +165,7 @@ func (h *UpdateProfilSekolahHandler) UpdateProfilSekolah(w http.ResponseWriter, 
 	}
 
 	if err := h.svc.UpdateProfilSekolah(r.Context(), cmd); err != nil {
-		logger.Error(r.Context(), "failed updating profil sekolah", "op", "profil_sekolah.update", "err", err)
+		logger.Error(r.Context(), "failed updating profil sekolah", "layer", "adapter.http.handler", "op", "profil_sekolah.update", "err", err)
 		switch {
 		case errors.Is(err, coreerror.ErrNoFieldToUpdate):
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "no fields to update")

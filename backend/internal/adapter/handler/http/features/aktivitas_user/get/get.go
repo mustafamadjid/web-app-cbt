@@ -27,7 +27,7 @@ func (h *AktivitasUserHandler) GetAktivitasUser(w http.ResponseWriter, r *http.R
 
 	data, err := h.svc.GetAktivitasUserService(r.Context())
 	if err != nil {
-		logger.Error(r.Context(), "failed getting aktivitas user", "op", "aktivitas_user.get", "err", err)
+		logger.Error(r.Context(), "failed getting aktivitas user", "layer", "adapter.http.handler", "op", "aktivitas_user.get", "err", err)
 		httpResponse.WriteErr(w, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error: failed get aktivitas user")
 		return
 	}

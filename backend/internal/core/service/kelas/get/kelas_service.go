@@ -41,7 +41,7 @@ func (s *GetKelasService)GetFullKelas(ctx context.Context, filter query.ListKela
 
 	items, err := s.kelasSvc.GetKelas(ctx,filter)
 	if err != nil {
-		logger.Error(ctx, "failed get kelas","layer","core.service", "op", "kelas.get", "err", err)
+		logger.Error(ctx, "failed get kelas", "layer", "core.service", "op", "kelas.get", "err", err)
 		return nil, err
 	}
 	return items, nil
