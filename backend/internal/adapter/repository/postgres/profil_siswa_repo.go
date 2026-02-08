@@ -243,6 +243,7 @@ func (r *ProfilSiswaRepo) GetListSiswa(ctx context.Context, filter query.ListSis
 			p.status_akun,
 			nk.nama_kelas,
 			k.tingkat_kelas,
+			ps.no_absen,
 			ps.angkatan,
 			ps.tempat_lahir,
 			ps.tanggal_lahir
@@ -318,6 +319,7 @@ func (r *ProfilSiswaRepo) GetListSiswa(ctx context.Context, filter query.ListSis
 		var email sql.NullString
 		var noHp sql.NullString
 		var foto sql.NullString
+		var noAbsen sql.NullInt32
 		var angkatan sql.NullInt32
 		var tempatLahir sql.NullString
 		var tanggalLahir sql.NullTime
@@ -333,6 +335,7 @@ func (r *ProfilSiswaRepo) GetListSiswa(ctx context.Context, filter query.ListSis
 			&status,
 			&item.NamaKelas,
 			&item.TingkatKelas,
+			&noAbsen,
 			&angkatan,
 			&tempatLahir,
 			&tanggalLahir,
@@ -356,6 +359,9 @@ func (r *ProfilSiswaRepo) GetListSiswa(ctx context.Context, filter query.ListSis
 		}
 		if foto.Valid {
 			item.Foto = foto.String
+		}
+		if noAbsen.Valid {
+			item.NoAbsen = int(noAbsen.Int32)
 		}
 		if angkatan.Valid {
 			item.Angkatan = int(angkatan.Int32)
