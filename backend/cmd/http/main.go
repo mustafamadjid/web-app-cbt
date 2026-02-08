@@ -50,7 +50,7 @@ func main() {
 			RefreshSecret: os.Getenv("JWT_REFRESH_SECRET"),
 			AccessTTL:     15 * time.Minute,
 			// AccessTTL:     15 * time.Second,
-			RefreshTTL:    3 * 24 * time.Hour,
+			RefreshTTL: 3 * 24 * time.Hour,
 			// RefreshTTL:    30 * time.Second,
 		},
 		Cookie: app.CookieConfig{
@@ -92,8 +92,9 @@ func main() {
 	authMod := app.BuildAuthModule(cfg, infra, tokens, hasher, aktivitasUserMod)
 	userMod := app.BuildUserModule(cfg, infra, hasher, aktivitasUserMod)
 	profilSekolahMod := app.BuildProfilSekolahModule(cfg, infra)
+	kelasMod := app.BuildKelasModule(infra)
 
-	httpMod := app.BuildHTTPModule(cfg, authMod, userMod, profilSekolahMod, aktivitasUserMod, tokens, logger)
+	httpMod := app.BuildHTTPModule(cfg, authMod, userMod, profilSekolahMod, aktivitasUserMod, kelasMod, tokens, logger)
 
 	log.Println("Listening on", cfg.HTTP.Addr)
 	if err := httpMod.Server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
