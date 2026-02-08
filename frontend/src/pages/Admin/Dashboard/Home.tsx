@@ -79,38 +79,6 @@ export const dummyJadwalUjian: JadwalUjianItem[] = [
   },
 ];
 
-export const dummyAktivitas: AktivitasLogItem[] = [
-  {
-    id_aktivitas: "1",
-    id_pengguna: 1,
-    username: "admin01",
-    role: "ADMIN",
-    action: "LOGIN",
-    description: "Masuk ke sistem melalui halaman admin.",
-    ip_address: "127.0.0.1",
-    created_at: "08:12",
-  },
-  {
-    id_aktivitas: "2",
-    id_pengguna: 2,
-    username: "guru_sri",
-    role: "GURU",
-    action: "UPDATE",
-    description: "Mengubah nilai ujian Matematika kelas XI IPA 1.",
-    ip_address: "127.0.0.1",
-    created_at: "09:05",
-  },
-  {
-    id_aktivitas: "3",
-    id_pengguna: 3,
-    username: "siswa_andi",
-    role: "SISWA",
-    action: "CREATE",
-    description: "Mengumpulkan tugas Bahasa Indonesia.",
-    ip_address: "127.0.0.1",
-    created_at: "10:41",
-  },
-];
 
 export const dummyUjianBerlangsung: UjianBerlangsungItem[] = [
   {
@@ -142,7 +110,7 @@ export const Home = () => {
   const {user} = useAuth(); 
   const role = (user?.role ?? "SISWA") as Role;
   const [aktivitasItems, setAktivitasItems] =
-    useState<AktivitasLogItem[]>(dummyAktivitas);
+    useState<AktivitasLogItem[]>([]);
 
   useEffect(() => {
     const fetchAktivitas = async () => {
@@ -155,7 +123,6 @@ export const Home = () => {
         setAktivitasItems(data);
       } catch (error) {
         console.error("Gagal memuat log aktivitas", error);
-        setAktivitasItems(dummyAktivitas);
       }
     };
 
@@ -251,7 +218,7 @@ export const Home = () => {
                 items={aktivitasItems}
                 lihatSemuaTo="/log-aktivitas"
                 className="flex-1 min-h-0"
-                maxHeightClassName="h-full"
+                maxHeightClassName="max-h-[400px] overflow-y-auto "
               />
             )}
           </div>
