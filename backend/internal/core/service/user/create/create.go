@@ -64,6 +64,7 @@ func (uc *CreateTx) CreateGuru(ctx context.Context, cmd CreateGuruCmd, actor use
 	// Validasi
 	emailValidated, error := user.CheckNewEmail(cmd.Email)
 	if error != nil {
+		logger.Error(ctx, "failed validating email", "op", "user.create_guru", "err", error)
 		return CreateGuruRes{}, error
 	}
 
@@ -71,6 +72,7 @@ func (uc *CreateTx) CreateGuru(ctx context.Context, cmd CreateGuruCmd, actor use
 	// Hash password
 	hashedPassword, error := uc.hasher.GenerateHash(cmd.Password)
 	if error != nil {
+		logger.Error(ctx, "failed hashing password", "op", "user.create_guru", "err", error)
 		return CreateGuruRes{}, error
 	}
 
@@ -100,6 +102,7 @@ func (uc *CreateTx) CreateGuru(ctx context.Context, cmd CreateGuruCmd, actor use
 		return CreateGuruRes{}, error
 	}
 	if existNip {
+		logger.Error(ctx, "failed checking nip", "op", "user.create_guru", "err", coreerror.ErrNipTaken)
 		return CreateGuruRes{}, coreerror.ErrNipTaken
 	}
 	}
