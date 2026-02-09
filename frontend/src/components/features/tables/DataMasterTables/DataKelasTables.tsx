@@ -11,13 +11,11 @@ import { useNavigate } from "react-router";
 
 import AddButton from "@/components/common/Button/AddButton";
 import type {
-  FullDataKelas,
   NamaKelas,
   TingkatKelas,
 } from "@/types/DataMaster/Kelas";
 import {
   GetDataKelasFull,
-  getNamaKelas,
   getTingkatKelasById,
 } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { getTingkatKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
@@ -40,7 +38,9 @@ const DataKelasTables: React.FC = () => {
   const [kataKunci, setKataKunci] = useState("");
   const [tingkatKelas, setTingkatKelas] = useState<number | null>(null);
 
-  const [dataKelas, setDataKelas] = useState<FullDataKelas | null>(null);
+ 
+   const [daftarKelas, setDaftarKelas] = useState<NamaKelas[]>([]);
+   const [opsiTingkat, setOpsiTingkat] = useState<TingkatKelas[]>([]);
 
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -67,64 +67,31 @@ const DataKelasTables: React.FC = () => {
 
         if (seq !== requestSeq.current) return;
 
-        setDataKelas(data);
+       const namaKelas = data.item_nama_kelas ?? []
+       setDaftarKelas(namaKelas);
+       setOpsiTingkat(data.item_tingkat_kelas ?? []);
        setIdTerpilih((prev) => {
          if (prev.size === 0) return prev;
-
-         // Ensure data is an array before mapping
-         const dataArray = Array.isArray(data) ? data : [];
-         const ids = new Set(
-           dataArray.map((kelas: FullDataKelas) => kelas.item_nama_kelas),
-         );
-
+         const ids = new Set(namaKelas.map((kelas) => kelas.id_nama_kelas));
          const next = new Set<number>();
-         prev.forEach((id: number) => {
+         prev.forEach((id) => {
            if (ids.has(id)) next.add(id);
          });
          return next;
        });
       } catch (error) {
-        
-      }
-    })
-  }, []);
-
-  useEffect(() => {
-    const seq = ++requestSeq.current;
-
-    (async () => {
-      try {
-        setLoading(true);
-        setErrorMsg("");
-
-        const data = await getNamaKelas({
-          q: debouncedKataKunci.trim() || undefined,
-          tingkatKelas: tingkatKelas ?? undefined,
-        });
-
-        if (seq !== requestSeq.current) return;
-
-        setDaftarKelas(data);
-        setIdTerpilih((prev) => {
-          if (prev.size === 0) return prev;
-          const ids = new Set(data.map((kelas) => kelas.id_nama_kelas));
-          const next = new Set<number>();
-          prev.forEach((id) => {
-            if (ids.has(id)) next.add(id);
-          });
-          return next;
-        });
-      } catch {
-        if (seq !== requestSeq.current) return;
+         if (seq !== requestSeq.current) return;
         setErrorMsg("Gagal memuat data kelas.");
         setDaftarKelas([]);
+        setOpsiTingkat([]);
       } finally {
         if (seq !== requestSeq.current) return;
         setLoading(false);
       }
-    })();
+    })
   }, [debouncedKataKunci, tingkatKelas]);
 
+ 
   const semuaTerlihatTerpilih =
     daftarKelas.length > 0 &&
     daftarKelas.every((k) => idTerpilih.has(k.id_nama_kelas));
