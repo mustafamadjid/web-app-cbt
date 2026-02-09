@@ -8,172 +8,10 @@ import (
 
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
-	txport "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/tx"
-	outuser "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
+	fake_test "github.com/mustafamadjid/web-app-cbt/internal/core/service/user/update/fake_test"
 	user_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/user/update"
 	"github.com/stretchr/testify/assert"
 )
-
-// ===== minimal fake user repo =====
-
-type fakeUserRepo struct {
-	updateErr error
-
-	updateCalled bool
-	lastID       user.ID
-	lastPatch    outuser.UpdatePenggunaPatch
-}
-
-func (r *fakeUserRepo) UpdateUser(ctx context.Context, idPengguna user.ID, pengguna outuser.UpdatePenggunaPatch) error {
-	r.updateCalled = true
-	r.lastID = idPengguna
-	r.lastPatch = pengguna
-	if r.updateErr != nil {
-		return r.updateErr
-	}
-	return nil
-}
-
-// ---- methods below are NOT used by this test; keep minimal ----
-
-func (r *fakeUserRepo) FindUserByID(ctx context.Context, id user.ID) (user.Pengguna, error) {
-	panic("not used in this test")
-}
-
-func (r *fakeUserRepo) UserExistByUsername(ctx context.Context, username string) (bool, error) {
-	panic("not used in this test")
-}
-
-func (r *fakeUserRepo) CreateUser(ctx context.Context, p user.Pengguna) (user.ID, error) {
-	panic("not used in this test")
-}
-
-func (r *fakeUserRepo) DeleteUser(ctx context.Context, id user.ID) error {
-	panic("not used in this test")
-}
-
-func (r *fakeUserRepo) DeleteUsers(ctx context.Context, ids []user.ID) (int64, error) {
-	panic("not used in this test")
-}
-
-func (r *fakeUserRepo) ListUser(ctx context.Context) ([]user.Pengguna, error) {
-	panic("not used in this test")
-}
-
-// ===== minimal fake profil guru repo =====
-
-type fakeProfilGuruRepo struct {
-	updateErr error
-
-	updateCalled bool
-	lastID       user.ID
-	lastPatch    outuser.UpdateProfilGuruPatch
-}
-
-func (r *fakeProfilGuruRepo) UpdateProfilGuru(ctx context.Context, idPengguna user.ID, profilGuru outuser.UpdateProfilGuruPatch) error {
-	r.updateCalled = true
-	r.lastID = idPengguna
-	r.lastPatch = profilGuru
-	if r.updateErr != nil {
-		return r.updateErr
-	}
-	return nil
-}
-
-func (r *fakeProfilGuruRepo) FindProfilGuruByID(ctx context.Context, id user.ID) (user.DataGuru, error) {
-	panic("not used in this test")
-}
-
-func (r *fakeProfilGuruRepo) ExistByNIP(ctx context.Context, nip user.NIP) (bool, error) {
-	panic("not used in this test")
-}
-
-func (r *fakeProfilGuruRepo) CreateProfilGuru(ctx context.Context, g user.ProfilGuru) (user.ID, error) {
-	panic("not used in this test")
-}
-
-// ===== minimal fake profil siswa repo =====
-
-type fakeProfilSiswaRepo struct {
-	updateErr error
-
-	updateCalled bool
-	lastID       user.ID
-	lastPatch    outuser.UpdateProfilSiswaPatch
-}
-
-func (r *fakeProfilSiswaRepo) UpdateProfilSiswa(ctx context.Context, idPengguna user.ID, profilSiswa outuser.UpdateProfilSiswaPatch) error {
-	r.updateCalled = true
-	r.lastID = idPengguna
-	r.lastPatch = profilSiswa
-	if r.updateErr != nil {
-		return r.updateErr
-	}
-	return nil
-}
-
-func (r *fakeProfilSiswaRepo) FindProfilSiswaByID(ctx context.Context, id user.ID) (user.DataSiswa, error) {
-	panic("not used in this test")
-}
-
-func (r *fakeProfilSiswaRepo) ExistByNISN(ctx context.Context, nisn string) (bool, error) {
-	panic("not used in this test")
-}
-
-func (r *fakeProfilSiswaRepo) CreateProfilSiswa(ctx context.Context, g user.ProfilSiswa) (user.ID, error) {
-	panic("not used in this test")
-}
-
-// ===== fake tx & tx manager =====
-
-type fakeTx struct {
-	userRepo        *fakeUserRepo
-	profilGuruRepo  *fakeProfilGuruRepo
-	profilSiswaRepo *fakeProfilSiswaRepo
-
-	commitCalled   bool
-	rollbackCalled bool
-	commitErr      error
-}
-
-type fakeTxManager struct {
-	tx          *fakeTx
-	beginErr    error
-	beginCalled bool
-}
-
-func (m *fakeTxManager) Begin(ctx context.Context) (txport.Tx, error) {
-	m.beginCalled = true
-	if m.beginErr != nil {
-		return nil, m.beginErr
-	}
-	return m.tx, nil
-}
-
-func (t *fakeTx) Pengguna() outuser.UserRepository {
-	return t.userRepo
-}
-
-func (t *fakeTx) ProfilGuru() outuser.ProfilGuruRepository {
-	return t.profilGuruRepo
-}
-
-func (t *fakeTx) ProfilSiswa() outuser.ProfilSiswaRepository {
-	return t.profilSiswaRepo
-}
-
-func (t *fakeTx) Commit() error {
-	t.commitCalled = true
-	if t.commitErr != nil {
-		return t.commitErr
-	}
-	return nil
-}
-
-func (t *fakeTx) Rollback() error {
-	t.rollbackCalled = true
-	return nil
-}
 
 func TestUpdateGuruBranchCoverage(t *testing.T) {
 	adminActor := user.Actor{IdPengguna: 1, Role: user.ADMIN}
@@ -208,7 +46,7 @@ func TestUpdateGuruBranchCoverage(t *testing.T) {
 		name               string
 		cmd                user_service.UpdateGuruCmd
 		actor              user.Actor
-		txm                *fakeTxManager
+		txm                *fake_test.FakeTxManager
 		wantErr            error
 		wantErrText        string
 		wantBeginCalled    bool
@@ -222,9 +60,9 @@ func TestUpdateGuruBranchCoverage(t *testing.T) {
 			name:  "Branch 1 -> semua patch berhasil",
 			cmd:   validCmd(),
 			actor: adminActor,
-			txm: &fakeTxManager{tx: &fakeTx{
-				userRepo:       &fakeUserRepo{},
-				profilGuruRepo: &fakeProfilGuruRepo{},
+			txm: &fake_test.FakeTxManager{Tx: &fake_test.FakeTx{
+				UserRepo:       &fake_test.FakeUserRepo{},
+				ProfilGuruRepo: &fake_test.FakeProfilGuruRepo{},
 			}},
 			wantBeginCalled:    true,
 			wantCommitCalled:   true,
@@ -237,7 +75,7 @@ func TestUpdateGuruBranchCoverage(t *testing.T) {
 			name:               "Branch 2 -> aktor bukan admin",
 			cmd:                validCmd(),
 			actor:              nonAdminActor,
-			txm:                &fakeTxManager{tx: &fakeTx{}},
+			txm:                &fake_test.FakeTxManager{Tx: &fake_test.FakeTx{}},
 			wantErr:            coreerror.ErrForbidden,
 			wantBeginCalled:    false,
 			wantCommitCalled:   false,
@@ -249,7 +87,7 @@ func TestUpdateGuruBranchCoverage(t *testing.T) {
 			name:               "Branch 3 -> id pengguna kosong",
 			cmd:                func() user_service.UpdateGuruCmd { c := validCmd(); c.IdPengguna = 0; return c }(),
 			actor:              adminActor,
-			txm:                &fakeTxManager{tx: &fakeTx{}},
+			txm:                &fake_test.FakeTxManager{Tx: &fake_test.FakeTx{}},
 			wantErrText:        "Id pengguna required",
 			wantBeginCalled:    false,
 			wantCommitCalled:   false,
@@ -261,7 +99,7 @@ func TestUpdateGuruBranchCoverage(t *testing.T) {
 			name:               "Branch 4 -> username kosong",
 			cmd:                func() user_service.UpdateGuruCmd { c := validCmd(); c.Username = strPtr(" "); return c }(),
 			actor:              adminActor,
-			txm:                &fakeTxManager{tx: &fakeTx{}},
+			txm:                &fake_test.FakeTxManager{Tx: &fake_test.FakeTx{}},
 			wantErrText:        "username cannot be empty",
 			wantBeginCalled:    false,
 			wantCommitCalled:   false,
@@ -273,7 +111,7 @@ func TestUpdateGuruBranchCoverage(t *testing.T) {
 			name:               "Branch 5 -> nama lengkap kosong",
 			cmd:                func() user_service.UpdateGuruCmd { c := validCmd(); c.NamaLengkap = strPtr(" "); return c }(),
 			actor:              adminActor,
-			txm:                &fakeTxManager{tx: &fakeTx{}},
+			txm:                &fake_test.FakeTxManager{Tx: &fake_test.FakeTx{}},
 			wantErrText:        "nama_lengkap cannot be empty",
 			wantBeginCalled:    false,
 			wantCommitCalled:   false,
@@ -285,7 +123,7 @@ func TestUpdateGuruBranchCoverage(t *testing.T) {
 			name:               "Branch 6 -> email tidak valid",
 			cmd:                func() user_service.UpdateGuruCmd { c := validCmd(); c.Email = strPtr("invalid"); return c }(),
 			actor:              adminActor,
-			txm:                &fakeTxManager{tx: &fakeTx{}},
+			txm:                &fake_test.FakeTxManager{Tx: &fake_test.FakeTx{}},
 			wantErr:            user.ErrInvalidEmail,
 			wantBeginCalled:    false,
 			wantCommitCalled:   false,
@@ -299,7 +137,7 @@ func TestUpdateGuruBranchCoverage(t *testing.T) {
 				return user_service.UpdateGuruCmd{IdPengguna: 10, Username: strPtr("guru")}
 			}(),
 			actor:              adminActor,
-			txm:                &fakeTxManager{tx: &fakeTx{}},
+			txm:                &fake_test.FakeTxManager{Tx: &fake_test.FakeTx{}},
 			wantErr:            coreerror.ErrNoFieldToUpdate,
 			wantBeginCalled:    false,
 			wantCommitCalled:   false,
@@ -311,11 +149,11 @@ func TestUpdateGuruBranchCoverage(t *testing.T) {
 			name:  "Branch 8 -> begin tx gagal",
 			cmd:   validCmd(),
 			actor: adminActor,
-			txm: &fakeTxManager{
-				beginErr: testErr,
-				tx: &fakeTx{
-					userRepo:       &fakeUserRepo{},
-					profilGuruRepo: &fakeProfilGuruRepo{},
+			txm: &fake_test.FakeTxManager{
+				BeginErr: testErr,
+				Tx: &fake_test.FakeTx{
+					UserRepo:       &fake_test.FakeUserRepo{},
+					ProfilGuruRepo: &fake_test.FakeProfilGuruRepo{},
 				},
 			},
 			wantErr:            testErr,
@@ -329,9 +167,9 @@ func TestUpdateGuruBranchCoverage(t *testing.T) {
 			name:  "Branch 9 -> update pengguna gagal",
 			cmd:   validCmd(),
 			actor: adminActor,
-			txm: &fakeTxManager{tx: &fakeTx{
-				userRepo:       &fakeUserRepo{updateErr: testErr},
-				profilGuruRepo: &fakeProfilGuruRepo{},
+			txm: &fake_test.FakeTxManager{Tx: &fake_test.FakeTx{
+				UserRepo:       &fake_test.FakeUserRepo{UpdateErr: testErr},
+				ProfilGuruRepo: &fake_test.FakeProfilGuruRepo{},
 			}},
 			wantErr:            testErr,
 			wantBeginCalled:    true,
@@ -344,9 +182,9 @@ func TestUpdateGuruBranchCoverage(t *testing.T) {
 			name:  "Branch 10 -> update profil guru gagal",
 			cmd:   validCmd(),
 			actor: adminActor,
-			txm: &fakeTxManager{tx: &fakeTx{
-				userRepo:       &fakeUserRepo{},
-				profilGuruRepo: &fakeProfilGuruRepo{updateErr: testErr},
+			txm: &fake_test.FakeTxManager{Tx: &fake_test.FakeTx{
+				UserRepo:       &fake_test.FakeUserRepo{},
+				ProfilGuruRepo: &fake_test.FakeProfilGuruRepo{UpdateErr: testErr},
 			}},
 			wantErr:            testErr,
 			wantBeginCalled:    true,
@@ -359,10 +197,10 @@ func TestUpdateGuruBranchCoverage(t *testing.T) {
 			name:  "Branch 11 -> commit gagal",
 			cmd:   validCmd(),
 			actor: adminActor,
-			txm: &fakeTxManager{tx: &fakeTx{
-				userRepo:       &fakeUserRepo{},
-				profilGuruRepo: &fakeProfilGuruRepo{},
-				commitErr:      testErr,
+			txm: &fake_test.FakeTxManager{Tx: &fake_test.FakeTx{
+				UserRepo:       &fake_test.FakeUserRepo{},
+				ProfilGuruRepo: &fake_test.FakeProfilGuruRepo{},
+				CommitErr:      testErr,
 			}},
 			wantErr:            testErr,
 			wantBeginCalled:    true,
@@ -384,9 +222,9 @@ func TestUpdateGuruBranchCoverage(t *testing.T) {
 				return c
 			}(),
 			actor: adminActor,
-			txm: &fakeTxManager{tx: &fakeTx{
-				userRepo:       &fakeUserRepo{},
-				profilGuruRepo: &fakeProfilGuruRepo{},
+			txm: &fake_test.FakeTxManager{Tx: &fake_test.FakeTx{
+				UserRepo:       &fake_test.FakeUserRepo{},
+				ProfilGuruRepo: &fake_test.FakeProfilGuruRepo{},
 			}},
 			wantBeginCalled:    true,
 			wantCommitCalled:   true,
@@ -404,9 +242,9 @@ func TestUpdateGuruBranchCoverage(t *testing.T) {
 				return c
 			}(),
 			actor: adminActor,
-			txm: &fakeTxManager{tx: &fakeTx{
-				userRepo:       &fakeUserRepo{},
-				profilGuruRepo: &fakeProfilGuruRepo{},
+			txm: &fake_test.FakeTxManager{Tx: &fake_test.FakeTx{
+				UserRepo:       &fake_test.FakeUserRepo{},
+				ProfilGuruRepo: &fake_test.FakeProfilGuruRepo{},
 			}},
 			wantBeginCalled:    true,
 			wantCommitCalled:   true,
@@ -433,18 +271,18 @@ func TestUpdateGuruBranchCoverage(t *testing.T) {
 				assert.NoError(t, err)
 			}
 
-			assert.Equal(t, tc.wantBeginCalled, tc.txm.beginCalled)
-			if tc.txm.tx != nil {
-				assert.Equal(t, tc.wantCommitCalled, tc.txm.tx.commitCalled)
-				assert.Equal(t, tc.wantRollbackCalled, tc.txm.tx.rollbackCalled)
-				if tc.txm.tx.userRepo != nil {
-					assert.Equal(t, tc.wantUpdateUser, tc.txm.tx.userRepo.updateCalled)
-					if tc.wantEmailValue != "" && tc.txm.tx.userRepo.lastPatch.Email != nil {
-						assert.Equal(t, tc.wantEmailValue, string(*tc.txm.tx.userRepo.lastPatch.Email))
+			assert.Equal(t, tc.wantBeginCalled, tc.txm.BeginCalled)
+			if tc.txm.Tx != nil {
+				assert.Equal(t, tc.wantCommitCalled, tc.txm.Tx.CommitCalled)
+				assert.Equal(t, tc.wantRollbackCalled, tc.txm.Tx.RollbackCalled)
+				if tc.txm.Tx.UserRepo != nil {
+					assert.Equal(t, tc.wantUpdateUser, tc.txm.Tx.UserRepo.UpdateCalled)
+					if tc.wantEmailValue != "" && tc.txm.Tx.UserRepo.LastPatch.Email != nil {
+						assert.Equal(t, tc.wantEmailValue, string(*tc.txm.Tx.UserRepo.LastPatch.Email))
 					}
 				}
-				if tc.txm.tx.profilGuruRepo != nil {
-					assert.Equal(t, tc.wantUpdateProfil, tc.txm.tx.profilGuruRepo.updateCalled)
+				if tc.txm.Tx.ProfilGuruRepo != nil {
+					assert.Equal(t, tc.wantUpdateProfil, tc.txm.Tx.ProfilGuruRepo.UpdateCalled)
 				}
 			}
 		})
@@ -499,7 +337,7 @@ func TestUpdateSiswaBranchCoverage(t *testing.T) {
 		name               string
 		cmd                user_service.UpdateSiswaCmd
 		actor              user.Actor
-		txm                *fakeTxManager
+		txm                *fake_test.FakeTxManager
 		wantErr            error
 		wantErrText        string
 		wantBeginCalled    bool
@@ -514,9 +352,9 @@ func TestUpdateSiswaBranchCoverage(t *testing.T) {
 			name:  "Branch 1 -> semua patch berhasil",
 			cmd:   validCmd(),
 			actor: adminActor,
-			txm: &fakeTxManager{tx: &fakeTx{
-				userRepo:        &fakeUserRepo{},
-				profilSiswaRepo: &fakeProfilSiswaRepo{},
+			txm: &fake_test.FakeTxManager{Tx: &fake_test.FakeTx{
+				UserRepo:        &fake_test.FakeUserRepo{},
+				ProfilSiswaRepo: &fake_test.FakeProfilSiswaRepo{},
 			}},
 			wantBeginCalled:    true,
 			wantCommitCalled:   true,
@@ -530,7 +368,7 @@ func TestUpdateSiswaBranchCoverage(t *testing.T) {
 			name:               "Branch 2 -> aktor bukan admin",
 			cmd:                validCmd(),
 			actor:              nonAdminActor,
-			txm:                &fakeTxManager{tx: &fakeTx{}},
+			txm:                &fake_test.FakeTxManager{Tx: &fake_test.FakeTx{}},
 			wantErr:            coreerror.ErrForbidden,
 			wantBeginCalled:    false,
 			wantCommitCalled:   false,
@@ -542,7 +380,7 @@ func TestUpdateSiswaBranchCoverage(t *testing.T) {
 			name:               "Branch 3 -> id pengguna kosong",
 			cmd:                func() user_service.UpdateSiswaCmd { c := validCmd(); c.IdPengguna = 0; return c }(),
 			actor:              adminActor,
-			txm:                &fakeTxManager{tx: &fakeTx{}},
+			txm:                &fake_test.FakeTxManager{Tx: &fake_test.FakeTx{}},
 			wantErrText:        "Id pengguna required",
 			wantBeginCalled:    false,
 			wantCommitCalled:   false,
@@ -554,7 +392,7 @@ func TestUpdateSiswaBranchCoverage(t *testing.T) {
 			name:               "Branch 4 -> username kosong",
 			cmd:                func() user_service.UpdateSiswaCmd { c := validCmd(); c.Username = strPtr(" "); return c }(),
 			actor:              adminActor,
-			txm:                &fakeTxManager{tx: &fakeTx{}},
+			txm:                &fake_test.FakeTxManager{Tx: &fake_test.FakeTx{}},
 			wantErrText:        "username cannot be empty",
 			wantBeginCalled:    false,
 			wantCommitCalled:   false,
@@ -566,7 +404,7 @@ func TestUpdateSiswaBranchCoverage(t *testing.T) {
 			name:               "Branch 5 -> nama lengkap kosong",
 			cmd:                func() user_service.UpdateSiswaCmd { c := validCmd(); c.NamaLengkap = strPtr(" "); return c }(),
 			actor:              adminActor,
-			txm:                &fakeTxManager{tx: &fakeTx{}},
+			txm:                &fake_test.FakeTxManager{Tx: &fake_test.FakeTx{}},
 			wantErrText:        "nama_lengkap cannot be empty",
 			wantBeginCalled:    false,
 			wantCommitCalled:   false,
@@ -578,7 +416,7 @@ func TestUpdateSiswaBranchCoverage(t *testing.T) {
 			name:               "Branch 6 -> email tidak valid",
 			cmd:                func() user_service.UpdateSiswaCmd { c := validCmd(); c.Email = strPtr("invalid"); return c }(),
 			actor:              adminActor,
-			txm:                &fakeTxManager{tx: &fakeTx{}},
+			txm:                &fake_test.FakeTxManager{Tx: &fake_test.FakeTx{}},
 			wantErr:            user.ErrInvalidEmail,
 			wantBeginCalled:    false,
 			wantCommitCalled:   false,
@@ -590,7 +428,7 @@ func TestUpdateSiswaBranchCoverage(t *testing.T) {
 			name:               "Branch 7 -> nisn tidak valid",
 			cmd:                func() user_service.UpdateSiswaCmd { c := validCmd(); c.Nisn = strPtr("123"); return c }(),
 			actor:              adminActor,
-			txm:                &fakeTxManager{tx: &fakeTx{}},
+			txm:                &fake_test.FakeTxManager{Tx: &fake_test.FakeTx{}},
 			wantErr:            user.ErrInvalidNISN,
 			wantBeginCalled:    false,
 			wantCommitCalled:   false,
@@ -602,7 +440,7 @@ func TestUpdateSiswaBranchCoverage(t *testing.T) {
 			name:               "Branch 8 -> no absen tidak valid",
 			cmd:                func() user_service.UpdateSiswaCmd { c := validCmd(); c.NoAbsen = intPtr(0); return c }(),
 			actor:              adminActor,
-			txm:                &fakeTxManager{tx: &fakeTx{}},
+			txm:                &fake_test.FakeTxManager{Tx: &fake_test.FakeTx{}},
 			wantErr:            user.ErrInvalidAbsen,
 			wantBeginCalled:    false,
 			wantCommitCalled:   false,
@@ -614,7 +452,7 @@ func TestUpdateSiswaBranchCoverage(t *testing.T) {
 			name:               "Branch 9 -> angkatan tidak valid",
 			cmd:                func() user_service.UpdateSiswaCmd { c := validCmd(); c.Angkatan = intPtr(2000); return c }(),
 			actor:              adminActor,
-			txm:                &fakeTxManager{tx: &fakeTx{}},
+			txm:                &fake_test.FakeTxManager{Tx: &fake_test.FakeTx{}},
 			wantErr:            user.ErrInvalidAngkatan,
 			wantBeginCalled:    false,
 			wantCommitCalled:   false,
@@ -628,7 +466,7 @@ func TestUpdateSiswaBranchCoverage(t *testing.T) {
 				return user_service.UpdateSiswaCmd{IdPengguna: 10, Username: strPtr("siswa")}
 			}(),
 			actor:              adminActor,
-			txm:                &fakeTxManager{tx: &fakeTx{}},
+			txm:                &fake_test.FakeTxManager{Tx: &fake_test.FakeTx{}},
 			wantErr:            coreerror.ErrNoFieldToUpdate,
 			wantBeginCalled:    false,
 			wantCommitCalled:   false,
@@ -640,11 +478,11 @@ func TestUpdateSiswaBranchCoverage(t *testing.T) {
 			name:  "Branch 11 -> begin tx gagal",
 			cmd:   validCmd(),
 			actor: adminActor,
-			txm: &fakeTxManager{
-				beginErr: testErr,
-				tx: &fakeTx{
-					userRepo:        &fakeUserRepo{},
-					profilSiswaRepo: &fakeProfilSiswaRepo{},
+			txm: &fake_test.FakeTxManager{
+				BeginErr: testErr,
+				Tx: &fake_test.FakeTx{
+					UserRepo:        &fake_test.FakeUserRepo{},
+					ProfilSiswaRepo: &fake_test.FakeProfilSiswaRepo{},
 				},
 			},
 			wantErr:            testErr,
@@ -658,9 +496,9 @@ func TestUpdateSiswaBranchCoverage(t *testing.T) {
 			name:  "Branch 12 -> update pengguna gagal",
 			cmd:   validCmd(),
 			actor: adminActor,
-			txm: &fakeTxManager{tx: &fakeTx{
-				userRepo:        &fakeUserRepo{updateErr: testErr},
-				profilSiswaRepo: &fakeProfilSiswaRepo{},
+			txm: &fake_test.FakeTxManager{Tx: &fake_test.FakeTx{
+				UserRepo:        &fake_test.FakeUserRepo{UpdateErr: testErr},
+				ProfilSiswaRepo: &fake_test.FakeProfilSiswaRepo{},
 			}},
 			wantErr:            testErr,
 			wantBeginCalled:    true,
@@ -673,9 +511,9 @@ func TestUpdateSiswaBranchCoverage(t *testing.T) {
 			name:  "Branch 13 -> update profil siswa gagal",
 			cmd:   validCmd(),
 			actor: adminActor,
-			txm: &fakeTxManager{tx: &fakeTx{
-				userRepo:        &fakeUserRepo{},
-				profilSiswaRepo: &fakeProfilSiswaRepo{updateErr: testErr},
+			txm: &fake_test.FakeTxManager{Tx: &fake_test.FakeTx{
+				UserRepo:        &fake_test.FakeUserRepo{},
+				ProfilSiswaRepo: &fake_test.FakeProfilSiswaRepo{UpdateErr: testErr},
 			}},
 			wantErr:            testErr,
 			wantBeginCalled:    true,
@@ -688,10 +526,10 @@ func TestUpdateSiswaBranchCoverage(t *testing.T) {
 			name:  "Branch 14 -> commit gagal",
 			cmd:   validCmd(),
 			actor: adminActor,
-			txm: &fakeTxManager{tx: &fakeTx{
-				userRepo:        &fakeUserRepo{},
-				profilSiswaRepo: &fakeProfilSiswaRepo{},
-				commitErr:       testErr,
+			txm: &fake_test.FakeTxManager{Tx: &fake_test.FakeTx{
+				UserRepo:        &fake_test.FakeUserRepo{},
+				ProfilSiswaRepo: &fake_test.FakeProfilSiswaRepo{},
+				CommitErr:       testErr,
 			}},
 			wantErr:            testErr,
 			wantBeginCalled:    true,
@@ -713,9 +551,9 @@ func TestUpdateSiswaBranchCoverage(t *testing.T) {
 				return c
 			}(),
 			actor: adminActor,
-			txm: &fakeTxManager{tx: &fakeTx{
-				userRepo:        &fakeUserRepo{},
-				profilSiswaRepo: &fakeProfilSiswaRepo{},
+			txm: &fake_test.FakeTxManager{Tx: &fake_test.FakeTx{
+				UserRepo:        &fake_test.FakeUserRepo{},
+				ProfilSiswaRepo: &fake_test.FakeProfilSiswaRepo{},
 			}},
 			wantBeginCalled:    true,
 			wantCommitCalled:   true,
@@ -737,9 +575,9 @@ func TestUpdateSiswaBranchCoverage(t *testing.T) {
 				return c
 			}(),
 			actor: adminActor,
-			txm: &fakeTxManager{tx: &fakeTx{
-				userRepo:        &fakeUserRepo{},
-				profilSiswaRepo: &fakeProfilSiswaRepo{},
+			txm: &fake_test.FakeTxManager{Tx: &fake_test.FakeTx{
+				UserRepo:        &fake_test.FakeUserRepo{},
+				ProfilSiswaRepo: &fake_test.FakeProfilSiswaRepo{},
 			}},
 			wantBeginCalled:    true,
 			wantCommitCalled:   true,
@@ -766,20 +604,20 @@ func TestUpdateSiswaBranchCoverage(t *testing.T) {
 				assert.NoError(t, err)
 			}
 
-			assert.Equal(t, tc.wantBeginCalled, tc.txm.beginCalled)
-			if tc.txm.tx != nil {
-				assert.Equal(t, tc.wantCommitCalled, tc.txm.tx.commitCalled)
-				assert.Equal(t, tc.wantRollbackCalled, tc.txm.tx.rollbackCalled)
-				if tc.txm.tx.userRepo != nil {
-					assert.Equal(t, tc.wantUpdateUser, tc.txm.tx.userRepo.updateCalled)
-					if tc.wantEmailValue != "" && tc.txm.tx.userRepo.lastPatch.Email != nil {
-						assert.Equal(t, tc.wantEmailValue, string(*tc.txm.tx.userRepo.lastPatch.Email))
+			assert.Equal(t, tc.wantBeginCalled, tc.txm.BeginCalled)
+			if tc.txm.Tx != nil {
+				assert.Equal(t, tc.wantCommitCalled, tc.txm.Tx.CommitCalled)
+				assert.Equal(t, tc.wantRollbackCalled, tc.txm.Tx.RollbackCalled)
+				if tc.txm.Tx.UserRepo != nil {
+					assert.Equal(t, tc.wantUpdateUser, tc.txm.Tx.UserRepo.UpdateCalled)
+					if tc.wantEmailValue != "" && tc.txm.Tx.UserRepo.LastPatch.Email != nil {
+						assert.Equal(t, tc.wantEmailValue, string(*tc.txm.Tx.UserRepo.LastPatch.Email))
 					}
 				}
-				if tc.txm.tx.profilSiswaRepo != nil {
-					assert.Equal(t, tc.wantUpdateProfil, tc.txm.tx.profilSiswaRepo.updateCalled)
-					if tc.wantNisnValue != "" && tc.txm.tx.profilSiswaRepo.lastPatch.Nisn != nil {
-						assert.Equal(t, tc.wantNisnValue, *tc.txm.tx.profilSiswaRepo.lastPatch.Nisn)
+				if tc.txm.Tx.ProfilSiswaRepo != nil {
+					assert.Equal(t, tc.wantUpdateProfil, tc.txm.Tx.ProfilSiswaRepo.UpdateCalled)
+					if tc.wantNisnValue != "" && tc.txm.Tx.ProfilSiswaRepo.LastPatch.Nisn != nil {
+						assert.Equal(t, tc.wantNisnValue, *tc.txm.Tx.ProfilSiswaRepo.LastPatch.Nisn)
 					}
 				}
 			}
