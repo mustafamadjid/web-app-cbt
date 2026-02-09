@@ -6,8 +6,10 @@ import (
 	"testing"
 
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
-	fake_test "github.com/mustafamadjid/web-app-cbt/internal/core/service/user/get/fake_test"
 	"github.com/stretchr/testify/assert"
+
+	fake_test "github.com/mustafamadjid/web-app-cbt/internal/core/service/user/get/fake_test"
+	outuser "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
 )
 
 func TestGetSiswaService_FindProfilSiswaByID(t *testing.T) {
