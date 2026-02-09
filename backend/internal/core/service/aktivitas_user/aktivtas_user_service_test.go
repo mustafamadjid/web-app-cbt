@@ -9,32 +9,9 @@ import (
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/aktivitas_user"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 	aktivitas_user_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/aktivitas_user"
+	fake_test "github.com/mustafamadjid/web-app-cbt/internal/core/service/aktivitas_user/fake_test"
 	"github.com/stretchr/testify/assert"
 )
-
-type fakeAktivitasUserRepo struct {
-	createErr     error
-	createCalled  bool
-	createdRecord aktivitas_user.AktivitasUser
-
-	getErr    error
-	getCalled bool
-	getData   []aktivitas_user.AktivitasUser
-}
-
-func (r *fakeAktivitasUserRepo) CreateAktivitasUser(ctx context.Context, aktivitasUser aktivitas_user.AktivitasUser) error {
-	r.createCalled = true
-	r.createdRecord = aktivitasUser
-	return r.createErr
-}
-
-func (r *fakeAktivitasUserRepo) GetAktivitasUser(ctx context.Context) ([]aktivitas_user.AktivitasUser, error) {
-	r.getCalled = true
-	if r.getErr != nil {
-		return nil, r.getErr
-	}
-	return r.getData, nil
-}
 
 func TestCreateAktivitasUserService(t *testing.T) {
 	repoErr := errors.New("repo error")
@@ -97,7 +74,7 @@ func TestCreateAktivitasUserService(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			repo := &fakeAktivitasUserRepo{createErr: tt.repoErr}
+			repo := &fake_test.FakeAktivitasUserRepo{CreateErr: tt.repoErr}
 			svc := aktivitas_user_service.NewAktivitasUserService(repo)
 
 			err := svc.CreateAktivitasUserService(context.Background(), tt.cmd)
@@ -107,10 +84,10 @@ func TestCreateAktivitasUserService(t *testing.T) {
 				assert.NoError(t, err)
 			}
 
-			assert.Equal(t, tt.wantCreateCalled, repo.createCalled)
+			assert.Equal(t, tt.wantCreateCalled, repo.CreateCalled)
 			if tt.wantCreateCalled && tt.wantErr == nil {
-				assert.Equal(t, tt.wantDesc, repo.createdRecord.Description)
-				assert.Equal(t, tt.wantIP, repo.createdRecord.IpAddress)
+				assert.Equal(t, tt.wantDesc, repo.CreatedRecord.Description)
+				assert.Equal(t, tt.wantIP, repo.CreatedRecord.IpAddress)
 			}
 		})
 	}
@@ -139,7 +116,7 @@ func TestGetAktivitasUserService(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			repo := &fakeAktivitasUserRepo{getErr: tt.repoErr, getData: tt.repoData}
+			repo := &fake_test.FakeAktivitasUserRepo{GetErr: tt.repoErr, GetData: tt.repoData}
 			svc := aktivitas_user_service.NewAktivitasUserService(repo)
 
 			res, err := svc.GetAktivitasUserService(context.Background())
@@ -150,7 +127,7 @@ func TestGetAktivitasUserService(t *testing.T) {
 			}
 
 			assert.Equal(t, tt.wantCount, len(res))
-			assert.True(t, repo.getCalled)
+			assert.True(t, repo.GetCalled)
 		})
 	}
 }

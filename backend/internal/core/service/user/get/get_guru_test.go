@@ -7,43 +7,11 @@ import (
 
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
-	outuser "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
 	query "github.com/mustafamadjid/web-app-cbt/internal/core/query/user"
 	user_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/user/get"
+	fake_test "github.com/mustafamadjid/web-app-cbt/internal/core/service/user/get/fake_test"
 	"github.com/stretchr/testify/assert"
 )
-
-type fakeGetGuruRepo struct {
-	items     []query.GuruListItem
-	err       error
-	called    bool
-	gotFilter query.ListGuruFilter
-}
-
-func (f *fakeGetGuruRepo) GetListGuru(ctx context.Context, q query.ListGuruFilter) ([]query.GuruListItem, error) {
-	f.called = true
-	f.gotFilter = q
-	if f.err != nil {
-		return nil, f.err
-	}
-	return f.items, nil
-}
-
-func (f *fakeGetGuruRepo) FindProfilGuruByID(ctx context.Context, id user.ID) (user.DataGuru, error) {
-	return user.DataGuru{}, nil
-}
-
-func (f *fakeGetGuruRepo) ExistByNIP(ctx context.Context, nip user.NIP) (bool, error) {
-	return false, nil
-}
-
-func (f *fakeGetGuruRepo) CreateProfilGuru(ctx context.Context, g user.ProfilGuru) (user.ID, error) {
-	return 0, nil
-}
-
-func (f *fakeGetGuruRepo) UpdateProfilGuru(ctx context.Context, idPengguna user.ID, profilGuru outuser.UpdateProfilGuruPatch) error {
-	return nil
-}
 
 func TestGetGuruService_ListGuru(t *testing.T) {
 	t.Parallel()
@@ -59,7 +27,7 @@ func TestGetGuruService_ListGuru(t *testing.T) {
 	tests := []struct {
 		name       string
 		filter     query.ListGuruFilter
-		repo       *fakeGetGuruRepo
+		repo       *fake_test.FakeGetGuruRepo
 		wantItems  []query.GuruListItem
 		wantErr    error
 		wantErrMsg string
@@ -76,7 +44,7 @@ func TestGetGuruService_ListGuru(t *testing.T) {
 				Bidang:   &bidangInput,
 				SortDesc: true,
 			},
-			repo:       &fakeGetGuruRepo{items: items},
+			repo:       &fake_test.FakeGetGuruRepo{Items: items},
 			wantItems:  items,
 			wantCalled: true,
 			wantFilter: &query.ListGuruFilter{
@@ -94,7 +62,7 @@ func TestGetGuruService_ListGuru(t *testing.T) {
 			filter: query.ListGuruFilter{
 				SortBy: "invalid",
 			},
-			repo:       &fakeGetGuruRepo{},
+			repo:       &fake_test.FakeGetGuruRepo{},
 			wantErr:    coreerror.ErrInvalidInput,
 			wantCalled: false,
 		},
@@ -104,7 +72,7 @@ func TestGetGuruService_ListGuru(t *testing.T) {
 				SortBy: "created_at",
 				Status: &invalidStatus,
 			},
-			repo:       &fakeGetGuruRepo{},
+			repo:       &fake_test.FakeGetGuruRepo{},
 			wantErr:    coreerror.ErrInvalidInput,
 			wantCalled: false,
 		},
@@ -117,7 +85,7 @@ func TestGetGuruService_ListGuru(t *testing.T) {
 					return &v
 				}(),
 			},
-			repo:       &fakeGetGuruRepo{},
+			repo:       &fake_test.FakeGetGuruRepo{},
 			wantErr:    coreerror.ErrInvalidInput,
 			wantCalled: false,
 		},
@@ -126,7 +94,7 @@ func TestGetGuruService_ListGuru(t *testing.T) {
 			filter: query.ListGuruFilter{
 				SortBy: "created_at",
 			},
-			repo:       &fakeGetGuruRepo{err: repoErr},
+			repo:       &fake_test.FakeGetGuruRepo{Err: repoErr},
 			wantErrMsg: "repo error",
 			wantCalled: true,
 			wantFilter: &query.ListGuruFilter{
@@ -145,7 +113,7 @@ func TestGetGuruService_ListGuru(t *testing.T) {
 
 			result, err := service.ListGuru(ctx, tc.filter)
 
-			assert.Equal(t, tc.wantCalled, tc.repo.called)
+			assert.Equal(t, tc.wantCalled, tc.repo.Called)
 			if tc.wantErr != nil {
 				assert.ErrorIs(t, err, tc.wantErr)
 				return
@@ -154,7 +122,7 @@ func TestGetGuruService_ListGuru(t *testing.T) {
 				assert.Error(t, err)
 				assert.EqualError(t, err, tc.wantErrMsg)
 				if tc.wantFilter != nil {
-					assert.Equal(t, *tc.wantFilter, tc.repo.gotFilter)
+					assert.Equal(t, *tc.wantFilter, tc.repo.GotFilter)
 				}
 				return
 			}
@@ -162,7 +130,7 @@ func TestGetGuruService_ListGuru(t *testing.T) {
 			assert.NoError(t, err)
 			assert.Equal(t, tc.wantItems, result)
 			if tc.wantFilter != nil {
-				assert.Equal(t, *tc.wantFilter, tc.repo.gotFilter)
+				assert.Equal(t, *tc.wantFilter, tc.repo.GotFilter)
 			}
 		})
 	}

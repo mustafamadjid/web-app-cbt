@@ -8,43 +8,11 @@ import (
 
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
-	outuser "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
 	query "github.com/mustafamadjid/web-app-cbt/internal/core/query/user"
 	user_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/user/get"
+	fake_test "github.com/mustafamadjid/web-app-cbt/internal/core/service/user/get/fake_test"
 	"github.com/stretchr/testify/assert"
 )
-
-type fakeGetSiswaRepo struct {
-	items     []query.SiswaListItem
-	err       error
-	called    bool
-	gotFilter query.ListSiswaFilter
-}
-
-func (f *fakeGetSiswaRepo) GetListSiswa(ctx context.Context, filter query.ListSiswaFilter) ([]query.SiswaListItem, error) {
-	f.called = true
-	f.gotFilter = filter
-	if f.err != nil {
-		return nil, f.err
-	}
-	return f.items, nil
-}
-
-func (f *fakeGetSiswaRepo) FindProfilSiswaByID(ctx context.Context, id user.ID) (user.DataSiswa, error) {
-	return user.DataSiswa{}, nil
-}
-
-func (f *fakeGetSiswaRepo) ExistByNISN(ctx context.Context, nisn string) (bool, error) {
-	return false, nil
-}
-
-func (f *fakeGetSiswaRepo) CreateProfilSiswa(ctx context.Context, g user.ProfilSiswa) (user.ID, error) {
-	return 0, nil
-}
-
-func (f *fakeGetSiswaRepo) UpdateProfilSiswa(ctx context.Context, idPengguna user.ID, profilSiswa outuser.UpdateProfilSiswaPatch) error {
-	return nil
-}
 
 func TestGetSiswaService_ListSiswa(t *testing.T) {
 	t.Parallel()
@@ -65,7 +33,7 @@ func TestGetSiswaService_ListSiswa(t *testing.T) {
 	tests := []struct {
 		name       string
 		filter     query.ListSiswaFilter
-		repo       *fakeGetSiswaRepo
+		repo       *fake_test.FakeGetSiswaRepo
 		wantItems  []query.SiswaListItem
 		wantErr    error
 		wantErrMsg string
@@ -84,7 +52,7 @@ func TestGetSiswaService_ListSiswa(t *testing.T) {
 				TingkatKelas: &validTingkat,
 				JenisKelamin: &validJenisKelamin,
 			},
-			repo:       &fakeGetSiswaRepo{items: items},
+			repo:       &fake_test.FakeGetSiswaRepo{Items: items},
 			wantItems:  items,
 			wantCalled: true,
 			wantFilter: &query.ListSiswaFilter{
@@ -104,7 +72,7 @@ func TestGetSiswaService_ListSiswa(t *testing.T) {
 			filter: query.ListSiswaFilter{
 				SortBy: "invalid",
 			},
-			repo:       &fakeGetSiswaRepo{},
+			repo:       &fake_test.FakeGetSiswaRepo{},
 			wantErr:    coreerror.ErrInvalidInput,
 			wantCalled: false,
 		},
@@ -114,7 +82,7 @@ func TestGetSiswaService_ListSiswa(t *testing.T) {
 				SortBy: "created_at",
 				Status: &invalidStatus,
 			},
-			repo:       &fakeGetSiswaRepo{},
+			repo:       &fake_test.FakeGetSiswaRepo{},
 			wantErr:    coreerror.ErrInvalidInput,
 			wantCalled: false,
 		},
@@ -124,7 +92,7 @@ func TestGetSiswaService_ListSiswa(t *testing.T) {
 				SortBy:   "created_at",
 				Angkatan: &invalidAngkatan,
 			},
-			repo:       &fakeGetSiswaRepo{},
+			repo:       &fake_test.FakeGetSiswaRepo{},
 			wantErr:    coreerror.ErrInvalidInput,
 			wantCalled: false,
 		},
@@ -134,7 +102,7 @@ func TestGetSiswaService_ListSiswa(t *testing.T) {
 				SortBy:       "created_at",
 				TingkatKelas: &invalidTingkat,
 			},
-			repo:       &fakeGetSiswaRepo{},
+			repo:       &fake_test.FakeGetSiswaRepo{},
 			wantErr:    coreerror.ErrInvalidInput,
 			wantCalled: false,
 		},
@@ -144,7 +112,7 @@ func TestGetSiswaService_ListSiswa(t *testing.T) {
 				SortBy:       "created_at",
 				JenisKelamin: &invalidJenisKelamin,
 			},
-			repo:       &fakeGetSiswaRepo{},
+			repo:       &fake_test.FakeGetSiswaRepo{},
 			wantErr:    coreerror.ErrInvalidInput,
 			wantCalled: false,
 		},
@@ -153,7 +121,7 @@ func TestGetSiswaService_ListSiswa(t *testing.T) {
 			filter: query.ListSiswaFilter{
 				SortBy: "created_at",
 			},
-			repo:       &fakeGetSiswaRepo{err: repoErr},
+			repo:       &fake_test.FakeGetSiswaRepo{Err: repoErr},
 			wantErrMsg: "repo error",
 			wantCalled: true,
 			wantFilter: &query.ListSiswaFilter{
@@ -172,7 +140,7 @@ func TestGetSiswaService_ListSiswa(t *testing.T) {
 
 			result, err := service.ListSiswa(ctx, tc.filter)
 
-			assert.Equal(t, tc.wantCalled, tc.repo.called)
+			assert.Equal(t, tc.wantCalled, tc.repo.Called)
 			if tc.wantErr != nil {
 				assert.ErrorIs(t, err, tc.wantErr)
 				return
@@ -181,7 +149,7 @@ func TestGetSiswaService_ListSiswa(t *testing.T) {
 				assert.Error(t, err)
 				assert.EqualError(t, err, tc.wantErrMsg)
 				if tc.wantFilter != nil {
-					assert.Equal(t, *tc.wantFilter, tc.repo.gotFilter)
+					assert.Equal(t, *tc.wantFilter, tc.repo.GotFilter)
 				}
 				return
 			}
@@ -189,7 +157,7 @@ func TestGetSiswaService_ListSiswa(t *testing.T) {
 			assert.NoError(t, err)
 			assert.Equal(t, tc.wantItems, result)
 			if tc.wantFilter != nil {
-				assert.Equal(t, *tc.wantFilter, tc.repo.gotFilter)
+				assert.Equal(t, *tc.wantFilter, tc.repo.GotFilter)
 			}
 		})
 	}
