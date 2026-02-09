@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -13,19 +14,30 @@ import (
 	rate_limiter_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/rate_limiter"
 )
 
-type RateLimitMiddleware struct {
-	limiter rate_limiter_repo.RateLimiter
-}
+// type RateLimitMiddleware struct {
+// 	limiter rate_limiter_repo.RateLimiter
+// }
 
-func NewRateLimitMiddleware(limiter rate_limiter_repo.RateLimiter) *RateLimitMiddleware {
-	return &RateLimitMiddleware{limiter: limiter}
-}
+// func NewRateLimitMiddleware(limiter rate_limiter_repo.RateLimiter) *RateLimitMiddleware {
+// 	return &RateLimitMiddleware{limiter: limiter}
+// }
 
-func (m *RateLimitMiddleware)RateLimitingMiddleware(next http.Handler) http.Handler {
+func StandardRateLimit(limiter rate_limiter_repo.RateLimiter,next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request){
-		key := helper.GetClientIP(r)
+		actor,ok := ActorFromContext(r.Context())
+		if !ok {
+			next.ServeHTTP(w,r)
+			return
+		}
+		username := actor.Username
+		if username == "" {
+			username = "_nouser_"
+		}
 
-		allowed,retryAfter,err := m.limiter.Allow(r.Context(),key)
+		ip := helper.GetClientIP(r)
+		key := "username:" + username + ":" + ip
+
+		allowed,retryAfter,err := limiter.Allow(r.Context(),key)
 		if err != nil{
 			next.ServeHTTP(w,r)
 			return
@@ -33,8 +45,9 @@ func (m *RateLimitMiddleware)RateLimitingMiddleware(next http.Handler) http.Hand
 		if !allowed {
 			sec := int(retryAfter.Round(time.Second).Seconds())
 			if sec < 1 {
-				sec =1
+				sec = 1
 			}
+			w.Header().Set("Retry-After", strconv.Itoa(sec))
 
 			httpResponse.WriteErr(w, http.StatusTooManyRequests, "TOO_MANY_REQUESTS", "too many requests")
 			return
@@ -69,7 +82,7 @@ func LoginRateLimit(limiter rate_limiter_repo.RateLimiter, next http.Handler) ht
 			if sec < 1 {
 				sec =1
 			}
-			w.Header().Set("Retry-After", "1")
+			w.Header().Set("Retry-After", strconv.Itoa(sec))
 			httpResponse.WriteErr(w, http.StatusTooManyRequests, "TOO_MANY_REQUESTS", "too many requests : too many login attempts")
 			return
 		}

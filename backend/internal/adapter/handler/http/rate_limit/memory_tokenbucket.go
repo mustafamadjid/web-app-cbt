@@ -51,15 +51,14 @@ func NewMemoryTokenBucket(rate rate.Limit, burst int, ttl time.Duration) *Memory
 	return rl
 }
 
-func (r *MemoryTokenBucket) Allow(ctx context.Context, key string) (allowed bool, retryAfter time.Duration, err error) {
+func (r *MemoryTokenBucket) Allow(ctx context.Context, key string) (bool, time.Duration, error) {
 	now := time.Now()
 
 	r.mu.Lock()
-
-	v,ok := r.visitors[key]
-	if !ok{
-		v := &visitor{
-			limiter: rate.NewLimiter(r.rate, r.burst),
+	v, ok := r.visitors[key]
+	if !ok {
+		v = &visitor{
+			limiter:  rate.NewLimiter(r.rate, r.burst),
 			lastSeen: now,
 		}
 		r.visitors[key] = v
@@ -67,8 +66,7 @@ func (r *MemoryTokenBucket) Allow(ctx context.Context, key string) (allowed bool
 		v.lastSeen = now
 	}
 
-	res := v.limiter.ReserveN(now,1)
-
+	res := v.limiter.ReserveN(now, 1)
 	r.mu.Unlock()
 
 	if !res.OK() {
@@ -76,7 +74,7 @@ func (r *MemoryTokenBucket) Allow(ctx context.Context, key string) (allowed bool
 	}
 
 	delay := res.DelayFrom(now)
-	if delay > 0{
+	if delay > 0 {
 		res.CancelAt(now)
 		return false, delay, nil
 	}
