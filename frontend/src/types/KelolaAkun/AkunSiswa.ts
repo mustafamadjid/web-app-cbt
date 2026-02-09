@@ -51,6 +51,7 @@ export type StudentListResponseItem = {
 
 export type StudentDetailResponse = StudentListResponseItem & {
   nisn: string;
+  kelas: string;
 };
 
 export type DataAkunSiswa = StudentDetailResponse;

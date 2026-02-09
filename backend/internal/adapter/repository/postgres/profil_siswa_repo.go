@@ -106,7 +106,7 @@ func (r *ProfilSiswaRepo) FindProfilSiswaByID(ctx context.Context, id user.ID) (
 		result.Foto = foto.String
 	}
 	if nisn.Valid {
-		result.Nisn = nisn.String
+		result.Nisn = user.NISN(nisn.String)
 	}
 	if noAbsen.Valid {
 		result.NoAbsen = int(noAbsen.Int32)
@@ -246,7 +246,8 @@ func (r *ProfilSiswaRepo) GetListSiswa(ctx context.Context, filter query.ListSis
 			ps.no_absen,
 			ps.angkatan,
 			ps.tempat_lahir,
-			ps.tanggal_lahir
+			ps.tanggal_lahir,
+			ps.nisn
 		FROM pengguna p
 		JOIN profil_siswa ps ON ps.id_pengguna = p.id_pengguna
 		JOIN kelas k ON ps.id_kelas = k.id_kelas
@@ -339,6 +340,7 @@ func (r *ProfilSiswaRepo) GetListSiswa(ctx context.Context, filter query.ListSis
 			&angkatan,
 			&tempatLahir,
 			&tanggalLahir,
+			&item.Nisn,
 		); err != nil {
 			r.loggerFor(ctx).Error(ctx, "failed scanning siswa list", "op", "profil_siswa_repo.list_scan", "err", err)
 			return nil, err

@@ -4,7 +4,6 @@ import type { JenisKelamin, StatusAkun } from "@/types/OpsiTypes/Option";
 import type {
   DataAkunSiswa,
   StudentDetailResponse,
-  StudentListResponseItem,
   StudentRegisterFormValues,
   StudentRegisterResponse,
   StudentUpdatePayload,
@@ -118,7 +117,7 @@ export async function updateSiswa(id: number, payload: StudentUpdatePayload) {
 
 export async function GetListSiswa(
   params: SiswaFilterParams = {},
-): Promise<BarisSiswa[]> {
+): Promise<DataAkunSiswa[]> {
   const queryParams: Record<string, string | undefined> = {
     q: params.q || undefined,
     status: params.status || undefined,
@@ -129,13 +128,9 @@ export async function GetListSiswa(
     jenis_kelamin: mapJenisKelaminFilter(params.jenisKelamin),
   };
 
-  const data = await api<StudentListResponseItem[]>("/admin/siswa", {
+  return await api<DataAkunSiswa[]>("/admin/siswa", {
     params: queryParams,
   });
 
-  return data.map((item) => ({
-    ...item,
-    nisn: "",
-    kelas: `Kelas ${item.tingkat_kelas} ${item.nama_kelas}`.trim(),
-  }));
+ 
 }

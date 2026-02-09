@@ -8,6 +8,7 @@ import (
 
 type SiswaListItem struct {
 	IdPengguna   user.ID
+	Nisn		 user.NISN
 	Username     string
 	Email        user.Email
 	NamaLengkap  string

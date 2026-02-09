@@ -20,7 +20,6 @@ import type { TingkatKelas } from "@/types/DataMaster/Kelas";
 
 import {
   GetListSiswa,
-  type BarisSiswa,
 } from "@/services/Api/features-api/KelolaAkun/akunsiswa.service";
 import {
   DeletePengguna,
@@ -34,6 +33,7 @@ import {
 import { getTingkatKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
 
 import { paths } from "@/routes/paths";
+import type { DataAkunSiswa } from "@/types/KelolaAkun/AkunSiswa";
 
 /** ===== Helpers ===== */
 const getStatusBadge = (status: StatusAkun) => {
@@ -113,7 +113,7 @@ const AkunSiswaTables: React.FC = () => {
   >([]);
 
   // DATA from server
-  const [daftarSiswa, setDaftarSiswa] = useState<BarisSiswa[]>([]);
+  const [daftarSiswa, setDaftarSiswa] = useState<DataAkunSiswa[]>([]);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -560,7 +560,7 @@ const AkunSiswaTables: React.FC = () => {
                               {s.nama_lengkap}
                             </span>
                             <span className="text-xs text-slate-500">
-                              @{s.username} • {labelGender[s.jenis_kelamin]}
+                              {s.username} • {labelGender[s.jenis_kelamin]}
                             </span>
                           </div>
                         </div>

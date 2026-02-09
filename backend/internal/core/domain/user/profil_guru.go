@@ -47,7 +47,7 @@ func CheckNewNip(nip string) (NIP, error) {
 		return NIP(s), nil
 	}
 
-	if len(s) > 18 {
+	if len(s) != 18 {
 		return "", ErrInvalidNIP
 	}
 

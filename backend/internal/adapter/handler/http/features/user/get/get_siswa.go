@@ -73,6 +73,7 @@ func (h *GetSiswaHandler) ListSiswa(write http.ResponseWriter, req *http.Request
 			TingkatKelas: item.TingkatKelas,
 			Foto:         item.Foto,
 			JenisKelamin: item.JenisKelamin,
+			Nisn:         item.Nisn,
 		})
 	}
 

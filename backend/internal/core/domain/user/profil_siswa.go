@@ -33,7 +33,7 @@ type DataSiswa struct {
 	Role         Role
 	StatusAkun   StatusAkun
 
-	Nisn         string
+	Nisn         NISN
 	NoAbsen      int
 	Angkatan     int
 	TempatLahir  string

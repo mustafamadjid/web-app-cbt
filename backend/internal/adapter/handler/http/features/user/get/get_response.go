@@ -25,7 +25,7 @@ type SiswaResponseItem struct {
 	Email        user.Email      `json:"email"`
 	NamaLengkap  string          `json:"nama_lengkap"`
 	StatusAkun   user.StatusAkun `json:"status_akun"`
-	Nisn         string          `json:"nisn"`
+	Nisn         user.NISN         `json:"nisn"`
 	NoAbsen      int             `json:"no_absen"`
 	Angkatan     int             `json:"angkatan"`
 	TempatLahir  string          `json:"tempat_lahir"`
