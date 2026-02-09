@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Archive,
   ChevronDown,
@@ -10,17 +10,11 @@ import {
 import { useNavigate } from "react-router";
 
 import AddButton from "@/components/common/Button/AddButton";
-import type {
-  NamaKelas,
-  TingkatKelas,
-} from "@/types/DataMaster/Kelas";
+import type { FullDataKelas, NamaKelas, TingkatKelas } from "@/types/DataMaster/Kelas";
 import {
   GetDataKelasFull,
-  getTingkatKelasById,
 } from "@/services/Api/features-api/DataMaster/kelas.service";
-import { getTingkatKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { paths } from "@/routes/paths";
-import toast from "react-hot-toast";
 
 function useDebouncedValue<T>(value: T, delayMs = 300) {
   const [debounced, setDebounced] = useState(value);
@@ -38,9 +32,11 @@ const DataKelasTables: React.FC = () => {
   const [kataKunci, setKataKunci] = useState("");
   const [tingkatKelas, setTingkatKelas] = useState<number | null>(null);
 
- 
-   const [daftarKelas, setDaftarKelas] = useState<NamaKelas[]>([]);
-   const [opsiTingkat, setOpsiTingkat] = useState<TingkatKelas[]>([]);
+  const [daftarKelas, setDaftarKelas] = useState<NamaKelas[]>([]);
+  const [opsiTingkat, setOpsiTingkat] = useState<TingkatKelas[]>([]);
+  const [dataKelasFull, setDataKelasFull] = useState<FullDataKelas | null>(
+    null,
+  );
 
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -48,48 +44,82 @@ const DataKelasTables: React.FC = () => {
   const [idTerpilih, setIdTerpilih] = useState<Set<number>>(new Set());
 
   const debouncedKataKunci = useDebouncedValue(kataKunci, 300);
-  const requestSeq = useRef(0);
 
   useEffect(() => {
-    const seq = ++requestSeq.current;
-
-    (async()=> {
+    let aktif = true;
+    const loadKelas = async () => {
       try {
         setLoading(true);
         setErrorMsg("");
 
-        const data  = await GetDataKelasFull(
-          {
-            search: debouncedKataKunci.trim() || undefined,
-            tingkatKelas: tingkatKelas ?? undefined,
-          }
-        );
+        const data = await GetDataKelasFull();
 
-        if (seq !== requestSeq.current) return;
+        if (!aktif) return;
 
-       const namaKelas = data.item_nama_kelas ?? []
-       setDaftarKelas(namaKelas);
-       setOpsiTingkat(data.item_tingkat_kelas ?? []);
-       setIdTerpilih((prev) => {
-         if (prev.size === 0) return prev;
-         const ids = new Set(namaKelas.map((kelas) => kelas.id_nama_kelas));
-         const next = new Set<number>();
-         prev.forEach((id) => {
-           if (ids.has(id)) next.add(id);
-         });
-         return next;
-       });
+        setDataKelasFull(data);
+        setOpsiTingkat(data.item_tingkat_kelas ?? []);
       } catch (error) {
-         if (seq !== requestSeq.current) return;
+        if (!aktif) return;
         setErrorMsg("Gagal memuat data kelas.");
         setDaftarKelas([]);
         setOpsiTingkat([]);
+        setDataKelasFull(null);
       } finally {
-        if (seq !== requestSeq.current) return;
+        if (!aktif) return;
         setLoading(false);
       }
-    })
-  }, [debouncedKataKunci, tingkatKelas]);
+    };
+
+    loadKelas();
+
+    return () => {
+      aktif = false;
+    };
+  }, []);
+
+  const tingkatById = useMemo(
+    () =>
+      new Map(
+        opsiTingkat.map((tingkat) => [
+          tingkat.id_tingkat_kelas,
+          tingkat.tingkat_kelas,
+        ]),
+      ),
+    [opsiTingkat],
+  );
+
+  useEffect(() => {
+    const daftarSemua = dataKelasFull?.item_nama_kelas ?? [];
+    const kataKunciNormal = debouncedKataKunci.trim().toLowerCase();
+
+    const filtered = daftarSemua.filter((kelas) => {
+      if (tingkatKelas && kelas.id_tingkat_kelas !== tingkatKelas) {
+        return false;
+      }
+
+      if (!kataKunciNormal) return true;
+
+      const tingkatLabel = tingkatById.get(kelas.id_tingkat_kelas);
+
+      return (
+        kelas.nama_kelas.toLowerCase().includes(kataKunciNormal) ||
+        String(kelas.id_tingkat_kelas).includes(kataKunciNormal) ||
+        (tingkatLabel != null &&
+          String(tingkatLabel).includes(kataKunciNormal))
+      );
+    });
+
+    setDaftarKelas(filtered);
+    setIdTerpilih((prev) => {
+      if (prev.size === 0) return prev;
+      const ids = new Set(filtered.map((kelas) => kelas.id_nama_kelas));
+      const next = new Set<number>();
+      prev.forEach((id) => {
+        if (ids.has(id)) next.add(id);
+      });
+      return next;
+    });
+  }, [dataKelasFull, debouncedKataKunci, tingkatById, tingkatKelas]);
 
  
   const semuaTerlihatTerpilih =
@@ -310,7 +340,7 @@ const DataKelasTables: React.FC = () => {
                       />
                     </td>
                     <td className="px-6 py-4 font-medium text-slate-900">
-                      {getTingkatKelasById(kelas.id_tingkat_kelas) ?? "-"}
+                      {tingkatById.get(kelas.id_tingkat_kelas) ?? "-"}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-col">
