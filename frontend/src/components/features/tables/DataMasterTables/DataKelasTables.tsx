@@ -51,26 +51,42 @@ const DataKelasTables: React.FC = () => {
   const requestSeq = useRef(0);
 
   useEffect(() => {
-    let mounted = true;
-    try {
-      const loadKelas = async () => {
-        const data = await GetDataKelasFull({
-          search: debouncedKataKunci.trim() || undefined,
-          tingkatKelas: tingkatKelas ?? undefined,
-        });
-        if (mounted) {
-          setDataKelas(data);
-          toast.success("Berhasil memuat data kelas.");
-        }
-      };
-      loadKelas();
-      return () => {
-        mounted = false;
-      };
-    } catch (e) {
-      toast.error("Gagal memuat data kelas.");
-    }
-    
+    const seq = ++requestSeq.current;
+
+    (async()=> {
+      try {
+        setLoading(true);
+        setErrorMsg("");
+
+        const data  = await GetDataKelasFull(
+          {
+            search: debouncedKataKunci.trim() || undefined,
+            tingkatKelas: tingkatKelas ?? undefined,
+          }
+        );
+
+        if (seq !== requestSeq.current) return;
+
+        setDataKelas(data);
+       setIdTerpilih((prev) => {
+         if (prev.size === 0) return prev;
+
+         // Ensure data is an array before mapping
+         const dataArray = Array.isArray(data) ? data : [];
+         const ids = new Set(
+           dataArray.map((kelas: FullDataKelas) => kelas.item_nama_kelas),
+         );
+
+         const next = new Set<number>();
+         prev.forEach((id: number) => {
+           if (ids.has(id)) next.add(id);
+         });
+         return next;
+       });
+      } catch (error) {
+        
+      }
+    })
   }, []);
 
   useEffect(() => {
