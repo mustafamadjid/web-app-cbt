@@ -33,11 +33,21 @@ func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSeko
 
 	router := httprouter.New()
 
+	withRequestLogger := func(next httprouter.Handle) httprouter.Handle {
+		return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+			handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				next(w, r, ps)
+			})
+			middleware.RequestLogger(handler, logger).ServeHTTP(w, r)
+		}
+	}
+
 	requireAccess := func(next httprouter.Handle) httprouter.Handle {
 		return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 			handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				next(w, r, ps)
 			})
+			handler = middleware.RequestLogger(handler, logger)
 			middleware.RequireValidAccessToken(handler, tokens.AccessTokenSvc, cookies).ServeHTTP(w, r)
 		}
 	}
@@ -49,6 +59,7 @@ func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSeko
 					next(w, r, ps)
 				})
 				handler = middleware.RequireActorRole(handler, roles...)
+				handler = middleware.RequestLogger(handler, logger)
 				middleware.RequireValidAccessToken(handler, tokens.AccessTokenSvc, cookies).ServeHTTP(w, r)
 			}
 		}
@@ -68,9 +79,9 @@ func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSeko
 	// requireSiswa := requireAccessRole(user.SISWA)
 	// requireGuru := requireAccessRole(user.GURU)
 
-	router.POST("/auth/login", auth.Handler.Login)
-	router.POST("/auth/logout", auth.Handler.Logout)
-	router.POST("/auth/refresh", auth.Handler.Refresh)
+	router.POST("/auth/login", withRequestLogger(auth.Handler.Login))
+	router.POST("/auth/logout", withRequestLogger(auth.Handler.Logout))
+	router.POST("/auth/refresh", withRequestLogger(auth.Handler.Refresh))
 	router.GET("/auth/me", requireAccess(auth.Handler.AuthMe))
 
 	// SISWA
@@ -120,9 +131,7 @@ func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSeko
 		http.ServeFile(w, r, full)
 	}))
 
-	handler := middleware.RequestLogger(router, logger)
-
-	corsHandler := middleware.CORSPolicy(handler)
+	corsHandler := middleware.CORSPolicy(router)
 
 	protectCSRFHandler := middleware.PreventCSRF(corsHandler)
 
