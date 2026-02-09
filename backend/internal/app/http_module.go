@@ -7,9 +7,11 @@ import (
 	"strings"
 
 	"github.com/julienschmidt/httprouter"
+	// "golang.org/x/time/rate"
 
 	"github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/cookie"
 	"github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/middleware"
+	// "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/rate_limit"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
@@ -51,6 +53,14 @@ func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSeko
 			}
 		}
 	}
+
+	// Rate limiter
+	// standardLimiter := rate_limit.NewMemoryTokenBucket(rate.Limit(10),20,5*time.Minute)
+	// authLimiter := rate_limit.NewMemoryTokenBucket(rate.Limit(1),3,5*time.Minute)
+	
+
+
+
 
 	requireAdmin := requireAccessRole(user.ADMIN)
 	// requireAdminGuru := requireAccessRole(user.ADMIN, user.GURU)
@@ -114,11 +124,11 @@ func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSeko
 
 	corsHandler := middleware.CORSPolicy(handler)
 
-	protectCSRF := middleware.PreventCSRF(corsHandler)
+	protectCSRFHandler := middleware.PreventCSRF(corsHandler)
 
 	server := &http.Server{
 		Addr:    cfg.HTTP.Addr,
-		Handler: protectCSRF,
+		Handler: protectCSRFHandler,
 	}
 
 	return &HTTPModule{

@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
+	httpResponse "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper/response_envelope"
 )
 
 func PreventCSRF(next http.Handler) http.Handler {
@@ -34,7 +35,8 @@ func PreventCSRF(next http.Handler) http.Handler {
 			"method", r.Method,
 			"path", r.URL.Path,
 		)
-		http.Error(w, "CSRF check failed", http.StatusForbidden)
+
+		httpResponse.WriteErr(w, http.StatusForbidden, "FORBIDDEN", "csrf origin denied")
 	}))
 
 	return cop.Handler(next)
