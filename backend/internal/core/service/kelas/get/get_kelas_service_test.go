@@ -10,33 +10,8 @@ import (
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/kelas"
 	query "github.com/mustafamadjid/web-app-cbt/internal/core/query/kelas"
 	kelas_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/kelas/get"
+	fake_test "github.com/mustafamadjid/web-app-cbt/internal/core/service/kelas/get/fake_test"
 )
-
-type fakeKelasRepo struct {
-	items     []kelas.FullKelasData
-	err       error
-	called    bool
-	gotFilter query.ListKelasFilter
-}
-
-func (f *fakeKelasRepo) GetKelas(ctx context.Context, filter query.ListKelasFilter) ([]kelas.FullKelasData, error) {
-	f.called = true
-	f.gotFilter = filter
-	if f.err != nil {
-		return nil, f.err
-	}
-	return f.items, nil
-}
-
-// Not used
-func (f *fakeKelasRepo) CreateTingkatKelas(ctx context.Context, tingkatKelas kelas.TingkatKelas)(kelas.ID,error){
-	panic("not used in this test")
-}
-
-// Not used
-func (f *fakeKelasRepo) CreateNamaKelas(ctx context.Context, namaKelas kelas.NamaKelas)(kelas.ID,error){
-	panic("not used in this test")
-}
 
 func TestGetKelasService_GetFullKelas(t *testing.T) {
 	t.Parallel()
@@ -49,7 +24,7 @@ func TestGetKelasService_GetFullKelas(t *testing.T) {
 	tests := []struct {
 		name       string
 		filter     query.ListKelasFilter
-		repo       *fakeKelasRepo
+		repo       *fake_test.FakeKelasRepo
 		wantItems  []kelas.FullKelasData
 		wantErr    error
 		wantCalled bool
@@ -63,7 +38,7 @@ func TestGetKelasService_GetFullKelas(t *testing.T) {
 				Offset:       -1,
 				TingkatKelas: &tingkat,
 			},
-			repo:       &fakeKelasRepo{items: items},
+			repo:       &fake_test.FakeKelasRepo{Items: items},
 			wantItems:  items,
 			wantCalled: true,
 			wantFilter: query.ListKelasFilter{
@@ -79,7 +54,7 @@ func TestGetKelasService_GetFullKelas(t *testing.T) {
 				Limit:  100,
 				Offset: 2,
 			},
-			repo:       &fakeKelasRepo{items: items},
+			repo:       &fake_test.FakeKelasRepo{Items: items},
 			wantItems:  items,
 			wantCalled: true,
 			wantFilter: query.ListKelasFilter{
@@ -92,7 +67,7 @@ func TestGetKelasService_GetFullKelas(t *testing.T) {
 			filter: query.ListKelasFilter{
 				Limit: 10,
 			},
-			repo:       &fakeKelasRepo{err: repoErr},
+			repo:       &fake_test.FakeKelasRepo{Err: repoErr},
 			wantErr:    repoErr,
 			wantCalled: true,
 			wantFilter: query.ListKelasFilter{
@@ -118,9 +93,9 @@ func TestGetKelasService_GetFullKelas(t *testing.T) {
 				assert.Equal(t, tt.wantItems, result)
 			}
 
-			assert.Equal(t, tt.wantCalled, tt.repo.called)
+			assert.Equal(t, tt.wantCalled, tt.repo.Called)
 			if tt.wantCalled {
-				assert.Equal(t, tt.wantFilter, tt.repo.gotFilter)
+				assert.Equal(t, tt.wantFilter, tt.repo.GotFilter)
 			}
 		})
 	}

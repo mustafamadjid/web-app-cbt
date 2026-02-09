@@ -9,33 +9,11 @@ import (
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/profil_sekolah"
 	out "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/profil_sekolah"
 	profil_sekolah_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/profil_sekolah/get"
+	fake_test "github.com/mustafamadjid/web-app-cbt/internal/core/service/profil_sekolah/get/fake_test"
 	"github.com/stretchr/testify/assert"
 )
 
-type fakeProfilSekolahRepo struct {
-	getResult profil_sekolah.ProfilSekolah
-	getErr    error
-
-	updateCalled bool
-	updateErr    error
-}
-
-func (f *fakeProfilSekolahRepo) UpdateProfilSekolah(ctx context.Context, idProfil profil_sekolah.IDProfil, profil profil_sekolah.ProfilSekolah) error {
-	f.updateCalled = true
-	if f.updateErr != nil {
-		return f.updateErr
-	}
-	return nil
-}
-
-func (f *fakeProfilSekolahRepo) GetProfilSekolah(ctx context.Context) (profil_sekolah.ProfilSekolah, error) {
-	if f.getErr != nil {
-		return profil_sekolah.ProfilSekolah{}, f.getErr
-	}
-	return f.getResult, nil
-}
-
-var _ out.ProfilSekolahRepository = (*fakeProfilSekolahRepo)(nil)
+var _ out.ProfilSekolahRepository = (*fake_test.FakeProfilSekolahRepo)(nil)
 
 func TestGetProfilSekolahService(t *testing.T) {
 	t.Parallel()
@@ -55,19 +33,19 @@ func TestGetProfilSekolahService(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		repo      *fakeProfilSekolahRepo
+		repo      *fake_test.FakeProfilSekolahRepo
 		want      profil_sekolah.ProfilSekolah
 		expectErr string
 	}{
 		{
 			name:      "Branch 1 -> repo error",
-			repo:      &fakeProfilSekolahRepo{getErr: errors.New("repo error")},
+			repo:      &fake_test.FakeProfilSekolahRepo{GetErr: errors.New("repo error")},
 			expectErr: "repo error",
 		},
 		{
 			name: "Branch 2 -> repo success",
-			repo: &fakeProfilSekolahRepo{
-				getResult: expected,
+			repo: &fake_test.FakeProfilSekolahRepo{
+				GetResult: expected,
 			},
 			want: expected,
 		},

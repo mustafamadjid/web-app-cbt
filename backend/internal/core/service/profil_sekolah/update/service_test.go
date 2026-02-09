@@ -9,40 +9,11 @@ import (
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/profil_sekolah"
 	out "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/profil_sekolah"
 	profil_sekolah_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/profil_sekolah/update"
+	fake_test "github.com/mustafamadjid/web-app-cbt/internal/core/service/profil_sekolah/update/fake_test"
 	"github.com/stretchr/testify/assert"
 )
 
-type fakeUpdateProfilSekolahRepo struct {
-	getErr error
-	profil profil_sekolah.ProfilSekolah
-
-	updateErr error
-
-	getCalled    bool
-	updateCalled bool
-	lastID       profil_sekolah.IDProfil
-	lastProfil   profil_sekolah.ProfilSekolah
-}
-
-func (f *fakeUpdateProfilSekolahRepo) UpdateProfilSekolah(ctx context.Context, idProfil profil_sekolah.IDProfil, profil profil_sekolah.ProfilSekolah) error {
-	f.updateCalled = true
-	f.lastID = idProfil
-	f.lastProfil = profil
-	if f.updateErr != nil {
-		return f.updateErr
-	}
-	return nil
-}
-
-func (f *fakeUpdateProfilSekolahRepo) GetProfilSekolah(ctx context.Context) (profil_sekolah.ProfilSekolah, error) {
-	f.getCalled = true
-	if f.getErr != nil {
-		return profil_sekolah.ProfilSekolah{}, f.getErr
-	}
-	return f.profil, nil
-}
-
-var _ out.ProfilSekolahRepository = (*fakeUpdateProfilSekolahRepo)(nil)
+var _ out.ProfilSekolahRepository = (*fake_test.FakeUpdateProfilSekolahRepo)(nil)
 
 func TestUpdateProfilSekolahService(t *testing.T) {
 	t.Parallel()
@@ -194,10 +165,10 @@ func TestUpdateProfilSekolahService(t *testing.T) {
 	for _, tc := range tests {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			repo := &fakeUpdateProfilSekolahRepo{
-				updateErr: tc.repoErr,
-				getErr:    tc.getErr,
-				profil: profil_sekolah.ProfilSekolah{
+			repo := &fake_test.FakeUpdateProfilSekolahRepo{
+				UpdateErr: tc.repoErr,
+				GetErr:    tc.getErr,
+				Profil: profil_sekolah.ProfilSekolah{
 					IDProfil:      1,
 					EmailSekolah:  "old@example.com",
 					NoTelpSekolah: "081111111",
@@ -224,20 +195,20 @@ func TestUpdateProfilSekolahService(t *testing.T) {
 				assert.NoError(t, err)
 			}
 
-			assert.Equal(t, tc.expectGet, repo.getCalled)
-			assert.Equal(t, tc.expectUpdate, repo.updateCalled)
+			assert.Equal(t, tc.expectGet, repo.GetCalled)
+			assert.Equal(t, tc.expectUpdate, repo.UpdateCalled)
 
 			if tc.expectUpdate && tc.expectErr == nil {
-				assert.Equal(t, cmd.IDProfil, repo.lastID)
+				assert.Equal(t, cmd.IDProfil, repo.LastID)
 				if tc.expectNamaTrim != "" {
-					assert.Equal(t, tc.expectNamaTrim, repo.lastProfil.NamaSekolah)
+					assert.Equal(t, tc.expectNamaTrim, repo.LastProfil.NamaSekolah)
 				}
 				if tc.expectLogo != nil {
-					assert.NotNil(t, repo.lastProfil.LogoSekolah)
-					assert.Equal(t, *tc.expectLogo, *repo.lastProfil.LogoSekolah)
+					assert.NotNil(t, repo.LastProfil.LogoSekolah)
+					assert.Equal(t, *tc.expectLogo, *repo.LastProfil.LogoSekolah)
 				}
 				if tc.expectEmail != "" {
-					assert.Equal(t, tc.expectEmail, repo.lastProfil.EmailSekolah)
+					assert.Equal(t, tc.expectEmail, repo.LastProfil.EmailSekolah)
 				}
 			}
 		})

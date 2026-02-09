@@ -6,37 +6,9 @@ import (
 	"testing"
 
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
-	outuser "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
+	fake_test "github.com/mustafamadjid/web-app-cbt/internal/core/service/user/get/fake_test"
 	"github.com/stretchr/testify/assert"
 )
-
-type fakeProfilSiswaRepo struct {
-	result user.DataSiswa
-	err    error
-	called bool
-	gotID  user.ID
-}
-
-func (f *fakeProfilSiswaRepo) FindProfilSiswaByID(ctx context.Context, id user.ID) (user.DataSiswa, error) {
-	f.called = true
-	f.gotID = id
-	if f.err != nil {
-		return user.DataSiswa{}, f.err
-	}
-	return f.result, nil
-}
-
-func (f *fakeProfilSiswaRepo) ExistByNISN(ctx context.Context, nisn string) (bool, error) {
-	return false, nil
-}
-
-func (f *fakeProfilSiswaRepo) CreateProfilSiswa(ctx context.Context, g user.ProfilSiswa) (user.ID, error) {
-	return 0, nil
-}
-
-func (f *fakeProfilSiswaRepo) UpdateProfilSiswa(ctx context.Context, idPengguna user.ID, profilSiswa outuser.UpdateProfilSiswaPatch) error {
-	return nil
-}
 
 func TestGetSiswaService_FindProfilSiswaByID(t *testing.T) {
 	t.Parallel()
@@ -48,7 +20,7 @@ func TestGetSiswaService_FindProfilSiswaByID(t *testing.T) {
 	tests := []struct {
 		name       string
 		id         user.ID
-		repo       *fakeProfilSiswaRepo
+		repo       *fake_test.FakeProfilSiswaRepo
 		wantErr    error
 		wantSiswa  user.DataSiswa
 		wantCalled bool
@@ -56,14 +28,14 @@ func TestGetSiswaService_FindProfilSiswaByID(t *testing.T) {
 		{
 			name:       "success",
 			id:         11,
-			repo:       &fakeProfilSiswaRepo{result: wantSiswa},
+			repo:       &fake_test.FakeProfilSiswaRepo{Result: wantSiswa},
 			wantSiswa:  wantSiswa,
 			wantCalled: true,
 		},
 		{
 			name:       "error",
 			id:         12,
-			repo:       &fakeProfilSiswaRepo{err: repoErr},
+			repo:       &fake_test.FakeProfilSiswaRepo{Err: repoErr},
 			wantErr:    repoErr,
 			wantCalled: true,
 		},
@@ -77,7 +49,7 @@ func TestGetSiswaService_FindProfilSiswaByID(t *testing.T) {
 
 			result, err := service.FindProfilSiswaByID(ctx, tc.id)
 
-			assert.Equal(t, tc.wantCalled, tc.repo.called)
+			assert.Equal(t, tc.wantCalled, tc.repo.Called)
 			if tc.wantErr != nil {
 				assert.ErrorIs(t, err, tc.wantErr)
 				return

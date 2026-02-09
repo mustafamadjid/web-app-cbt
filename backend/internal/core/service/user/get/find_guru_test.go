@@ -6,37 +6,9 @@ import (
 	"testing"
 
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
-	outuser "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
+	fake_test "github.com/mustafamadjid/web-app-cbt/internal/core/service/user/get/fake_test"
 	"github.com/stretchr/testify/assert"
 )
-
-type fakeProfilGuruRepo struct {
-	result user.DataGuru
-	err    error
-	called bool
-	gotID  user.ID
-}
-
-func (f *fakeProfilGuruRepo) FindProfilGuruByID(ctx context.Context, id user.ID) (user.DataGuru, error) {
-	f.called = true
-	f.gotID = id
-	if f.err != nil {
-		return user.DataGuru{}, f.err
-	}
-	return f.result, nil
-}
-
-func (f *fakeProfilGuruRepo) ExistByNIP(ctx context.Context, nip user.NIP) (bool, error) {
-	return false, nil
-}
-
-func (f *fakeProfilGuruRepo) CreateProfilGuru(ctx context.Context, g user.ProfilGuru) (user.ID, error) {
-	return 0, nil
-}
-
-func (f *fakeProfilGuruRepo) UpdateProfilGuru(ctx context.Context, idPengguna user.ID, profilGuru outuser.UpdateProfilGuruPatch) error {
-	return nil
-}
 
 func TestGetGuruService_FindProfilGuruByID(t *testing.T) {
 	t.Parallel()
@@ -48,7 +20,7 @@ func TestGetGuruService_FindProfilGuruByID(t *testing.T) {
 	tests := []struct {
 		name       string
 		id         user.ID
-		repo       *fakeProfilGuruRepo
+		repo       *fake_test.FakeProfilGuruRepo
 		wantErr    error
 		wantGuru   user.DataGuru
 		wantCalled bool
@@ -56,14 +28,14 @@ func TestGetGuruService_FindProfilGuruByID(t *testing.T) {
 		{
 			name:       "success",
 			id:         10,
-			repo:       &fakeProfilGuruRepo{result: wantGuru},
+			repo:       &fake_test.FakeProfilGuruRepo{Result: wantGuru},
 			wantGuru:   wantGuru,
 			wantCalled: true,
 		},
 		{
 			name:       "error",
 			id:         20,
-			repo:       &fakeProfilGuruRepo{err: repoErr},
+			repo:       &fake_test.FakeProfilGuruRepo{Err: repoErr},
 			wantErr:    repoErr,
 			wantCalled: true,
 		},
@@ -77,7 +49,7 @@ func TestGetGuruService_FindProfilGuruByID(t *testing.T) {
 
 			result, err := service.FindProfilGuruByID(ctx, tc.id)
 
-			assert.Equal(t, tc.wantCalled, tc.repo.called)
+			assert.Equal(t, tc.wantCalled, tc.repo.Called)
 			if tc.wantErr != nil {
 				assert.ErrorIs(t, err, tc.wantErr)
 				return
