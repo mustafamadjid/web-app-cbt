@@ -42,6 +42,20 @@ const DataKelasTables: React.FC = () => {
   const debouncedKataKunci = useDebouncedValue(kataKunci, 300);
 
   useEffect(() => {
+      let akitf = true;
+      const loadKelas = async () => {
+        const data = await GetDataKelasFull();
+        if (akitf) {
+          setOpsiTingkat(data.item_tingkat_kelas ?? []);
+        }
+      };
+      loadKelas();
+      return () => {
+        akitf = false;
+      };
+    }, []);
+
+  useEffect(() => {
     let aktif = true;
     const loadKelas = async () => {
       try {
@@ -50,14 +64,13 @@ const DataKelasTables: React.FC = () => {
 
         const data = await GetDataKelasFull({
           search: debouncedKataKunci.trim() || undefined,
-          tingkatKelas,
+          tingkatKelas: tingkatKelas || undefined,
         });
 
         if (!aktif) return;
 
         const daftar = data.item_nama_kelas ?? [];
         setDaftarKelas(daftar);
-        setOpsiTingkat(data.item_tingkat_kelas ?? []);
         setIdTerpilih((prev) => {
           if (prev.size === 0) return prev;
           const ids = new Set(daftar.map((kelas) => kelas.id_nama_kelas));
@@ -188,8 +201,8 @@ const DataKelasTables: React.FC = () => {
                 <option value="">Semua</option>
                 {opsiTingkat.map((tingkat) => (
                   <option
-                    key={tingkat.id_tingkat_kelas}
-                    value={tingkat.id_tingkat_kelas}
+                    key={tingkat.tingkat_kelas}
+                    value={tingkat.tingkat_kelas}
                   >
                     {tingkat.tingkat_kelas}
                   </option>

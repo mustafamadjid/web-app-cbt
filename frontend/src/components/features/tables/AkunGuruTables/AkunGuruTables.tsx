@@ -357,11 +357,20 @@ const AkunGuruTables: React.FC = () => {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <img
-                          className="h-10 w-10 rounded-full object-cover ring-2 ring-white"
-                          src={`${import.meta.env.VITE_API_URL}${p.foto_profil}`}
-                          alt=""
-                        />
+                        <button
+                          className="cursor-pointer"
+                          onClick={() =>
+                            window.open(
+                              `${import.meta.env.VITE_API_URL}${p.foto_profil}`,
+                            )
+                          }
+                        >
+                          <img
+                            className="h-10 w-10 rounded-full object-cover ring-2 ring-white"
+                            src={`${import.meta.env.VITE_API_URL}${p.foto_profil}`}
+                            alt=""
+                          />
+                        </button>
                         <div className="flex flex-col">
                           <span className="font-semibold text-slate-900">
                             {p.nama_lengkap}
@@ -401,7 +410,7 @@ const AkunGuruTables: React.FC = () => {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-semibold text-slate-500 text-center">
-                          {p.role} 
+                          {p.role}
                         </span>
                       </div>
                     </td>
@@ -424,7 +433,7 @@ const AkunGuruTables: React.FC = () => {
                         <button
                           className="rounded-lg p-2 text-slate-400 cursor-pointer hover:bg-slate-100 hover:text-red-600 transition-colors"
                           title="Detail"
-                          onClick={()=>DeleteUser(Number(p.id_pengguna))}
+                          onClick={() => DeleteUser(Number(p.id_pengguna))}
                         >
                           <Trash className="h-4 w-4" />
                         </button>
@@ -480,7 +489,9 @@ const AkunGuruTables: React.FC = () => {
                 <button
                   type="button"
                   onClick={() =>
-                    setHalamanSaatIni((sebelumnya) => Math.max(1, sebelumnya - 1))
+                    setHalamanSaatIni((sebelumnya) =>
+                      Math.max(1, sebelumnya - 1),
+                    )
                   }
                   disabled={!bisaSebelumnya}
                   className="rounded-lg border border-slate-200 px-3 py-1 text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:text-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
