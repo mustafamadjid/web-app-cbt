@@ -28,6 +28,16 @@ func (f *fakeKelasRepo) GetKelas(ctx context.Context, filter query.ListKelasFilt
 	return f.items, nil
 }
 
+// Not used
+func (f *fakeKelasRepo) CreateTingkatKelas(ctx context.Context, tingkatKelas kelas.TingkatKelas)(kelas.ID,error){
+	panic("not used in this test")
+}
+
+// Not used
+func (f *fakeKelasRepo) CreateNamaKelas(ctx context.Context, namaKelas kelas.NamaKelas)(kelas.ID,error){
+	panic("not used in this test")
+}
+
 func TestGetKelasService_GetFullKelas(t *testing.T) {
 	t.Parallel()
 
