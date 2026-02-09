@@ -10,7 +10,7 @@ import {
 import { useNavigate } from "react-router";
 
 import AddButton from "@/components/common/Button/AddButton";
-import type { FullDataKelas, NamaKelas, TingkatKelas } from "@/types/DataMaster/Kelas";
+import type { NamaKelas, TingkatKelas } from "@/types/DataMaster/Kelas";
 import {
   GetDataKelasFull,
 } from "@/services/Api/features-api/DataMaster/kelas.service";
@@ -34,10 +34,6 @@ const DataKelasTables: React.FC = () => {
 
   const [daftarKelas, setDaftarKelas] = useState<NamaKelas[]>([]);
   const [opsiTingkat, setOpsiTingkat] = useState<TingkatKelas[]>([]);
-  const [dataKelasFull, setDataKelasFull] = useState<FullDataKelas | null>(
-    null,
-  );
-
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -52,18 +48,30 @@ const DataKelasTables: React.FC = () => {
         setLoading(true);
         setErrorMsg("");
 
-        const data = await GetDataKelasFull();
+        const data = await GetDataKelasFull({
+          search: debouncedKataKunci.trim() || undefined,
+          tingkatKelas,
+        });
 
         if (!aktif) return;
 
-        setDataKelasFull(data);
+        const daftar = data.item_nama_kelas ?? [];
+        setDaftarKelas(daftar);
         setOpsiTingkat(data.item_tingkat_kelas ?? []);
+        setIdTerpilih((prev) => {
+          if (prev.size === 0) return prev;
+          const ids = new Set(daftar.map((kelas) => kelas.id_nama_kelas));
+          const next = new Set<number>();
+          prev.forEach((id) => {
+            if (ids.has(id)) next.add(id);
+          });
+          return next;
+        });
       } catch (error) {
         if (!aktif) return;
         setErrorMsg("Gagal memuat data kelas.");
         setDaftarKelas([]);
         setOpsiTingkat([]);
-        setDataKelasFull(null);
       } finally {
         if (!aktif) return;
         setLoading(false);
@@ -75,7 +83,7 @@ const DataKelasTables: React.FC = () => {
     return () => {
       aktif = false;
     };
-  }, []);
+  }, [debouncedKataKunci, tingkatKelas]);
 
   const tingkatById = useMemo(
     () =>
@@ -87,39 +95,6 @@ const DataKelasTables: React.FC = () => {
       ),
     [opsiTingkat],
   );
-
-  useEffect(() => {
-    const daftarSemua = dataKelasFull?.item_nama_kelas ?? [];
-    const kataKunciNormal = debouncedKataKunci.trim().toLowerCase();
-
-    const filtered = daftarSemua.filter((kelas) => {
-      if (tingkatKelas && kelas.id_tingkat_kelas !== tingkatKelas) {
-        return false;
-      }
-
-      if (!kataKunciNormal) return true;
-
-      const tingkatLabel = tingkatById.get(kelas.id_tingkat_kelas);
-
-      return (
-        kelas.nama_kelas.toLowerCase().includes(kataKunciNormal) ||
-        String(kelas.id_tingkat_kelas).includes(kataKunciNormal) ||
-        (tingkatLabel != null &&
-          String(tingkatLabel).includes(kataKunciNormal))
-      );
-    });
-
-    setDaftarKelas(filtered);
-    setIdTerpilih((prev) => {
-      if (prev.size === 0) return prev;
-      const ids = new Set(filtered.map((kelas) => kelas.id_nama_kelas));
-      const next = new Set<number>();
-      prev.forEach((id) => {
-        if (ids.has(id)) next.add(id);
-      });
-      return next;
-    });
-  }, [dataKelasFull, debouncedKataKunci, tingkatById, tingkatKelas]);
 
  
   const semuaTerlihatTerpilih =
