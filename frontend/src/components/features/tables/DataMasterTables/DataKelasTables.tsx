@@ -347,9 +347,6 @@ const DataKelasTables: React.FC = () => {
                         <span className="font-semibold text-slate-900">
                           {kelas.nama_kelas}
                         </span>
-                        <span className="text-xs text-slate-500">
-                          ID: {kelas.id_nama_kelas}
-                        </span>
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">
