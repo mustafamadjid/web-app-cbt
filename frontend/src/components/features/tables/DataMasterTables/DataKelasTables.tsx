@@ -10,13 +10,19 @@ import {
 import { useNavigate } from "react-router";
 
 import AddButton from "@/components/common/Button/AddButton";
-import type { NamaKelas, TingkatKelas } from "@/types/DataMaster/Kelas";
+import type {
+  FullDataKelas,
+  NamaKelas,
+  TingkatKelas,
+} from "@/types/DataMaster/Kelas";
 import {
+  GetDataKelasFull,
   getNamaKelas,
   getTingkatKelasById,
 } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { getTingkatKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { paths } from "@/routes/paths";
+import toast from "react-hot-toast";
 
 function useDebouncedValue<T>(value: T, delayMs = 300) {
   const [debounced, setDebounced] = useState(value);
@@ -34,8 +40,8 @@ const DataKelasTables: React.FC = () => {
   const [kataKunci, setKataKunci] = useState("");
   const [tingkatKelas, setTingkatKelas] = useState<number | null>(null);
 
-  const [opsiTingkat, setOpsiTingkat] = useState<TingkatKelas[]>([]);
-  const [daftarKelas, setDaftarKelas] = useState<NamaKelas[]>([]);
+  const [dataKelas, setDataKelas] = useState<FullDataKelas | null>(null);
+
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -46,22 +52,25 @@ const DataKelasTables: React.FC = () => {
 
   useEffect(() => {
     let mounted = true;
-
-    (async () => {
-      try {
-        setErrorMsg("");
-        const tingkat = await getTingkatKelas();
-        if (!mounted) return;
-        setOpsiTingkat(tingkat);
-      } catch {
-        if (!mounted) return;
-        setErrorMsg("Gagal memuat opsi tingkat kelas.");
-      }
-    })();
-
-    return () => {
-      mounted = false;
-    };
+    try {
+      const loadKelas = async () => {
+        const data = await GetDataKelasFull({
+          search: debouncedKataKunci.trim() || undefined,
+          tingkatKelas: tingkatKelas ?? undefined,
+        });
+        if (mounted) {
+          setDataKelas(data);
+          toast.success("Berhasil memuat data kelas.");
+        }
+      };
+      loadKelas();
+      return () => {
+        mounted = false;
+      };
+    } catch (e) {
+      toast.error("Gagal memuat data kelas.");
+    }
+    
   }, []);
 
   useEffect(() => {
@@ -332,20 +341,20 @@ const DataKelasTables: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
-                          <button
-                            className="cursor-pointer rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-green-600"
-                            title="Edit"
-                            onClick={() =>
-                              navigate(
-                                paths.dashboard.edit_data_master_kelas.replace(
-                                  ":id",
-                                  String(kelas.id_nama_kelas),
-                                ),
-                              )
-                            }
-                          >
-                            <Edit3 className="h-4 w-4" />
-                          </button>
+                        <button
+                          className="cursor-pointer rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-green-600"
+                          title="Edit"
+                          onClick={() =>
+                            navigate(
+                              paths.dashboard.edit_data_master_kelas.replace(
+                                ":id",
+                                String(kelas.id_nama_kelas),
+                              ),
+                            )
+                          }
+                        >
+                          <Edit3 className="h-4 w-4" />
+                        </button>
                         <button
                           className="cursor-pointer rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-red-600"
                           title="Hapus"
