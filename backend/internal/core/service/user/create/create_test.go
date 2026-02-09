@@ -7,10 +7,13 @@ import (
 	"time"
 
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
+	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/kelas"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 	out "github.com/mustafamadjid/web-app-cbt/internal/core/port/out"
+	kelas_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/kelas"
 	txport "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/tx"
 	outuser "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
+	query "github.com/mustafamadjid/web-app-cbt/internal/core/query/kelas"
 	user_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/user/create"
 	"github.com/stretchr/testify/assert"
 )
@@ -139,6 +142,31 @@ func (r *fakeProfilSiswaRepo) FindProfilSiswaByID(ctx context.Context, id user.I
 func (r *fakeProfilSiswaRepo) UpdateProfilSiswa(ctx context.Context, idPengguna user.ID, profilSiswa outuser.UpdateProfilSiswaPatch) error {
 	panic("not used in this test")
 }
+// ===== Minimal fake kelas repo =====
+
+type fakeKelasRepo struct {
+	existsKodeKelas bool
+	existErr        error
+
+	createID  kelas.ID
+	createErr error
+
+	existCalled  bool
+	createCalled bool
+}
+
+func(r *fakeKelasRepo)GetKelas(ctx context.Context, filter query.ListKelasFilter)([]kelas.FullKelasData, error){
+	panic("not used in this")
+}
+
+func(r *fakeKelasRepo)CreateTingkatKelas(ctx context.Context, tingkatKelas kelas.TingkatKelas)(kelas.ID,error) {
+	panic("not used in this test")
+}
+
+func(r *fakeKelasRepo)CreateNamaKelas(ctx context.Context, namaKelas kelas.NamaKelas)(kelas.ID,error) {
+	panic("not used in this test")
+}
+
 
 // ===== fake tx & tx manager =====
 
@@ -146,6 +174,7 @@ type fakeTx struct {
 	userRepo        *fakeUserRepo
 	profilGuruRepo  *fakeProfilGuruRepo
 	profilSiswaRepo *fakeProfilSiswaRepo
+	kelasRepo       *fakeKelasRepo
 
 	commitCalled   bool
 	rollbackCalled bool
@@ -176,6 +205,10 @@ func (t *fakeTx) ProfilGuru() outuser.ProfilGuruRepository {
 
 func (t *fakeTx) ProfilSiswa() outuser.ProfilSiswaRepository {
 	return t.profilSiswaRepo
+}
+
+func (t *fakeTx) Kelas() kelas_repo.KelasRepository {
+	return t.kelasRepo
 }
 
 func (t *fakeTx) Commit() error {

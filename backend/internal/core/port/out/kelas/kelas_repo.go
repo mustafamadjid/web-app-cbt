@@ -9,4 +9,6 @@ import (
 
 type KelasRepository interface {
 	GetKelas(ctx context.Context, filter query.ListKelasFilter)([]kelas.FullKelasData, error)
+	CreateTingkatKelas(ctx context.Context, tingkatKelas kelas.TingkatKelas)(kelas.ID,error)
+	CreateNamaKelas(ctx context.Context, namaKelas kelas.NamaKelas)(kelas.ID,error)
 }

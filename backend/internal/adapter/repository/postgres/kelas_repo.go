@@ -113,3 +113,42 @@ func (r *KelasRepo) GetKelas(ctx context.Context, filter query.ListKelasFilter) 
 		ItemsNamaKelas:    itemsNama,
 	}}, nil
 }
+
+func (r *KelasRepo)CreateTingkatKelas(ctx context.Context, tingkatKelas kelas.TingkatKelas)(kelas.ID,error) {
+	const query = `
+		INSERT INTO kelas (tingkat_kelas) VALUES ($1)
+		RETURNING id_kelas
+	`
+	var kelasId kelas.ID
+	err := r.q.QueryRow(
+		ctx,
+		query,
+		tingkatKelas.TingkatKelas,
+	).Scan(&kelasId)
+	if err != nil {
+		r.loggerFor(ctx).Error(ctx,"failed creating tingkat kelas","op","kelas_repo.create","err",err)
+		return 0,err
+	}
+
+	return kelasId, nil
+}
+
+func (r *KelasRepo)CreateNamaKelas(ctx context.Context, namaKelas kelas.NamaKelas)(kelas.ID,error) {
+	const query = `
+		INSERT INTO nama_kelas (id_kelas, nama_kelas) VALUES ($1, $2)
+		RETURNING id_nama_kelas
+	`
+	var kelasId kelas.ID
+	err := r.q.QueryRow(
+		ctx,
+		query,
+		namaKelas.IdTingkatKelas,
+		namaKelas.NamaKelas,
+	).Scan(&kelasId)
+	if err != nil {
+		r.loggerFor(ctx).Error(ctx,"failed creating nama kelas","op","kelas_repo.create","err",err)
+		return 0,err
+	}
+
+	return kelasId, nil
+}
