@@ -2,11 +2,11 @@ import React, { useEffect, useState } from "react";
 
 import InputField from "@/components/common/Input/InputField";
 import type { TingkatKelas } from "@/types/DataMaster/Kelas";
-import { ApiError } from "@/services/Api/api";
 import {
   GetDataKelasFull,
   createNamaKelas,
 } from "@/services/Api/features-api/DataMaster/kelas.service";
+import { getSubmitErrorMessage } from "@/helper/error/submitErrorMessage";
 import { createValidator, requiredString, requiredValue } from "@/helper/validate/validateForm";
 import toast from "react-hot-toast";
 import { paths } from "@/routes/paths";
@@ -77,13 +77,14 @@ const TambahNamaKelasForm = () => {
               navigate(`${paths.dashboard.data_master_kelas}`);
       })
     } catch (error) {
-      const message =
-        e instanceof ApiError
-          ? e.message === "bad request: nama kelas already exist"
-            ? "Nama kelas sudah ada."
-            : "Nama kelas gagal ditambahkan"
-          : "Nama kelas gagal ditambahkan";
-            setSubmitError(message);
+      setSubmitError(
+        getSubmitErrorMessage(error, {
+          defaultMessage: "Nama kelas gagal ditambahkan.",
+          messageMap: {
+            "bad request: nama kelas already exist": "Nama kelas sudah ada.",
+          },
+        }),
+      );
     }
   };
 

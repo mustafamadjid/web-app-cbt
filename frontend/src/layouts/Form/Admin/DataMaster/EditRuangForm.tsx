@@ -3,9 +3,8 @@ import React, { useEffect, useState } from "react";
 import InputField from "@/components/common/Input/InputField";
 
 import type { RuangUjianFormValues } from "@/types/DataMaster/RuangUjian";
-import { ApiError } from "@/services/Api/api";
-
 import { createSetField } from "@/helper/setField/setField";
+import { getSubmitErrorMessage } from "@/helper/error/submitErrorMessage";
 import { createValidator, requiredString } from "@/helper/validate/validateForm";
 
 type EditRuangFormProps = {
@@ -81,9 +80,11 @@ const EditRuangForm = ({
     try {
       await onSubmit(payload);
     } catch (error) {
-      if (error instanceof ApiError) {
-        setSubmitError(error.message);
-      }
+      setSubmitError(
+        getSubmitErrorMessage(error, {
+          defaultMessage: "Ruang ujian gagal diperbarui.",
+        }),
+      );
     }
   };
 

@@ -5,9 +5,9 @@ import InputField from "@/components/common/Input/InputField";
 import type { MataPelajaranFormValues } from "@/types/DataMaster/MataPelajaran";
 import type { TingkatKelas } from "@/types/DataMaster/Kelas";
 import { getTingkatKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
-import { ApiError } from "@/services/Api/api";
 
 import { createSetField } from "@/helper/setField/setField";
+import { getSubmitErrorMessage } from "@/helper/error/submitErrorMessage";
 import {
   createValidator,
   requiredString,
@@ -90,9 +90,11 @@ const EditMapelForm = ({
     try {
       await onSubmit(values);
     } catch (error) {
-      if (error instanceof ApiError) {
-        setSubmitError(error.message);
-      }
+      setSubmitError(
+        getSubmitErrorMessage(error, {
+          defaultMessage: "Mata pelajaran gagal diperbarui.",
+        }),
+      );
     }
   };
 

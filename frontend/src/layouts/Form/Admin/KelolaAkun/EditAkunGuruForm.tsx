@@ -7,6 +7,7 @@ import type { TeacherUpdateFormValues } from "@/types/KelolaAkun/AkunGuru";
 import type { StatusAkun } from "@/types/OpsiTypes/Option";
 
 import { createSetField } from "@/helper/setField/setField";
+import { getSubmitErrorMessage } from "@/helper/error/submitErrorMessage";
 import {
   createValidator,
   emailFormat,
@@ -15,7 +16,6 @@ import {
   requiredString,
   requiredValue,
 } from "@/helper/validate/validateForm";
-import { ApiError } from "@/services/Api/api";
 
 type EditAkunGuruFormProps = {
   initialValues: TeacherUpdateFormValues;
@@ -132,9 +132,11 @@ const EditAkunGuruForm = ({
     try {
       await onSubmit(values);
     } catch (error) {
-      if (error instanceof ApiError) {
-        setSubmitError(error.message);
-      }
+      setSubmitError(
+        getSubmitErrorMessage(error, {
+          defaultMessage: "Akun guru gagal diperbarui.",
+        }),
+      );
     }
   };
 

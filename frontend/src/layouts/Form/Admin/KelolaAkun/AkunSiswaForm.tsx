@@ -10,10 +10,10 @@ import type { FullDataKelas, NamaKelas } from "@/types/DataMaster/Kelas";
 
 import { submitStudentRegister } from "@/services/Api/features-api/KelolaAkun/akunsiswa.service";
 import { paths } from "@/routes/paths";
-import { ApiError } from "@/services/Api/api";
 import { GetDataKelasFull } from "@/services/Api/features-api/DataMaster/kelas.service";
 
 import { createSetField } from "@/helper/setField/setField";
+import { getSubmitErrorMessage } from "@/helper/error/submitErrorMessage";
 import {
   createValidator,
   fileMaxSize,
@@ -277,11 +277,11 @@ const AkunSiswaForm = () => {
         1500,
       );
     } catch (error) {
-      if (error instanceof ApiError) {
-        setSubmitError(error.message);
-      } else {
-        setSubmitError("Terjadi kesalahan saat menyimpan data.");
-      }
+      setSubmitError(
+        getSubmitErrorMessage(error, {
+          defaultMessage: "Akun siswa gagal ditambahkan.",
+        }),
+      );
     } finally {
       setSubmitting(false);
     }

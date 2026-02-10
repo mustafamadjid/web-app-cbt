@@ -3,9 +3,8 @@ import React, { useEffect, useState } from "react";
 import InputField from "@/components/common/Input/InputField";
 
 import type { SesiFormValues } from "@/types/DataMaster/Sesi";
-import { ApiError } from "@/services/Api/api";
-
 import { createSetField } from "@/helper/setField/setField";
+import { getSubmitErrorMessage } from "@/helper/error/submitErrorMessage";
 import { createValidator, requiredString } from "@/helper/validate/validateForm";
 
 type EditSesiFormProps = {
@@ -79,9 +78,11 @@ const EditSesiForm = ({
     try {
       await onSubmit(payload);
     } catch (error) {
-      if (error instanceof ApiError) {
-        setSubmitError(error.message);
-      }
+      setSubmitError(
+        getSubmitErrorMessage(error, {
+          defaultMessage: "Sesi gagal diperbarui.",
+        }),
+      );
     }
   };
 

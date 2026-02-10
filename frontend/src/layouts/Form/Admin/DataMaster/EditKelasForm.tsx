@@ -3,9 +3,9 @@ import React, { useEffect, useState } from "react";
 import InputField from "@/components/common/Input/InputField";
 
 import type { KelasFormValues } from "@/types/DataMaster/Kelas";
-import { ApiError } from "@/services/Api/api";
 
 import { createSetField } from "@/helper/setField/setField";
+import { getSubmitErrorMessage } from "@/helper/error/submitErrorMessage";
 import {
   createValidator,
   integerNumber,
@@ -82,9 +82,11 @@ const EditKelasForm = ({
     try {
       await onSubmit(values);
     } catch (error) {
-      if (error instanceof ApiError) {
-        setSubmitError(error.message);
-      }
+      setSubmitError(
+        getSubmitErrorMessage(error, {
+          defaultMessage: "Data kelas gagal diperbarui.",
+        }),
+      );
     }
   };
 

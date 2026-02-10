@@ -8,9 +8,9 @@ import type { JenisKelamin, StatusAkun } from "@/types/OpsiTypes/Option";
 import type { NamaKelas, TingkatKelas } from "@/types/DataMaster/Kelas";
 
 import { GetDataKelasFull } from "@/services/Api/features-api/DataMaster/kelas.service";
-import { ApiError } from "@/services/Api/api";
 
 import { createSetField } from "@/helper/setField/setField";
+import { getSubmitErrorMessage } from "@/helper/error/submitErrorMessage";
 import {
   createValidator,
   fileMaxSize,
@@ -207,9 +207,11 @@ const EditAkunSiswaForm = ({
     try {
       await onSubmit(values);
     } catch (error) {
-      if (error instanceof ApiError) {
-        setSubmitError(error.message);
-      }
+      setSubmitError(
+        getSubmitErrorMessage(error, {
+          defaultMessage: "Akun siswa gagal diperbarui.",
+        }),
+      );
     }
   };
 

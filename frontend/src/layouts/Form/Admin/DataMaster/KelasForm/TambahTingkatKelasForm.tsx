@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 
-import { ApiError } from "@/services/Api/api";
 import { createTingkatKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { createValidator, integerNumber, minNumber, requiredValue } from "@/helper/validate/validateForm";
+import { getSubmitErrorMessage } from "@/helper/error/submitErrorMessage";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router";
 import { paths } from "@/routes/paths";
@@ -47,13 +47,14 @@ const TambahTingkatKelasForm = () => {
         navigate(`${paths.dashboard.data_master_kelas}`);
       })
     } catch (error) {
-      const message =
-        e instanceof ApiError
-          ? e.message === "bad request: tingkat kelas already exist"
-            ? "Tingkat kelas sudah ada."
-            : "Tingkat kelas gagal ditambahkan"
-          : "Tingkat kelas gagal ditambahkan";
-      setSubmitError(message);
+      setSubmitError(
+        getSubmitErrorMessage(error, {
+          defaultMessage: "Tingkat kelas gagal ditambahkan.",
+          messageMap: {
+            "bad request: tingkat kelas already exist": "Tingkat kelas sudah ada.",
+          },
+        }),
+      );
     }
   };
 

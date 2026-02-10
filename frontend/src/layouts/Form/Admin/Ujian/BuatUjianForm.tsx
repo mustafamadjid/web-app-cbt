@@ -16,7 +16,6 @@ import {
   submitBuatUjian,
 } from "@/services/Api/features-api/Ujian/ujian.service";
 
-import { ApiError } from "@/services/Api/api";
 import {
   getNamaKelas,
   getTingkatKelas,
@@ -32,6 +31,7 @@ import {
 // helper
 import { createSetField } from "@/helper/setField/setField";
 import { calculateDuration } from "@/helper/CalculateDuration/calculateDuration";
+import { getSubmitErrorMessage } from "@/helper/error/submitErrorMessage";
 import {
   createValidator,
   minNumber,
@@ -316,11 +316,11 @@ const BuatUjianForm = () => {
       await submitBuatUjian(values);
       alert("Ujian berhasil dibuat.");
     } catch (error) {
-      if (error instanceof ApiError) {
-        setSubmitError(error.message);
-      } else {
-        setSubmitError("Terjadi kesalahan saat menyimpan ujian.");
-      }
+      setSubmitError(
+        getSubmitErrorMessage(error, {
+          defaultMessage: "Terjadi kesalahan saat menyimpan ujian.",
+        }),
+      );
     }
   };
 

@@ -6,11 +6,11 @@ import ImageUpload from "@/components/features/Upload/ImageUpload";
 import type { TeacherRegisterFormValues } from "@/types/KelolaAkun/AkunGuru";
 import type { JenisKelamin } from "@/types/OpsiTypes/Option";
 import { submitTeacherRegister } from "@/services/Api/features-api/KelolaAkun/akunguru.service";
-import { ApiError } from "@/services/Api/api";
 import { useNavigate } from "react-router";
 import { paths } from "@/routes/paths";
 
 import { createSetField } from "@/helper/setField/setField";
+import { getSubmitErrorMessage } from "@/helper/error/submitErrorMessage";
 import {
   createValidator,
   emailFormat,
@@ -147,9 +147,11 @@ const AkunGuruForm = () => {
         1500
       );
     } catch (error) {
-      if (error instanceof ApiError) {
-        setSubmitError(error.message);
-      }
+      setSubmitError(
+        getSubmitErrorMessage(error, {
+          defaultMessage: "Akun guru gagal ditambahkan.",
+        }),
+      );
     } finally {
       setSubmitting(false);
     }
