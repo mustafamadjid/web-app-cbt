@@ -5,7 +5,7 @@ import type { TingkatKelas } from "@/types/DataMaster/Kelas";
 import { ApiError } from "@/services/Api/api";
 import {
   GetDataKelasFull,
-  submitKelasResponse,
+  createNamaKelas,
 } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { createValidator, requiredString, requiredValue } from "@/helper/validate/validateForm";
 
@@ -54,8 +54,14 @@ const TambahNamaKelasForm = () => {
     }
 
     try {
-      await submitKelasResponse({
-        tingkat_kelas: Number(tingkatKelas),
+      const selectedTingkat = opsiTingkat.find((item) => item.tingkat_kelas === Number(tingkatKelas));
+      if (!selectedTingkat) {
+        setSubmitError("Tingkat kelas tidak ditemukan.");
+        return;
+      }
+
+      await createNamaKelas({
+        id_tingkat_kelas: selectedTingkat.id_tingkat_kelas,
         nama_kelas: namaKelas,
       });
       alert("Nama kelas berhasil ditambahkan.");
