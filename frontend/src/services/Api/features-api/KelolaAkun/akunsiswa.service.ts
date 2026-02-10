@@ -29,7 +29,44 @@ const mapJenisKelaminFilter = (jenisKelamin?: JenisKelamin) => {
   return jenisKelamin === "LAKI_LAKI" ? "1" : "2";
 };
 
-
+export const DUMMY_SISWA: DataAkunSiswa[] = [
+  {
+    id_pengguna: 1,
+    role: "SISWA",
+    nama_lengkap: "Siti Aminah",
+    username: "siti.aminah",
+    email: "siti.aminah@gmail.com",
+    no_hp: "081234567890",
+    jenis_kelamin: "PEREMPUAN",
+    status_akun: "AKTIF",
+    nisn: "1234567890",
+    no_absen: 12,
+    angkatan: 2025,
+    tempat_lahir: "Bandung",
+    tanggal_lahir: "2008-01-31",
+    tingkat_kelas: 10,
+    nama_kelas: "X IPA 1",
+    foto_profil: "https://i.pravatar.cc/150?u=s-0001",
+  },
+  {
+    id_pengguna: 2,
+    role: "SISWA",
+    nama_lengkap: "Raka Pratama",
+    username: "raka.pratama",
+    email: "",
+    no_hp: "",
+    jenis_kelamin: "LAKI_LAKI",
+    status_akun: "NONAKTIF",
+    nisn: "2234567890",
+    no_absen: 7,
+    angkatan: 2024,
+    tempat_lahir: "Jakarta",
+    tanggal_lahir: "2009-08-12",
+    tingkat_kelas: 10,
+    nama_kelas: "X IPS 1",
+    foto_profil: "https://i.pravatar.cc/150?u=s-0002",
+  },
+];
 
 export async function submitStudentRegister(values: StudentRegisterFormValues) {
   const formData = buildFormData(values, {

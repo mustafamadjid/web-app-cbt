@@ -8,6 +8,9 @@ import {
   createNamaKelas,
 } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { createValidator, requiredString, requiredValue } from "@/helper/validate/validateForm";
+import toast from "react-hot-toast";
+import { paths } from "@/routes/paths";
+import { useNavigate } from "react-router";
 
 const validate = createValidator<{ tingkat_kelas: number | ""; nama_kelas: string }>({
   tingkat_kelas: [requiredValue("Tingkat kelas wajib dipilih.")],
@@ -23,6 +26,8 @@ const TambahNamaKelasForm = () => {
     nama_kelas: false,
   });
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     let akitf = true;
@@ -64,14 +69,21 @@ const TambahNamaKelasForm = () => {
         id_tingkat_kelas: selectedTingkat.id_tingkat_kelas,
         nama_kelas: namaKelas,
       });
-      alert("Nama kelas berhasil ditambahkan.");
+      toast.success("Nama kelas berhasil ditambahkan.");
       setTingkatKelas("");
       setNamaKelas("");
       setTouched({ tingkat_kelas: false, nama_kelas: false });
+      setTimeout(() => {
+              navigate(`${paths.dashboard.data_master_kelas}`);
+      })
     } catch (error) {
-      if (error instanceof ApiError) {
-        setSubmitError(error.message);
-      }
+      const message =
+        e instanceof ApiError
+          ? e.message === "bad request: nama kelas already exist"
+            ? "Nama kelas sudah ada."
+            : "Nama kelas gagal ditambahkan"
+          : "Nama kelas gagal ditambahkan";
+            setSubmitError(message);
     }
   };
 

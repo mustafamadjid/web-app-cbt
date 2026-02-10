@@ -3,6 +3,9 @@ import React, { useState } from "react";
 import { ApiError } from "@/services/Api/api";
 import { createTingkatKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { createValidator, integerNumber, minNumber, requiredValue } from "@/helper/validate/validateForm";
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router";
+import { paths } from "@/routes/paths";
 
 const validate = createValidator<{ tingkat_kelas: number | "" }>({
   tingkat_kelas: [
@@ -20,6 +23,8 @@ const TambahTingkatKelasForm = () => {
   const errors = validate({ tingkat_kelas: tingkatKelas });
   const hasError = touched && !!errors.tingkat_kelas;
 
+  const navigate = useNavigate();
+
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setTouched(true);
@@ -35,13 +40,20 @@ const TambahTingkatKelasForm = () => {
       await createTingkatKelas({
         tingkat_kelas: Number(tingkatKelas),
       });
-      alert("Tingkat kelas berhasil ditambahkan.");
+      toast.success("Tingkat kelas berhasil ditambahkan.");
       setTingkatKelas("");
       setTouched(false);
+      setTimeout(() => {
+        navigate(`${paths.dashboard.data_master_kelas}`);
+      })
     } catch (error) {
-      if (error instanceof ApiError) {
-        setSubmitError(error.message);
-      }
+      const message =
+        e instanceof ApiError
+          ? e.message === "bad request: tingkat kelas already exist"
+            ? "Tingkat kelas sudah ada."
+            : "Tingkat kelas gagal ditambahkan"
+          : "Tingkat kelas gagal ditambahkan";
+      setSubmitError(message);
     }
   };
 

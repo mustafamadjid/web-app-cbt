@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"strings"
 
@@ -31,7 +32,7 @@ func (r *KelasRepo) GetKelas(ctx context.Context, filter query.ListKelasFilter) 
 	k.id_nama_kelas,
 	k.nama_kelas
 	FROM kelas tk
-	JOIN nama_kelas k ON tk.id_kelas = k.id_kelas
+	LEFT JOIN nama_kelas k ON tk.id_kelas = k.id_kelas
 	`
 
 	where := make([]string, 0, 2)
@@ -79,9 +80,10 @@ func (r *KelasRepo) GetKelas(ctx context.Context, filter query.ListKelasFilter) 
 		var (
 			idTingkat int
 			tingkat   int
-			idNama    int
-			namaKelas string
+			idNama    sql.NullInt64
+			namaKelas sql.NullString
 		)
+
 
 		if err := rows.Scan(&idTingkat, &tingkat, &idNama, &namaKelas); err != nil {
 			r.loggerFor(ctx).Error(ctx, "failed scanning kelas", "op", "kelas_repo.scan", "err", err)
@@ -96,11 +98,14 @@ func (r *KelasRepo) GetKelas(ctx context.Context, filter query.ListKelasFilter) 
 			})
 		}
 
-		itemsNama = append(itemsNama, kelas.NamaKelas{
-			IdNamaKelas:    kelas.ID(idNama),
-			IdTingkatKelas: kelas.ID(idTingkat),
-			NamaKelas:      namaKelas,
-		})
+		if idNama.Valid && namaKelas.Valid {
+			itemsNama = append(itemsNama, kelas.NamaKelas{
+				IdNamaKelas:    kelas.ID(idNama.Int64),
+				IdTingkatKelas: kelas.ID(idTingkat),
+				NamaKelas:      namaKelas.String,
+			})
+
+		}
 	}
 
 	if err := rows.Err(); err != nil {
