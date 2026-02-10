@@ -4,7 +4,7 @@ export const tahunOption = () => {
     const options = []
 
     for (let i = current; i >= start; i--){
-        options.push(String(i))
+        options.push(i)
     }
 
     return options

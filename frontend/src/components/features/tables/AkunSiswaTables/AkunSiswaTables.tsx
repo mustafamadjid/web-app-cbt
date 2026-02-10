@@ -34,6 +34,7 @@ import { getTingkatKelas } from "@/services/Api/features-api/DataMaster/kelas.se
 
 import { paths } from "@/routes/paths";
 import type { DataAkunSiswa } from "@/types/KelolaAkun/AkunSiswa";
+import { tahunOption } from "@/helper/TahunOption/TahunOption";
 
 /** ===== Helpers ===== */
 const getStatusBadge = (status: StatusAkun) => {
@@ -132,7 +133,7 @@ const AkunSiswaTables: React.FC = () => {
       try {
         setErrorMsg("");
         const [a, k, g] = await Promise.all([
-          getAngkatanOptions(),
+          tahunOption(),
           getTingkatKelas(),
           getJenisKelaminOptions(),
         ]);
