@@ -133,6 +133,8 @@ func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSeko
 
 	// KELAS
 	router.GET("/admin/kelas", requireAdmin(rateLimitStandard(kelas.GetHandler.ListKelas)))
+	router.POST("/admin/kelas/tingkat-kelas", requireAdmin(rateLimitStandard(kelas.CreateHandler.CreateTingkatKelas)))
+	router.POST("/admin/kelas/nama-kelas", requireAdmin(rateLimitStandard(kelas.CreateHandler.CreateNamaKelas)))
 
 	// Siswa
 
