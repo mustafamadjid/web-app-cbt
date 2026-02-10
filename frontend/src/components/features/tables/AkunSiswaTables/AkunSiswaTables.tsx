@@ -25,12 +25,9 @@ import {
   DeletePengguna,
   DeletePenggunaBulk,
 } from "@/services/Api/features-api/KelolaAkun/akun.service";
-import {
-  getAngkatanOptions,
-  getJenisKelaminOptions,
-} from "@/services/Api/features-api/GetOptions/options.service";
+import { getJenisKelaminOptions } from "@/services/Api/features-api/GetOptions/options.service";
 
-import { getTingkatKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
+import { GetDataKelasFull } from "@/services/Api/features-api/DataMaster/kelas.service";
 
 import { paths } from "@/routes/paths";
 import type { DataAkunSiswa } from "@/types/KelolaAkun/AkunSiswa";
@@ -134,13 +131,13 @@ const AkunSiswaTables: React.FC = () => {
         setErrorMsg("");
         const [a, k, g] = await Promise.all([
           tahunOption(),
-          getTingkatKelas(),
+          GetDataKelasFull(),
           getJenisKelaminOptions(),
         ]);
         if (!mounted) return;
 
         setOpsiAngkatan(a);
-        setOpsiTingkatKelas(k);
+        setOpsiTingkatKelas(k.item_tingkat_kelas ?? []);
         setOpsiGender(g);
       } catch {
         if (!mounted) return;
@@ -183,13 +180,14 @@ const AkunSiswaTables: React.FC = () => {
           });
           return next;
         });
-      } catch (e) {
+      } catch {
         if (seq !== requestSeq.current) return;
         setErrorMsg("Gagal memuat data siswa.");
         setDaftarSiswa([]);
       } finally {
-        if (seq !== requestSeq.current) return;
-        setLoading(false);
+        if (seq === requestSeq.current) {
+          setLoading(false);
+        }
       }
     })();
   }, [debouncedKataKunci, angkatan, tingkatKelasId, jenisKelamin]);
@@ -483,7 +481,16 @@ const AkunSiswaTables: React.FC = () => {
                   NISN
                 </th>
                 <th scope="col" className="px-6 py-3 font-semibold">
-                  Kelas & Absen
+                  Jenis Kelamin
+                </th>
+                <th scope="col" className="px-6 py-3 font-semibold">
+                  Tingkat Kelas
+                </th>
+                <th scope="col" className="px-6 py-3 font-semibold">
+                  Nama Kelas
+                </th>
+                <th scope="col" className="px-6 py-3 font-semibold">
+                  No. Absen & Angkatan
                 </th>
                 <th scope="col" className="px-6 py-3 font-semibold">
                   TTL
@@ -566,9 +573,7 @@ const AkunSiswaTables: React.FC = () => {
                             <span className="font-semibold text-slate-900">
                               {s.nama_lengkap}
                             </span>
-                            <span className="text-xs text-slate-500">
-                              {s.username} • {labelGender[s.jenis_kelamin]}
-                            </span>
+                            <span className="text-xs text-slate-500">{s.username}</span>
                           </div>
                         </div>
                       </td>
@@ -579,10 +584,28 @@ const AkunSiswaTables: React.FC = () => {
                         </div>
                       </td>
 
-                      {/* Kelas & Absen */}
+                      {/* Jenis Kelamin */}
+                      <td className="px-6 py-4">
+                        <span className="text-slate-900">
+                          {labelGender[s.jenis_kelamin]}
+                        </span>
+                      </td>
+
+                      {/* Tingkat Kelas */}
+                      <td className="px-6 py-4">
+                        <span className="text-slate-900">
+                          {s.tingkat_kelas ? `Kelas ${s.tingkat_kelas}` : "-"}
+                        </span>
+                      </td>
+
+                      {/* Nama Kelas */}
+                      <td className="px-6 py-4">
+                        <span className="text-slate-900">{s.nama_kelas || s.kelas || "-"}</span>
+                      </td>
+
+                      {/* No. Absen & Angkatan */}
                       <td className="px-6 py-4">
                         <div className="flex flex-col gap-1">
-                          <span className="text-slate-900">{s.kelas}</span>
                           <span className="text-xs text-slate-500">
                             No Absen:{" "}
                             <span className="font-medium text-slate-700">
@@ -651,7 +674,7 @@ const AkunSiswaTables: React.FC = () => {
                 })
               ) : (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center">
+                  <td colSpan={10} className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <User className="h-10 w-10 text-slate-300" />
                       <p className="text-base font-medium text-slate-900">
