@@ -62,6 +62,7 @@ const EditKelas = () => {
 
   return (
     <EditKelasForm
+      key={`${kelasId}-${String(initialValues.tingkat_kelas)}-${initialValues.nama_kelas}`}
       initialValues={initialValues}
       onSubmit={handleSubmit}
       loading={loading}
