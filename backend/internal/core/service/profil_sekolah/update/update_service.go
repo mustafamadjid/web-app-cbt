@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
-	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/profil_sekolah"
 	out "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/profil_sekolah"
 )
 
@@ -13,16 +12,7 @@ type UpdateProfilSekolahService struct {
 	repo out.ProfilSekolahRepository
 }
 
-type UpdateProfilSekolahCmd struct {
-	IDProfil      profil_sekolah.IDProfil
-	EmailSekolah  *string
-	NoTelpSekolah *string
-	KepalaSekolah *string
-	WakaSekolah   *string
-	NamaSekolah   *string
-	AlamatSekolah *string
-	LogoSekolah   *string
-}
+
 
 func NewUpdateProfilSekolahService(repo out.ProfilSekolahRepository) *UpdateProfilSekolahService {
 	return &UpdateProfilSekolahService{repo: repo}
