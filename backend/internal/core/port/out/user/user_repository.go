@@ -12,6 +12,7 @@ type UpdatePenggunaPatch struct {
 	Foto        *string
 	StatusAkun  *user.StatusAkun
 	Role        *user.Role
+	JenisKelamin *string
 }
 
 type UserRepository interface {

@@ -190,6 +190,14 @@ func (r *UserRepo) UpdateUser(ctx context.Context, idPengguna user.ID, pengguna 
 		set = append(set, fmt.Sprintf("id_role=(SELECT id_role FROM role WHERE nama_role = $%d)", len(args)))
 	}
 
+	if pengguna.JenisKelamin != nil {
+		jenisKelamin, err := parseJenisKelamin(*pengguna.JenisKelamin)
+		if err != nil {
+			return err
+		}
+		add("jenis_kelamin", jenisKelamin)
+	}
+
 	if len(set) == 0 {
 		return nil
 	}

@@ -91,6 +91,11 @@ func (u *UpdateTx) UpdateGuru(ctx context.Context, cmd UpdateGuruCmd, actor user
 		cmd.BidangStudi = &s
 	}
 
+	if cmd.JenisKelamin != nil {
+		s := strings.TrimSpace(*cmd.JenisKelamin)
+		cmd.JenisKelamin = &s
+	}
+
 	if cmd.NamaLengkap == nil &&
 		cmd.Email == nil &&
 		cmd.NoHp == nil &&
@@ -98,7 +103,8 @@ func (u *UpdateTx) UpdateGuru(ctx context.Context, cmd UpdateGuruCmd, actor user
 		cmd.StatusAkun == nil &&
 		cmd.Nip == nil &&
 		cmd.Jabatan == nil &&
-		cmd.BidangStudi == nil {
+		cmd.BidangStudi == nil &&
+		cmd.JenisKelamin == nil {
 		return coreerror.ErrNoFieldToUpdate
 	}
 
@@ -120,6 +126,7 @@ func (u *UpdateTx) UpdateGuru(ctx context.Context, cmd UpdateGuruCmd, actor user
 		Foto:        cmd.Foto,
 		StatusAkun:  cmd.StatusAkun,
 		Role:        cmd.Role,
+		JenisKelamin: cmd.JenisKelamin,
 	}
 
 	if hasPenggunaPatch(penggunaPatch) {
