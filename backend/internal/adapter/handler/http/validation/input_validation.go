@@ -1,8 +1,9 @@
 package httpx
 
 import (
-	"fmt"
 	"strings"
+
+	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 )
 
 var disallowedSubstrings = []string{"--", "/*", "*/", "`", "$("}
@@ -14,11 +15,11 @@ func ValidateInputSafe(value, field string) error {
 	}
 	for _, item := range disallowedSubstrings {
 		if strings.Contains(trimmed, item) {
-			return fmt.Errorf("invalid input: %s contains invalid characters", field)
+			return coreerror.ErrInvalidInputSafe
 		}
 	}
 	if strings.ContainsAny(trimmed, ";|&<>\n\r") {
-		return fmt.Errorf("invalid input: %s contains invalid characters", field)
+		return coreerror.ErrInvalidInput
 	}
 	return nil
 }
