@@ -3,7 +3,6 @@ package fake_test
 import (
 	"context"
 
-	kelas_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/kelas"
 	txport "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/tx"
 	outuser "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
 )
@@ -14,7 +13,6 @@ type FakeTx struct {
 	UserRepo        *FakeUserRepo
 	ProfilGuruRepo  *FakeProfilGuruRepo
 	ProfilSiswaRepo *FakeProfilSiswaRepo
-	KelasRepo       *FakeKelasRepo
 
 	CommitCalled   bool
 	RollbackCalled bool
@@ -47,9 +45,6 @@ func (t *FakeTx) ProfilSiswa() outuser.ProfilSiswaRepository {
 	return t.ProfilSiswaRepo
 }
 
-func (t *FakeTx) Kelas() kelas_repo.KelasRepository {
-	return t.KelasRepo
-}
 
 func (t *FakeTx) Commit() error {
 	t.CommitCalled = true

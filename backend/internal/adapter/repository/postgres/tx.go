@@ -5,7 +5,6 @@ import (
 
 	"github.com/jackc/pgx/v5"
 
-	kelas_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/kelas"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 	outuser "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
 )
@@ -28,9 +27,6 @@ func (p *pgTx) ProfilSiswa() outuser.ProfilSiswaRepository {
 	return NewProfilSiswaRepo(p.tx, p.logger)
 }
 
-func (p *pgTx) Kelas() kelas_repo.KelasRepository {
-	return NewKelasRepo(p.tx, p.logger)
-}
 
 func (p *pgTx) Commit() error {
 	return p.tx.Commit(p.ctx)
