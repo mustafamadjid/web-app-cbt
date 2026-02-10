@@ -551,14 +551,14 @@ const AkunSiswaTables: React.FC = () => {
                       </td>
 
                       {/* Siswa */}
-                      <td className="px-6 py-4">
+                      <td className="min-w-[260px] px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <button 
-                          className="cursor-pointer"
-                          onClick={()=>window.open(fotoUrl)}
+                          <button
+                            className="cursor-pointer shrink-0"
+                            onClick={() => window.open(fotoUrl)}
                           >
                             <img
-                              className="h-10 w-10 rounded-full object-cover ring-2 ring-white"
+                              className="h-10 w-10 shrink-0 rounded-full object-cover ring-2 ring-white"
                               src={
                                 fotoUrl ||
                                 `https://ui-avatars.com/api/?name=${encodeURIComponent(
@@ -569,7 +569,7 @@ const AkunSiswaTables: React.FC = () => {
                             />
                           </button>
 
-                          <div className="flex flex-col">
+                          <div className="min-w-0 flex flex-col">
                             <span className="font-semibold text-slate-900">
                               {s.nama_lengkap}
                             </span>
