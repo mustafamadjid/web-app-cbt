@@ -7,7 +7,7 @@ import type { StudentUpdateFormValues } from "@/types/KelolaAkun/AkunSiswa";
 import type { JenisKelamin, StatusAkun } from "@/types/OpsiTypes/Option";
 import type { NamaKelas, TingkatKelas } from "@/types/DataMaster/Kelas";
 
-import { getNamaKelas, getTingkatKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
+import { GetDataKelasFull } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { ApiError } from "@/services/Api/api";
 
 import { createSetField } from "@/helper/setField/setField";
@@ -86,13 +86,10 @@ const EditAkunSiswaForm = ({
   useEffect(() => {
     let active = true;
     const loadKelas = async () => {
-      const [tingkat, kelas] = await Promise.all([
-        getTingkatKelas(),
-        getNamaKelas(),
-      ]);
+      const data = await GetDataKelasFull();
       if (!active) return;
-      setTingkatKelass(tingkat);
-      setDaftarKelas(kelas);
+      setTingkatKelass(data.item_tingkat_kelas ?? []);
+      setDaftarKelas(data.item_nama_kelas ?? []);
     };
     loadKelas();
     return () => {
