@@ -25,6 +25,9 @@ var (
 	ErrNisnTaken     = errors.New("NISN taken")
 	ErrInvalidStatusAkun = errors.New("invalid status akun")
 
+	ErrTingkatKelasExist =errors.New("tingkat kelas already exist") 
+	ErrNamaKelasExist =errors.New("nama kelas already exist") 
+
 	ErrFileTooLarge = errors.New("file too large")
 	ErrInvalidFileFormat = errors.New("invalid file format")
 )

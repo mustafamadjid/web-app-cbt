@@ -24,11 +24,20 @@ func (f *FakeKelasRepo) GetKelas(ctx context.Context, filter query.ListKelasFilt
 }
 
 // Not used
-func (f *FakeKelasRepo) CreateTingkatKelas(ctx context.Context, tingkatKelas kelas.TingkatKelas) (kelas.ID, error) {
+func (f *FakeKelasRepo) CreateTingkatKelas(ctx context.Context, tingkatKelas int)error {
 	panic("not used in this test")
 }
 
 // Not used
-func (f *FakeKelasRepo) CreateNamaKelas(ctx context.Context, namaKelas kelas.NamaKelas) (kelas.ID, error) {
+func (f *FakeKelasRepo) CreateNamaKelas(ctx context.Context, namaKelas kelas.NamaKelas) error {
+	panic("not used in this test")
+}
+
+// Not used
+func (f *FakeKelasRepo) ExistTingkatKelas(ctx context.Context, tingkatKelas int) (bool, error) {
+	panic("not used in this test")
+}
+
+func (f *FakeKelasRepo)ExistNamaKelas(ctx context.Context,namaKelas string)(bool, error){
 	panic("not used in this test")
 }

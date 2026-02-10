@@ -1,6 +1,12 @@
 package kelas_service
 
-type CreateKelasCmd struct {
-	TingkatKelas int
-	NamaKelas    string
+import "github.com/mustafamadjid/web-app-cbt/internal/core/domain/kelas"
+
+type CreateNamaKelasCmd struct {
+	IdTingkatKelas kelas.ID
+	NamaKelas      string
+}
+
+type CreateTingkatKelasCmd struct {
+	TingkatKelas 	int
 }

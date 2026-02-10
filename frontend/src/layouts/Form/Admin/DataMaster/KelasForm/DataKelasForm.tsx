@@ -1,5 +1,3 @@
-import React from "react";
-
 import TambahNamaKelasForm from "./TambahNamaKelasForm";
 import TambahTingkatKelasForm from "./TambahTingkatKelasForm";
 
