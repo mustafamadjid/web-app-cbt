@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
 import { ApiError } from "@/services/Api/api";
-import { submitKelasResponse } from "@/services/Api/features-api/DataMaster/kelas.service";
+import { createTingkatKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { createValidator, integerNumber, minNumber, requiredValue } from "@/helper/validate/validateForm";
 
 const validate = createValidator<{ tingkat_kelas: number | "" }>({
@@ -32,9 +32,8 @@ const TambahTingkatKelasForm = () => {
     }
 
     try {
-      await submitKelasResponse({
+      await createTingkatKelas({
         tingkat_kelas: Number(tingkatKelas),
-        nama_kelas: `Tingkat ${tingkatKelas}`,
       });
       alert("Tingkat kelas berhasil ditambahkan.");
       setTingkatKelas("");

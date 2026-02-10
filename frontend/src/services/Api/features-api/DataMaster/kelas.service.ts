@@ -67,6 +67,35 @@ export async function submitKelasResponse(values: KelasFormValues) {
   return res.data;
 }
 
+type CreateTingkatKelasPayload = {
+  tingkat_kelas: number;
+};
+
+type CreateNamaKelasPayload = {
+  id_tingkat_kelas: number;
+  nama_kelas: string;
+};
+
+export async function createTingkatKelas(values: CreateTingkatKelasPayload) {
+  const data = buildJsonData(values);
+  const res = await api<ApiEnvelope<null>>("/admin/kelas/tingkat-kelas", {
+    method: "POST",
+    data,
+  });
+
+  return res;
+}
+
+export async function createNamaKelas(values: CreateNamaKelasPayload) {
+  const data = buildJsonData(values);
+  const res = await api<ApiEnvelope<null>>("/admin/kelas/nama-kelas", {
+    method: "POST",
+    data,
+  });
+
+  return res;
+}
+
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const normalize = (value: string) => value.toLowerCase().trim();
