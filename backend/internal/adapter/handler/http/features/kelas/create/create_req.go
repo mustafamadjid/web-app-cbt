@@ -5,6 +5,6 @@ type CreateTingkatKelasReq struct {
 }
 
 type CreateNamaKelasReq struct {
-	IdTingkatKelas int `json:"id_tingkat_kelas"`
-	NamaKelas string `json:"nama_kelas"`
+	IdTingkatKelas int    `json:"id_tingkat_kelas"`
+	NamaKelas      string `json:"nama_kelas"`
 }
