@@ -15,6 +15,8 @@ type KelasRepository interface {
 	CreateTingkatKelas(ctx context.Context, tingkatKelas int)error
 	CreateNamaKelas(ctx context.Context, namaKelas kelas.NamaKelas)error
 
+	// UpdateTingkatKelas(ctx contex)
+
 	ExistTingkatKelas(ctx context.Context, tingkatKelas int )(bool, error)
 	ExistNamaKelas(ctx context.Context,namaKelas string)(bool, error)
 }
