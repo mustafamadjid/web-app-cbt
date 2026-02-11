@@ -1,7 +1,14 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router";
 
 import type { KelasFormValues } from "@/types/DataMaster/Kelas";
 import { ApiError } from "@/services/Api/api";
+import {
+  getNamaKelasById,
+  getTingkatKelasByIdRequest,
+  updateKelas,
+} from "@/services/Api/features-api/DataMaster/kelas.service";
+import { paths } from "@/routes/paths";
 import { createSetField } from "@/helper/setField/setField";
 import {
   createValidator,
@@ -14,12 +21,10 @@ import {
 import EditNamaKelasForm from "./EditNamaKelasForm";
 import EditTingkatKelasForm from "./EditTingkatKelasForm";
 
-type EditKelasFormProps = {
-  initialValues: KelasFormValues;
-  onSubmit: (values: KelasFormValues) => Promise<void>;
-  loading?: boolean;
-  submitting?: boolean;
-};
+const buildInitialValues = (): KelasFormValues => ({
+  tingkat_kelas: "",
+  nama_kelas: "",
+});
 
 const sectionTitle = "text-sm font-semibold text-slate-800";
 const helperText = "text-xs text-slate-500";
@@ -33,25 +38,82 @@ const validate = createValidator<KelasFormValues>({
   nama_kelas: [requiredString("Nama kelas wajib diisi.")],
 });
 
-const EditKelasForm = ({
-  initialValues,
-  onSubmit,
-  loading = false,
-  submitting = false,
-}: EditKelasFormProps) => {
-  const [values, setValues] = useState<KelasFormValues>(initialValues);
+const EditKelasForm = () => {
+  const { idTingkatKelas, idNamaKelas } = useParams();
+  const navigate = useNavigate();
+
+  const [initialValues, setInitialValues] = useState<KelasFormValues>(buildInitialValues());
+  const [values, setValues] = useState<KelasFormValues>(buildInitialValues());
   const [touched, setTouched] = useState<Record<keyof KelasFormValues, boolean>>({
     tingkat_kelas: false,
     nama_kelas: false,
   });
+  const [loading, setLoading] = useState<boolean>(true);
+  const [submitting, setSubmitting] = useState<boolean>(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
+  const tingkatKelasId = useMemo(() => Number(idTingkatKelas), [idTingkatKelas]);
+  const namaKelasId = useMemo(() => Number(idNamaKelas), [idNamaKelas]);
 
   const setField = createSetField(setValues);
 
   const onBlur = (name: keyof KelasFormValues) => {
     setTouched((prev) => ({ ...prev, [name]: true }));
   };
+
+  useEffect(() => {
+    let active = true;
+
+    const loadKelasByIds = async () => {
+      if (
+        !idTingkatKelas ||
+        !idNamaKelas ||
+        Number.isNaN(tingkatKelasId) ||
+        Number.isNaN(namaKelasId)
+      ) {
+        setSubmitError("Parameter edit kelas tidak valid.");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const [tingkatKelas, namaKelas] = await Promise.all([
+          getTingkatKelasByIdRequest(tingkatKelasId),
+          getNamaKelasById(namaKelasId),
+        ]);
+
+        if (!active) return;
+
+        if (!tingkatKelas || !namaKelas) {
+          setSubmitError("Data kelas tidak ditemukan.");
+          return;
+        }
+
+        const nextValues = {
+          tingkat_kelas: tingkatKelas.tingkat_kelas,
+          nama_kelas: namaKelas.nama_kelas,
+        } satisfies KelasFormValues;
+
+        setInitialValues(nextValues);
+        setValues(nextValues);
+      } catch (error) {
+        if (!active) return;
+        if (error instanceof ApiError) {
+          setSubmitError(error.message);
+          return;
+        }
+        setSubmitError("Gagal memuat data kelas.");
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+
+    loadKelasByIds();
+
+    return () => {
+      active = false;
+    };
+  }, [idTingkatKelas, idNamaKelas, tingkatKelasId, namaKelasId]);
 
   const errors = validate(values);
 
@@ -70,12 +132,21 @@ const EditKelasForm = ({
       return;
     }
 
+    if (!idNamaKelas || Number.isNaN(namaKelasId)) {
+      setSubmitError("ID nama kelas tidak ditemukan.");
+      return;
+    }
+
+    setSubmitting(true);
     try {
-      await onSubmit(values);
+      await updateKelas(namaKelasId, values);
+      navigate(paths.dashboard.data_master_kelas);
     } catch (error) {
       if (error instanceof ApiError) {
         setSubmitError(error.message);
       }
+    } finally {
+      setSubmitting(false);
     }
   };
 
