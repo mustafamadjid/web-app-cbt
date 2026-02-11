@@ -50,6 +50,7 @@ func(h *DeleteKelasHandler)DeleteKelas(w http.ResponseWriter, r *http.Request, p
 			return
 		case errors.Is(err,coreerror.ErrDeleteRestricted):
 			httpResponse.WriteErr(w, http.StatusBadRequest, "DELETE_RESTRICTED", "delete restricted : constraint violation")
+			return
 		default:
 			httpResponse.WriteErr(w, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error: failed delete kelas")
 			return

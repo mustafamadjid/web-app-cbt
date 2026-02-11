@@ -286,7 +286,7 @@ func (r *KelasRepo) DeleteNamaKelas(ctx context.Context, idNamaKelas int) error 
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err,&pgErr){
-			if pgErr.Code == "23503" {
+			if pgErr.Code == "23001" {
 				return coreerror.ErrDeleteRestricted
 			}
 		}
