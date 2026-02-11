@@ -34,4 +34,6 @@ var (
 
 	ErrFileTooLarge = errors.New("file too large")
 	ErrInvalidFileFormat = errors.New("invalid file format")
+
+	ErrDeleteRestricted = errors.New("delete restricted")
 )

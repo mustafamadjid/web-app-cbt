@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/kelas"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
@@ -283,6 +284,13 @@ func (r *KelasRepo) DeleteNamaKelas(ctx context.Context, idNamaKelas int) error 
 		idNamaKelas,
 	)
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err,&pgErr){
+			if pgErr.Code == "23503" {
+				return coreerror.ErrDeleteRestricted
+			}
+		}
+			
 		r.loggerFor(ctx).Error(ctx, "failed deleting nama kelas", "op", "kelas_repo.delete", "err", err)
 		return err
 	}
