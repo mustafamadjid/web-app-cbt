@@ -16,6 +16,42 @@ import type {
 
 import type { ApiEnvelope } from "../../api";
 
+
+// Real Request
+
+export async function GetDataKelasFull(
+  params: KelasFilterParams = {},
+): Promise<FullDataKelas> {
+
+  const queryParams : Record<string, string | undefined> = {
+    search: params.search || undefined,
+    tingkat_kelas: params.tingkatKelas != null ? String(params.tingkatKelas) : undefined
+  };
+
+  return api<FullDataKelas>("/admin/kelas",{
+    method: "GET",
+    params : queryParams
+  })
+}
+
+
+
+export async function getKelasByIdsRequest(
+  idTingkatKelas: number,
+  idNamaKelas: number,
+): Promise<DataKelas | null> {
+    return api<DataKelas>(`/admin/kelas/${idTingkatKelas}/${idNamaKelas}`, {
+      method: "GET",
+    });  
+}
+
+
+
+
+
+
+// Pertimbangkn untuk dihapus nanti
+
 const USE_DUMMY = true; // ✅ set false saat BE sudah siap
 
 const DUMMY_TINGKAT_KELAS: TingkatKelas[] = [
@@ -102,28 +138,6 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const normalize = (value: string) => value.toLowerCase().trim();
 
 let cachedTingkatKelas: TingkatKelas[] | null = null;
-
-export async function GetDataKelasFull(
-  params: KelasFilterParams = {},
-): Promise<FullDataKelas> {
-
-  const queryParams : Record<string, string | undefined> = {
-    search: params.search || undefined,
-    tingkat_kelas: params.tingkatKelas != null ? String(params.tingkatKelas) : undefined
-  };
-
-  return api<FullDataKelas>("/admin/kelas",{
-    method: "GET",
-    params : queryParams
-  })
-}
-
-
-
-
-
-
-// Pertimbangkn untuk dihapus nanti
 export async function getNamaKelas(
   params: KelasFilterParams = {},
 ): Promise<NamaKelas[]> {
@@ -165,35 +179,6 @@ export async function getNamaKelas(
   });
 }
 
-
-export async function getKelasByIdsRequest(
-  idTingkatKelas: number,
-  idNamaKelas: number,
-): Promise<DataKelas | null> {
-  if (!USE_DUMMY) {
-    return api<DataKelas>(`/admin/kelas/${idTingkatKelas}/${idNamaKelas}`, {
-      method: "GET",
-    });
-  }
-
-  await sleep(150);
-  const tingkat =
-    DUMMY_TINGKAT_KELAS.find((item) => item.id_tingkat_kelas === idTingkatKelas) ??
-    null;
-  const nama =
-    DUMMY_NAMA_KELAS.find(
-      (item) =>
-        item.id_nama_kelas === idNamaKelas &&
-        item.id_tingkat_kelas === idTingkatKelas,
-    ) ?? null;
-
-  if (!tingkat || !nama) return null;
-
-  return {
-    item_tingkat_kelas: tingkat,
-    item_nama_kelas: nama,
-  };
-}
 
 export async function getKelasById(
   id: number,
