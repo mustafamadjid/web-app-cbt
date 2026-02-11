@@ -1,4 +1,4 @@
-package kelas_Service
+package kelas_service
 
 import (
 	"context"
