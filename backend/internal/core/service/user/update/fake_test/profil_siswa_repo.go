@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
-	outuser "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
+	updatepatch "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/update_patch"
 )
 
 // ===== minimal fake profil siswa repo =====
@@ -14,10 +14,10 @@ type FakeProfilSiswaRepo struct {
 
 	UpdateCalled bool
 	LastID       user.ID
-	LastPatch    outuser.UpdateProfilSiswaPatch
+	LastPatch    updatepatch.ProfilSiswa
 }
 
-func (r *FakeProfilSiswaRepo) UpdateProfilSiswa(ctx context.Context, idPengguna user.ID, profilSiswa outuser.UpdateProfilSiswaPatch) error {
+func (r *FakeProfilSiswaRepo) UpdateProfilSiswa(ctx context.Context, idPengguna user.ID, profilSiswa updatepatch.ProfilSiswa) error {
 	r.UpdateCalled = true
 	r.LastID = idPengguna
 	r.LastPatch = profilSiswa

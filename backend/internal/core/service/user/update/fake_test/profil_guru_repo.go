@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
-	outuser "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
+	updatepatch "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/update_patch"
 )
 
 // ===== minimal fake profil guru repo =====
@@ -14,10 +14,10 @@ type FakeProfilGuruRepo struct {
 
 	UpdateCalled bool
 	LastID       user.ID
-	LastPatch    outuser.UpdateProfilGuruPatch
+	LastPatch    updatepatch.ProfilGuru
 }
 
-func (r *FakeProfilGuruRepo) UpdateProfilGuru(ctx context.Context, idPengguna user.ID, profilGuru outuser.UpdateProfilGuruPatch) error {
+func (r *FakeProfilGuruRepo) UpdateProfilGuru(ctx context.Context, idPengguna user.ID, profilGuru updatepatch.ProfilGuru) error {
 	r.UpdateCalled = true
 	r.LastID = idPengguna
 	r.LastPatch = profilGuru

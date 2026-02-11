@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
-	outuser "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
+	updatepatch "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/update_patch"
 )
 
 type FakeDeleteUserRepo struct {
@@ -47,7 +47,7 @@ func (r *FakeDeleteUserRepo) CreateUser(ctx context.Context, pengguna user.Pengg
 	panic("not used in this test")
 }
 
-func (r *FakeDeleteUserRepo) UpdateUser(ctx context.Context, idPengguna user.ID, pengguna outuser.UpdatePenggunaPatch) error {
+func (r *FakeDeleteUserRepo) UpdateUser(ctx context.Context, idPengguna user.ID, pengguna updatepatch.Pengguna) error {
 	panic("not used in this test")
 }
 

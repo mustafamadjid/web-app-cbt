@@ -9,7 +9,7 @@ import (
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 	txout "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/tx"
-	outuser "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
+	updatepatch "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/update_patch"
 )
 
 type UpdateTx struct {
@@ -24,15 +24,15 @@ func NewUpdateSiswaService(txm txout.TxManager) *UpdateTx {
 	return &UpdateTx{txm: txm}
 }
 
-func hasPenggunaPatch(p outuser.UpdatePenggunaPatch) bool {
+func hasPenggunaPatch(p updatepatch.Pengguna) bool {
 	return p.NamaLengkap != nil || p.Email != nil || p.NoHp != nil || p.Foto != nil || p.StatusAkun != nil || p.Role != nil
 }
 
-func hasProfilPatch(p outuser.UpdateProfilGuruPatch) bool {
+func hasProfilPatch(p updatepatch.ProfilGuru) bool {
 	return p.Nip != nil || p.Jabatan != nil || p.BidangStudi != nil
 }
 
-func hasProfilSiswaPatch(p outuser.UpdateProfilSiswaPatch) bool {
+func hasProfilSiswaPatch(p updatepatch.ProfilSiswa) bool {
 	return p.IdTingkatKelas != nil || p.IdNamaKelas != nil || p.Nisn != nil || p.NoAbsen != nil || p.Angkatan != nil || p.TempatLahir != nil || p.TanggalLahir != nil
 }
 
@@ -119,13 +119,13 @@ func (u *UpdateTx) UpdateGuru(ctx context.Context, cmd UpdateGuruCmd, actor user
 	}()
 
 	// Update patch pengguna
-	penggunaPatch := outuser.UpdatePenggunaPatch{
-		NamaLengkap: cmd.NamaLengkap,
-		Email:       emailVO,
-		NoHp:        cmd.NoHp,
-		Foto:        cmd.Foto,
-		StatusAkun:  cmd.StatusAkun,
-		Role:        cmd.Role,
+	penggunaPatch := updatepatch.Pengguna{
+		NamaLengkap:  cmd.NamaLengkap,
+		Email:        emailVO,
+		NoHp:         cmd.NoHp,
+		Foto:         cmd.Foto,
+		StatusAkun:   cmd.StatusAkun,
+		Role:         cmd.Role,
 		JenisKelamin: cmd.JenisKelamin,
 	}
 
@@ -137,7 +137,7 @@ func (u *UpdateTx) UpdateGuru(ctx context.Context, cmd UpdateGuruCmd, actor user
 	}
 
 	// Update patch profil guru
-	profilPatch := outuser.UpdateProfilGuruPatch{
+	profilPatch := updatepatch.ProfilGuru{
 		Nip:         cmd.Nip,
 		Jabatan:     cmd.Jabatan,
 		BidangStudi: cmd.BidangStudi,
@@ -247,7 +247,7 @@ func (u *UpdateTx) UpdateSiswa(ctx context.Context, cmd UpdateSiswaCmd, actor us
 		_ = tx.Rollback()
 	}()
 
-	penggunaPatch := outuser.UpdatePenggunaPatch{
+	penggunaPatch := updatepatch.Pengguna{
 		NamaLengkap: cmd.NamaLengkap,
 		Email:       emailVO,
 		NoHp:        cmd.NoHp,
@@ -263,7 +263,7 @@ func (u *UpdateTx) UpdateSiswa(ctx context.Context, cmd UpdateSiswaCmd, actor us
 		}
 	}
 
-	profilPatch := outuser.UpdateProfilSiswaPatch{
+	profilPatch := updatepatch.ProfilSiswa{
 		IdTingkatKelas: cmd.IdTingkatKelas,
 		IdNamaKelas:    cmd.IdNamaKelas,
 		Nisn:           cmd.Nisn,

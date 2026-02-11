@@ -2,29 +2,19 @@ package out
 
 import (
 	"context"
-	"time"
 
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
+	updatepatch "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/update_patch"
 
 	query "github.com/mustafamadjid/web-app-cbt/internal/core/query/user"
 )
-
-type UpdateProfilSiswaPatch struct {
-	IdTingkatKelas *user.ID
-	IdNamaKelas    *user.ID
-	Nisn           *string
-	NoAbsen        *int
-	Angkatan       *int
-	TempatLahir    *string
-	TanggalLahir   *time.Time
-}
 
 type ProfilSiswaRepository interface {
 	FindProfilSiswaByID(ctx context.Context, id user.ID) (user.DataSiswa, error)
 	ExistByNISN(ctx context.Context, nisn string) (bool, error)
 	CreateProfilSiswa(ctx context.Context, profilSiswa user.ProfilSiswa) (user.ID, error)
 
-	UpdateProfilSiswa(ctx context.Context, idPengguna user.ID, profilSiswa UpdateProfilSiswaPatch) error
+	UpdateProfilSiswa(ctx context.Context, idPengguna user.ID, profilSiswa updatepatch.ProfilSiswa) error
 }
 
 type GetListSiswaRepo interface {

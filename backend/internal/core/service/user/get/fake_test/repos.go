@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
-	outuser "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
+	updatepatch "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/update_patch"
 	query "github.com/mustafamadjid/web-app-cbt/internal/core/query/user"
 )
 
@@ -36,7 +36,7 @@ func (f *FakeGetGuruRepo) CreateProfilGuru(ctx context.Context, g user.ProfilGur
 	return 0, nil
 }
 
-func (f *FakeGetGuruRepo) UpdateProfilGuru(ctx context.Context, idPengguna user.ID, profilGuru outuser.UpdateProfilGuruPatch) error {
+func (f *FakeGetGuruRepo) UpdateProfilGuru(ctx context.Context, idPengguna user.ID, profilGuru updatepatch.ProfilGuru) error {
 	return nil
 }
 
@@ -68,7 +68,7 @@ func (f *FakeGetSiswaRepo) CreateProfilSiswa(ctx context.Context, g user.ProfilS
 	return 0, nil
 }
 
-func (f *FakeGetSiswaRepo) UpdateProfilSiswa(ctx context.Context, idPengguna user.ID, profilSiswa outuser.UpdateProfilSiswaPatch) error {
+func (f *FakeGetSiswaRepo) UpdateProfilSiswa(ctx context.Context, idPengguna user.ID, profilSiswa updatepatch.ProfilSiswa) error {
 	return nil
 }
 
@@ -96,7 +96,7 @@ func (f *FakeProfilGuruRepo) CreateProfilGuru(ctx context.Context, g user.Profil
 	return 0, nil
 }
 
-func (f *FakeProfilGuruRepo) UpdateProfilGuru(ctx context.Context, idPengguna user.ID, profilGuru outuser.UpdateProfilGuruPatch) error {
+func (f *FakeProfilGuruRepo) UpdateProfilGuru(ctx context.Context, idPengguna user.ID, profilGuru updatepatch.ProfilGuru) error {
 	return nil
 }
 
@@ -124,6 +124,6 @@ func (f *FakeProfilSiswaRepo) CreateProfilSiswa(ctx context.Context, g user.Prof
 	return 0, nil
 }
 
-func (f *FakeProfilSiswaRepo) UpdateProfilSiswa(ctx context.Context, idPengguna user.ID, profilSiswa outuser.UpdateProfilSiswaPatch) error {
+func (f *FakeProfilSiswaRepo) UpdateProfilSiswa(ctx context.Context, idPengguna user.ID, profilSiswa updatepatch.ProfilSiswa) error {
 	return nil
 }

@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
-	outuser "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
+	updatepatch "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/update_patch"
 )
 
 // ===== minimal fake profil siswa repo =====
@@ -40,6 +40,6 @@ func (r *FakeProfilSiswaRepo) FindProfilSiswaByID(ctx context.Context, id user.I
 	panic("not used in this test")
 }
 
-func (r *FakeProfilSiswaRepo) UpdateProfilSiswa(ctx context.Context, idPengguna user.ID, profilSiswa outuser.UpdateProfilSiswaPatch) error {
+func (r *FakeProfilSiswaRepo) UpdateProfilSiswa(ctx context.Context, idPengguna user.ID, profilSiswa updatepatch.ProfilSiswa) error {
 	panic("not used in this test")
 }

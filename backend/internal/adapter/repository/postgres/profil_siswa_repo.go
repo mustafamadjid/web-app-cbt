@@ -12,7 +12,7 @@ import (
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
-	outuser "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
+	updatepatch "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/update_patch"
 	query "github.com/mustafamadjid/web-app-cbt/internal/core/query/user"
 )
 
@@ -179,7 +179,7 @@ func (r *ProfilSiswaRepo) CreateProfilSiswa(ctx context.Context, profilSiswa use
 	return id, nil
 }
 
-func (r *ProfilSiswaRepo) UpdateProfilSiswa(ctx context.Context, idPengguna user.ID, profilSiswa outuser.UpdateProfilSiswaPatch) error {
+func (r *ProfilSiswaRepo) UpdateProfilSiswa(ctx context.Context, idPengguna user.ID, profilSiswa updatepatch.ProfilSiswa) error {
 	set := make([]string, 0, 7)
 	args := make([]any, 0, 8)
 
