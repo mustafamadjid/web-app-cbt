@@ -13,8 +13,8 @@ import {
   createValidator,
   integerNumber,
   minNumber,
-  requiredString,
   requiredValue,
+  requiredString,
 } from "@/helper/validate/validateForm";
 
 import EditNamaKelasForm from "./EditNamaKelasForm";
@@ -28,12 +28,15 @@ const buildInitialValues = (): KelasFormValues => ({
 const sectionTitle = "text-sm font-semibold text-slate-800";
 const helperText = "text-xs text-slate-500";
 
-const validate = createValidator<KelasFormValues>({
+const validateTingkatKelas = createValidator<Pick<KelasFormValues, "tingkat_kelas">>({
   tingkat_kelas: [
     requiredValue("Tingkat kelas wajib diisi."),
     integerNumber("Tingkat kelas harus bilangan bulat."),
     minNumber(1, "Tingkat kelas tidak valid."),
   ],
+});
+
+const validateNamaKelas = createValidator<Pick<KelasFormValues, "nama_kelas">>({
   nama_kelas: [requiredString("Nama kelas wajib diisi.")],
 });
 
@@ -44,15 +47,17 @@ const EditKelasForm = () => {
   const [initialValues, setInitialValues] =
     useState<KelasFormValues>(buildInitialValues());
   const [values, setValues] = useState<KelasFormValues>(buildInitialValues());
-  const [touched, setTouched] = useState<
-    Record<keyof KelasFormValues, boolean>
-  >({
-    tingkat_kelas: false,
-    nama_kelas: false,
-  });
+  const [touchedTingkatKelas, setTouchedTingkatKelas] = useState<boolean>(false);
+  const [touchedNamaKelas, setTouchedNamaKelas] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
-  const [submitting, setSubmitting] = useState<boolean>(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submittingTingkatKelas, setSubmittingTingkatKelas] =
+    useState<boolean>(false);
+  const [submittingNamaKelas, setSubmittingNamaKelas] = useState<boolean>(false);
+  const [pageError, setPageError] = useState<string | null>(null);
+  const [submitTingkatKelasError, setSubmitTingkatKelasError] =
+    useState<string | null>(null);
+  const [submitNamaKelasError, setSubmitNamaKelasError] =
+    useState<string | null>(null);
 
   const tingkatKelasId = useMemo(
     () => Number(idTingkatKelas),
@@ -61,10 +66,6 @@ const EditKelasForm = () => {
   const namaKelasId = useMemo(() => Number(idNamaKelas), [idNamaKelas]);
 
   const setField = createSetField(setValues);
-
-  const onBlur = (name: keyof KelasFormValues) => {
-    setTouched((prev) => ({ ...prev, [name]: true }));
-  };
 
   useEffect(() => {
     let active = true;
@@ -76,7 +77,7 @@ const EditKelasForm = () => {
         Number.isNaN(tingkatKelasId) ||
         Number.isNaN(namaKelasId)
       ) {
-        setSubmitError("Parameter edit kelas tidak valid.");
+        setPageError("Parameter edit kelas tidak valid.");
         setLoading(false);
         return;
       }
@@ -87,7 +88,7 @@ const EditKelasForm = () => {
         if (!active) return;
 
         if (!dataKelas) {
-          setSubmitError("Data kelas tidak ditemukan.");
+          setPageError("Data kelas tidak ditemukan.");
           return;
         }
 
@@ -101,10 +102,10 @@ const EditKelasForm = () => {
       } catch (error) {
         if (!active) return;
         if (error instanceof ApiError) {
-          setSubmitError(error.message);
+          setPageError(error.message);
           return;
         }
-        setSubmitError("Gagal memuat data kelas.");
+        setPageError("Gagal memuat data kelas.");
       } finally {
         if (active) setLoading(false);
       }
@@ -117,44 +118,81 @@ const EditKelasForm = () => {
     };
   }, [idTingkatKelas, idNamaKelas, tingkatKelasId, namaKelasId]);
 
-  const errors = validate(values);
+  const tingkatKelasErrors = validateTingkatKelas({
+    tingkat_kelas: values.tingkat_kelas,
+  });
+  const namaKelasErrors = validateNamaKelas({
+    nama_kelas: values.nama_kelas,
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmitTingkatKelas = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitError(null);
+    setSubmitTingkatKelasError(null);
+    setTouchedTingkatKelas(true);
 
-    setTouched({
-      tingkat_kelas: true,
-      nama_kelas: true,
-    });
-
-    const currentErrors = validate(values);
-    if (Object.keys(currentErrors).length > 0) {
-      setSubmitError(
-        "Periksa kembali input yang masih kosong atau tidak valid.",
-      );
+    if (tingkatKelasErrors.tingkat_kelas) {
+      setSubmitTingkatKelasError("Periksa kembali tingkat kelas yang diisi.");
       return;
     }
 
     if (!idNamaKelas || Number.isNaN(namaKelasId)) {
-      setSubmitError("ID nama kelas tidak ditemukan.");
+      setSubmitTingkatKelasError("ID nama kelas tidak ditemukan.");
       return;
     }
 
-    setSubmitting(true);
+    setSubmittingTingkatKelas(true);
     try {
-      await updateKelas(namaKelasId, values);
-      navigate(paths.dashboard.data_master_kelas);
+      const payload = {
+        tingkat_kelas: values.tingkat_kelas,
+        nama_kelas: initialValues.nama_kelas,
+      } satisfies KelasFormValues;
+
+      await updateKelas(namaKelasId, payload);
+      setInitialValues((prev) => ({ ...prev, tingkat_kelas: values.tingkat_kelas }));
     } catch (error) {
       if (error instanceof ApiError) {
-        setSubmitError(error.message);
+        setSubmitTingkatKelasError(error.message);
       }
     } finally {
-      setSubmitting(false);
+      setSubmittingTingkatKelas(false);
     }
   };
 
-  const isDisabled = loading || submitting;
+  const handleSubmitNamaKelas = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitNamaKelasError(null);
+    setTouchedNamaKelas(true);
+
+    if (namaKelasErrors.nama_kelas) {
+      setSubmitNamaKelasError("Periksa kembali nama kelas yang diisi.");
+      return;
+    }
+
+    if (!idNamaKelas || Number.isNaN(namaKelasId)) {
+      setSubmitNamaKelasError("ID nama kelas tidak ditemukan.");
+      return;
+    }
+
+    setSubmittingNamaKelas(true);
+    try {
+      const payload = {
+        tingkat_kelas: initialValues.tingkat_kelas,
+        nama_kelas: values.nama_kelas,
+      } satisfies KelasFormValues;
+
+      await updateKelas(namaKelasId, payload);
+      setInitialValues((prev) => ({ ...prev, nama_kelas: values.nama_kelas }));
+    } catch (error) {
+      if (error instanceof ApiError) {
+        setSubmitNamaKelasError(error.message);
+      }
+    } finally {
+      setSubmittingNamaKelas(false);
+    }
+  };
+
+  const isAnySubmitting = submittingTingkatKelas || submittingNamaKelas;
+  const isDisabled = loading || isAnySubmitting;
 
   return (
     <div className="min-h-screen w-full py-8">
@@ -164,12 +202,19 @@ const EditKelasForm = () => {
             Edit Data Kelas
           </h1>
           <p className="mt-1 text-sm text-slate-500">
-            Perbarui tingkat kelas dan nama kelas pada section yang tersedia.
+            Anda bisa menyimpan perubahan tingkat kelas atau nama kelas secara
+            terpisah.
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        {pageError && (
+          <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600">
+            {pageError}
+          </div>
+        )}
+
+        <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <form onSubmit={handleSubmitTingkatKelas} className="space-y-4">
             <div className="mb-4">
               <h2 className={sectionTitle}>Edit Tingkat Kelas</h2>
               <p className={helperText}>
@@ -178,14 +223,49 @@ const EditKelasForm = () => {
             </div>
             <EditTingkatKelasForm
               value={values.tingkat_kelas}
-              error={touched.tingkat_kelas ? errors.tingkat_kelas : undefined}
+              error={
+                touchedTingkatKelas
+                  ? tingkatKelasErrors.tingkat_kelas
+                  : undefined
+              }
               onChange={(value) => setField("tingkat_kelas", value)}
-              onBlur={() => onBlur("tingkat_kelas")}
-              disabled={isDisabled}
+              onBlur={() => setTouchedTingkatKelas(true)}
+              disabled={loading || submittingTingkatKelas}
             />
-          </section>
 
-          <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            {submitTingkatKelasError && (
+              <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600">
+                {submitTingkatKelasError}
+              </div>
+            )}
+
+            <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                className="inline-flex items-center justify-center cursor-pointer rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+                onClick={() => {
+                  setField("tingkat_kelas", initialValues.tingkat_kelas);
+                  setTouchedTingkatKelas(false);
+                  setSubmitTingkatKelasError(null);
+                }}
+                disabled={loading || submittingTingkatKelas}
+              >
+                Reset Tingkat Kelas
+              </button>
+
+              <button
+                type="submit"
+                className="inline-flex cursor-pointer items-center justify-center rounded-lg bg-[#397e50] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#2f6a43] disabled:cursor-not-allowed disabled:opacity-70"
+                disabled={loading || submittingTingkatKelas}
+              >
+                Simpan Tingkat Kelas
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <form onSubmit={handleSubmitNamaKelas} className="space-y-4">
             <div className="mb-4">
               <h2 className={sectionTitle}>Edit Nama Kelas</h2>
               <p className={helperText}>
@@ -194,42 +274,53 @@ const EditKelasForm = () => {
             </div>
             <EditNamaKelasForm
               value={values.nama_kelas}
-              error={touched.nama_kelas ? errors.nama_kelas : undefined}
+              error={touchedNamaKelas ? namaKelasErrors.nama_kelas : undefined}
               onChange={(value) => setField("nama_kelas", value)}
-              onBlur={() => onBlur("nama_kelas")}
-              disabled={isDisabled}
+              onBlur={() => setTouchedNamaKelas(true)}
+              disabled={loading || submittingNamaKelas}
             />
-          </section>
 
-          {submitError && (
-            <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600">
-              {submitError}
+            {submitNamaKelasError && (
+              <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600">
+                {submitNamaKelasError}
+              </div>
+            )}
+
+            <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                className="inline-flex items-center justify-center cursor-pointer rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+                onClick={() => {
+                  setField("nama_kelas", initialValues.nama_kelas);
+                  setTouchedNamaKelas(false);
+                  setSubmitNamaKelasError(null);
+                }}
+                disabled={loading || submittingNamaKelas}
+              >
+                Reset Nama Kelas
+              </button>
+
+              <button
+                type="submit"
+                className="inline-flex cursor-pointer items-center justify-center rounded-lg bg-[#397e50] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#2f6a43] disabled:cursor-not-allowed disabled:opacity-70"
+                disabled={loading || submittingNamaKelas}
+              >
+                Simpan Nama Kelas
+              </button>
             </div>
-          )}
+          </form>
+        </section>
 
-          <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-            <button
-              type="button"
-              className="inline-flex items-center justify-center cursor-pointer rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
-              onClick={() => {
-                setValues(initialValues);
-                setTouched({ tingkat_kelas: false, nama_kelas: false });
-                setSubmitError(null);
-              }}
-              disabled={isDisabled}
-            >
-              Reset
-            </button>
-
-            <button
-              type="submit"
-              className="inline-flex cursor-pointer items-center justify-center rounded-lg bg-[#397e50] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#2f6a43] disabled:cursor-not-allowed disabled:opacity-70"
-              disabled={isDisabled}
-            >
-              Simpan Perubahan
-            </button>
-          </div>
-        </form>
+        <div className="flex justify-end">
+          <button
+            type="button"
+            className="inline-flex cursor-pointer items-center justify-center rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+            onClick={() => navigate(paths.dashboard.data_master_kelas)}
+            disabled={isDisabled}
+          >
+            Kembali ke daftar kelas
+          </button>
+        </div>
       </div>
     </div>
   );
