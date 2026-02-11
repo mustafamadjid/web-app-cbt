@@ -1,4 +1,7 @@
-import type { KelasFormValues } from "@/types/DataMaster/Kelas";
+import { useEffect, useState } from "react";
+
+import { GetDataKelasFull } from "@/services/Api/features-api/DataMaster/kelas.service";
+import type { KelasFormValues, TingkatKelas } from "@/types/DataMaster/Kelas";
 
 type EditTingkatKelasFormProps = {
   value: KelasFormValues["tingkat_kelas"];
@@ -15,6 +18,25 @@ const EditTingkatKelasForm = ({
   onChange,
   onBlur,
 }: EditTingkatKelasFormProps) => {
+  const [opsiTingkat, setOpsiTingkat] = useState<TingkatKelas[]>([]);
+
+  useEffect(() => {
+    let aktif = true;
+
+    const loadOpsiTingkat = async () => {
+      const data = await GetDataKelasFull();
+      if (aktif) {
+        setOpsiTingkat(data.item_tingkat_kelas ?? []);
+      }
+    };
+
+    loadOpsiTingkat();
+
+    return () => {
+      aktif = false;
+    };
+  }, []);
+
   return (
     <div>
       <label
@@ -24,25 +46,27 @@ const EditTingkatKelasForm = ({
         Tingkat Kelas
       </label>
 
-      <input
+      <select
         id="tingkat_kelas"
-        type="number"
-        inputMode="numeric"
         className={`w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-[#397e50] focus:ring-2 focus:ring-[#397e50] disabled:bg-slate-50 disabled:text-slate-500 ${
           error ? "border-rose-300 ring-rose-100" : ""
         }`}
-        placeholder="Contoh: 10"
         value={value}
         onChange={(e) => {
-          const raw = e.target.value;
-          onChange(raw === "" ? "" : Number(raw));
+          const selectedValue = e.target.value;
+          onChange(selectedValue === "" ? "" : Number(selectedValue));
         }}
         onBlur={onBlur}
-        min={1}
-        step={1}
         disabled={disabled}
         required
-      />
+      >
+        <option value="">Pilih tingkat kelas</option>
+        {opsiTingkat.map((item) => (
+          <option key={item.id_tingkat_kelas} value={item.tingkat_kelas}>
+            {item.tingkat_kelas}
+          </option>
+        ))}
+      </select>
 
       {error && <p className="mt-1 text-xs text-rose-500">{error}</p>}
     </div>
