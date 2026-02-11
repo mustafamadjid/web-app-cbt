@@ -87,7 +87,6 @@ func (r *KelasRepo) GetKelas(ctx context.Context, filter query.ListKelasFilter) 
 			namaKelas sql.NullString
 		)
 
-
 		if err := rows.Scan(&idTingkat, &tingkat, &idNama, &namaKelas); err != nil {
 			r.loggerFor(ctx).Error(ctx, "failed scanning kelas", "op", "kelas_repo.scan", "err", err)
 			return nil, err
@@ -122,7 +121,7 @@ func (r *KelasRepo) GetKelas(ctx context.Context, filter query.ListKelasFilter) 
 	}}, nil
 }
 
-func (r *KelasRepo)GetKelasById(ctx context.Context, idTingkatKelas int, idNamaKelas int)(kelas.KelasData, error){
+func (r *KelasRepo) GetKelasById(ctx context.Context, idTingkatKelas int, idNamaKelas int) (kelas.KelasData, error) {
 	query := `
 		SELECT 
 		tk.id_kelas,
@@ -134,31 +133,31 @@ func (r *KelasRepo)GetKelasById(ctx context.Context, idTingkatKelas int, idNamaK
 		WHERE tk.id_kelas = $1 AND k.id_nama_kelas = $2
 	`
 
-	rows := r.q.QueryRow(ctx,query,idTingkatKelas,idNamaKelas)
+	rows := r.q.QueryRow(ctx, query, idTingkatKelas, idNamaKelas)
 
 	var (
 		itemsTingkatKelas kelas.TingkatKelas
-		itemsNamaKelas kelas.NamaKelas
+		itemsNamaKelas    kelas.NamaKelas
 	)
-
 
 	if err := rows.Scan(&itemsTingkatKelas.IdTingkatKelas, &itemsTingkatKelas.TingkatKelas, &itemsNamaKelas.IdNamaKelas, &itemsNamaKelas.NamaKelas); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return kelas.KelasData{}, coreerror.ErrNotFound
 		}
-		
+
 		r.loggerFor(ctx).Error(ctx, "failed scanning kelas", "op", "kelas_repo.scan", "err", err)
 		return kelas.KelasData{}, err
 	}
 
+	itemsNamaKelas.IdTingkatKelas = itemsTingkatKelas.IdTingkatKelas
+
 	return kelas.KelasData{
 		ItemsTingkatKelas: itemsTingkatKelas,
 		ItemsNamaKelas:    itemsNamaKelas,
-	},nil
+	}, nil
 }
 
-
-func (r *KelasRepo)CreateTingkatKelas(ctx context.Context, tingkatKelas int)error {
+func (r *KelasRepo) CreateTingkatKelas(ctx context.Context, tingkatKelas int) error {
 	const query = `
 		INSERT INTO kelas (tingkat_kelas) VALUES ($1)
 		RETURNING id_kelas
@@ -170,14 +169,14 @@ func (r *KelasRepo)CreateTingkatKelas(ctx context.Context, tingkatKelas int)erro
 		tingkatKelas,
 	).Scan(&kelasId)
 	if err != nil {
-		r.loggerFor(ctx).Error(ctx,"failed creating tingkat kelas","op","kelas_repo.create","err",err)
+		r.loggerFor(ctx).Error(ctx, "failed creating tingkat kelas", "op", "kelas_repo.create", "err", err)
 		return err
 	}
 
 	return nil
 }
 
-func (r *KelasRepo)CreateNamaKelas(ctx context.Context, namaKelas kelas.NamaKelas)error {
+func (r *KelasRepo) CreateNamaKelas(ctx context.Context, namaKelas kelas.NamaKelas) error {
 	const query = `
 		INSERT INTO nama_kelas (id_kelas, nama_kelas) VALUES ($1, $2)
 		RETURNING id_nama_kelas
@@ -190,14 +189,14 @@ func (r *KelasRepo)CreateNamaKelas(ctx context.Context, namaKelas kelas.NamaKela
 		namaKelas.NamaKelas,
 	).Scan(&kelasId)
 	if err != nil {
-		r.loggerFor(ctx).Error(ctx,"failed creating nama kelas","op","kelas_repo.create","err",err)
+		r.loggerFor(ctx).Error(ctx, "failed creating nama kelas", "op", "kelas_repo.create", "err", err)
 		return err
 	}
 
 	return nil
 }
 
-func (r *KelasRepo)ExistTingkatKelas(ctx context.Context, tingkatKelas int )(bool, error){
+func (r *KelasRepo) ExistTingkatKelas(ctx context.Context, tingkatKelas int) (bool, error) {
 	const query = `
 		SELECT EXISTS (
 			SELECT 1
@@ -213,13 +212,13 @@ func (r *KelasRepo)ExistTingkatKelas(ctx context.Context, tingkatKelas int )(boo
 		tingkatKelas,
 	).Scan(&exists)
 	if err != nil {
-		r.loggerFor(ctx).Error(ctx,"failed checking tingkat kelas","op","kelas_repo.check_exist_tingkat_kelas","err",err)
-		return false,err
+		r.loggerFor(ctx).Error(ctx, "failed checking tingkat kelas", "op", "kelas_repo.check_exist_tingkat_kelas", "err", err)
+		return false, err
 	}
 
 	return exists, nil
 }
-func (r *KelasRepo)ExistNamaKelas(ctx context.Context,namaKelas string)(bool, error){
+func (r *KelasRepo) ExistNamaKelas(ctx context.Context, namaKelas string) (bool, error) {
 	const query = `
 		SELECT EXISTS (
 			SELECT 1
@@ -235,8 +234,8 @@ func (r *KelasRepo)ExistNamaKelas(ctx context.Context,namaKelas string)(bool, er
 		namaKelas,
 	).Scan(&exist)
 	if err != nil {
-		r.loggerFor(ctx).Error(ctx,"failed checking nama kelas","op","kelas_repo.check_exist_nama_kelas","err",err)
-		return false,err
+		r.loggerFor(ctx).Error(ctx, "failed checking nama kelas", "op", "kelas_repo.check_exist_nama_kelas", "err", err)
+		return false, err
 	}
 
 	return exist, nil
