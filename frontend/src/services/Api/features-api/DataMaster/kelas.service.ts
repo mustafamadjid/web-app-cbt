@@ -66,6 +66,13 @@ export async function getKelasByIdsRequest(
     });  
 }
 
+
+export async function deleteNamaKelas(idNamaKelas: number) {
+  return api<ApiEnvelope<null>>(`/admin/kelas/nama-kelas/${idNamaKelas}`, {
+    method: "DELETE",
+  });
+}
+
 export async function updateNamaKelasPartial(
   idNamaKelas: number,
   values: UpdateNamaKelasPayload,
