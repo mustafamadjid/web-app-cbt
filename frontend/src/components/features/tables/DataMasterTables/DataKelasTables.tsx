@@ -18,6 +18,7 @@ import {
 } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { paths } from "@/routes/paths";
 import toast from "react-hot-toast";
+import ErrorFloating from "@/components/ui/ErrorFloating/ErrorFloating";
 
 function useDebouncedValue<T>(value: T, delayMs = 300) {
   const [debounced, setDebounced] = useState(value);
@@ -226,6 +227,7 @@ const DataKelasTables: React.FC = () => {
 
   return (
     <div className="w-full space-y-6">
+      <ErrorFloating message={errorMsg} />
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-2xl font-bold tracking-tight text-slate-900">
@@ -356,8 +358,6 @@ const DataKelasTables: React.FC = () => {
         <div className="text-sm text-slate-600">
           {loading ? (
             <span>Memuat data...</span>
-          ) : errorMsg ? (
-            <span className="text-rose-600">{errorMsg}</span>
           ) : (
             <span>
               Menampilkan{" "}
