@@ -19,6 +19,9 @@ var (
 	ErrNoSessionId = errors.New("no session id")
 	ErrInvalidActionActivity = errors.New("invalid action activity")
 	ErrInvalidIpAddress = errors.New("invalid ip address")
+
+	ErrMissingId = errors.New("missing id")
+	ErrMissingField = errors.New("missing field")
 	
 	ErrNoFieldToUpdate = errors.New("no field to update")
 	ErrUsernameTaken = errors.New("username taken")

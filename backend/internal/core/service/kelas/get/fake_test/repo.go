@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/kelas"
+	updatepatch "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/update_patch"
 	query "github.com/mustafamadjid/web-app-cbt/internal/core/query/kelas"
 )
 
@@ -43,5 +44,9 @@ func (f *FakeKelasRepo)ExistNamaKelas(ctx context.Context,namaKelas string)(bool
 }
 
 func (f *FakeKelasRepo)GetKelasById(ctx context.Context, idTingkatKelas int, idNamaKelas int)(kelas.KelasData, error){
+	panic("not used in this test")
+}
+
+func (f *FakeKelasRepo)UpdateNamaKelas(ctx context.Context, idNamaKelas int, dataUpdate updatepatch.NamaKelasPatch)error{
 	panic("not used in this test")
 }

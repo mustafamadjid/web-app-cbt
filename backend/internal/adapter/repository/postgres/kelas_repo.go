@@ -11,6 +11,7 @@ import (
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/kelas"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
+	updatepatch "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/update_patch"
 	query "github.com/mustafamadjid/web-app-cbt/internal/core/query/kelas"
 )
 
@@ -239,4 +240,33 @@ func (r *KelasRepo) ExistNamaKelas(ctx context.Context, namaKelas string) (bool,
 	}
 
 	return exist, nil
+}
+
+func (r *KelasRepo)UpdateNamaKelas(ctx context.Context, idNamaKelas int, dataUpdate updatepatch.NamaKelasPatch)error{
+	const query = `
+		UPDATE nama_kelas
+		SET
+			id_kelas = COALESCE($1, id_kelas),
+			nama_kelas = COALESCE($2, nama_kelas),
+			updated_at = now()
+		WHERE id_nama_kelas = $3
+	`
+
+	tag, err := r.q.Exec(
+		ctx,
+		query,
+		dataUpdate.IdTingkatKelas,
+		dataUpdate.NamaKelas,
+		idNamaKelas,
+	)
+	if err != nil {
+		r.loggerFor(ctx).Error(ctx, "failed updating nama kelas", "op", "kelas_repo.update", "err", err)
+		return err
+	}
+
+	if tag.RowsAffected() == 0 {
+		return coreerror.ErrNotFound
+	}
+
+	return nil
 }
