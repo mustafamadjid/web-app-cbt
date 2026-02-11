@@ -10,11 +10,14 @@ import {
 import { useNavigate } from "react-router";
 
 import AddButton from "@/components/common/Button/AddButton";
+import ConfirmAlert from "@/components/ConfirmAlert/ConfirmAlert";
 import type { NamaKelas, TingkatKelas } from "@/types/DataMaster/Kelas";
 import {
+  deleteNamaKelas,
   GetDataKelasFull,
 } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { paths } from "@/routes/paths";
+import toast from "react-hot-toast";
 
 function useDebouncedValue<T>(value: T, delayMs = 300) {
   const [debounced, setDebounced] = useState(value);
@@ -38,6 +41,12 @@ const DataKelasTables: React.FC = () => {
   const [errorMsg, setErrorMsg] = useState("");
 
   const [idTerpilih, setIdTerpilih] = useState<Set<number>>(new Set());
+  const [modalKonfirmasiTerbuka, setModalKonfirmasiTerbuka] = useState(false);
+  const [sedangMemprosesKonfirmasi, setSedangMemprosesKonfirmasi] =
+    useState(false);
+  const [aksiKonfirmasi, setAksiKonfirmasi] = useState<null | (() => Promise<void>)>(
+    null,
+  );
 
   const debouncedKataKunci = useDebouncedValue(kataKunci, 300);
 
@@ -80,14 +89,15 @@ const DataKelasTables: React.FC = () => {
           });
           return next;
         });
-      } catch (error) {
+      } catch {
         if (!aktif) return;
         setErrorMsg("Gagal memuat data kelas.");
         setDaftarKelas([]);
         setOpsiTingkat([]);
       } finally {
-        if (!aktif) return;
-        setLoading(false);
+        if (aktif) {
+          setLoading(false);
+        }
       }
     };
 
@@ -133,6 +143,78 @@ const DataKelasTables: React.FC = () => {
       else next.add(id);
       return next;
     });
+  };
+
+  const fetchDataKelas = async () => {
+    return GetDataKelasFull({
+      search: debouncedKataKunci.trim() || undefined,
+      tingkatKelas: tingkatKelas || undefined,
+    });
+  };
+
+  const handleDeleteKelas = async (idNamaKelas: number) => {
+    try {
+      await deleteNamaKelas(idNamaKelas);
+
+      const data = await fetchDataKelas();
+      const daftar = data.item_nama_kelas ?? [];
+
+      setDaftarKelas(daftar);
+      setIdTerpilih((prev) => {
+        const next = new Set(prev);
+        next.delete(idNamaKelas);
+        return next;
+      });
+
+      toast.success("Berhasil menghapus data kelas");
+    } catch {
+      toast.error("Gagal menghapus data kelas");
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (idTerpilih.size === 0) return;
+
+    const ids = Array.from(idTerpilih);
+    try {
+      await Promise.all(ids.map((id) => deleteNamaKelas(id)));
+
+      const data = await fetchDataKelas();
+      setDaftarKelas(data.item_nama_kelas ?? []);
+      setIdTerpilih(new Set());
+      setDropdownAksiTerbuka(false);
+
+      toast.success("Berhasil menghapus data kelas terpilih");
+    } catch {
+      toast.error("Gagal menghapus data kelas terpilih");
+    }
+  };
+
+  const pesanKonfirmasiHapusKelas =
+    "Apakah anda yakin ingin menghapus data kelas ini?";
+
+  const bukaModalKonfirmasiHapus = (action: () => Promise<void>) => {
+    setAksiKonfirmasi(() => action);
+    setModalKonfirmasiTerbuka(true);
+  };
+
+  const tutupModalKonfirmasi = () => {
+    if (sedangMemprosesKonfirmasi) return;
+    setModalKonfirmasiTerbuka(false);
+    setAksiKonfirmasi(null);
+  };
+
+  const jalankanAksiKonfirmasi = async () => {
+    if (!aksiKonfirmasi) return;
+
+    setSedangMemprosesKonfirmasi(true);
+    try {
+      await aksiKonfirmasi();
+      setModalKonfirmasiTerbuka(false);
+      setAksiKonfirmasi(null);
+    } finally {
+      setSedangMemprosesKonfirmasi(false);
+    }
   };
 
   const jumlahTerpilih = idTerpilih.size;
@@ -254,7 +336,10 @@ const DataKelasTables: React.FC = () => {
                       <button
                         type="button"
                         className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-rose-600 hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-50"
-                        onClick={() => setDropdownAksiTerbuka(false)}
+                        onClick={() => {
+                          setDropdownAksiTerbuka(false);
+                          bukaModalKonfirmasiHapus(handleBulkDelete);
+                        }}
                         disabled={jumlahTerpilih === 0}
                       >
                         <Trash2 className="h-4 w-4" />
@@ -356,7 +441,9 @@ const DataKelasTables: React.FC = () => {
                           className="cursor-pointer rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-red-600"
                           title="Hapus"
                           onClick={() =>
-                            setIdTerpilih(new Set([kelas.id_nama_kelas]))
+                            bukaModalKonfirmasiHapus(() =>
+                              handleDeleteKelas(kelas.id_nama_kelas),
+                            )
                           }
                         >
                           <Trash2 className="h-4 w-4" />
@@ -397,6 +484,14 @@ const DataKelasTables: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <ConfirmAlert
+        isOpen={modalKonfirmasiTerbuka}
+        message={pesanKonfirmasiHapusKelas}
+        onClose={tutupModalKonfirmasi}
+        onConfirm={() => void jalankanAksiKonfirmasi()}
+        isLoading={sedangMemprosesKonfirmasi}
+      />
     </div>
   );
 };

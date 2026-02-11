@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 
 import AddButton from "@/components/common/Button/AddButton";
+import ConfirmAlert from "@/components/ConfirmAlert/ConfirmAlert";
 import type { StatusAkun, JenisKelamin } from "@/types/OpsiTypes/Option";
 import { useNavigate } from "react-router";
 import type { TingkatKelas } from "@/types/DataMaster/Kelas";
@@ -734,38 +735,13 @@ const AkunSiswaTables: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {modalKonfirmasiTerbuka && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/55 px-4">
-          <div className="w-full max-w-xl rounded-xl border border-slate-200 bg-white p-6 shadow-2xl">
-            <h3 className="text-lg font-semibold text-slate-900">
-              Konfirmasi Hapus Akun
-            </h3>
-            <p className="mt-2 text-sm leading-relaxed text-slate-600">
-              {pesanKonfirmasiHapusSiswa}
-            </p>
-
-            <div className="mt-6 flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={tutupModalKonfirmasi}
-                disabled={sedangMemprosesKonfirmasi}
-                className="cursor-pointer rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Batal
-              </button>
-              <button
-                type="button"
-                onClick={() => void jalankanAksiKonfirmasi()}
-                disabled={sedangMemprosesKonfirmasi}
-                className="cursor-pointer rounded-lg bg-rose-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:bg-rose-400"
-              >
-                {sedangMemprosesKonfirmasi ? "Menghapus..." : "Ya, Hapus"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmAlert
+        isOpen={modalKonfirmasiTerbuka}
+        message={pesanKonfirmasiHapusSiswa}
+        onClose={tutupModalKonfirmasi}
+        onConfirm={() => void jalankanAksiKonfirmasi()}
+        isLoading={sedangMemprosesKonfirmasi}
+      />
     </div>
   );
 };
