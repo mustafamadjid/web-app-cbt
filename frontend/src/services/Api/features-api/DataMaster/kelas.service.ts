@@ -5,7 +5,8 @@ import type {
   KelasFilterParams,
   NamaKelas,
   TingkatKelas,
-  FullDataKelas
+  FullDataKelas,
+  DataKelas
 } from "@/types/DataMaster/Kelas";
 import type {
   KelasSubmitResponse,
@@ -162,6 +163,36 @@ export async function getNamaKelas(
       numeric: true,
     });
   });
+}
+
+
+export async function getKelasByIdsRequest(
+  idTingkatKelas: number,
+  idNamaKelas: number,
+): Promise<DataKelas | null> {
+  if (!USE_DUMMY) {
+    return api<DataKelas>(`/admin/kelas/${idTingkatKelas}/${idNamaKelas}`, {
+      method: "GET",
+    });
+  }
+
+  await sleep(150);
+  const tingkat =
+    DUMMY_TINGKAT_KELAS.find((item) => item.id_tingkat_kelas === idTingkatKelas) ??
+    null;
+  const nama =
+    DUMMY_NAMA_KELAS.find(
+      (item) =>
+        item.id_nama_kelas === idNamaKelas &&
+        item.id_tingkat_kelas === idTingkatKelas,
+    ) ?? null;
+
+  if (!tingkat || !nama) return null;
+
+  return {
+    item_tingkat_kelas: tingkat,
+    item_nama_kelas: nama,
+  };
 }
 
 export async function getKelasById(

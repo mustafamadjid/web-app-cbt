@@ -18,6 +18,11 @@ export type FullDataKelas = {
   item_nama_kelas: NamaKelas[];
 };
 
+export type DataKelas = {
+  item_tingkat_kelas: TingkatKelas;
+  item_nama_kelas: NamaKelas;
+};
+
 export type KelasFilterParams = {
   search?: string;
   tingkatKelas?: number;

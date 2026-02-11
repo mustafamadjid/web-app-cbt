@@ -70,6 +70,61 @@ func (h *GetKelasHandler) ListKelas(w http.ResponseWriter, r *http.Request, _ ht
 	httpResponse.WriteOK(w, http.StatusOK, response, "Success")
 }
 
+func (h *GetKelasHandler) GetKelasByID(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+	logger := corelog.FromContext(r.Context())
+	if r.Method != http.MethodGet {
+		httpResponse.WriteErr(w, http.StatusMethodNotAllowed, "METHOD_NOT_ALLOWED", "method not allowed")
+		return
+	}
+
+	rawIDTingkat := strings.TrimSpace(params.ByName("idTingkatKelas"))
+	rawIDNama := strings.TrimSpace(params.ByName("idNamaKelas"))
+	if rawIDTingkat == "" || rawIDNama == "" {
+		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "Bad request : id_tingkat_kelas dan id_nama_kelas wajib diisi")
+		return
+	}
+
+	idTingkatKelas, err := strconv.Atoi(rawIDTingkat)
+	if err != nil || idTingkatKelas <= 0 {
+		logger.Info(r.Context(), "invalid id tingkat kelas", "layer", "adapter.http.handler", "op", "kelas.get_by_id", "err", err)
+		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "Bad request : invalid id_tingkat_kelas")
+		return
+	}
+
+	idNamaKelas, err := strconv.Atoi(rawIDNama)
+	if err != nil || idNamaKelas <= 0 {
+		logger.Info(r.Context(), "invalid id nama kelas", "layer", "adapter.http.handler", "op", "kelas.get_by_id", "err", err)
+		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "Bad request : invalid id_nama_kelas")
+		return
+	}
+
+	data, err := h.svc.GetKelasById(r.Context(), idTingkatKelas, idNamaKelas)
+	if err != nil {
+		logger.Error(r.Context(), "failed get kelas by id", "layer", "adapter.http.handler", "op", "kelas.get_by_id", "err", err)
+		switch {
+		case errors.Is(err, coreerror.ErrNotFound):
+			httpResponse.WriteErr(w, http.StatusNotFound, "NOT_FOUND", "data not found")
+		default:
+			httpResponse.WriteErr(w, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error: failed get kelas")
+		}
+		return
+	}
+
+	responseData := DataKelasResponse{
+		ItemsTingkatKelas: TingkatKelasResponse{
+			IDTingkatKelas: int(data.ItemsTingkatKelas.IdTingkatKelas),
+			TingkatKelas:   data.ItemsTingkatKelas.TingkatKelas,
+		},
+		ItemsNamaKelas: NamaKelasResponse{
+			IDNamaKelas:    int(data.ItemsNamaKelas.IdNamaKelas),
+			IDTingkatKelas: int(data.ItemsNamaKelas.IdTingkatKelas),
+			NamaKelas:      data.ItemsNamaKelas.NamaKelas,
+		},
+	}
+
+	httpResponse.WriteOK(w, http.StatusOK, responseData, "Success")
+}
+
 func parseListKelasFilters(r *http.Request) (query.ListKelasFilter, error) {
 	values := r.URL.Query()
 	filters := query.ListKelasFilter{}

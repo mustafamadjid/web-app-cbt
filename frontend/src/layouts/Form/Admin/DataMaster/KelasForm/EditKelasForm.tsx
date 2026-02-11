@@ -4,8 +4,7 @@ import { useNavigate, useParams } from "react-router";
 import type { KelasFormValues } from "@/types/DataMaster/Kelas";
 import { ApiError } from "@/services/Api/api";
 import {
-  getNamaKelasById,
-  getTingkatKelasByIdRequest,
+  getKelasByIdsRequest,
   updateKelas,
 } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { paths } from "@/routes/paths";
@@ -83,21 +82,18 @@ const EditKelasForm = () => {
       }
 
       try {
-        const [tingkatKelas, namaKelas] = await Promise.all([
-          getTingkatKelasByIdRequest(tingkatKelasId),
-          getNamaKelasById(namaKelasId),
-        ]);
+        const dataKelas = await getKelasByIdsRequest(tingkatKelasId, namaKelasId);
 
         if (!active) return;
 
-        if (!tingkatKelas || !namaKelas) {
+        if (!dataKelas) {
           setSubmitError("Data kelas tidak ditemukan.");
           return;
         }
 
         const nextValues = {
-          tingkat_kelas: tingkatKelas.tingkat_kelas,
-          nama_kelas: namaKelas.nama_kelas,
+          tingkat_kelas: dataKelas.item_tingkat_kelas.tingkat_kelas,
+          nama_kelas: dataKelas.item_nama_kelas.nama_kelas,
         } satisfies KelasFormValues;
 
         setInitialValues(nextValues);

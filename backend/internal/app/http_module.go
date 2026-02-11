@@ -35,8 +35,8 @@ func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSeko
 	router := httprouter.New()
 
 	// Rate limiter
-	standardLimiter := rate_limit.NewMemoryTokenBucket(rate.Limit(10),15,5*time.Minute)
-	authLimiter := rate_limit.NewMemoryTokenBucket(rate.Limit(1),3,5*time.Minute)
+	standardLimiter := rate_limit.NewMemoryTokenBucket(rate.Limit(10), 15, 5*time.Minute)
+	authLimiter := rate_limit.NewMemoryTokenBucket(rate.Limit(1), 3, 5*time.Minute)
 
 	withRequestLogger := func(next httprouter.Handle) httprouter.Handle {
 		return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -71,17 +71,17 @@ func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSeko
 	}
 
 	rateLimiterAuth := func(next httprouter.Handle) httprouter.Handle {
-    return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-        // adapt httprouter.Handle -> http.Handler
-        var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-            next(w, r, ps)
-        })
+		return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+			// adapt httprouter.Handle -> http.Handler
+			var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				next(w, r, ps)
+			})
 
-        handler = middleware.LoginRateLimit(authLimiter, handler)
-        handler.ServeHTTP(w, r)
-   	 }
+			handler = middleware.LoginRateLimit(authLimiter, handler)
+			handler.ServeHTTP(w, r)
+		}
 	}
-	rateLimitStandard := func (next httprouter.Handle) httprouter.Handle  {
+	rateLimitStandard := func(next httprouter.Handle) httprouter.Handle {
 		return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 			var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				next(w, r, ps)
@@ -90,12 +90,6 @@ func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSeko
 			handler.ServeHTTP(w, r)
 		}
 	}
-
-
-	
-
-
-
 
 	requireAdmin := requireAccessRole(user.ADMIN)
 	// requireAdminGuru := requireAccessRole(user.ADMIN, user.GURU)
@@ -133,6 +127,7 @@ func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSeko
 
 	// KELAS
 	router.GET("/admin/kelas", requireAdmin(rateLimitStandard(kelas.GetHandler.ListKelas)))
+	router.GET("/admin/kelas/:idTingkatKelas/:idNamaKelas", requireAdmin(rateLimitStandard(kelas.GetHandler.GetKelasByID)))
 	router.POST("/admin/kelas/tingkat-kelas", requireAdmin(rateLimitStandard(kelas.CreateHandler.CreateTingkatKelas)))
 	router.POST("/admin/kelas/nama-kelas", requireAdmin(rateLimitStandard(kelas.CreateHandler.CreateNamaKelas)))
 
