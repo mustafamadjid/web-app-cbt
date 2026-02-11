@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 
 import type { KelasFormValues } from "@/types/DataMaster/Kelas";
 import { ApiError } from "@/services/Api/api";
 import {
-  getKelasById,
+  getNamaKelasById,
+  getTingkatKelasByIdRequest,
   updateKelas,
 } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { paths } from "@/routes/paths";
@@ -38,7 +39,7 @@ const validate = createValidator<KelasFormValues>({
 });
 
 const EditKelasForm = () => {
-  const { id } = useParams();
+  const { idTingkatKelas, idNamaKelas } = useParams();
   const navigate = useNavigate();
 
   const [initialValues, setInitialValues] = useState<KelasFormValues>(buildInitialValues());
@@ -51,7 +52,8 @@ const EditKelasForm = () => {
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const kelasId = Number(id);
+  const tingkatKelasId = useMemo(() => Number(idTingkatKelas), [idTingkatKelas]);
+  const namaKelasId = useMemo(() => Number(idNamaKelas), [idNamaKelas]);
 
   const setField = createSetField(setValues);
 
@@ -62,26 +64,34 @@ const EditKelasForm = () => {
   useEffect(() => {
     let active = true;
 
-    const loadKelasById = async () => {
-      if (!id || Number.isNaN(kelasId) || kelasId <= 0) {
+    const loadKelasByIds = async () => {
+      if (
+        !idTingkatKelas ||
+        !idNamaKelas ||
+        Number.isNaN(tingkatKelasId) ||
+        Number.isNaN(namaKelasId)
+      ) {
         setSubmitError("Parameter edit kelas tidak valid.");
         setLoading(false);
         return;
       }
 
       try {
-        const kelas = await getKelasById(kelasId);
+        const [tingkatKelas, namaKelas] = await Promise.all([
+          getTingkatKelasByIdRequest(tingkatKelasId),
+          getNamaKelasById(namaKelasId),
+        ]);
 
         if (!active) return;
 
-        if (!kelas) {
+        if (!tingkatKelas || !namaKelas) {
           setSubmitError("Data kelas tidak ditemukan.");
           return;
         }
 
         const nextValues = {
-          tingkat_kelas: kelas.item_tingkat_kelas.tingkat_kelas,
-          nama_kelas: kelas.item_nama_kelas.nama_kelas,
+          tingkat_kelas: tingkatKelas.tingkat_kelas,
+          nama_kelas: namaKelas.nama_kelas,
         } satisfies KelasFormValues;
 
         setInitialValues(nextValues);
@@ -98,12 +108,12 @@ const EditKelasForm = () => {
       }
     };
 
-    loadKelasById();
+    loadKelasByIds();
 
     return () => {
       active = false;
     };
-  }, [id, kelasId]);
+  }, [idTingkatKelas, idNamaKelas, tingkatKelasId, namaKelasId]);
 
   const errors = validate(values);
 
@@ -122,14 +132,14 @@ const EditKelasForm = () => {
       return;
     }
 
-    if (!id || Number.isNaN(kelasId) || kelasId <= 0) {
-      setSubmitError("ID kelas tidak ditemukan.");
+    if (!idNamaKelas || Number.isNaN(namaKelasId)) {
+      setSubmitError("ID nama kelas tidak ditemukan.");
       return;
     }
 
     setSubmitting(true);
     try {
-      await updateKelas(kelasId, values);
+      await updateKelas(namaKelasId, values);
       navigate(paths.dashboard.data_master_kelas);
     } catch (error) {
       if (error instanceof ApiError) {
