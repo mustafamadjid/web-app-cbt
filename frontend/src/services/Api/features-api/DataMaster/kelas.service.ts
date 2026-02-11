@@ -236,14 +236,22 @@ export async function getNamaKelasById(
   return DUMMY_NAMA_KELAS.find((item) => item.id_nama_kelas === id) ?? null;
 }
 
-export async function updateKelas(id: number, values: KelasFormValues) {
+type UpdateNamaKelasPayload = {
+  id_tingkat_kelas?: number;
+  nama_kelas?: string;
+};
+
+export async function updateNamaKelasPartial(
+  idNamaKelas: number,
+  values: UpdateNamaKelasPayload,
+) {
   const data = buildJsonData(values);
-  const res = await api<ApiEnvelope<KelasSubmitResponse>>(`/kelas/${id}`, {
-    method: "PUT",
+  const res = await api<ApiEnvelope<null>>(`/admin/kelas/nama-kelas/${idNamaKelas}`, {
+    method: "PATCH",
     data,
   });
 
-  return res.data;
+  return res;
 }
 
 export async function getTingkatKelas(): Promise<TingkatKelas[]> {

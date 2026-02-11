@@ -19,7 +19,7 @@ func NewUpdateKelasService(kelasRepo kelas_repo.KelasRepository) *UpdateKelasSer
 	return &UpdateKelasService{updaterRepo: kelasRepo}
 }
 
-func (s *UpdateKelasService)UpdateNamaKelas(ctx context.Context, idNamaKelas int, dataUpdate updatepatch.NamaKelasPatch)error{
+func (s *UpdateKelasService) UpdateNamaKelas(ctx context.Context, idNamaKelas int, dataUpdate updatepatch.NamaKelasPatch) error {
 	logger := corelog.FromContext(ctx)
 
 	if idNamaKelas == 0 {
@@ -45,12 +45,12 @@ func (s *UpdateKelasService)UpdateNamaKelas(ctx context.Context, idNamaKelas int
 
 	if err := s.updaterRepo.UpdateNamaKelas(ctx, idNamaKelas, dataUpdate); err != nil {
 		logger.Error(ctx, "failed updating nama kelas", "layer", "core.service", "op", "kelas.update_nama_kela.UpdateNamaKelas", "err", err)
-		
+
 		switch {
-			case errors.Is(err, coreerror.ErrNotFound):
-				return coreerror.ErrNotFound
-			default:
-				return err
+		case errors.Is(err, coreerror.ErrNotFound):
+			return coreerror.ErrNotFound
+		default:
+			return err
 		}
 	}
 

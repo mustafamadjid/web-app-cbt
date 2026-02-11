@@ -4,8 +4,9 @@ import { useNavigate, useParams } from "react-router";
 import type { KelasFormValues } from "@/types/DataMaster/Kelas";
 import { ApiError } from "@/services/Api/api";
 import {
+  GetDataKelasFull,
   getKelasByIdsRequest,
-  updateKelas,
+  updateNamaKelasPartial,
 } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { paths } from "@/routes/paths";
 import { createSetField } from "@/helper/setField/setField";
@@ -47,6 +48,7 @@ const EditKelasForm = () => {
   const [initialValues, setInitialValues] =
     useState<KelasFormValues>(buildInitialValues());
   const [values, setValues] = useState<KelasFormValues>(buildInitialValues());
+  const [currentIdTingkatKelas, setCurrentIdTingkatKelas] = useState<number | null>(null);
   const [touchedTingkatKelas, setTouchedTingkatKelas] = useState<boolean>(false);
   const [touchedNamaKelas, setTouchedNamaKelas] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
@@ -92,6 +94,7 @@ const EditKelasForm = () => {
           nama_kelas: dataKelas.item_nama_kelas.nama_kelas,
         } satisfies KelasFormValues;
 
+        setCurrentIdTingkatKelas(dataKelas.item_tingkat_kelas.id_tingkat_kelas);
         setInitialValues(nextValues);
         setValues(nextValues);
       } catch (error) {
@@ -138,13 +141,38 @@ const EditKelasForm = () => {
 
     setSubmitting(true);
     try {
-      const payload = {
-        tingkat_kelas: values.tingkat_kelas,
-        nama_kelas: values.nama_kelas,
-      } satisfies KelasFormValues;
+      const payload: { id_tingkat_kelas?: number; nama_kelas?: string } = {};
 
-      await updateKelas(namaKelasId, payload);
+      if (values.nama_kelas !== initialValues.nama_kelas) {
+        payload.nama_kelas = values.nama_kelas;
+      }
+
+      if (values.tingkat_kelas !== initialValues.tingkat_kelas) {
+        const dataKelas = await GetDataKelasFull();
+        const matchedTingkatKelas = dataKelas.item_tingkat_kelas.find(
+          (item) => item.tingkat_kelas === values.tingkat_kelas,
+        );
+
+        if (!matchedTingkatKelas) {
+          setSubmitError("Tingkat kelas tidak ditemukan.");
+          return;
+        }
+
+        if (matchedTingkatKelas.id_tingkat_kelas !== currentIdTingkatKelas) {
+          payload.id_tingkat_kelas = matchedTingkatKelas.id_tingkat_kelas;
+        }
+      }
+
+      if (Object.keys(payload).length === 0) {
+        setSubmitError("Tidak ada perubahan data untuk disimpan.");
+        return;
+      }
+
+      await updateNamaKelasPartial(namaKelasId, payload);
       setInitialValues(values);
+      if (payload.id_tingkat_kelas) {
+        setCurrentIdTingkatKelas(payload.id_tingkat_kelas);
+      }
     } catch (error) {
       if (error instanceof ApiError) {
         setSubmitError(error.message);
