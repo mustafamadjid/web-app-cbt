@@ -344,10 +344,9 @@ const DataKelasTables: React.FC = () => {
                           title="Edit"
                           onClick={() =>
                             navigate(
-                              paths.dashboard.edit_data_master_kelas.replace(
-                                ":id",
-                                String(kelas.id_nama_kelas),
-                              ),
+                              paths.dashboard.edit_data_master_kelas
+                                .replace(":idTingkatKelas", String(kelas.id_tingkat_kelas))
+                                .replace(":idNamaKelas", String(kelas.id_nama_kelas)),
                             )
                           }
                         >

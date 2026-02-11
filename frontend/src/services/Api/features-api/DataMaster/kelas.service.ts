@@ -189,6 +189,37 @@ export async function getKelasById(
   };
 }
 
+export async function getTingkatKelasByIdRequest(
+  id: number,
+): Promise<TingkatKelas | null> {
+  if (!USE_DUMMY) {
+    const res = await api<ApiEnvelope<TingkatKelas>>(
+      `/admin/kelas/tingkat-kelas/${id}`,
+      {
+        method: "GET",
+      },
+    );
+    return res.data;
+  }
+
+  await sleep(150);
+  return DUMMY_TINGKAT_KELAS.find((item) => item.id_tingkat_kelas === id) ?? null;
+}
+
+export async function getNamaKelasById(
+  id: number,
+): Promise<NamaKelas | null> {
+  if (!USE_DUMMY) {
+    const res = await api<ApiEnvelope<NamaKelas>>(`/admin/kelas/nama-kelas/${id}`, {
+      method: "GET",
+    });
+    return res.data;
+  }
+
+  await sleep(150);
+  return DUMMY_NAMA_KELAS.find((item) => item.id_nama_kelas === id) ?? null;
+}
+
 export async function updateKelas(id: number, values: KelasFormValues) {
   const data = buildJsonData(values);
   const res = await api<ApiEnvelope<KelasSubmitResponse>>(`/kelas/${id}`, {
