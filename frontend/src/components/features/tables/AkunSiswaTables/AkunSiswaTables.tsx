@@ -14,14 +14,12 @@ import {
 } from "lucide-react";
 
 import AddButton from "@/components/common/Button/AddButton";
-import ConfirmAlert from "@/components/ConfirmAlert/ConfirmAlert";
+import ConfirmAlert from "@/components/ui/ConfirmAlert/ConfirmAlert";
 import type { StatusAkun, JenisKelamin } from "@/types/OpsiTypes/Option";
 import { useNavigate } from "react-router";
 import type { TingkatKelas } from "@/types/DataMaster/Kelas";
 
-import {
-  GetListSiswa,
-} from "@/services/Api/features-api/KelolaAkun/akunsiswa.service";
+import { GetListSiswa } from "@/services/Api/features-api/KelolaAkun/akunsiswa.service";
 import {
   DeletePengguna,
   DeletePenggunaBulk,
@@ -122,9 +120,9 @@ const AkunSiswaTables: React.FC = () => {
   const [modalKonfirmasiTerbuka, setModalKonfirmasiTerbuka] = useState(false);
   const [sedangMemprosesKonfirmasi, setSedangMemprosesKonfirmasi] =
     useState(false);
-  const [aksiKonfirmasi, setAksiKonfirmasi] = useState<null | (() => Promise<void>)>(
-    null,
-  );
+  const [aksiKonfirmasi, setAksiKonfirmasi] = useState<
+    null | (() => Promise<void>)
+  >(null);
 
   // Anti race condition
   const requestSeq = useRef(0);
@@ -600,7 +598,9 @@ const AkunSiswaTables: React.FC = () => {
                             <span className="font-semibold text-slate-900">
                               {s.nama_lengkap}
                             </span>
-                            <span className="text-xs text-slate-500">{s.username}</span>
+                            <span className="text-xs text-slate-500">
+                              {s.username}
+                            </span>
                           </div>
                         </div>
                       </td>
@@ -627,7 +627,9 @@ const AkunSiswaTables: React.FC = () => {
 
                       {/* Nama Kelas */}
                       <td className="px-6 py-4">
-                        <span className="text-slate-900">{s.nama_kelas || s.kelas || "-"}</span>
+                        <span className="text-slate-900">
+                          {s.nama_kelas || s.kelas || "-"}
+                        </span>
                       </td>
 
                       {/* No. Absen & Angkatan */}

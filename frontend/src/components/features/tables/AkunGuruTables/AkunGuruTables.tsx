@@ -13,7 +13,7 @@ import {
   Trash,
 } from "lucide-react";
 import AddButton from "@/components/common/Button/AddButton";
-import ConfirmAlert from "@/components/ConfirmAlert/ConfirmAlert";
+import ConfirmAlert from "@/components/ui/ConfirmAlert/ConfirmAlert";
 import { useNavigate } from "react-router";
 
 import type { StatusAkun } from "@/types/OpsiTypes/Option";
@@ -71,9 +71,9 @@ const AkunGuruTables: React.FC = () => {
   const [modalKonfirmasiTerbuka, setModalKonfirmasiTerbuka] = useState(false);
   const [sedangMemprosesKonfirmasi, setSedangMemprosesKonfirmasi] =
     useState(false);
-  const [aksiKonfirmasi, setAksiKonfirmasi] = useState<null | (() => Promise<void>)>(
-    null,
-  );
+  const [aksiKonfirmasi, setAksiKonfirmasi] = useState<
+    null | (() => Promise<void>)
+  >(null);
 
   const [daftarPengguna, setDaftarPengguna] = useState<DataGuru[]>([]);
 
@@ -215,7 +215,8 @@ const AkunGuruTables: React.FC = () => {
 
   const jumlahTerpilih = idTerpilih.size;
   const totalTerlihat = daftarPengguna.length;
-  const awalData = totalTerlihat === 0 ? 0 : (halamanSaatIni - 1) * batasData + 1;
+  const awalData =
+    totalTerlihat === 0 ? 0 : (halamanSaatIni - 1) * batasData + 1;
   const akhirData =
     totalTerlihat === 0 ? 0 : (halamanSaatIni - 1) * batasData + totalTerlihat;
   const bisaSebelumnya = halamanSaatIni > 1;

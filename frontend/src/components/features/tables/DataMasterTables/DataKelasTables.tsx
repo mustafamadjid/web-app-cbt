@@ -10,7 +10,7 @@ import {
 import { useNavigate } from "react-router";
 
 import AddButton from "@/components/common/Button/AddButton";
-import ConfirmAlert from "@/components/ConfirmAlert/ConfirmAlert";
+import ConfirmAlert from "@/components/ui/ConfirmAlert/ConfirmAlert";
 import type { NamaKelas, TingkatKelas } from "@/types/DataMaster/Kelas";
 import {
   deleteNamaKelas,
@@ -19,6 +19,7 @@ import {
 import { paths } from "@/routes/paths";
 import toast from "react-hot-toast";
 import ErrorFloating from "@/components/ui/ErrorFloating/ErrorFloating";
+import { ApiError } from "@/services/Api/api";
 
 function useDebouncedValue<T>(value: T, delayMs = 300) {
   const [debounced, setDebounced] = useState(value);
@@ -45,25 +46,25 @@ const DataKelasTables: React.FC = () => {
   const [modalKonfirmasiTerbuka, setModalKonfirmasiTerbuka] = useState(false);
   const [sedangMemprosesKonfirmasi, setSedangMemprosesKonfirmasi] =
     useState(false);
-  const [aksiKonfirmasi, setAksiKonfirmasi] = useState<null | (() => Promise<void>)>(
-    null,
-  );
+  const [aksiKonfirmasi, setAksiKonfirmasi] = useState<
+    null | (() => Promise<void>)
+  >(null);
 
   const debouncedKataKunci = useDebouncedValue(kataKunci, 300);
 
   useEffect(() => {
-      let akitf = true;
-      const loadKelas = async () => {
-        const data = await GetDataKelasFull();
-        if (akitf) {
-          setOpsiTingkat(data.item_tingkat_kelas ?? []);
-        }
-      };
-      loadKelas();
-      return () => {
-        akitf = false;
-      };
-    }, []);
+    let akitf = true;
+    const loadKelas = async () => {
+      const data = await GetDataKelasFull();
+      if (akitf) {
+        setOpsiTingkat(data.item_tingkat_kelas ?? []);
+      }
+    };
+    loadKelas();
+    return () => {
+      akitf = false;
+    };
+  }, []);
 
   useEffect(() => {
     let aktif = true;
@@ -120,7 +121,6 @@ const DataKelasTables: React.FC = () => {
     [opsiTingkat],
   );
 
- 
   const semuaTerlihatTerpilih =
     daftarKelas.length > 0 &&
     daftarKelas.every((k) => idTerpilih.has(k.id_nama_kelas));
@@ -168,8 +168,15 @@ const DataKelasTables: React.FC = () => {
       });
 
       toast.success("Berhasil menghapus data kelas");
-    } catch {
-      toast.error("Gagal menghapus data kelas");
+    } catch (e) {
+      const message =
+        e instanceof ApiError
+          ? e.code === "DELETE_RESTRICTED"
+            ? "Gagal Menghapus. Data kelas terkait dengan data lain"
+            : "Data kelas gagal dihapus"
+          : "Data kelas gagal dihapus";
+            setErrorMsg(message);
+
     }
   };
 
@@ -430,8 +437,14 @@ const DataKelasTables: React.FC = () => {
                           onClick={() =>
                             navigate(
                               paths.dashboard.edit_data_master_kelas
-                                .replace(":idTingkatKelas", String(kelas.id_tingkat_kelas))
-                                .replace(":idNamaKelas", String(kelas.id_nama_kelas)),
+                                .replace(
+                                  ":idTingkatKelas",
+                                  String(kelas.id_tingkat_kelas),
+                                )
+                                .replace(
+                                  ":idNamaKelas",
+                                  String(kelas.id_nama_kelas),
+                                ),
                             )
                           }
                         >
