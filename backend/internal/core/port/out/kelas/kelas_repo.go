@@ -4,12 +4,13 @@ import (
 	"context"
 
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/kelas"
+
 	query "github.com/mustafamadjid/web-app-cbt/internal/core/query/kelas"
 )
 
 type KelasRepository interface {
 	GetKelas(ctx context.Context, filter query.ListKelasFilter)([]kelas.FullKelasData, error)
-	// GetKelas
+	GetKelasById(ctx context.Context, idTingkatKelas int, idNamaKelas int)(kelas.KelasData, error)
 
 	CreateTingkatKelas(ctx context.Context, tingkatKelas int)error
 	CreateNamaKelas(ctx context.Context, namaKelas kelas.NamaKelas)error

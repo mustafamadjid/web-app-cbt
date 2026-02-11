@@ -3,9 +3,12 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"strings"
 
+	"github.com/jackc/pgx/v5"
+	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/kelas"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 	query "github.com/mustafamadjid/web-app-cbt/internal/core/query/kelas"
@@ -118,6 +121,42 @@ func (r *KelasRepo) GetKelas(ctx context.Context, filter query.ListKelasFilter) 
 		ItemsNamaKelas:    itemsNama,
 	}}, nil
 }
+
+func (r *KelasRepo)GetKelasById(ctx context.Context, idTingkatKelas int, idNamaKelas int)(kelas.KelasData, error){
+	query := `
+		SELECT 
+		tk.id_kelas,
+		tk.tingkat_kelas,
+		k.id_nama_kelas,
+		k.nama_kelas
+		FROM kelas tk
+		INNER JOIN nama_kelas k ON tk.id_kelas = k.id_kelas
+		WHERE tk.id_kelas = $1 AND k.id_nama_kelas = $2
+	`
+
+	rows := r.q.QueryRow(ctx,query,idTingkatKelas,idNamaKelas)
+
+	var (
+		itemsTingkatKelas kelas.TingkatKelas
+		itemsNamaKelas kelas.NamaKelas
+	)
+
+
+	if err := rows.Scan(&itemsTingkatKelas.IdTingkatKelas, &itemsTingkatKelas.TingkatKelas, &itemsNamaKelas.IdNamaKelas, &itemsNamaKelas.NamaKelas); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return kelas.KelasData{}, coreerror.ErrNotFound
+		}
+		
+		r.loggerFor(ctx).Error(ctx, "failed scanning kelas", "op", "kelas_repo.scan", "err", err)
+		return kelas.KelasData{}, err
+	}
+
+	return kelas.KelasData{
+		ItemsTingkatKelas: itemsTingkatKelas,
+		ItemsNamaKelas:    itemsNamaKelas,
+	},nil
+}
+
 
 func (r *KelasRepo)CreateTingkatKelas(ctx context.Context, tingkatKelas int)error {
 	const query = `

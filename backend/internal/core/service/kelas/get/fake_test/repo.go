@@ -41,3 +41,7 @@ func (f *FakeKelasRepo) ExistTingkatKelas(ctx context.Context, tingkatKelas int)
 func (f *FakeKelasRepo)ExistNamaKelas(ctx context.Context,namaKelas string)(bool, error){
 	panic("not used in this test")
 }
+
+func (f *FakeKelasRepo)GetKelasById(ctx context.Context, idTingkatKelas int, idNamaKelas int)(kelas.KelasData, error){
+	panic("not used in this test")
+}

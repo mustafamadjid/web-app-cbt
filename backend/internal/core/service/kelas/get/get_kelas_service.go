@@ -45,3 +45,9 @@ func (s *GetKelasService)GetFullKelas(ctx context.Context, filter query.ListKela
 	}
 	return items, nil
 }
+
+
+func (s *GetKelasService)GetKelasById(ctx context.Context,idTingkatKelas int,idNamaKelas int)(kelas.KelasData, error) {
+	return s.kelasSvc.GetKelasById(ctx,idTingkatKelas,idNamaKelas)
+}
+

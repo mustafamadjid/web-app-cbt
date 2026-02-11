@@ -39,7 +39,7 @@ export const paths = {
     tambah_data_master_ruang: djoinAdmin(join("data-master", "/tambah-ruang")),
     tambah_data_master_sesi: djoinAdmin(join("data-master", "/tambah-sesi")),
     edit_data_master_mapel: djoinAdmin(join("data-master", "/mapel/:id/edit")),
-    edit_data_master_kelas: djoinAdmin(join("data-master", "/kelas/:idTingkatKelas/:idNamaKelas/edit")),
+    edit_data_master_kelas: djoinAdmin(join("data-master", "/kelas/:idTingkatKelas/:idNamaKelas")),
     edit_data_master_ruang: djoinAdmin(join("data-master", "/ruang/:id/edit")),
     edit_data_master_sesi: djoinAdmin(join("data-master", "/sesi/:id/edit")),
 

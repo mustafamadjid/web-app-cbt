@@ -42,9 +42,12 @@ const EditKelasForm = () => {
   const { idTingkatKelas, idNamaKelas } = useParams();
   const navigate = useNavigate();
 
-  const [initialValues, setInitialValues] = useState<KelasFormValues>(buildInitialValues());
+  const [initialValues, setInitialValues] =
+    useState<KelasFormValues>(buildInitialValues());
   const [values, setValues] = useState<KelasFormValues>(buildInitialValues());
-  const [touched, setTouched] = useState<Record<keyof KelasFormValues, boolean>>({
+  const [touched, setTouched] = useState<
+    Record<keyof KelasFormValues, boolean>
+  >({
     tingkat_kelas: false,
     nama_kelas: false,
   });
@@ -52,7 +55,10 @@ const EditKelasForm = () => {
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const tingkatKelasId = useMemo(() => Number(idTingkatKelas), [idTingkatKelas]);
+  const tingkatKelasId = useMemo(
+    () => Number(idTingkatKelas),
+    [idTingkatKelas],
+  );
   const namaKelasId = useMemo(() => Number(idNamaKelas), [idNamaKelas]);
 
   const setField = createSetField(setValues);
@@ -128,7 +134,9 @@ const EditKelasForm = () => {
 
     const currentErrors = validate(values);
     if (Object.keys(currentErrors).length > 0) {
-      setSubmitError("Periksa kembali input yang masih kosong atau tidak valid.");
+      setSubmitError(
+        "Periksa kembali input yang masih kosong atau tidak valid.",
+      );
       return;
     }
 
@@ -156,7 +164,9 @@ const EditKelasForm = () => {
     <div className="min-h-screen w-full py-8">
       <div className="mx-auto w-full max-w-5xl px-4 space-y-6">
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h1 className="text-base font-semibold text-slate-900">Edit Data Kelas</h1>
+          <h1 className="text-base font-semibold text-slate-900">
+            Edit Data Kelas
+          </h1>
           <p className="mt-1 text-sm text-slate-500">
             Perbarui tingkat kelas dan nama kelas pada section yang tersedia.
           </p>
@@ -166,7 +176,9 @@ const EditKelasForm = () => {
           <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="mb-4">
               <h2 className={sectionTitle}>Edit Tingkat Kelas</h2>
-              <p className={helperText}>Perbarui tingkat kelas dalam format angka.</p>
+              <p className={helperText}>
+                Perbarui tingkat kelas dalam format angka.
+              </p>
             </div>
             <EditTingkatKelasForm
               value={values.tingkat_kelas}
@@ -180,7 +192,9 @@ const EditKelasForm = () => {
           <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="mb-4">
               <h2 className={sectionTitle}>Edit Nama Kelas</h2>
-              <p className={helperText}>Perbarui nama kelas sesuai tingkat kelas yang dipilih.</p>
+              <p className={helperText}>
+                Perbarui nama kelas sesuai tingkat kelas yang dipilih.
+              </p>
             </div>
             <EditNamaKelasForm
               value={values.nama_kelas}

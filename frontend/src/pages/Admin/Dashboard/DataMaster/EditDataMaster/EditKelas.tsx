@@ -1,4 +1,4 @@
-import EditKelasForm from "@/layouts/Form/Admin/DataMaster/EditKelasForm";
+import EditKelasForm from "@/layouts/Form/Admin/DataMaster/KelasForm/EditKelasForm";
 
 const EditKelas = () => {
   return <EditKelasForm />;

@@ -17,3 +17,7 @@ type FullKelasData struct {
 	ItemsTingkatKelas []TingkatKelas
 	ItemsNamaKelas []NamaKelas
 } 
+type KelasData struct {
+	ItemsTingkatKelas TingkatKelas
+	ItemsNamaKelas NamaKelas
+} 
