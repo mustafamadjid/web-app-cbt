@@ -12,7 +12,7 @@ import (
 
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
-	outuser "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
+	updatepatch "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/update_patch"
 	query "github.com/mustafamadjid/web-app-cbt/internal/core/query/user"
 )
 
@@ -57,7 +57,6 @@ func (r *ProfilgGuruRepo) FindProfilGuruByID(ctx context.Context, id user.ID) (u
 	var jabatan sql.NullString
 	var bidangStudi sql.NullString
 	var jenisKelamin int16
-	
 
 	err := r.q.QueryRow(ctx, query, id).Scan(
 		&result.IdPengguna,
@@ -93,12 +92,12 @@ func (r *ProfilgGuruRepo) FindProfilGuruByID(ctx context.Context, id user.ID) (u
 		result.BidangStudi = bidangStudi.String
 	}
 
-	jenisKelaminValue,err := formatJenisKelamin(jenisKelamin)
+	jenisKelaminValue, err := formatJenisKelamin(jenisKelamin)
 	if err != nil {
 		return user.DataGuru{}, err
 	}
 	result.JenisKelamin = jenisKelaminValue
-	
+
 	return result, nil
 }
 
@@ -143,7 +142,7 @@ func (r *ProfilgGuruRepo) CreateProfilGuru(ctx context.Context, profilGuru user.
 	return id, nil
 }
 
-func (r *ProfilgGuruRepo) UpdateProfilGuru(ctx context.Context, idPengguna user.ID, profilGuru outuser.UpdateProfilGuruPatch) error {
+func (r *ProfilgGuruRepo) UpdateProfilGuru(ctx context.Context, idPengguna user.ID, profilGuru updatepatch.ProfilGuru) error {
 	set := make([]string, 0, 4)
 	args := make([]any, 0, 5)
 

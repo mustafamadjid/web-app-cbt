@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
-	outuser "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
+	updatepatch "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/update_patch"
 )
 
 // ===== minimal fake user repo =====
@@ -42,7 +42,7 @@ func (r *FakeUserRepo) FindUserByID(ctx context.Context, id user.ID) (user.Pengg
 	panic("not used in this test")
 }
 
-func (r *FakeUserRepo) UpdateUser(ctx context.Context, idPengguna user.ID, pengguna outuser.UpdatePenggunaPatch) error {
+func (r *FakeUserRepo) UpdateUser(ctx context.Context, idPengguna user.ID, pengguna updatepatch.Pengguna) error {
 	panic("not used in this test")
 }
 

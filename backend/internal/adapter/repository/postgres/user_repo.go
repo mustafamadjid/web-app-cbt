@@ -13,7 +13,7 @@ import (
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
-	outuser "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
+	updatepatch "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/update_patch"
 )
 
 type UserRepo struct {
@@ -161,7 +161,7 @@ func (r *UserRepo) CreateUser(ctx context.Context, pengguna user.Pengguna) (user
 	return id, nil
 }
 
-func (r *UserRepo) UpdateUser(ctx context.Context, idPengguna user.ID, pengguna outuser.UpdatePenggunaPatch) error {
+func (r *UserRepo) UpdateUser(ctx context.Context, idPengguna user.ID, pengguna updatepatch.Pengguna) error {
 	set := make([]string, 0, 6)
 	args := make([]any, 0, 7)
 
