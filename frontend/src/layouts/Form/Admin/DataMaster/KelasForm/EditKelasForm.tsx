@@ -50,14 +50,9 @@ const EditKelasForm = () => {
   const [touchedTingkatKelas, setTouchedTingkatKelas] = useState<boolean>(false);
   const [touchedNamaKelas, setTouchedNamaKelas] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
-  const [submittingTingkatKelas, setSubmittingTingkatKelas] =
-    useState<boolean>(false);
-  const [submittingNamaKelas, setSubmittingNamaKelas] = useState<boolean>(false);
+  const [submitting, setSubmitting] = useState<boolean>(false);
   const [pageError, setPageError] = useState<string | null>(null);
-  const [submitTingkatKelasError, setSubmitTingkatKelasError] =
-    useState<string | null>(null);
-  const [submitNamaKelasError, setSubmitNamaKelasError] =
-    useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const tingkatKelasId = useMemo(
     () => Number(idTingkatKelas),
@@ -125,74 +120,41 @@ const EditKelasForm = () => {
     nama_kelas: values.nama_kelas,
   });
 
-  const handleSubmitTingkatKelas = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitTingkatKelasError(null);
+    setSubmitError(null);
     setTouchedTingkatKelas(true);
+    setTouchedNamaKelas(true);
 
-    if (tingkatKelasErrors.tingkat_kelas) {
-      setSubmitTingkatKelasError("Periksa kembali tingkat kelas yang diisi.");
+    if (tingkatKelasErrors.tingkat_kelas || namaKelasErrors.nama_kelas) {
+      setSubmitError("Periksa kembali data kelas yang diisi.");
       return;
     }
 
     if (!idNamaKelas || Number.isNaN(namaKelasId)) {
-      setSubmitTingkatKelasError("ID nama kelas tidak ditemukan.");
+      setSubmitError("ID nama kelas tidak ditemukan.");
       return;
     }
 
-    setSubmittingTingkatKelas(true);
+    setSubmitting(true);
     try {
       const payload = {
         tingkat_kelas: values.tingkat_kelas,
-        nama_kelas: initialValues.nama_kelas,
-      } satisfies KelasFormValues;
-
-      await updateKelas(namaKelasId, payload);
-      setInitialValues((prev) => ({ ...prev, tingkat_kelas: values.tingkat_kelas }));
-    } catch (error) {
-      if (error instanceof ApiError) {
-        setSubmitTingkatKelasError(error.message);
-      }
-    } finally {
-      setSubmittingTingkatKelas(false);
-    }
-  };
-
-  const handleSubmitNamaKelas = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitNamaKelasError(null);
-    setTouchedNamaKelas(true);
-
-    if (namaKelasErrors.nama_kelas) {
-      setSubmitNamaKelasError("Periksa kembali nama kelas yang diisi.");
-      return;
-    }
-
-    if (!idNamaKelas || Number.isNaN(namaKelasId)) {
-      setSubmitNamaKelasError("ID nama kelas tidak ditemukan.");
-      return;
-    }
-
-    setSubmittingNamaKelas(true);
-    try {
-      const payload = {
-        tingkat_kelas: initialValues.tingkat_kelas,
         nama_kelas: values.nama_kelas,
       } satisfies KelasFormValues;
 
       await updateKelas(namaKelasId, payload);
-      setInitialValues((prev) => ({ ...prev, nama_kelas: values.nama_kelas }));
+      setInitialValues(values);
     } catch (error) {
       if (error instanceof ApiError) {
-        setSubmitNamaKelasError(error.message);
+        setSubmitError(error.message);
       }
     } finally {
-      setSubmittingNamaKelas(false);
+      setSubmitting(false);
     }
   };
 
-  const isAnySubmitting = submittingTingkatKelas || submittingNamaKelas;
-  const isDisabled = loading || isAnySubmitting;
+  const isDisabled = loading || submitting;
 
   return (
     <div className="min-h-screen w-full py-8">
@@ -202,8 +164,7 @@ const EditKelasForm = () => {
             Edit Data Kelas
           </h1>
           <p className="mt-1 text-sm text-slate-500">
-            Anda bisa menyimpan perubahan tingkat kelas atau nama kelas secara
-            terpisah.
+            Ubah tingkat kelas dan nama kelas, lalu simpan keduanya sekaligus.
           </p>
         </div>
 
@@ -214,28 +175,46 @@ const EditKelasForm = () => {
         )}
 
         <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <form onSubmit={handleSubmitTingkatKelas} className="space-y-4">
-            <div className="mb-4">
-              <h2 className={sectionTitle}>Edit Tingkat Kelas</h2>
-              <p className={helperText}>
-                Perbarui tingkat kelas dalam format angka.
-              </p>
+          <form onSubmit={handleSubmit} className="space-y-8">
+            <div className="space-y-4">
+              <div className="mb-4">
+                <h2 className={sectionTitle}>Edit Tingkat Kelas</h2>
+                <p className={helperText}>
+                  Perbarui tingkat kelas dalam format angka.
+                </p>
+              </div>
+              <EditTingkatKelasForm
+                value={values.tingkat_kelas}
+                error={
+                  touchedTingkatKelas
+                    ? tingkatKelasErrors.tingkat_kelas
+                    : undefined
+                }
+                onChange={(value) => setField("tingkat_kelas", value)}
+                onBlur={() => setTouchedTingkatKelas(true)}
+                disabled={isDisabled}
+              />
             </div>
-            <EditTingkatKelasForm
-              value={values.tingkat_kelas}
-              error={
-                touchedTingkatKelas
-                  ? tingkatKelasErrors.tingkat_kelas
-                  : undefined
-              }
-              onChange={(value) => setField("tingkat_kelas", value)}
-              onBlur={() => setTouchedTingkatKelas(true)}
-              disabled={loading || submittingTingkatKelas}
-            />
 
-            {submitTingkatKelasError && (
+            <div className="space-y-4">
+              <div className="mb-4">
+                <h2 className={sectionTitle}>Edit Nama Kelas</h2>
+                <p className={helperText}>
+                  Perbarui nama kelas sesuai tingkat kelas yang dipilih.
+                </p>
+              </div>
+              <EditNamaKelasForm
+                value={values.nama_kelas}
+                error={touchedNamaKelas ? namaKelasErrors.nama_kelas : undefined}
+                onChange={(value) => setField("nama_kelas", value)}
+                onBlur={() => setTouchedNamaKelas(true)}
+                disabled={isDisabled}
+              />
+            </div>
+
+            {submitError && (
               <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600">
-                {submitTingkatKelasError}
+                {submitError}
               </div>
             )}
 
@@ -244,68 +223,22 @@ const EditKelasForm = () => {
                 type="button"
                 className="inline-flex items-center justify-center cursor-pointer rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
                 onClick={() => {
-                  setField("tingkat_kelas", initialValues.tingkat_kelas);
+                  setValues(initialValues);
                   setTouchedTingkatKelas(false);
-                  setSubmitTingkatKelasError(null);
-                }}
-                disabled={loading || submittingTingkatKelas}
-              >
-                Reset Tingkat Kelas
-              </button>
-
-              <button
-                type="submit"
-                className="inline-flex cursor-pointer items-center justify-center rounded-lg bg-[#397e50] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#2f6a43] disabled:cursor-not-allowed disabled:opacity-70"
-                disabled={loading || submittingTingkatKelas}
-              >
-                Simpan Tingkat Kelas
-              </button>
-            </div>
-          </form>
-        </section>
-
-        <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <form onSubmit={handleSubmitNamaKelas} className="space-y-4">
-            <div className="mb-4">
-              <h2 className={sectionTitle}>Edit Nama Kelas</h2>
-              <p className={helperText}>
-                Perbarui nama kelas sesuai tingkat kelas yang dipilih.
-              </p>
-            </div>
-            <EditNamaKelasForm
-              value={values.nama_kelas}
-              error={touchedNamaKelas ? namaKelasErrors.nama_kelas : undefined}
-              onChange={(value) => setField("nama_kelas", value)}
-              onBlur={() => setTouchedNamaKelas(true)}
-              disabled={loading || submittingNamaKelas}
-            />
-
-            {submitNamaKelasError && (
-              <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600">
-                {submitNamaKelasError}
-              </div>
-            )}
-
-            <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-              <button
-                type="button"
-                className="inline-flex items-center justify-center cursor-pointer rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
-                onClick={() => {
-                  setField("nama_kelas", initialValues.nama_kelas);
                   setTouchedNamaKelas(false);
-                  setSubmitNamaKelasError(null);
+                  setSubmitError(null);
                 }}
-                disabled={loading || submittingNamaKelas}
+                disabled={isDisabled}
               >
-                Reset Nama Kelas
+                Reset Form
               </button>
 
               <button
                 type="submit"
                 className="inline-flex cursor-pointer items-center justify-center rounded-lg bg-[#397e50] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#2f6a43] disabled:cursor-not-allowed disabled:opacity-70"
-                disabled={loading || submittingNamaKelas}
+                disabled={isDisabled}
               >
-                Simpan Nama Kelas
+                Simpan Perubahan
               </button>
             </div>
           </form>
