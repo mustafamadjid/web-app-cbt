@@ -31,10 +31,6 @@ func (f *FakeKelasRepo) GetKelas(_ context.Context, _ query.ListKelasFilter) ([]
 	return nil, nil
 }
 
-func (f *FakeKelasRepo) GetKelasByID(_ context.Context, _ kelas.ID) (kelas.KelasData, error) {
-	panic("not used in this test")
-}
-
 func (f *FakeKelasRepo) CreateTingkatKelas(_ context.Context, tingkatKelas int) error {
 	f.CreateTingkatKelasCalled = true
 	f.GotCreateTingkatKelas = tingkatKelas

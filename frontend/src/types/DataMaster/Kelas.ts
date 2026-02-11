@@ -27,9 +27,3 @@ export type KelasSubmitResponse = {
   id: number;
 };
 
-
-
-export type KelasByIdData = {
-  item_tingkat_kelas: TingkatKelas;
-  item_nama_kelas: NamaKelas;
-};

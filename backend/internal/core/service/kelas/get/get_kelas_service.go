@@ -7,8 +7,8 @@ import (
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/kelas"
 
 	kelas_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/kelas"
-	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 	query "github.com/mustafamadjid/web-app-cbt/internal/core/query/kelas"
+	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 )
 
 type GetKelasService struct {
@@ -21,7 +21,7 @@ func NewGetKelasService(kelasSvc kelas_repo.KelasRepository) *GetKelasService {
 	}
 }
 
-func (s *GetKelasService) GetFullKelas(ctx context.Context, filter query.ListKelasFilter) ([]kelas.FullKelasData, error) {
+func (s *GetKelasService)GetFullKelas(ctx context.Context, filter query.ListKelasFilter) ([]kelas.FullKelasData, error) {
 	logger := corelog.FromContext(ctx)
 
 	filter.Search = strings.TrimSpace(filter.Search)
@@ -38,22 +38,10 @@ func (s *GetKelasService) GetFullKelas(ctx context.Context, filter query.ListKel
 		filter.Offset = 0
 	}
 
-	items, err := s.kelasSvc.GetKelas(ctx, filter)
+	items, err := s.kelasSvc.GetKelas(ctx,filter)
 	if err != nil {
 		logger.Error(ctx, "failed get kelas", "layer", "core.service", "op", "kelas.get", "err", err)
 		return nil, err
 	}
 	return items, nil
-}
-
-func (s *GetKelasService) GetKelasByID(ctx context.Context, id kelas.ID) (kelas.KelasData, error) {
-	logger := corelog.FromContext(ctx)
-
-	item, err := s.kelasSvc.GetKelasByID(ctx, id)
-	if err != nil {
-		logger.Error(ctx, "failed get kelas by id", "layer", "core.service", "op", "kelas.get_by_id", "err", err)
-		return kelas.KelasData{}, err
-	}
-
-	return item, nil
 }

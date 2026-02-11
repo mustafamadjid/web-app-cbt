@@ -15,8 +15,3 @@ type FullKelasResponse struct {
 	ItemsTingkatKelas []TingkatKelasResponse `json:"item_tingkat_kelas"`
 	ItemsNamaKelas    []NamaKelasResponse    `json:"item_nama_kelas"`
 }
-
-type DataKelasResponse struct {
-	ItemsTingkatKelas TingkatKelasResponse `json:"item_tingkat_kelas"`
-	ItemsNamaKelas    NamaKelasResponse    `json:"item_nama_kelas"`
-}
