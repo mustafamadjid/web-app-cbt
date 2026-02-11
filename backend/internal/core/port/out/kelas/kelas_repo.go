@@ -10,14 +10,14 @@ import (
 )
 
 type KelasRepository interface {
-	GetKelas(ctx context.Context, filter query.ListKelasFilter)([]kelas.FullKelasData, error)
-	GetKelasById(ctx context.Context, idTingkatKelas int, idNamaKelas int)(kelas.KelasData, error)
+	GetKelas(ctx context.Context, filter query.ListKelasFilter) ([]kelas.FullKelasData, error)
+	GetKelasById(ctx context.Context, idTingkatKelas int, idNamaKelas int) (kelas.KelasData, error)
 
-	CreateTingkatKelas(ctx context.Context, tingkatKelas int)error
-	CreateNamaKelas(ctx context.Context, namaKelas kelas.NamaKelas)error
+	CreateTingkatKelas(ctx context.Context, tingkatKelas int) error
+	CreateNamaKelas(ctx context.Context, namaKelas kelas.NamaKelas) error
 
-	UpdateNamaKelas(ctx context.Context, idNamaKelas int, dataUpdate updatepatch.NamaKelasPatch)error
+	UpdateNamaKelas(ctx context.Context, idNamaKelas int, dataUpdate updatepatch.NamaKelasPatch) error
 
-	ExistTingkatKelas(ctx context.Context, tingkatKelas int )(bool, error)
-	ExistNamaKelas(ctx context.Context,namaKelas string)(bool, error)
+	ExistTingkatKelas(ctx context.Context, tingkatKelas int) (bool, error)
+	ExistNamaKelas(ctx context.Context, namaKelas string) (bool, error)
 }

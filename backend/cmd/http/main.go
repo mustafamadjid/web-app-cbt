@@ -92,7 +92,7 @@ func main() {
 	authMod := app.BuildAuthModule(cfg, infra, tokens, hasher, aktivitasUserMod)
 	userMod := app.BuildUserModule(cfg, infra, hasher, aktivitasUserMod)
 	profilSekolahMod := app.BuildProfilSekolahModule(cfg, infra)
-	kelasMod := app.BuildKelasModule(infra)
+	kelasMod := app.BuildKelasModule(infra, aktivitasUserMod)
 
 	httpMod := app.BuildHTTPModule(cfg, authMod, userMod, profilSekolahMod, aktivitasUserMod, kelasMod, tokens, logger)
 

@@ -242,7 +242,7 @@ func (r *KelasRepo) ExistNamaKelas(ctx context.Context, namaKelas string) (bool,
 	return exist, nil
 }
 
-func (r *KelasRepo)UpdateNamaKelas(ctx context.Context, idNamaKelas int, dataUpdate updatepatch.NamaKelasPatch)error{
+func (r *KelasRepo) UpdateNamaKelas(ctx context.Context, idNamaKelas int, dataUpdate updatepatch.NamaKelasPatch) error {
 	const query = `
 		UPDATE nama_kelas
 		SET
