@@ -12,11 +12,11 @@ import (
 )
 
 type UpdateKelasService struct {
-	updaterRepo kelas_repo.KelasRepository
+	updateRepo kelas_repo.KelasRepository
 }
 
 func NewUpdateKelasService(kelasRepo kelas_repo.KelasRepository) *UpdateKelasService {
-	return &UpdateKelasService{updaterRepo: kelasRepo}
+	return &UpdateKelasService{updateRepo: kelasRepo}
 }
 
 func (s *UpdateKelasService) UpdateNamaKelas(ctx context.Context, idNamaKelas int, dataUpdate updatepatch.NamaKelasPatch) error {
@@ -43,7 +43,7 @@ func (s *UpdateKelasService) UpdateNamaKelas(ctx context.Context, idNamaKelas in
 		}
 	}
 
-	if err := s.updaterRepo.UpdateNamaKelas(ctx, idNamaKelas, dataUpdate); err != nil {
+	if err := s.updateRepo.UpdateNamaKelas(ctx, idNamaKelas, dataUpdate); err != nil {
 		logger.Error(ctx, "failed updating nama kelas", "layer", "core.service", "op", "kelas.update_nama_kela.UpdateNamaKelas", "err", err)
 
 		switch {

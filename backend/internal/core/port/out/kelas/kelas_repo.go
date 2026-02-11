@@ -18,6 +18,8 @@ type KelasRepository interface {
 
 	UpdateNamaKelas(ctx context.Context, idNamaKelas int, dataUpdate updatepatch.NamaKelasPatch) error
 
+	DeleteNamaKelas(ctx context.Context, idNamaKelas int) error
+	
 	ExistTingkatKelas(ctx context.Context, tingkatKelas int) (bool, error)
 	ExistNamaKelas(ctx context.Context, namaKelas string) (bool, error)
 }

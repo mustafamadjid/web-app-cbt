@@ -19,6 +19,27 @@ import type { ApiEnvelope } from "../../api";
 
 // Real Request
 
+
+
+export async function createTingkatKelas(values: CreateTingkatKelasPayload) {
+  const data = buildJsonData(values);
+  const res = await api<ApiEnvelope<null>>("/admin/kelas/tingkat-kelas", {
+    method: "POST",
+    data,
+  });
+
+  return res;
+}
+
+export async function createNamaKelas(values: CreateNamaKelasPayload) {
+  const data = buildJsonData(values);
+  const res = await api<ApiEnvelope<null>>("/admin/kelas/nama-kelas", {
+    method: "POST",
+    data,
+  });
+
+  return res;
+}
 export async function GetDataKelasFull(
   params: KelasFilterParams = {},
 ): Promise<FullDataKelas> {
@@ -43,6 +64,20 @@ export async function getKelasByIdsRequest(
     return api<DataKelas>(`/admin/kelas/${idTingkatKelas}/${idNamaKelas}`, {
       method: "GET",
     });  
+}
+
+export async function updateNamaKelasPartial(
+  idNamaKelas: number,
+  values: UpdateNamaKelasPayload,
+) {
+  const data = buildJsonData(values);
+  return await api<UpdateNamaKelasPayload>(
+    `/admin/kelas/nama-kelas/${idNamaKelas}`,
+    {
+      method:"PATCH",
+      data
+    }
+  )
 }
 
 
@@ -113,25 +148,7 @@ type CreateNamaKelasPayload = {
   nama_kelas: string;
 };
 
-export async function createTingkatKelas(values: CreateTingkatKelasPayload) {
-  const data = buildJsonData(values);
-  const res = await api<ApiEnvelope<null>>("/admin/kelas/tingkat-kelas", {
-    method: "POST",
-    data,
-  });
 
-  return res;
-}
-
-export async function createNamaKelas(values: CreateNamaKelasPayload) {
-  const data = buildJsonData(values);
-  const res = await api<ApiEnvelope<null>>("/admin/kelas/nama-kelas", {
-    method: "POST",
-    data,
-  });
-
-  return res;
-}
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -241,18 +258,7 @@ type UpdateNamaKelasPayload = {
   nama_kelas?: string;
 };
 
-export async function updateNamaKelasPartial(
-  idNamaKelas: number,
-  values: UpdateNamaKelasPayload,
-) {
-  const data = buildJsonData(values);
-  const res = await api<ApiEnvelope<null>>(`/admin/kelas/nama-kelas/${idNamaKelas}`, {
-    method: "PATCH",
-    data,
-  });
 
-  return res;
-}
 
 export async function getTingkatKelas(): Promise<TingkatKelas[]> {
   if (!USE_DUMMY) {

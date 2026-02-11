@@ -20,6 +20,7 @@ import {
 
 import EditNamaKelasForm from "./EditNamaKelasForm";
 import EditTingkatKelasForm from "./EditTingkatKelasForm";
+import toast from "react-hot-toast";
 
 const buildInitialValues = (): KelasFormValues => ({
   tingkat_kelas: "",
@@ -173,6 +174,8 @@ const EditKelasForm = () => {
       if (payload.id_tingkat_kelas) {
         setCurrentIdTingkatKelas(payload.id_tingkat_kelas);
       }
+      toast.success("Data kelas berhasil diperbarui.");
+      navigate(paths.dashboard.data_master_kelas);
     } catch (error) {
       if (error instanceof ApiError) {
         setSubmitError(error.message);

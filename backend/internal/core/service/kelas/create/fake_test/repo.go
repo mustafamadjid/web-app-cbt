@@ -64,3 +64,7 @@ func (f *FakeKelasRepo)GetKelasById(ctx context.Context, idTingkatKelas int, idN
 func (f *FakeKelasRepo)UpdateNamaKelas(ctx context.Context, idNamaKelas int, dataUpdate updatepatch.NamaKelasPatch)error{
 	panic("not used in this test")
 }
+
+func(f *FakeKelasRepo)DeleteNamaKelas(ctx context.Context, idNamaKelas int) error{
+	panic("not used in this test")
+}

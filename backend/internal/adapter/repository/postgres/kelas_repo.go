@@ -270,3 +270,26 @@ func (r *KelasRepo) UpdateNamaKelas(ctx context.Context, idNamaKelas int, dataUp
 
 	return nil
 }
+
+func (r *KelasRepo) DeleteNamaKelas(ctx context.Context, idNamaKelas int) error {
+	const query = `
+		DELETE FROM nama_kelas
+		WHERE id_nama_kelas = $1
+	`
+
+	tag, err := r.q.Exec(
+		ctx,
+		query,
+		idNamaKelas,
+	)
+	if err != nil {
+		r.loggerFor(ctx).Error(ctx, "failed deleting nama kelas", "op", "kelas_repo.delete", "err", err)
+		return err
+	}
+
+	if tag.RowsAffected() == 0 {
+		return coreerror.ErrNotFound
+	}
+
+	return nil
+}

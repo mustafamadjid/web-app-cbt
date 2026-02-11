@@ -131,6 +131,7 @@ func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSeko
 	router.POST("/admin/kelas/tingkat-kelas", requireAdmin(rateLimitStandard(kelas.CreateHandler.CreateTingkatKelas)))
 	router.POST("/admin/kelas/nama-kelas", requireAdmin(rateLimitStandard(kelas.CreateHandler.CreateNamaKelas)))
 	router.PATCH("/admin/kelas/nama-kelas/:idNamaKelas", requireAdmin(rateLimitStandard(kelas.UpdateHandler.UpdateNamaKelas)))
+	router.DELETE("/admin/kelas/nama-kelas/:idNamaKelas", requireAdmin(rateLimitStandard(kelas.DeleteHandler.DeleteKelas)))
 
 	// Siswa
 
