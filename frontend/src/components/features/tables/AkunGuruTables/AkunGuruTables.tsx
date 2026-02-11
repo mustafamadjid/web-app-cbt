@@ -67,6 +67,12 @@ const AkunGuruTables: React.FC = () => {
   const [samarkanDataSensitif, setSamarkanDataSensitif] = useState(true);
   const [batasData, setBatasData] = useState(10);
   const [halamanSaatIni, setHalamanSaatIni] = useState(1);
+  const [modalKonfirmasiTerbuka, setModalKonfirmasiTerbuka] = useState(false);
+  const [sedangMemprosesKonfirmasi, setSedangMemprosesKonfirmasi] =
+    useState(false);
+  const [aksiKonfirmasi, setAksiKonfirmasi] = useState<null | (() => Promise<void>)>(
+    null,
+  );
 
   const [daftarPengguna, setDaftarPengguna] = useState<DataGuru[]>([]);
 
@@ -179,6 +185,33 @@ const AkunGuruTables: React.FC = () => {
     }
   };
 
+  const pesanKonfirmasiHapusGuru =
+    "Apakah anda yakin ingin menghapus akun ini? semua data yang berkaitan dengan akun ini akan dihapus (data bank soal, data aktivitas, data ujian yang dibuat, dan data hasil ujian yang dibuat  )";
+
+  const bukaModalKonfirmasiHapus = (action: () => Promise<void>) => {
+    setAksiKonfirmasi(() => action);
+    setModalKonfirmasiTerbuka(true);
+  };
+
+  const tutupModalKonfirmasi = () => {
+    if (sedangMemprosesKonfirmasi) return;
+    setModalKonfirmasiTerbuka(false);
+    setAksiKonfirmasi(null);
+  };
+
+  const jalankanAksiKonfirmasi = async () => {
+    if (!aksiKonfirmasi) return;
+
+    setSedangMemprosesKonfirmasi(true);
+    try {
+      await aksiKonfirmasi();
+      setModalKonfirmasiTerbuka(false);
+      setAksiKonfirmasi(null);
+    } finally {
+      setSedangMemprosesKonfirmasi(false);
+    }
+  };
+
   const jumlahTerpilih = idTerpilih.size;
   const totalTerlihat = daftarPengguna.length;
   const awalData = totalTerlihat === 0 ? 0 : (halamanSaatIni - 1) * batasData + 1;
@@ -286,7 +319,10 @@ const AkunGuruTables: React.FC = () => {
                       </button>
                       <button
                         className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-rose-600 hover:bg-rose-50"
-                        onClick={handleBulkDelete}
+                        onClick={() => {
+                          setDropdownAksiTerbuka(false);
+                          bukaModalKonfirmasiHapus(handleBulkDelete);
+                        }}
                       >
                         <Trash2 className="h-4 w-4" /> Hapus Data
                       </button>
@@ -433,7 +469,11 @@ const AkunGuruTables: React.FC = () => {
                         <button
                           className="rounded-lg p-2 text-slate-400 cursor-pointer hover:bg-slate-100 hover:text-red-600 transition-colors"
                           title="Detail"
-                          onClick={() => DeleteUser(Number(p.id_pengguna))}
+                          onClick={() =>
+                            bukaModalKonfirmasiHapus(() =>
+                              DeleteUser(Number(p.id_pengguna)),
+                            )
+                          }
                         >
                           <Trash className="h-4 w-4" />
                         </button>
@@ -516,6 +556,38 @@ const AkunGuruTables: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {modalKonfirmasiTerbuka && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/55 px-4">
+          <div className="w-full max-w-xl rounded-xl border border-slate-200 bg-white p-6 shadow-2xl">
+            <h3 className="text-lg font-semibold text-slate-900">
+              Konfirmasi Hapus Akun
+            </h3>
+            <p className="mt-2 text-sm leading-relaxed text-slate-600">
+              {pesanKonfirmasiHapusGuru}
+            </p>
+
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={tutupModalKonfirmasi}
+                disabled={sedangMemprosesKonfirmasi}
+                className="cursor-pointer rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={() => void jalankanAksiKonfirmasi()}
+                disabled={sedangMemprosesKonfirmasi}
+                className="cursor-pointer rounded-lg bg-rose-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:bg-rose-400"
+              >
+                {sedangMemprosesKonfirmasi ? "Menghapus..." : "Ya, Hapus"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
