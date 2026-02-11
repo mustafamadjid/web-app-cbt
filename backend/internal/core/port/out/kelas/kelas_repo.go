@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/kelas"
+	updatepatch "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/update_patch"
 
 	query "github.com/mustafamadjid/web-app-cbt/internal/core/query/kelas"
 )
@@ -15,7 +16,7 @@ type KelasRepository interface {
 	CreateTingkatKelas(ctx context.Context, tingkatKelas int)error
 	CreateNamaKelas(ctx context.Context, namaKelas kelas.NamaKelas)error
 
-	// UpdateTingkatKelas(ctx contex)
+	UpdateNamaKelas(ctx context.Context, idNamaKelas int, dataUpdate updatepatch.NamaKelasPatch)error
 
 	ExistTingkatKelas(ctx context.Context, tingkatKelas int )(bool, error)
 	ExistNamaKelas(ctx context.Context,namaKelas string)(bool, error)
