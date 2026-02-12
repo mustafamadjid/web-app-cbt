@@ -325,7 +325,6 @@ func TestCreateSiswaBranchCoverage(t *testing.T) {
 			JenisKelamin:   "L",
 			NoHp:           "08123456789",
 			Foto:           "foto.png",
-			IdTingkatKelas: 1,
 			IdNamaKelas:    2,
 			Nisn:           "1234567890",
 			NoAbsen:        1,

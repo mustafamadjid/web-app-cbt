@@ -235,15 +235,10 @@ func (h *UserHandler) CreateSiswa(write http.ResponseWriter, req *http.Request, 
 		return
 	}
 
-	idTingkatKelasRaw := strings.TrimSpace(req.FormValue("id_tingkat_kelas"))
+	
 	idNamaKelasRaw := strings.TrimSpace(req.FormValue("id_nama_kelas"))
 
-	idTingkatKelasInt, err := strconv.ParseInt(idTingkatKelasRaw, 10, 64)
-	if err != nil {
-		logger.Info(req.Context(), "invalid id_tingkat_kelas", "layer", "adapter.http.handler", "op", "user.create_siswa", "err", err)
-		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", "id_tingkat_kelas must be a number")
-		return
-	}
+	
 
 	idNamaKelasInt, err := strconv.ParseInt(idNamaKelasRaw, 10, 64)
 	if err != nil {
@@ -269,7 +264,7 @@ func (h *UserHandler) CreateSiswa(write http.ResponseWriter, req *http.Request, 
 		NoHp:         strings.TrimSpace(req.FormValue("no_hp")),
 		Foto:         relPath,
 
-		IdTingkatKelas: user.ID(idTingkatKelasInt),
+		
 		IdNamaKelas:    user.ID(idNamaKelasInt),
 		Nisn:           strings.TrimSpace(req.FormValue("nisn")),
 		NoAbsen:        noAbsen,
@@ -291,7 +286,6 @@ func (h *UserHandler) CreateSiswa(write http.ResponseWriter, req *http.Request, 
 		cmd.JenisKelamin == "" ||
 		cmd.NoHp == "" ||
 		cmd.Foto == "" ||
-		cmd.IdTingkatKelas == 0 ||
 		cmd.IdNamaKelas == 0 ||
 		cmd.Nisn == "" ||
 		cmd.NoAbsen <= 0 ||
@@ -351,7 +345,7 @@ func (h *UserHandler) CreateSiswa(write http.ResponseWriter, req *http.Request, 
 			return
 
 		default:
-			httpResponse.WriteErr(write, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error: failed create guru")
+			httpResponse.WriteErr(write, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error: failed create siswa")
 			return
 		}
 	}

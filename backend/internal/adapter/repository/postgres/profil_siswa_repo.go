@@ -153,7 +153,7 @@ func (r *ProfilSiswaRepo) CreateProfilSiswa(ctx context.Context, profilSiswa use
 			tempat_lahir,
 			tanggal_lahir
 		)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
 		RETURNING id_siswa
 	`
 	// id_kelas,

@@ -28,8 +28,7 @@ type CreateSiswaCmd struct {
 	JenisKelamin string
 	NoHp         string
 	Foto         string
-
-	IdTingkatKelas user.ID
+	
 	IdNamaKelas    user.ID
 	Nisn           string
 	NoAbsen        int
