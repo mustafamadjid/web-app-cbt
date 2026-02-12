@@ -14,6 +14,9 @@ import {
   requiredString,
   requiredValue,
 } from "@/helper/validate/validateForm";
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router";
+import { paths } from "@/routes/paths";
 
 const initialValues: MataPelajaranFormValues = {
   kelasId: "",
@@ -31,6 +34,8 @@ const DataMapelForm = () => {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [kelasOptions, setKelasOptions] = useState<TingkatKelas[]>([]);
   const [submitting, setSubmitting] = useState(false);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     let active = true;
@@ -84,6 +89,10 @@ const DataMapelForm = () => {
       await createMataPelajaran(values);
       setValues(initialValues);
       setTouched({});
+      toast.success("Mata pelajaran berhasil ditambahkan.");
+      setTimeout(() => {
+        navigate(`${paths.dashboard.data_master_mapel}`);
+      },2000)
     } catch (error) {
       if (error instanceof ApiError) {
         setSubmitError(error.message);

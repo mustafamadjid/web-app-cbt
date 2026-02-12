@@ -160,10 +160,11 @@ func (r *MapelRepo)	UpdateMapel(ctx context.Context,idMapel int, mapel updatepat
 		mapel.KodeMapel,
 		mapel.NamaMapel,
 		mapel.Deskripsi,
+		idMapel,
 	)
 
 	if err != nil {
-		r.loggerFor(ctx).Error(ctx, "failed updating mapel", "layer", "core.service", "op", "matapelajaran.update_mapel", "err", err)
+		r.loggerFor(ctx).Error(ctx, "failed updating mapel", "layer", "repo.db", "op", "matapelajaran.update_mapel", "err", err)
 		return err
 	}
 
