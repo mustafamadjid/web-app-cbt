@@ -16,7 +16,11 @@ import type {
 } from "@/types/DataMaster/MataPelajaran";
 import type { TingkatKelas } from "@/types/DataMaster/Kelas";
 import { GetDataKelasFull } from "@/services/Api/features-api/DataMaster/kelas.service";
-import { getMapel } from "@/services/Api/features-api/DataMaster/mapel.service";
+import {
+  deleteMataPelajaran,
+  getMapel,
+} from "@/services/Api/features-api/DataMaster/mapel.service";
+import toast from "react-hot-toast";
 
 import { paths } from "@/routes/paths";
 
@@ -146,6 +150,50 @@ const DataMataPelajaran: React.FC = () => {
       else next.add(id);
       return next;
     });
+  };
+
+  const fetchDaftarMapel = async () => {
+    return getMapel({
+      search: debouncedKataKunci.trim() || undefined,
+      tingkatKelas: tingkatTerpilih ?? undefined,
+      namaMapel: mapelTerpilih || undefined,
+    });
+  };
+
+  const handleDeleteMapel = async (idMapel: number) => {
+    try {
+      await deleteMataPelajaran(idMapel);
+
+      const data = await fetchDaftarMapel();
+      setDaftarMapel(data);
+      setIdTerpilih((prev) => {
+        const next = new Set(prev);
+        next.delete(idMapel);
+        return next;
+      });
+
+      toast.success("Berhasil menghapus data mata pelajaran");
+    } catch {
+      toast.error("Gagal menghapus data mata pelajaran");
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (idTerpilih.size === 0) return;
+
+    const ids = Array.from(idTerpilih);
+    try {
+      await Promise.all(ids.map((id) => deleteMataPelajaran(id)));
+
+      const data = await fetchDaftarMapel();
+      setDaftarMapel(data);
+      setIdTerpilih(new Set());
+      setDropdownAksiTerbuka(false);
+
+      toast.success("Berhasil menghapus data mata pelajaran terpilih");
+    } catch {
+      toast.error("Gagal menghapus data mata pelajaran terpilih");
+    }
   };
 
   const jumlahTerpilih = idTerpilih.size;
@@ -286,7 +334,7 @@ const DataMataPelajaran: React.FC = () => {
                       <button
                         type="button"
                         className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-rose-600 hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-50"
-                        onClick={() => setDropdownAksiTerbuka(false)}
+                        onClick={() => void handleBulkDelete()}
                         disabled={jumlahTerpilih === 0}
                       >
                         <Trash2 className="h-4 w-4" />
@@ -405,7 +453,7 @@ const DataMataPelajaran: React.FC = () => {
                           <button
                             className="cursor-pointer rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-red-600"
                             title="Hapus"
-                            onClick={() => setIdTerpilih(new Set([mapel.id]))}
+                            onClick={() => void handleDeleteMapel(mapel.id)}
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
