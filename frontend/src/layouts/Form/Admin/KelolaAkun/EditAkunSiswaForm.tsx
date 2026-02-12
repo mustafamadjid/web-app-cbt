@@ -5,7 +5,7 @@ import ImageUpload from "@/components/features/Upload/ImageUpload";
 
 import type { StudentUpdateFormValues } from "@/types/KelolaAkun/AkunSiswa";
 import type { JenisKelamin, StatusAkun } from "@/types/OpsiTypes/Option";
-import type { NamaKelas, TingkatKelas } from "@/types/DataMaster/Kelas";
+import type { NamaKelas } from "@/types/DataMaster/Kelas";
 
 import { GetDataKelasFull } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { ApiError } from "@/services/Api/api";
@@ -63,9 +63,7 @@ const EditAkunSiswaForm = ({
   const [fotoUrl, setFotoUrl] = useState<string>(initialFotoUrl ?? "");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const [tingkatKelass, setTingkatKelass] = useState<TingkatKelas[]>([]);
   const [daftarKelas, setDaftarKelas] = useState<NamaKelas[]>([]);
-  const [namaKelasOptions, setNamaKelasOptions] = useState<NamaKelas[]>([]);
 
   useEffect(() => {
     setValues(initialValues);
@@ -88,7 +86,6 @@ const EditAkunSiswaForm = ({
     const loadKelas = async () => {
       const data = await GetDataKelasFull();
       if (!active) return;
-      setTingkatKelass(data.item_tingkat_kelas ?? []);
       setDaftarKelas(data.item_nama_kelas ?? []);
     };
     loadKelas();
@@ -96,28 +93,6 @@ const EditAkunSiswaForm = ({
       active = false;
     };
   }, []);
-
-  useEffect(() => {
-    if (!values.id_tingkat_kelas) {
-      setNamaKelasOptions([]);
-      if (values.id_nama_kelas !== "") {
-        setValues((prev) => ({ ...prev, id_nama_kelas: "" }));
-      }
-      return;
-    }
-
-    const filtered = daftarKelas.filter(
-      (kelas) => kelas.id_tingkat_kelas === values.id_tingkat_kelas,
-    );
-    setNamaKelasOptions(filtered);
-
-    const isValid = filtered.some(
-      (kelas) => String(kelas.id_nama_kelas) === values.id_nama_kelas,
-    );
-    if (!isValid && values.id_nama_kelas !== "") {
-      setValues((prev) => ({ ...prev, id_nama_kelas: "" }));
-    }
-  }, [daftarKelas, values.id_nama_kelas, values.id_tingkat_kelas]);
 
   const setField = createSetField(setValues);
 
@@ -164,7 +139,6 @@ const EditAkunSiswaForm = ({
     ],
     tempat_lahir: [requiredString("Tempat lahir wajib diisi.")],
     tanggal_lahir: [requiredString("Tanggal lahir wajib diisi.")],
-    id_tingkat_kelas: [requiredValue("Tingkat kelas wajib dipilih.")],
     id_nama_kelas: [requiredValue("Nama kelas wajib dipilih.")],
     foto_profil: [
       fileMaxSize(2 * 1024 * 1024, "Ukuran foto maksimal 2MB."),
@@ -192,7 +166,6 @@ const EditAkunSiswaForm = ({
       angkatan: true,
       tempat_lahir: true,
       tanggal_lahir: true,
-      id_tingkat_kelas: true,
       id_nama_kelas: true,
       foto_profil: true,
       status_akun: true,
@@ -201,6 +174,15 @@ const EditAkunSiswaForm = ({
     const currentErrors = validate(values);
     if (Object.keys(currentErrors).length > 0) {
       setSubmitError("Periksa kembali input yang masih salah / kosong.");
+      return;
+    }
+
+    const kelasTerpilih = daftarKelas.find(
+      (kelas) => String(kelas.id_nama_kelas) === values.id_nama_kelas,
+    );
+
+    if (!kelasTerpilih) {
+      setSubmitError("Kelas yang dipilih tidak ditemukan.");
       return;
     }
 
@@ -506,47 +488,6 @@ const EditAkunSiswaForm = ({
 
               <div>
                 <label
-                  htmlFor="id_tingkat_kelas"
-                  className="text-xs font-medium text-slate-600"
-                >
-                  Tingkat Kelas
-                </label>
-                <select
-                  id="id_tingkat_kelas"
-                  className={`w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-[#397e50] focus:ring-2 focus:ring-[#397e50] disabled:bg-slate-50 disabled:text-slate-500 ${
-                    hasError("id_tingkat_kelas")
-                      ? "border-rose-300 ring-rose-100"
-                      : ""
-                  }`}
-                  value={values.id_tingkat_kelas}
-                  onChange={(e) =>
-                    setField(
-                      "id_tingkat_kelas",
-                      e.target.value === "" ? "" : Number(e.target.value)
-                    )
-                  }
-                  onBlur={() => onBlur("id_tingkat_kelas")}
-                  disabled={isDisabled}
-                >
-                  <option value="">Pilih tingkat kelas</option>
-                  {tingkatKelass.map((tingkat) => (
-                    <option
-                      key={tingkat.id_tingkat_kelas}
-                      value={tingkat.id_tingkat_kelas}
-                    >
-                      Kelas {tingkat.tingkat_kelas}
-                    </option>
-                  ))}
-                </select>
-                {hasError("id_tingkat_kelas") && (
-                  <p className="mt-1 text-xs text-rose-600">
-                    {errors.id_tingkat_kelas}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label
                   htmlFor="id_nama_kelas"
                   className="text-xs font-medium text-slate-600"
                 >
@@ -562,13 +503,13 @@ const EditAkunSiswaForm = ({
                   value={values.id_nama_kelas}
                   onChange={(e) => setField("id_nama_kelas", e.target.value)}
                   onBlur={() => onBlur("id_nama_kelas")}
-                  disabled={isDisabled || namaKelasOptions.length === 0}
+                  disabled={isDisabled || daftarKelas.length === 0}
                 >
                   <option value="">Pilih nama kelas</option>
-                  {namaKelasOptions.map((kelas) => (
+                  {daftarKelas.map((kelas) => (
                     <option
                       key={kelas.id_nama_kelas}
-                      value={kelas.id_nama_kelas}
+                      value={String(kelas.id_nama_kelas)}
                     >
                       {kelas.nama_kelas}
                     </option>
