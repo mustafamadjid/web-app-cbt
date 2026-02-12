@@ -10,6 +10,7 @@ import {
 import { useNavigate } from "react-router";
 
 import AddButton from "@/components/common/Button/AddButton";
+import ConfirmAlert from "@/components/ui/ConfirmAlert/ConfirmAlert";
 import type {
   MataPelajaranOption,
   MataPelajaranRow,
@@ -50,6 +51,10 @@ const DataMataPelajaran: React.FC = () => {
   const [errorMsg, setErrorMsg] = useState("");
 
   const [idTerpilih, setIdTerpilih] = useState<Set<number>>(new Set());
+  const [targetDeleteId, setTargetDeleteId] = useState<number | null>(null);
+  const [isBulkDeleteConfirmOpen, setIsBulkDeleteConfirmOpen] =
+    useState(false);
+  const [isDeleteLoading, setIsDeleteLoading] = useState(false);
 
   const debouncedKataKunci = useDebouncedValue(kataKunci, 300);
   const requestSeq = useRef(0);
@@ -160,8 +165,9 @@ const DataMataPelajaran: React.FC = () => {
     });
   };
 
-  const handleDeleteMapel = async (idMapel: number) => {
+  const executeDeleteMapel = async (idMapel: number) => {
     try {
+      setIsDeleteLoading(true);
       await deleteMataPelajaran(idMapel);
 
       const data = await fetchDaftarMapel();
@@ -175,14 +181,18 @@ const DataMataPelajaran: React.FC = () => {
       toast.success("Berhasil menghapus data mata pelajaran");
     } catch {
       toast.error("Gagal menghapus data mata pelajaran");
+    } finally {
+      setIsDeleteLoading(false);
+      setTargetDeleteId(null);
     }
   };
 
-  const handleBulkDelete = async () => {
+  const executeBulkDelete = async () => {
     if (idTerpilih.size === 0) return;
 
     const ids = Array.from(idTerpilih);
     try {
+      setIsDeleteLoading(true);
       await Promise.all(ids.map((id) => deleteMataPelajaran(id)));
 
       const data = await fetchDaftarMapel();
@@ -193,6 +203,20 @@ const DataMataPelajaran: React.FC = () => {
       toast.success("Berhasil menghapus data mata pelajaran terpilih");
     } catch {
       toast.error("Gagal menghapus data mata pelajaran terpilih");
+    } finally {
+      setIsDeleteLoading(false);
+      setIsBulkDeleteConfirmOpen(false);
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (targetDeleteId !== null) {
+      await executeDeleteMapel(targetDeleteId);
+      return;
+    }
+
+    if (isBulkDeleteConfirmOpen) {
+      await executeBulkDelete();
     }
   };
 
@@ -334,7 +358,7 @@ const DataMataPelajaran: React.FC = () => {
                       <button
                         type="button"
                         className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-rose-600 hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-50"
-                        onClick={() => void handleBulkDelete()}
+                        onClick={() => setIsBulkDeleteConfirmOpen(true)}
                         disabled={jumlahTerpilih === 0}
                       >
                         <Trash2 className="h-4 w-4" />
@@ -453,7 +477,7 @@ const DataMataPelajaran: React.FC = () => {
                           <button
                             className="cursor-pointer rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-red-600"
                             title="Hapus"
-                            onClick={() => void handleDeleteMapel(mapel.id)}
+                            onClick={() => setTargetDeleteId(mapel.id)}
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -494,6 +518,25 @@ const DataMataPelajaran: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <ConfirmAlert
+        isOpen={targetDeleteId !== null || isBulkDeleteConfirmOpen}
+        title="Konfirmasi Hapus Mata Pelajaran"
+        message={
+          targetDeleteId !== null
+            ? "Data mata pelajaran ini akan dihapus permanen. Lanjutkan?"
+            : `Anda akan menghapus ${jumlahTerpilih} data mata pelajaran terpilih. Lanjutkan?`
+        }
+        onClose={() => {
+          if (isDeleteLoading) return;
+          setTargetDeleteId(null);
+          setIsBulkDeleteConfirmOpen(false);
+        }}
+        onConfirm={() => void handleDeleteConfirm()}
+        isLoading={isDeleteLoading}
+        confirmLabel="Ya, Hapus"
+        loadingLabel="Menghapus..."
+      />
     </div>
   );
 };
