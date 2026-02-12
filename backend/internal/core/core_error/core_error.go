@@ -31,6 +31,7 @@ var (
 
 	ErrTingkatKelasExist =errors.New("tingkat kelas already exist") 
 	ErrNamaKelasExist =errors.New("nama kelas already exist") 
+	ErrKodeMapelExist =errors.New("kode mapel already exist")
 
 	ErrFileTooLarge = errors.New("file too large")
 	ErrInvalidFileFormat = errors.New("invalid file format")
