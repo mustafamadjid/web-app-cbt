@@ -146,7 +146,6 @@ func (r *ProfilSiswaRepo) CreateProfilSiswa(ctx context.Context, profilSiswa use
 	const query = `
 		INSERT INTO profil_siswa (
 			id_pengguna,
-			id_kelas,
 			id_nama_kelas,
 			nisn,
 			no_absen,
@@ -157,13 +156,14 @@ func (r *ProfilSiswaRepo) CreateProfilSiswa(ctx context.Context, profilSiswa use
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 		RETURNING id_siswa
 	`
+	// id_kelas,
+	// profilSiswa.IdTingkatKelas,
 
 	var id user.ID
 	err := r.q.QueryRow(
 		ctx,
 		query,
 		profilSiswa.IdPengguna,
-		profilSiswa.IdTingkatKelas,
 		profilSiswa.IdNamaKelas,
 		string(profilSiswa.Nisn),
 		profilSiswa.NoAbsen,
@@ -188,9 +188,9 @@ func (r *ProfilSiswaRepo) UpdateProfilSiswa(ctx context.Context, idPengguna user
 		set = append(set, fmt.Sprintf("%s=$%d", col, len(args)))
 	}
 
-	if profilSiswa.IdTingkatKelas != nil {
-		add("id_kelas", *profilSiswa.IdTingkatKelas)
-	}
+	// if profilSiswa.IdTingkatKelas != nil {
+	// 	add("id_kelas", *profilSiswa.IdTingkatKelas)
+	// }
 	if profilSiswa.IdNamaKelas != nil {
 		add("id_nama_kelas", *profilSiswa.IdNamaKelas)
 	}
@@ -250,9 +250,10 @@ func (r *ProfilSiswaRepo) GetListSiswa(ctx context.Context, filter query.ListSis
 			ps.nisn
 		FROM pengguna p
 		JOIN profil_siswa ps ON ps.id_pengguna = p.id_pengguna
-		JOIN kelas k ON ps.id_kelas = k.id_kelas
 		JOIN nama_kelas nk ON ps.id_nama_kelas = nk.id_nama_kelas
+		JOIN kelas k ON nk.id_kelas = k.id_kelas
 	`
+	// JOIN kelas k ON ps.id_kelas = k.id_kelas
 
 	where := make([]string, 0, 6)
 	args := make([]any, 0, 8)

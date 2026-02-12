@@ -12,7 +12,6 @@ type NISN string
 type ProfilSiswa struct {
 	ID             ID
 	IdPengguna     ID
-	IdTingkatKelas ID
 	IdNamaKelas    ID
 	Nisn           NISN
 	NoAbsen        int
@@ -20,6 +19,7 @@ type ProfilSiswa struct {
 	TempatLahir    string
 	TanggalLahir   time.Time
 }
+// IdTingkatKelas ID
 
 type DataSiswa struct {
 	IdPengguna   ID

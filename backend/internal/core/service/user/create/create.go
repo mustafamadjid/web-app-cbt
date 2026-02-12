@@ -249,7 +249,6 @@ func (uc *CreateTx) CreateSiswa(ctx context.Context, cmd CreateSiswaCmd, actor u
 
 	profilSiswaData := user.ProfilSiswa{
 		IdPengguna:     idPengguna,
-		IdTingkatKelas: cmd.IdTingkatKelas,
 		IdNamaKelas:    cmd.IdNamaKelas,
 		Nisn:           nisnToStore,
 		NoAbsen:        cmd.NoAbsen,
@@ -257,6 +256,7 @@ func (uc *CreateTx) CreateSiswa(ctx context.Context, cmd CreateSiswaCmd, actor u
 		TempatLahir:    cmd.TempatLahir,
 		TanggalLahir:   cmd.TanggalLahir,
 	}
+	// IdTingkatKelas: cmd.IdTingkatKelas,
 
 	idProfilSiswa, err := tx.ProfilSiswa().CreateProfilSiswa(ctx, profilSiswaData)
 	if err != nil {

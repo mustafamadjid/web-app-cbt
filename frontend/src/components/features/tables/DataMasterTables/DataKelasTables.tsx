@@ -18,7 +18,7 @@ import {
 } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { paths } from "@/routes/paths";
 import toast from "react-hot-toast";
-import ErrorFloating from "@/components/ui/ErrorFloating/ErrorFloating";
+
 import { ApiError } from "@/services/Api/api";
 
 function useDebouncedValue<T>(value: T, delayMs = 300) {
@@ -175,7 +175,7 @@ const DataKelasTables: React.FC = () => {
             ? "Gagal Menghapus. Data kelas terkait dengan data lain"
             : "Data kelas gagal dihapus"
           : "Data kelas gagal dihapus";
-            setErrorMsg(message);
+            toast.error(message);
 
     }
   };
@@ -234,7 +234,6 @@ const DataKelasTables: React.FC = () => {
 
   return (
     <div className="w-full space-y-6">
-      <ErrorFloating message={errorMsg} />
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-2xl font-bold tracking-tight text-slate-900">
