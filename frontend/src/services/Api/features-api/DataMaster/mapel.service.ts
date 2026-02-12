@@ -1,134 +1,123 @@
-import type {
-  KelasOption,
-  MataPelajaranFilterParams,
-  MataPelajaranRow,
-  MataPelajaranFormValues,
-} from "@/types/DataMaster/MataPelajaran";
-import { getTingkatKelasById } from "@/services/Api/features-api/DataMaster/kelas.service";
-import { api } from "@/services/Api/api";
-import type { ApiEnvelope } from "@/services/Api/api";
 import { buildJsonData } from "@/helper/FormData/BuildJsonData";
+import { api } from "@/services/Api/api";
+import type {
+  CreateMapelPayload,
+  ListMapelResponse,
+  MapelItemResponse,
+  MataPelajaranFilterParams,
+  MataPelajaranFormValues,
+  MataPelajaranRow,
+  UpdateMapelPayload,
+} from "@/types/DataMaster/MataPelajaran";
 
-const DUMMY_KELAS: KelasOption[] = [
-  {
-    id: 10,
-    tingkat_kelas: 10,
-    label: "Kelas 10",
-  },
-  {
-    id: 11,
-    tingkat_kelas: 11,
-    label: "Kelas 11",
-  },
-  {
-    id: 12,
-    tingkat_kelas: 12,
-    label: "Kelas 12",
-  },
-];
+const MAPEL_ENDPOINT = "/admin/mata-pelajaran";
 
-const DUMMY_MAPEL: MataPelajaranRow[] = [
-  {
-    id: 1,
-    kelasId: 10,
-    kodeMapel: "MAT-10-01",
-    namaMapel: "Matematika",
-    deskripsiMapel: "Aljabar dasar, geometri, dan statistika.",
-  },
-  {
-    id: 2,
-    kelasId: 10,
-    kodeMapel: "EKO-10-01",
-    namaMapel: "Ekonomi",
-    deskripsiMapel: "Dasar-dasar ekonomi mikro dan makro.",
-  },
-  {
-    id: 3,
-    kelasId: 11,
-    kodeMapel: "BIO-11-01",
-    namaMapel: "Biologi",
-    deskripsiMapel: "Sistem makhluk hidup dan genetika.",
-  },
-  {
-    id: 4,
-    kelasId: 11,
-    kodeMapel: "GEO-11-01",
-    namaMapel: "Geografi",
-    deskripsiMapel: "Peta, lingkungan, dan dinamika wilayah.",
-  },
-  {
-    id: 5,
-    kelasId: 12,
-    kodeMapel: "FIS-12-01",
-    namaMapel: "Fisika",
-    deskripsiMapel: "Listrik, gelombang, dan mekanika.",
-  },
-];
+const toMataPelajaranRow = (item: MapelItemResponse): MataPelajaranRow => ({
+  id: item.id_mapel,
+  kelasId: item.id_kelas,
+  kodeMapel: item.kode_mapel,
+  namaMapel: item.nama_mapel,
+  deskripsiMapel: item.deskripsi,
+});
 
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const toCreatePayload = (
+  values: MataPelajaranFormValues,
+): CreateMapelPayload => ({
+  id_kelas: Number(values.kelasId),
+  kode_mapel: values.kodeMapel,
+  nama_mapel: values.namaMapel,
+  deskripsi: values.deskripsiMapel,
+});
 
-const normalize = (value: string) => value.toLowerCase().trim();
+const toPartialPayload = (
+  values: MataPelajaranFormValues,
+  initialValues: MataPelajaranFormValues,
+): UpdateMapelPayload => {
+  const payload: UpdateMapelPayload = {};
 
-export async function getMataPelajaran(
-  params: MataPelajaranFilterParams = {}
-): Promise<MataPelajaranRow[]> {
-  await sleep(250);
-  const q = params.q ? normalize(params.q) : "";
+  if (Number(values.kelasId) !== Number(initialValues.kelasId)) {
+    payload.id_kelas = Number(values.kelasId);
+  }
+  if (values.kodeMapel !== initialValues.kodeMapel) {
+    payload.kode_mapel = values.kodeMapel;
+  }
+  if (values.namaMapel !== initialValues.namaMapel) {
+    payload.nama_mapel = values.namaMapel;
+  }
+  if (values.deskripsiMapel !== initialValues.deskripsiMapel) {
+    payload.deskripsi = values.deskripsiMapel;
+  }
 
-  const kelasById = DUMMY_KELAS.reduce<Record<number, KelasOption>>(
-    (acc, kelas) => {
-      acc[kelas.id] = kelas;
-      return acc;
-    },
-    {}
-  );
+  return payload;
+};
 
-  return DUMMY_MAPEL.filter((mapel) => {
-    const tingkatKelas = kelasById[mapel.kelasId]?.tingkat_kelas;
-    const tingkatKelasById = getTingkatKelasById(params.tingkatKelas);
+export async function createMataPelajaran(values: MataPelajaranFormValues) {
+  const payload = toCreatePayload(values);
+  const data = buildJsonData(payload);
 
-    if (params.tingkatKelas && tingkatKelas !== tingkatKelasById) {
-      return false;
-    }
-
-    if (params.mapelId && params.mapelId !== mapel.id) {
-      return false;
-    }
-
-    if (!q) return true;
-
-    return (
-      mapel.kodeMapel.toLowerCase().includes(q) ||
-      mapel.namaMapel.toLowerCase().includes(q) ||
-      mapel.deskripsiMapel.toLowerCase().includes(q) ||
-      (tingkatKelas !== undefined && String(tingkatKelas).includes(q))
-    );
+  return api<null>(MAPEL_ENDPOINT, {
+    method: "POST",
+    data,
   });
 }
 
-export async function getMataPelajaranById(
-  id: number
-): Promise<MataPelajaranFormValues | null> {
-  const target = DUMMY_MAPEL.find((mapel) => mapel.id === id);
-  if (!target) return null;
+export async function getMapel(
+  params: MataPelajaranFilterParams = {},
+): Promise<MataPelajaranRow[]> {
+  const queryParams: Record<string, string | undefined> = {
+    search: params.search?.trim() || undefined,
+    tingkat_kelas:
+      params.tingkatKelas != null ? String(params.tingkatKelas) : undefined,
+    nama_mapel: params.namaMapel?.trim() || undefined,
+    limit: params.limit != null ? String(params.limit) : undefined,
+    offset: params.offset != null ? String(params.offset) : undefined,
+  };
+
+  const response = await api<ListMapelResponse>(MAPEL_ENDPOINT, {
+    method: "GET",
+    params: queryParams,
+  });
+
+  return response.items.map(toMataPelajaranRow);
+}
+
+export async function getMapelById(
+  idMapel: number,
+): Promise<MataPelajaranFormValues> {
+  const response = await api<MapelItemResponse>(
+    `${MAPEL_ENDPOINT}/${idMapel}`,
+    {
+      method: "GET",
+    },
+  );
 
   return {
-    kelasId: target.kelasId,
-    kodeMapel: target.kodeMapel,
-    namaMapel: target.namaMapel,
-    deskripsiMapel: target.deskripsiMapel,
+    kelasId: response.id_kelas,
+    kodeMapel: response.kode_mapel,
+    namaMapel: response.nama_mapel,
+    deskripsiMapel: response.deskripsi,
   };
 }
 
-export async function updateMataPelajaran(
-  id: number,
-  values: MataPelajaranFormValues
+export async function updateMataPelajaranPartial(
+  idMapel: number,
+  values: MataPelajaranFormValues,
+  initialValues: MataPelajaranFormValues,
 ) {
-  const data = buildJsonData(values);
-  const res = await api<ApiEnvelope<{ id: number }>>(`/mapel/${id}`, {
-    method: "PUT",
+  const payload = toPartialPayload(values, initialValues);
+  const data = buildJsonData(payload);
+
+  return api<null>(`${MAPEL_ENDPOINT}/${idMapel}`, {
+    method: "PATCH",
     data,
   });
+}
 
-  return res.data;
+export async function deleteMataPelajaran(idMapel: number) {
+  const data = buildJsonData({ id_mapel: idMapel });
+
+  return api<null>(`${MAPEL_ENDPOINT}/${idMapel}`, {
+    method: "DELETE",
+    data,
+  });
 }

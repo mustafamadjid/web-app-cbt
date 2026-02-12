@@ -15,12 +15,8 @@ import type {
   MataPelajaranRow,
 } from "@/types/DataMaster/MataPelajaran";
 import type { TingkatKelas } from "@/types/DataMaster/Kelas";
-import { getMataPelajaran } from "@/services/Api/features-api/DataMaster/mapel.service";
-import {
-  getMataPelajaranOptions,
-} from "@/services/Api/features-api/GetOptions/options.service";
-
-import { getTingkatKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
+import { GetDataKelasFull } from "@/services/Api/features-api/DataMaster/kelas.service";
+import { getMapel } from "@/services/Api/features-api/DataMaster/mapel.service";
 
 import { paths } from "@/routes/paths";
 
@@ -40,7 +36,7 @@ const DataMataPelajaran: React.FC = () => {
   const [kataKunci, setKataKunci] = useState("");
 
   const [tingkatTerpilih, setTingkatTerpilih] = useState<number | null>(null);
-  const [mapelTerpilih, setMapelTerpilih] = useState<number | null>(null);
+  const [mapelTerpilih, setMapelTerpilih] = useState<string>("");
 
   const [opsiTingkatKelas, setOpsiTingkatKelas] = useState<TingkatKelas[]>([]);
   const [opsiMapel, setOpsiMapel] = useState<MataPelajaranOption[]>([]);
@@ -60,13 +56,18 @@ const DataMataPelajaran: React.FC = () => {
     (async () => {
       try {
         setErrorMsg("");
-        const [kelas, mapel] = await Promise.all([
-          getTingkatKelas(),
-          getMataPelajaranOptions(),
+        const [kelas, mapelFull] = await Promise.all([
+          GetDataKelasFull(),
+          getMapel(),
         ]);
         if (!mounted) return;
-        setOpsiTingkatKelas(kelas);
-        setOpsiMapel(mapel);
+        setOpsiTingkatKelas(kelas.item_tingkat_kelas);
+        const uniqNamaMapel = Array.from(
+          new Set(mapelFull.map((item) => item.namaMapel)),
+        ).sort((a, b) => a.localeCompare(b, "id", { sensitivity: "base" }));
+        setOpsiMapel(
+          uniqNamaMapel.map((nama, index) => ({ id: index + 1, label: nama })),
+        );
       } catch {
         if (!mounted) return;
         setErrorMsg("Gagal memuat opsi mata pelajaran.");
@@ -86,10 +87,10 @@ const DataMataPelajaran: React.FC = () => {
         setLoading(true);
         setErrorMsg("");
 
-        const data = await getMataPelajaran({
-          q: debouncedKataKunci.trim() || undefined,
+        const data = await getMapel({
+          search: debouncedKataKunci.trim() || undefined,
           tingkatKelas: tingkatTerpilih ?? undefined,
-          mapelId: mapelTerpilih ?? undefined,
+          namaMapel: mapelTerpilih || undefined,
         });
 
         if (seq !== requestSeq.current) return;
@@ -117,7 +118,7 @@ const DataMataPelajaran: React.FC = () => {
 
   const kelasLabelById = useMemo(() => {
     return opsiTingkatKelas.reduce<Record<number, string>>((acc, tingkat) => {
-      acc[tingkat.tingkat_kelas] = `Kelas ${tingkat.tingkat_kelas}`;
+      acc[tingkat.id_tingkat_kelas] = `Kelas ${tingkat.tingkat_kelas}`;
       return acc;
     }, {});
   }, [opsiTingkatKelas]);
@@ -152,7 +153,7 @@ const DataMataPelajaran: React.FC = () => {
   const resetFilter = () => {
     setKataKunci("");
     setTingkatTerpilih(null);
-    setMapelTerpilih(null);
+    setMapelTerpilih("");
   };
 
   return (
@@ -228,17 +229,13 @@ const DataMataPelajaran: React.FC = () => {
                 Mapel
               </label>
               <select
-                value={mapelTerpilih ?? ""}
-                onChange={(e) =>
-                  setMapelTerpilih(
-                    e.target.value === "" ? null : Number(e.target.value),
-                  )
-                }
+                value={mapelTerpilih}
+                onChange={(e) => setMapelTerpilih(e.target.value)}
                 className="mt-1 w-full cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-[#397e50] focus:outline-none focus:ring-1 focus:ring-[#397e50]"
               >
                 <option value="">Semua</option>
                 {opsiMapel.map((mapel) => (
-                  <option key={mapel.id} value={mapel.id}>
+                  <option key={mapel.label} value={mapel.label}>
                     {mapel.label}
                   </option>
                 ))}

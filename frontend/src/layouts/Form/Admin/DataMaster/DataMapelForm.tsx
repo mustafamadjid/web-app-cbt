@@ -4,7 +4,9 @@ import InputField from "@/components/common/Input/InputField";
 
 import type { MataPelajaranFormValues } from "@/types/DataMaster/MataPelajaran";
 import type { TingkatKelas } from "@/types/DataMaster/Kelas";
-import { getTingkatKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
+import { GetDataKelasFull } from "@/services/Api/features-api/DataMaster/kelas.service";
+import { createMataPelajaran } from "@/services/Api/features-api/DataMaster/mapel.service";
+import { ApiError } from "@/services/Api/api";
 
 import { createSetField } from "@/helper/setField/setField";
 import {
@@ -28,13 +30,14 @@ const DataMapelForm = () => {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [kelasOptions, setKelasOptions] = useState<TingkatKelas[]>([]);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     let active = true;
     const loadKelas = async () => {
-      const data = await getTingkatKelas();
+      const data = await GetDataKelasFull();
       if (!active) return;
-      setKelasOptions(data);
+      setKelasOptions(data.item_tingkat_kelas);
     };
     loadKelas();
     return () => {
@@ -59,7 +62,7 @@ const DataMapelForm = () => {
   const hasError = (name: keyof MataPelajaranFormValues) =>
     !!errors[name] && !!touched[name];
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitError(null);
 
@@ -76,7 +79,20 @@ const DataMapelForm = () => {
       return;
     }
 
-    console.log("READY_TO_SUBMIT", values);
+    setSubmitting(true);
+    try {
+      await createMataPelajaran(values);
+      setValues(initialValues);
+      setTouched({});
+    } catch (error) {
+      if (error instanceof ApiError) {
+        setSubmitError(error.message);
+      } else {
+        setSubmitError("Gagal menyimpan data mata pelajaran.");
+      }
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -234,9 +250,10 @@ const DataMapelForm = () => {
             </button>
             <button
               type="submit"
+              disabled={submitting}
               className="inline-flex items-center justify-center rounded-lg bg-[#397e50] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#2f6a43]"
             >
-              Simpan Mata Pelajaran
+              {submitting ? "Menyimpan..." : "Simpan Mata Pelajaran"}
             </button>
           </div>
         </form>
