@@ -93,8 +93,9 @@ func main() {
 	userMod := app.BuildUserModule(cfg, infra, hasher, aktivitasUserMod)
 	profilSekolahMod := app.BuildProfilSekolahModule(cfg, infra)
 	kelasMod := app.BuildKelasModule(infra, aktivitasUserMod)
+	mapelMod := app.BuildMataPelajaranModule(infra)
 
-	httpMod := app.BuildHTTPModule(cfg, authMod, userMod, profilSekolahMod, aktivitasUserMod, kelasMod, tokens, logger)
+	httpMod := app.BuildHTTPModule(cfg, authMod, userMod, profilSekolahMod, aktivitasUserMod, kelasMod, mapelMod, tokens, logger)
 
 	log.Println("Listening on", cfg.HTTP.Addr)
 	if err := httpMod.Server.ListenAndServe(); err != nil && err != http.ErrServerClosed {

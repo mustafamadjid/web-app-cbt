@@ -23,7 +23,7 @@ type HTTPModule struct {
 	Server  *http.Server
 }
 
-func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSekolah *ProfilSekolahModule, aktivitasUser *AktivitasUserModule, kelas *KelasModule, tokens *TokenModule, logger corelog.Logger) *HTTPModule {
+func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSekolah *ProfilSekolahModule, aktivitasUser *AktivitasUserModule, kelas *KelasModule, mapel *MataPelajaranModule, tokens *TokenModule, logger corelog.Logger) *HTTPModule {
 	cookies := cookie.CookieConfig{
 		AccessName:  cfg.Cookie.AccessName,
 		RefreshName: cfg.Cookie.RefreshName,
@@ -132,6 +132,13 @@ func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSeko
 	router.POST("/admin/kelas/nama-kelas", requireAdmin(rateLimitStandard(kelas.CreateHandler.CreateNamaKelas)))
 	router.PATCH("/admin/kelas/nama-kelas/:idNamaKelas", requireAdmin(rateLimitStandard(kelas.UpdateHandler.UpdateNamaKelas)))
 	router.DELETE("/admin/kelas/nama-kelas/:idNamaKelas", requireAdmin(rateLimitStandard(kelas.DeleteHandler.DeleteKelas)))
+
+	// MATA PELAJARAN
+	router.GET("/admin/mata-pelajaran", requireAdmin(rateLimitStandard(mapel.GetHandler.ListMapel)))
+	router.GET("/admin/mata-pelajaran/:idMapel", requireAdmin(rateLimitStandard(mapel.GetHandler.GetMapelByID)))
+	router.POST("/admin/mata-pelajaran", requireAdmin(rateLimitStandard(mapel.CreateHandler.CreateMapel)))
+	router.PATCH("/admin/mata-pelajaran/:idMapel", requireAdmin(rateLimitStandard(mapel.UpdateHandler.UpdateMapel)))
+	router.DELETE("/admin/mata-pelajaran/:idMapel", requireAdmin(rateLimitStandard(mapel.DeleteHandler.DeleteMapel)))
 
 	// Siswa
 
