@@ -100,3 +100,59 @@ func TestGetKelasService_GetFullKelas(t *testing.T) {
 		})
 	}
 }
+
+func TestGetKelasService_GetKelasById(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	wantData := kelas.KelasData{
+		ItemsTingkatKelas: kelas.TingkatKelas{IdTingkatKelas: 2, TingkatKelas: 11},
+		ItemsNamaKelas:    kelas.NamaKelas{IdNamaKelas: 9, IdTingkatKelas: 2, NamaKelas: "IPA 1"},
+	}
+	repoErr := errors.New("repo by id error")
+
+	tests := []struct {
+		name      string
+		repo      *fake_test.FakeKelasRepo
+		wantData  kelas.KelasData
+		wantErr   error
+		idTingkat int
+		idNama    int
+	}{
+		{
+			name:      "Branch 1 -> sukses ambil kelas by id",
+			repo:      &fake_test.FakeKelasRepo{KelasByID: wantData},
+			wantData:  wantData,
+			idTingkat: 2,
+			idNama:    9,
+		},
+		{
+			name:      "Branch 2 -> gagal ambil kelas by id",
+			repo:      &fake_test.FakeKelasRepo{KelasByIDErr: repoErr},
+			wantErr:   repoErr,
+			idTingkat: 3,
+			idNama:    10,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			svc := kelas_service.NewGetKelasService(tt.repo)
+			result, err := svc.GetKelasById(ctx, tt.idTingkat, tt.idNama)
+
+			if tt.wantErr != nil {
+				assert.ErrorIs(t, err, tt.wantErr)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.wantData, result)
+			}
+
+			assert.True(t, tt.repo.GetByIDCalled)
+			assert.Equal(t, tt.idTingkat, tt.repo.GotIDTingkatKelas)
+			assert.Equal(t, tt.idNama, tt.repo.GotIDNamaKelas)
+		})
+	}
+}
