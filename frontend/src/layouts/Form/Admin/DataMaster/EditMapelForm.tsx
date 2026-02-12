@@ -1,10 +1,15 @@
 import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router";
 
 import InputField from "@/components/common/Input/InputField";
 
 import type { MataPelajaranFormValues } from "@/types/DataMaster/MataPelajaran";
 import type { TingkatKelas } from "@/types/DataMaster/Kelas";
-import { getTingkatKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
+import { GetDataKelasFull } from "@/services/Api/features-api/DataMaster/kelas.service";
+import {
+  getMapelById,
+  updateMataPelajaranPartial,
+} from "@/services/Api/features-api/DataMaster/mapel.service";
 import { ApiError } from "@/services/Api/api";
 
 import { createSetField } from "@/helper/setField/setField";
@@ -13,45 +18,71 @@ import {
   requiredString,
   requiredValue,
 } from "@/helper/validate/validateForm";
+import { paths } from "@/routes/paths";
 
-type EditMapelFormProps = {
-  initialValues: MataPelajaranFormValues;
-  onSubmit: (values: MataPelajaranFormValues) => Promise<void>;
-  loading?: boolean;
-  submitting?: boolean;
-};
+const buildInitialValues = (): MataPelajaranFormValues => ({
+  kelasId: "",
+  kodeMapel: "",
+  namaMapel: "",
+  deskripsiMapel: "",
+});
 
 const sectionTitle = "text-sm font-semibold text-slate-800";
 const helperText = "text-xs text-slate-500";
 
-const EditMapelForm = ({
-  initialValues,
-  onSubmit,
-  loading = false,
-  submitting = false,
-}: EditMapelFormProps) => {
-  const [values, setValues] = useState<MataPelajaranFormValues>(initialValues);
+const EditMapelForm = () => {
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const mapelId = Number(id);
+
+  const [values, setValues] =
+    useState<MataPelajaranFormValues>(buildInitialValues());
+  const [initialValues, setInitialValues] =
+    useState<MataPelajaranFormValues>(buildInitialValues());
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [kelasOptions, setKelasOptions] = useState<TingkatKelas[]>([]);
-
-  useEffect(() => {
-    setValues(initialValues);
-    setTouched({});
-  }, [initialValues]);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     let active = true;
-    const loadKelas = async () => {
-      const data = await getTingkatKelas();
-      if (!active) return;
-      setKelasOptions(data);
+
+    const loadData = async () => {
+      if (!id || Number.isNaN(mapelId)) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const [kelas, mapel] = await Promise.all([
+          GetDataKelasFull(),
+          getMapelById(mapelId),
+        ]);
+
+        if (!active) return;
+
+        setKelasOptions(kelas.item_tingkat_kelas);
+        setValues(mapel);
+        setInitialValues(mapel);
+      } catch (error) {
+        if (!active) return;
+        if (error instanceof ApiError) {
+          setSubmitError(error.message);
+        } else {
+          setSubmitError("Gagal memuat data mata pelajaran.");
+        }
+      } finally {
+        if (active) setLoading(false);
+      }
     };
-    loadKelas();
+
+    loadData();
+
     return () => {
       active = false;
     };
-  }, []);
+  }, [id, mapelId]);
 
   const setField = createSetField(setValues);
 
@@ -87,12 +118,23 @@ const EditMapelForm = ({
       return;
     }
 
+    if (!id || Number.isNaN(mapelId)) {
+      setSubmitError("ID mata pelajaran tidak valid.");
+      return;
+    }
+
     try {
-      await onSubmit(values);
+      setSubmitting(true);
+      await updateMataPelajaranPartial(mapelId, values, initialValues);
+      navigate(paths.dashboard.data_master_mapel);
     } catch (error) {
       if (error instanceof ApiError) {
         setSubmitError(error.message);
+      } else {
+        setSubmitError("Gagal memperbarui data mata pelajaran.");
       }
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -253,7 +295,7 @@ const EditMapelForm = ({
               className="inline-flex cursor-pointer items-center justify-center rounded-lg bg-[#397e50] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#2f6a43] disabled:cursor-not-allowed disabled:opacity-70"
               disabled={isDisabled}
             >
-              Simpan Perubahan
+              {submitting ? "Menyimpan..." : "Simpan Perubahan"}
             </button>
           </div>
         </form>

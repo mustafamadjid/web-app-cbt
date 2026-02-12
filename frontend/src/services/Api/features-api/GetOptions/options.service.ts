@@ -9,10 +9,8 @@ import type {
   SesiUjianOption,
 } from "@/types/Ujian/BuatUjian";
 import { getBankSoalByKelas } from "@/services/Api/features-api/BankSoal/banksoal.service";
-import {
-  getTingkatKelasById,
-} from "@/services/Api/features-api/DataMaster/kelas.service";
-import { getMataPelajaran } from "@/services/Api/features-api/DataMaster/mapel.service";
+import { getTingkatKelasById } from "@/services/Api/features-api/DataMaster/kelas.service";
+import { getMapel } from "@/services/Api/features-api/DataMaster/mapel.service";
 import { getRuangUjian } from "@/services/Api/features-api/DataMaster/ruang-ujian.service";
 
 const DUMMY_BANKSOAL_MAPEL: MataPelajaranOption[] = [
@@ -90,14 +88,12 @@ export async function getMataPelajaranOptions(
     return filtered;
   }
 
-  const data = await getMataPelajaran();
+  const data = await getMapel();
   return data.map((mapel) => ({
     id: mapel.id,
     label: mapel.namaMapel,
   }));
 }
-
-
 
 export async function getRuangUjianOptions(): Promise<RuangUjianRow[]> {
   const data = await getRuangUjian();

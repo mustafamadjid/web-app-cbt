@@ -24,7 +24,30 @@ export type MataPelajaranFormValues = {
 };
 
 export type MataPelajaranFilterParams = {
-  q?: string;
+  search?: string;
   tingkatKelas?: number;
-  mapelId?: number;
+  namaMapel?: string;
+  limit?: number;
+  offset?: number;
 };
+
+export type MapelItemResponse = {
+  id_mapel: number;
+  id_kelas: number;
+  kode_mapel: string;
+  nama_mapel: string;
+  deskripsi: string;
+};
+
+export type ListMapelResponse = {
+  items: MapelItemResponse[];
+};
+
+export type CreateMapelPayload = {
+  id_kelas: number;
+  kode_mapel: string;
+  nama_mapel: string;
+  deskripsi: string;
+};
+
+export type UpdateMapelPayload = Partial<CreateMapelPayload>;
