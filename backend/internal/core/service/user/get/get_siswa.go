@@ -9,8 +9,9 @@ import (
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
 
-	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 
+	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
+	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 	query "github.com/mustafamadjid/web-app-cbt/internal/core/query/user"
 )
 
@@ -31,6 +32,8 @@ var allowedSort = map[string]struct{}{
 }
 
 func (s *GetSiswaService) ListSiswa(ctx context.Context, filter query.ListSiswaFilter) ([]query.SiswaListItem, error) {
+	logger := corelog.FromContext(ctx)
+
 	filter.Search = strings.TrimSpace(filter.Search)
 
 	if filter.Limit <= 0 {
@@ -83,6 +86,7 @@ func (s *GetSiswaService) ListSiswa(ctx context.Context, filter query.ListSiswaF
 
 	items, err := s.siswaSvc.GetListSiswa(ctx, filter)
 	if err != nil {
+		logger.Error(ctx, "failed get list siswa", "layer", "core.service", "op", "user.get", "err", err)
 		return nil, err
 	}
 

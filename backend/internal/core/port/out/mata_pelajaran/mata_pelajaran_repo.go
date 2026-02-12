@@ -14,7 +14,7 @@ type MataPelajaranRepository interface {
 
 	CreateMapel(ctx context.Context, mapel matapelajaran.MataPelajaran) error
 
-	UpdateMapel(ctx context.Context, mapel updatepatch.UpdateMapelPatch) error
+	UpdateMapel(ctx context.Context,idMapel int, mapel updatepatch.UpdateMapelPatch) error
 
 	DeleteMapel(ctx context.Context, idMapel int) error
 

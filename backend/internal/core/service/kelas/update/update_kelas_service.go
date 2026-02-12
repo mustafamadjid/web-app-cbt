@@ -22,7 +22,7 @@ func NewUpdateKelasService(kelasRepo kelas_repo.KelasRepository) *UpdateKelasSer
 func (s *UpdateKelasService) UpdateNamaKelas(ctx context.Context, idNamaKelas int, dataUpdate updatepatch.NamaKelasPatch) error {
 	logger := corelog.FromContext(ctx)
 
-	if idNamaKelas == 0 {
+	if idNamaKelas <= 0 {
 		return coreerror.ErrMissingId
 	}
 

@@ -10,17 +10,17 @@ import (
 	matapelajaran_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/mata_pelajaran"
 )
 
-type MapelRepo struct {
+type CreateMapelRepo struct {
 	mapelRepo matapelajaran_repo.MataPelajaranRepository
 }
 
-func NewMapelService(mapelRepo matapelajaran_repo.MataPelajaranRepository) *MapelRepo {
-	return &MapelRepo{
+func NewMapelService(mapelRepo matapelajaran_repo.MataPelajaranRepository) *CreateMapelRepo {
+	return &CreateMapelRepo{
 		mapelRepo: mapelRepo,
 	}
 }
 
-func (r *MapelRepo)CreateMapelService(ctx context.Context, mapel matapelajaran.MataPelajaran)error{
+func (r *CreateMapelRepo)CreateMapelService(ctx context.Context, mapel matapelajaran.MataPelajaran)error{
 	logger := corelog.FromContext(ctx)
 
 	mapel.KodeMapel = strings.TrimSpace(mapel.KodeMapel)
