@@ -44,6 +44,10 @@ type FakeRefreshToken struct {
 	VerifyRefreshTokenErr   error
 }
 
+type FakeRefreshTTl struct {
+	TTL time.Duration
+}
+
 func (fakeRepo *FakeAuthUserRepo) FindByUsername(ctx context.Context, username string) (user.Pengguna, error) {
 	if fakeRepo.FindUsernameErr != nil {
 		return user.Pengguna{}, fakeRepo.FindUsernameErr

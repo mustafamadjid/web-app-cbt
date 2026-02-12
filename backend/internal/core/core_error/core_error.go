@@ -10,6 +10,7 @@ var (
 	ErrForbidden    = errors.New("forbidden")
 	ErrConflict     = errors.New("conflict")
 	ErrDbError      = errors.New("db error")
+	ErrUserHasSession = errors.New("user has session")
 
 	ErrInvalidToken = errors.New("invalid token")
 	ErrInvalidCreds = errors.New("invalid credentials")

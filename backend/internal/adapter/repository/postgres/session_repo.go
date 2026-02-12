@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/auth/session"
@@ -35,6 +36,13 @@ func (r *SessionRepo) CreateSession(ctx context.Context, userID user.ID, expires
 
 	var sessionID string
 	if err := r.q.QueryRow(ctx, query, userID, expiresAt).Scan(&sessionID); err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			if pgErr.Code == "23505" {
+				return "", coreerror.ErrHasSession
+			}
+		}
+
 		r.loggerFor(ctx).Error(ctx, "failed creating session", "op", "session_repo.create", "user_id", userID, "err", err)
 		return "", err
 	}
@@ -155,7 +163,6 @@ func (r *SessionRepo) HasActiveSession(ctx context.Context, userID user.ID) (boo
 			FROM sessions
 			WHERE id_pengguna = $1
 				AND revoked_at IS NULL
-				AND expires_at > now()
 		)
 	`
 
@@ -167,6 +174,23 @@ func (r *SessionRepo) HasActiveSession(ctx context.Context, userID user.ID) (boo
 
 	return exists, nil
 }
+
+func (r *SessionRepo) RevokeExpiredSessions(ctx context.Context, userID user.ID) (bool, error) {
+	const q = `
+		UPDATE sessions
+		SET revoked_at = NOW()
+		WHERE id_pengguna = $1
+		  AND revoked_at IS NULL
+		  AND expires_at <= NOW()
+	`
+	tag, err := r.q.Exec(ctx, q, userID)
+	if err != nil {
+		r.loggerFor(ctx).Error(ctx, "failed revoking expired sessions", "op", "session_repo.revoke_expired", "user_id", userID, "err", err)
+		return false, err
+	}
+	return tag.RowsAffected() > 0, nil
+}
+
 
 func (r *SessionRepo) RevokeSession(ctx context.Context, sessionID string) error {
 	const query = `

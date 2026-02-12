@@ -21,10 +21,12 @@ type AuthService struct {
 	sessions      out.SessionRepository
 	accessTokens  out.AccessTokenService
 	refreshTokens out.RefreshTokenService
+
+	refreshTTL 		time.Duration
 }
 
-func NewAuthService(authUser auth_port_out.AuthUserrepository, user outuser.UserRepository, hash out.PasswordHasher, session out.SessionRepository, accessToken out.AccessTokenService, refreshToken out.RefreshTokenService) *AuthService {
-	return &AuthService{authUsers: authUser, users: user, hasher: hash, sessions: session, accessTokens: accessToken, refreshTokens: refreshToken}
+func NewAuthService(authUser auth_port_out.AuthUserrepository, user outuser.UserRepository, hash out.PasswordHasher, session out.SessionRepository, accessToken out.AccessTokenService, refreshToken out.RefreshTokenService, refreshTTL time.Duration) *AuthService {
+	return &AuthService{authUsers: authUser, users: user, hasher: hash, sessions: session, accessTokens: accessToken, refreshTokens: refreshToken, refreshTTL: refreshTTL}
 }
 
 func (authService *AuthService) Login(ctx context.Context, cmd LoginCmd) (LoginRes, error) {
@@ -43,6 +45,13 @@ func (authService *AuthService) Login(ctx context.Context, cmd LoginCmd) (LoginR
 		return LoginRes{}, coreerror.ErrInvalidCreds
 	}
 
+	_, err = authService.sessions.RevokeExpiredSessions(ctx, u.ID)
+	if err != nil {
+		logger.Error(ctx, "failed revoking expired sessions", "layer", "core.service", "op", "auth.login", "user_id", u.ID, "err", err)
+		return LoginRes{}, err
+	}
+
+
 	checkSession, err := authService.sessions.HasActiveSession(ctx, u.ID)
 	if err != nil {
 		logger.Error(ctx, "failed checking active session", "layer", "core.service", "op", "auth.login", "user_id", u.ID, "err", err)
@@ -53,7 +62,7 @@ func (authService *AuthService) Login(ctx context.Context, cmd LoginCmd) (LoginR
 		return LoginRes{}, coreerror.ErrHasSession
 	}
 
-	refreshExp := time.Now().Add(14 * 24 * time.Hour)
+	refreshExp := time.Now().Add(authService.refreshTTL)
 	sessionId, err := authService.sessions.CreateSession(ctx, u.ID, refreshExp)
 	if err != nil {
 		logger.Error(ctx, "failed creating session", "layer", "core.service", "op", "auth.login", "user_id", u.ID, "err", err)

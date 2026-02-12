@@ -20,6 +20,7 @@ func BuildAuthModule(cfg Config, infra *InfraModule, tokens *TokenModule, hasher
 		infra.Sessions,
 		tokens.AccessTokenSvc,
 		tokens.RefreshTokenSvc,
+		cfg.JWT.RefreshTTL,
 	)
 
 	cookies := cookie.CookieConfig{
