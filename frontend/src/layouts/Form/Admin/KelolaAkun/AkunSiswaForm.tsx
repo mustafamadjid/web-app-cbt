@@ -6,7 +6,7 @@ import ImageUpload from "@/components/features/Upload/ImageUpload";
 
 import type { JenisKelamin } from "@/types/OpsiTypes/Option";
 import type { StudentRegisterFormValues } from "@/types/KelolaAkun/AkunSiswa";
-import type { FullDataKelas, NamaKelas } from "@/types/DataMaster/Kelas";
+import type { FullDataKelas } from "@/types/DataMaster/Kelas";
 
 import { submitStudentRegister } from "@/services/Api/features-api/KelolaAkun/akunsiswa.service";
 import { paths } from "@/routes/paths";
@@ -36,7 +36,6 @@ const initialValues: StudentRegisterFormValues = {
   angkatan: 0,
   tempat_lahir: "",
   tanggal_lahir: "",
-  id_tingkat_kelas: 0,
   id_nama_kelas: "",
   foto_profil: null,
 };
@@ -91,8 +90,6 @@ const AkunSiswaForm = () => {
     };
   }, [values.foto_profil]);
 
-  const [namaKelasOptions, setNamaKelasOptions] = useState<NamaKelas[]>([]);
-
   const [daftarKelas, setDaftarKelas] = useState<FullDataKelas | null>(null);
 
   useEffect(() => {
@@ -108,28 +105,6 @@ const AkunSiswaForm = () => {
       akitf = false;
     };
   }, []);
-
-  useEffect(() => {
-    if (!values.id_tingkat_kelas) {
-      setNamaKelasOptions([]);
-      if (values.id_nama_kelas !== "") {
-        setValues((prev) => ({ ...prev, id_nama_kelas: "" }));
-      }
-      return;
-    }
-
-    const filtered = (daftarKelas?.item_nama_kelas ?? []).filter(
-      (kelas) => kelas.id_tingkat_kelas === values.id_tingkat_kelas,
-    );
-    setNamaKelasOptions(filtered);
-
-    const isValid = filtered.some(
-      (kelas) => String(kelas.id_nama_kelas) === values.id_nama_kelas,
-    );
-    if (!isValid && values.id_nama_kelas !== "") {
-      setValues((prev) => ({ ...prev, id_nama_kelas: "" }));
-    }
-  }, [daftarKelas, values.id_nama_kelas, values.id_tingkat_kelas]);
 
   const setField = createSetField(setValues);
 
@@ -200,11 +175,6 @@ const AkunSiswaForm = () => {
     tempat_lahir: [requiredString("Tempat lahir wajib diisi.")],
     tanggal_lahir: [requiredString("Tanggal lahir wajib diisi.")],
 
-    // ===== select numeric: id_tingkat_kelas =====
-    id_tingkat_kelas: [
-      (value) => (value && value > 0 ? null : "Tingkat kelas wajib dipilih."),
-    ],
-
     // ===== select string: id_nama_kelas =====
     id_nama_kelas: [requiredValue("Nama kelas wajib dipilih.")],
 
@@ -234,7 +204,6 @@ const AkunSiswaForm = () => {
       angkatan: true,
       tempat_lahir: true,
       tanggal_lahir: true,
-      id_tingkat_kelas: true,
       id_nama_kelas: true,
       foto_profil: true,
     });
@@ -248,11 +217,8 @@ const AkunSiswaForm = () => {
     try {
       setSubmitting(true);
 
-      // FIX: cari kelas berdasarkan id_tingkat_kelas (number) dan id kelas (string)
       const kelasTerpilih = daftarKelas?.item_nama_kelas.find(
-        (kelas) =>
-          kelas.id_tingkat_kelas === values.id_tingkat_kelas &&
-          String(kelas.id_nama_kelas) === values.id_nama_kelas,
+        (kelas) => String(kelas.id_nama_kelas) === values.id_nama_kelas,
       );
 
       if (!kelasTerpilih) {
@@ -262,8 +228,6 @@ const AkunSiswaForm = () => {
 
       const payload: StudentRegisterFormValues = {
         ...values,
-        // Pastikan konsisten dengan yang ditemukan
-        id_tingkat_kelas: kelasTerpilih.id_tingkat_kelas,
         id_nama_kelas: String(kelasTerpilih.id_nama_kelas),
       };
 
@@ -537,55 +501,6 @@ const AkunSiswaForm = () => {
                 )}
               </div>
 
-              {/* Tingkat Kelas */}
-              <div>
-                <label
-                  htmlFor="id_tingkat_kelas"
-                  className="text-xs font-medium text-slate-600"
-                >
-                  Tingkat Kelas
-                </label>
-                <select
-                  id="id_tingkat_kelas"
-                  className={`w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-[#397e50] focus:ring-2 focus:ring-[#397e50] disabled:bg-slate-50 disabled:text-slate-500 ${
-                    hasError("id_tingkat_kelas")
-                      ? "border-rose-300 ring-rose-100"
-                      : ""
-                  }`}
-                  value={values.id_tingkat_kelas}
-                  onChange={(e) => {
-                    const n = Number(e.target.value);
-                    setField("id_tingkat_kelas", Number.isFinite(n) ? n : 0);
-                  }}
-                  onBlur={() => onBlur("id_tingkat_kelas")}
-                  required
-                >
-                  <option value={0} disabled>
-                    Pilih tingkat kelas...
-                  </option>
-
-                  {/* FIX: value harus id_tingkat_kelas (bukan tingkat_kelas) */}
-                  {(daftarKelas?.item_tingkat_kelas ?? []).map((tingkat) => (
-                    <option
-                      key={tingkat.id_tingkat_kelas}
-                      value={tingkat.id_tingkat_kelas}
-                    >
-                      {tingkat.tingkat_kelas}
-                    </option>
-                  ))}
-                </select>
-
-                <p className="mt-1 text-xs text-slate-500">
-                  Tingkat kelas akan diambil dari Data Master.
-                </p>
-
-                {hasError("id_tingkat_kelas") && (
-                  <p className="mt-1 text-xs text-rose-600">
-                    {errors.id_tingkat_kelas}
-                  </p>
-                )}
-              </div>
-
               {/* Nama Kelas */}
               <div>
                 <label
@@ -605,12 +520,11 @@ const AkunSiswaForm = () => {
                   onChange={(e) => setField("id_nama_kelas", e.target.value)}
                   onBlur={() => onBlur("id_nama_kelas")}
                   required
-                  disabled={!values.id_tingkat_kelas}
                 >
                   <option value="" disabled>
                     Pilih nama kelas...
                   </option>
-                  {namaKelasOptions.map((kelas) => (
+                  {(daftarKelas?.item_nama_kelas ?? []).map((kelas) => (
                     <option
                       key={kelas.id_nama_kelas}
                       value={String(kelas.id_nama_kelas)}
@@ -620,7 +534,7 @@ const AkunSiswaForm = () => {
                   ))}
                 </select>
                 <p className="mt-1 text-xs text-slate-500">
-                  Nama kelas mengikuti tingkat yang dipilih.
+                  Nama kelas diambil dari Data Master.
                 </p>
                 {hasError("id_nama_kelas") && (
                   <p className="mt-1 text-xs text-rose-600">

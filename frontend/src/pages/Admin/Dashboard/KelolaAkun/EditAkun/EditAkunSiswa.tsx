@@ -21,7 +21,6 @@ const buildInitialValues = (): StudentUpdateFormValues => ({
   angkatan: 0,
   tempat_lahir: "",
   tanggal_lahir: "",
-  id_tingkat_kelas: "",
   id_nama_kelas: "",
   foto_profil: null,
   status_akun: "AKTIF",
@@ -53,14 +52,9 @@ const EditAkunSiswa = () => {
         ]);
         if (!active || !data) return;
 
-        const tingkatMatch = kelas.item_tingkat_kelas.find(
-          (item) => item.tingkat_kelas === data.tingkat_kelas,
+        const namaMatch = kelas.item_nama_kelas.find(
+          (item) => item.nama_kelas === data.nama_kelas,
         );
-        const namaMatch = kelas.item_nama_kelas.find((item) => {
-          if (item.nama_kelas !== data.nama_kelas) return false;
-          if (tingkatMatch) return item.id_tingkat_kelas === tingkatMatch.id_tingkat_kelas;
-          return true;
-        });
 
         setInitialValues({
           id_pengguna: data.id_pengguna,
@@ -75,7 +69,6 @@ const EditAkunSiswa = () => {
           angkatan: data.angkatan,
           tempat_lahir: data.tempat_lahir,
           tanggal_lahir: data.tanggal_lahir,
-          id_tingkat_kelas: tingkatMatch?.id_tingkat_kelas ?? "",
           id_nama_kelas: namaMatch ? String(namaMatch.id_nama_kelas) : "",
           foto_profil: null,
           status_akun: data.status_akun,
