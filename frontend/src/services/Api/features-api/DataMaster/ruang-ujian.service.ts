@@ -26,11 +26,16 @@ export async function getRuangUjian(
   await sleep(200);
   const q = params.q ? normalize(params.q) : "";
 
-  if (!q) return DUMMY_RUANG_UJIAN;
+  const filtered = !q
+    ? DUMMY_RUANG_UJIAN
+    : DUMMY_RUANG_UJIAN.filter((ruang) =>
+        ruang.namaRuangan.toLowerCase().includes(q)
+      );
 
-  return DUMMY_RUANG_UJIAN.filter((ruang) =>
-    ruang.namaRuangan.toLowerCase().includes(q)
-  );
+  const offset = params.offset ?? 0;
+  const limit = params.limit ?? filtered.length;
+
+  return filtered.slice(offset, offset + limit);
 }
 
 export async function getRuangUjianById(

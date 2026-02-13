@@ -171,6 +171,8 @@ const AkunSiswaTables: React.FC = () => {
           angkatan: angkatan ? Number(angkatan) : undefined,
           tingkatKelas: tingkatKelasId ?? undefined,
           jenisKelamin: (jenisKelamin as JenisKelamin) || undefined,
+          limit: batasData,
+          offset: (halamanSaatIni - 1) * batasData,
         });
 
         if (seq !== requestSeq.current) return;
@@ -197,12 +199,18 @@ const AkunSiswaTables: React.FC = () => {
         }
       }
     })();
-  }, [debouncedKataKunci, angkatan, tingkatKelasId, jenisKelamin]);
+  }, [
+    debouncedKataKunci,
+    angkatan,
+    tingkatKelasId,
+    jenisKelamin,
+    batasData,
+    halamanSaatIni,
+  ]);
 
   const siswaTersaring = daftarSiswa;
   const totalData = siswaTersaring.length;
-  const awalIndex = (halamanSaatIni - 1) * batasData;
-  const siswaTerlihat = siswaTersaring.slice(awalIndex, awalIndex + batasData);
+  const siswaTerlihat = siswaTersaring;
 
   const semuaTerlihatTerpilih =
     siswaTerlihat.length > 0 &&
@@ -237,11 +245,21 @@ const AkunSiswaTables: React.FC = () => {
     setHalamanSaatIni(1);
   };
 
+  const fetchSiswa = async () => {
+    return GetListSiswa({
+      q: debouncedKataKunci.trim() || undefined,
+      angkatan: angkatan ? Number(angkatan) : undefined,
+      tingkatKelas: tingkatKelasId ?? undefined,
+      jenisKelamin: (jenisKelamin as JenisKelamin) || undefined,
+      limit: batasData,
+      offset: (halamanSaatIni - 1) * batasData,
+    });
+  };
+
   const handleDeleteSiswa = async (id_pengguna: number) => {
     await DeletePengguna(id_pengguna);
-    setDaftarSiswa((prev) =>
-      prev.filter((item) => item.id_pengguna !== id_pengguna),
-    );
+    const data = await fetchSiswa();
+    setDaftarSiswa(data);
     setIdTerpilih((prev) => {
       const next = new Set(prev);
       next.delete(id_pengguna);
@@ -254,9 +272,8 @@ const AkunSiswaTables: React.FC = () => {
 
     const ids = Array.from(idTerpilih);
     await DeletePenggunaBulk(ids);
-    setDaftarSiswa((prev) =>
-      prev.filter((item) => !idTerpilih.has(item.id_pengguna)),
-    );
+    const data = await fetchSiswa();
+    setDaftarSiswa(data);
     setIdTerpilih(new Set());
   };
 
@@ -291,20 +308,12 @@ const AkunSiswaTables: React.FC = () => {
     setHalamanSaatIni(1);
   }, [debouncedKataKunci, angkatan, tingkatKelasId, jenisKelamin, batasData]);
 
-  const totalHalaman = Math.max(1, Math.ceil(totalData / batasData));
-  const halamanAman = Math.min(halamanSaatIni, totalHalaman);
-
-  useEffect(() => {
-    if (halamanSaatIni > totalHalaman) {
-      setHalamanSaatIni(totalHalaman);
-    }
-  }, [halamanSaatIni, totalHalaman]);
-
-  const awalData = totalData === 0 ? 0 : (halamanAman - 1) * batasData + 1;
+  const awalData =
+    totalData === 0 ? 0 : (halamanSaatIni - 1) * batasData + 1;
   const akhirData =
-    totalData === 0 ? 0 : Math.min(halamanAman * batasData, totalData);
-  const bisaSebelumnya = halamanAman > 1;
-  const bisaSelanjutnya = halamanAman < totalHalaman;
+    totalData === 0 ? 0 : (halamanSaatIni - 1) * batasData + totalData;
+  const bisaSebelumnya = halamanSaatIni > 1;
+  const bisaSelanjutnya = totalData === batasData;
 
   return (
     <div className="w-full space-y-6">
@@ -786,7 +795,7 @@ const AkunSiswaTables: React.FC = () => {
                   Sebelumnya
                 </button>
                 <span className="text-sm text-slate-600">
-                  Halaman {halamanAman}
+                  Halaman {halamanSaatIni}
                 </span>
                 <button
                   type="button"

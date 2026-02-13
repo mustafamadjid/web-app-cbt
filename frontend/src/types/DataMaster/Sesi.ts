@@ -11,4 +11,6 @@ export type SesiRow = {
 
 export type SesiFilterParams = {
   q?: string;
+  limit?: number;
+  offset?: number;
 };
