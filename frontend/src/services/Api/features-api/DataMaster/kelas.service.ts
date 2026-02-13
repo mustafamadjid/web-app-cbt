@@ -46,7 +46,9 @@ export async function GetDataKelasFull(
 
   const queryParams : Record<string, string | undefined> = {
     search: params.search || undefined,
-    tingkat_kelas: params.tingkatKelas != null ? String(params.tingkatKelas) : undefined
+    tingkat_kelas: params.tingkatKelas != null ? String(params.tingkatKelas) : undefined,
+    limit: params.limit != null ? String(params.limit) : undefined,
+    offset: params.offset != null ? String(params.offset) : undefined,
   };
 
   return api<FullDataKelas>("/admin/kelas",{

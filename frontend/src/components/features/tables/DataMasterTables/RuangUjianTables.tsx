@@ -50,6 +50,8 @@ const RuangUjianTables: React.FC = () => {
 
         const data = await getRuangUjian({
           q: debouncedKataKunci.trim() || undefined,
+          limit: batasData,
+          offset: (halamanSaatIni - 1) * batasData,
         });
 
         if (seq !== requestSeq.current) return;
@@ -74,11 +76,10 @@ const RuangUjianTables: React.FC = () => {
         }
       }
     })();
-  }, [debouncedKataKunci]);
+  }, [debouncedKataKunci, batasData, halamanSaatIni]);
 
   const totalData = daftarRuangUjian.length;
-  const awalIndex = (halamanSaatIni - 1) * batasData;
-  const dataTerlihat = daftarRuangUjian.slice(awalIndex, awalIndex + batasData);
+  const dataTerlihat = daftarRuangUjian;
 
   const semuaTerlihatTerpilih =
     dataTerlihat.length > 0 && dataTerlihat.every((r) => idTerpilih.has(r.id));
@@ -115,20 +116,12 @@ const RuangUjianTables: React.FC = () => {
     setHalamanSaatIni(1);
   }, [debouncedKataKunci, batasData]);
 
-  const totalHalaman = Math.max(1, Math.ceil(totalData / batasData));
-  const halamanAman = Math.min(halamanSaatIni, totalHalaman);
-
-  useEffect(() => {
-    if (halamanSaatIni > totalHalaman) {
-      setHalamanSaatIni(totalHalaman);
-    }
-  }, [halamanSaatIni, totalHalaman]);
-
-  const awalData = totalData === 0 ? 0 : (halamanAman - 1) * batasData + 1;
+  const awalData =
+    totalData === 0 ? 0 : (halamanSaatIni - 1) * batasData + 1;
   const akhirData =
-    totalData === 0 ? 0 : Math.min(halamanAman * batasData, totalData);
-  const bisaSebelumnya = halamanAman > 1;
-  const bisaSelanjutnya = halamanAman < totalHalaman;
+    totalData === 0 ? 0 : (halamanSaatIni - 1) * batasData + totalData;
+  const bisaSebelumnya = halamanSaatIni > 1;
+  const bisaSelanjutnya = totalData === batasData;
 
   return (
     <div className="w-full space-y-6">
@@ -376,7 +369,7 @@ const RuangUjianTables: React.FC = () => {
                   Sebelumnya
                 </button>
                 <span className="text-sm text-slate-600">
-                  Halaman {halamanAman}
+                  Halaman {halamanSaatIni}
                 </span>
                 <button
                   type="button"

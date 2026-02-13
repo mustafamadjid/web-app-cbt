@@ -26,9 +26,10 @@ export type DataKelas = {
 export type KelasFilterParams = {
   search?: string;
   tingkatKelas?: number;
+  limit?: number;
+  offset?: number;
 };
 
 export type KelasSubmitResponse = {
   id: number;
 };
-

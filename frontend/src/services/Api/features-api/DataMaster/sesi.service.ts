@@ -20,14 +20,19 @@ export async function getSesi(
   await sleep(200);
   const q = params.q ? normalize(params.q) : "";
 
-  if (!q) return DUMMY_SESI;
+  const filtered = !q
+    ? DUMMY_SESI
+    : DUMMY_SESI.filter((sesi) => {
+        return (
+          sesi.kodeSesi.toLowerCase().includes(q) ||
+          sesi.namaSesi.toLowerCase().includes(q)
+        );
+      });
 
-  return DUMMY_SESI.filter((sesi) => {
-    return (
-      sesi.kodeSesi.toLowerCase().includes(q) ||
-      sesi.namaSesi.toLowerCase().includes(q)
-    );
-  });
+  const offset = params.offset ?? 0;
+  const limit = params.limit ?? filtered.length;
+
+  return filtered.slice(offset, offset + limit);
 }
 
 export async function getSesiById(id: number): Promise<SesiFormValues | null> {

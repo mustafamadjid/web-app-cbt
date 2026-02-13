@@ -9,4 +9,6 @@ export type RuangUjianRow = {
 
 export type RuangUjianFilterParams = {
   q?: string;
+  limit?: number;
+  offset?: number;
 };

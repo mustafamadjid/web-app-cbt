@@ -101,6 +101,8 @@ const DataMataPelajaran: React.FC = () => {
           search: debouncedKataKunci.trim() || undefined,
           tingkatKelas: tingkatTerpilih ?? undefined,
           namaMapel: mapelTerpilih || undefined,
+          limit: batasData,
+          offset: (halamanSaatIni - 1) * batasData,
         });
 
         if (seq !== requestSeq.current) return;
@@ -125,7 +127,13 @@ const DataMataPelajaran: React.FC = () => {
         }
       }
     })();
-  }, [debouncedKataKunci, tingkatTerpilih, mapelTerpilih]);
+  }, [
+    debouncedKataKunci,
+    tingkatTerpilih,
+    mapelTerpilih,
+    batasData,
+    halamanSaatIni,
+  ]);
 
   const kelasLabelById = useMemo(() => {
     return opsiTingkatKelas.reduce<Record<number, string>>((acc, tingkat) => {
@@ -135,8 +143,7 @@ const DataMataPelajaran: React.FC = () => {
   }, [opsiTingkatKelas]);
 
   const totalData = daftarMapel.length;
-  const awalIndex = (halamanSaatIni - 1) * batasData;
-  const dataTerlihat = daftarMapel.slice(awalIndex, awalIndex + batasData);
+  const dataTerlihat = daftarMapel;
 
   const semuaTerlihatTerpilih =
     dataTerlihat.length > 0 &&
@@ -168,6 +175,8 @@ const DataMataPelajaran: React.FC = () => {
       search: debouncedKataKunci.trim() || undefined,
       tingkatKelas: tingkatTerpilih ?? undefined,
       namaMapel: mapelTerpilih || undefined,
+      limit: batasData,
+      offset: (halamanSaatIni - 1) * batasData,
     });
   };
 
@@ -239,20 +248,12 @@ const DataMataPelajaran: React.FC = () => {
     setHalamanSaatIni(1);
   }, [debouncedKataKunci, batasData]);
 
-  const totalHalaman = Math.max(1, Math.ceil(totalData / batasData));
-  const halamanAman = Math.min(halamanSaatIni, totalHalaman);
-
-  useEffect(() => {
-    if (halamanSaatIni > totalHalaman) {
-      setHalamanSaatIni(totalHalaman);
-    }
-  }, [halamanSaatIni, totalHalaman]);
-
-  const awalData = totalData === 0 ? 0 : (halamanAman - 1) * batasData + 1;
+  const awalData =
+    totalData === 0 ? 0 : (halamanSaatIni - 1) * batasData + 1;
   const akhirData =
-    totalData === 0 ? 0 : Math.min(halamanAman * batasData, totalData);
-  const bisaSebelumnya = halamanAman > 1;
-  const bisaSelanjutnya = halamanAman < totalHalaman;
+    totalData === 0 ? 0 : (halamanSaatIni - 1) * batasData + totalData;
+  const bisaSebelumnya = halamanSaatIni > 1;
+  const bisaSelanjutnya = totalData === batasData;
 
   return (
     <div className="w-full space-y-6">
@@ -569,7 +570,7 @@ const DataMataPelajaran: React.FC = () => {
                   Sebelumnya
                 </button>
                 <span className="text-sm text-slate-600">
-                  Halaman {halamanAman}
+                  Halaman {halamanSaatIni}
                 </span>
                 <button
                   type="button"
