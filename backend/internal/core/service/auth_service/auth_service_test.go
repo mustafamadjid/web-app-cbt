@@ -149,7 +149,7 @@ func (fakeSession *FakeSessionRepo) RevokeSession(ctx context.Context, sessionID
 	return nil
 }
 
-func (fakeSession *FakeSessionRepo) RevokeSessionAllbyUser(ctx context.Context, userID user.ID, now time.Time) error {
+func (fakeSession *FakeSessionRepo) RevokeSessionAllbyUser(ctx context.Context, userID user.ID) error {
 	for ssid, sess := range fakeSession.Store {
 		if sess.UserID == userID && !sess.Revoked && now.Before(sess.ExpiresAt) {
 			sess.Revoked = true

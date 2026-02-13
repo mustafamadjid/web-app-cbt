@@ -34,7 +34,7 @@ func Build(ctx context.Context, cfg Config, dbURL string, hasher out.PasswordHas
 	profilSekolah := BuildProfilSekolahModule(cfg, infra)
 	kelas := BuildKelasModule(infra, aktivitasUser)
 	mapel := BuildMataPelajaranModule(infra)
-	httpm := BuildHTTPModule(cfg, auth, users, profilSekolah, aktivitasUser, kelas, mapel, tokens, logger)
+	httpm := BuildHTTPModule(cfg, auth, users, profilSekolah, aktivitasUser, kelas, mapel, tokens,infra, logger)
 
 	return &App{
 		Infra:         infra,

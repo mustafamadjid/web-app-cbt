@@ -15,7 +15,7 @@ type SessionRepository interface {
 
 	CreateSession(ctx context.Context, userID user.ID, expiresAt time.Time) (string, error)
 	RevokeSession(ctx context.Context, sessionID string) error
-	RevokeSessionAllbyUser(ctx context.Context, userID user.ID, now time.Time) error
+	RevokeSessionAllbyUser(ctx context.Context, userID user.ID) error
 	RevokeExpiredSessions(ctx context.Context, userID user.ID) (bool, error)
 
 	HasActiveSession(ctx context.Context, userID user.ID) (bool, error)

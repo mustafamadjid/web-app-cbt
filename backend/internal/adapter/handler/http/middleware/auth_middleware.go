@@ -21,7 +21,7 @@ func ActorFromContext(ctx context.Context) (user.Actor, bool) {
 	return actor, ok
 }
 
-func RequireValidAccessToken(next http.Handler, access out.AccessTokenService, cookies cookie.CookieConfig) http.Handler {
+func RequireValidTokenAndSession(next http.Handler, access out.AccessTokenService,refresh out.RefreshTokenService,session out.SessionRepository, cookies cookie.CookieConfig) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		c, err := r.Cookie(cookies.AccessName)
 		if err != nil || c.Value == "" {
@@ -31,6 +31,20 @@ func RequireValidAccessToken(next http.Handler, access out.AccessTokenService, c
 
 		uid, role, username, err := access.VerifyAccessToken(c.Value, time.Now())
 		if err != nil {
+			cookie.ClearAuthCookies(w, cookies)
+			httpResponse.WriteErr(w, http.StatusUnauthorized, "UNAUTHORIZED", "unauthorized")
+			return
+		}
+
+		// _,err = refresh.VerifyRefreshToken(c.Value, time.Now())
+		// if err != nil {
+		// 	cookie.ClearAuthCookies(w, cookies)
+		// 	httpResponse.WriteErr(w, http.StatusUnauthorized, "UNAUTHORIZED", "unauthorized")
+		// 	return
+		// }
+
+		activeSession, err := session.HasActiveSession(r.Context(),uid)
+		if err != nil || !activeSession {
 			cookie.ClearAuthCookies(w, cookies)
 			httpResponse.WriteErr(w, http.StatusUnauthorized, "UNAUTHORIZED", "unauthorized")
 			return

@@ -23,7 +23,7 @@ type HTTPModule struct {
 	Server  *http.Server
 }
 
-func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSekolah *ProfilSekolahModule, aktivitasUser *AktivitasUserModule, kelas *KelasModule, mapel *MataPelajaranModule, tokens *TokenModule, logger corelog.Logger) *HTTPModule {
+func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSekolah *ProfilSekolahModule, aktivitasUser *AktivitasUserModule, kelas *KelasModule, mapel *MataPelajaranModule, tokens *TokenModule,infra *InfraModule, logger corelog.Logger) *HTTPModule {
 	cookies := cookie.CookieConfig{
 		AccessName:  cfg.Cookie.AccessName,
 		RefreshName: cfg.Cookie.RefreshName,
@@ -53,7 +53,7 @@ func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSeko
 				next(w, r, ps)
 			})
 			handler = middleware.RequestLogger(handler, logger)
-			middleware.RequireValidAccessToken(handler, tokens.AccessTokenSvc, cookies).ServeHTTP(w, r)
+			middleware. RequireValidTokenAndSession(handler, tokens.AccessTokenSvc,tokens.RefreshTokenSvc,infra.Sessions, cookies).ServeHTTP(w, r)
 		}
 	}
 
@@ -65,7 +65,7 @@ func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSeko
 				})
 				handler = middleware.RequireActorRole(handler, roles...)
 				handler = middleware.RequestLogger(handler, logger)
-				middleware.RequireValidAccessToken(handler, tokens.AccessTokenSvc, cookies).ServeHTTP(w, r)
+				middleware. RequireValidTokenAndSession(handler, tokens.AccessTokenSvc,tokens.RefreshTokenSvc,infra.Sessions, cookies).ServeHTTP(w, r)
 			}
 		}
 	}

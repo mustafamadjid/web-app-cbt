@@ -95,7 +95,7 @@ func main() {
 	kelasMod := app.BuildKelasModule(infra, aktivitasUserMod)
 	mapelMod := app.BuildMataPelajaranModule(infra)
 
-	httpMod := app.BuildHTTPModule(cfg, authMod, userMod, profilSekolahMod, aktivitasUserMod, kelasMod, mapelMod, tokens, logger)
+	httpMod := app.BuildHTTPModule(cfg, authMod, userMod, profilSekolahMod, aktivitasUserMod, kelasMod, mapelMod, tokens,infra, logger)
 
 	log.Println("Listening on", cfg.HTTP.Addr)
 	if err := httpMod.Server.ListenAndServe(); err != nil && err != http.ErrServerClosed {

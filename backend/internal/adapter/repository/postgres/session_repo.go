@@ -212,16 +212,15 @@ func (r *SessionRepo) RevokeSession(ctx context.Context, sessionID string) error
 	return nil
 }
 
-func (r *SessionRepo) RevokeSessionAllbyUser(ctx context.Context, userID user.ID, now time.Time) error {
+func (r *SessionRepo) RevokeSessionAllbyUser(ctx context.Context, userID user.ID) error {
 	const query = `
 		UPDATE sessions
-		SET revoked_at = $1
-		WHERE id_pengguna = $2
+		SET revoked_at = NOW()
+		WHERE id_pengguna = $1
 			AND revoked_at IS NULL
-			AND expires_at > $1
 	`
 
-	ct, err := r.q.Exec(ctx, query, now, userID)
+	ct, err := r.q.Exec(ctx, query, userID)
 	if err != nil {
 		r.loggerFor(ctx).Error(ctx, "failed revoking sessions for user", "op", "session_repo.revoke_by_user", "user_id", userID, "err", err)
 		return err
