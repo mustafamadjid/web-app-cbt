@@ -117,6 +117,8 @@ const AkunSiswaTables: React.FC = () => {
   // Selection / privacy tetap
   const [idTerpilih, setIdTerpilih] = useState<Set<number>>(new Set());
   const [samarkanDataSensitif, setSamarkanDataSensitif] = useState(true);
+  const [batasData, setBatasData] = useState(12);
+  const [halamanSaatIni, setHalamanSaatIni] = useState(1);
   const [modalKonfirmasiTerbuka, setModalKonfirmasiTerbuka] = useState(false);
   const [sedangMemprosesKonfirmasi, setSedangMemprosesKonfirmasi] =
     useState(false);
@@ -198,17 +200,20 @@ const AkunSiswaTables: React.FC = () => {
   }, [debouncedKataKunci, angkatan, tingkatKelasId, jenisKelamin]);
 
   const siswaTersaring = daftarSiswa;
+  const totalData = siswaTersaring.length;
+  const awalIndex = (halamanSaatIni - 1) * batasData;
+  const siswaTerlihat = siswaTersaring.slice(awalIndex, awalIndex + batasData);
 
   const semuaTerlihatTerpilih =
-    siswaTersaring.length > 0 &&
-    siswaTersaring.every((s) => idTerpilih.has(s.id_pengguna));
+    siswaTerlihat.length > 0 &&
+    siswaTerlihat.every((s) => idTerpilih.has(s.id_pengguna));
 
   const togglePilihSemuaTerlihat = () => {
     setIdTerpilih((prev) => {
       const next = new Set(prev);
       if (semuaTerlihatTerpilih)
-        siswaTersaring.forEach((s) => next.delete(s.id_pengguna));
-      else siswaTersaring.forEach((s) => next.add(s.id_pengguna));
+        siswaTerlihat.forEach((s) => next.delete(s.id_pengguna));
+      else siswaTerlihat.forEach((s) => next.add(s.id_pengguna));
       return next;
     });
   };
@@ -229,6 +234,7 @@ const AkunSiswaTables: React.FC = () => {
     setAngkatan("");
     setTingkatKelasId(null);
     setJenisKelamin("");
+    setHalamanSaatIni(1);
   };
 
   const handleDeleteSiswa = async (id_pengguna: number) => {
@@ -280,6 +286,25 @@ const AkunSiswaTables: React.FC = () => {
       setSedangMemprosesKonfirmasi(false);
     }
   };
+
+  useEffect(() => {
+    setHalamanSaatIni(1);
+  }, [debouncedKataKunci, angkatan, tingkatKelasId, jenisKelamin, batasData]);
+
+  const totalHalaman = Math.max(1, Math.ceil(totalData / batasData));
+  const halamanAman = Math.min(halamanSaatIni, totalHalaman);
+
+  useEffect(() => {
+    if (halamanSaatIni > totalHalaman) {
+      setHalamanSaatIni(totalHalaman);
+    }
+  }, [halamanSaatIni, totalHalaman]);
+
+  const awalData = totalData === 0 ? 0 : (halamanAman - 1) * batasData + 1;
+  const akhirData =
+    totalData === 0 ? 0 : Math.min(halamanAman * batasData, totalData);
+  const bisaSebelumnya = halamanAman > 1;
+  const bisaSelanjutnya = halamanAman < totalHalaman;
 
   return (
     <div className="w-full space-y-6">
@@ -533,8 +558,8 @@ const AkunSiswaTables: React.FC = () => {
             </thead>
 
             <tbody className="divide-y divide-slate-200">
-              {siswaTersaring.length > 0 ? (
-                siswaTersaring.map((s) => {
+              {siswaTerlihat.length > 0 ? (
+                siswaTerlihat.map((s) => {
                   const hpRaw = (s.no_hp ?? "").trim();
                   const emailRaw = (s.email ?? "").trim();
                   const fotoUrl = s.foto_profil
@@ -705,7 +730,7 @@ const AkunSiswaTables: React.FC = () => {
                 })
               ) : (
                 <tr>
-                  <td colSpan={10} className="px-6 py-12 text-center">
+                  <td colSpan={11} className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <User className="h-10 w-10 text-slate-300" />
                       <p className="text-base font-medium text-slate-900">
@@ -722,18 +747,59 @@ const AkunSiswaTables: React.FC = () => {
           </table>
         </div>
 
-        {/* Footer */}
         <div className="flex items-center justify-between border-t border-slate-200 bg-white px-4 py-3 sm:px-6">
-          <div className="flex flex-1 items-center justify-between">
-            <p className="text-sm text-slate-700">
-              Menampilkan <span className="font-medium">1</span> sampai{" "}
-              <span className="font-medium">{siswaTersaring.length}</span> dari{" "}
-              <span className="font-medium">{siswaTersaring.length}</span> hasil
-            </p>
-
-            <p className="hidden sm:block text-xs text-slate-500">
-              Geser tabel ke kanan/kiri untuk melihat kolom lainnya.
-            </p>
+          <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm text-slate-700">
+                Menampilkan <span className="font-medium">{awalData}</span>{" "}
+                sampai <span className="font-medium">{akhirData}</span> dari{" "}
+                <span className="font-medium">{totalData}</span> hasil
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="flex cursor-pointer items-center gap-2 text-sm text-slate-600">
+                <span>Tampilkan</span>
+                <select
+                  value={batasData}
+                  onChange={(event) => setBatasData(Number(event.target.value))}
+                  className="cursor-pointer appearance-none rounded-lg border border-slate-200 bg-white px-7 py-1 text-sm text-slate-700 focus:border-[#397e50] focus:outline-none focus:ring-1 focus:ring-[#397e50]"
+                >
+                  {[12, 20, 30, 40, 50].map((opsi) => (
+                    <option key={opsi} value={opsi}>
+                      {opsi}
+                    </option>
+                  ))}
+                </select>
+                <span>baris</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setHalamanSaatIni((sebelumnya) =>
+                      Math.max(1, sebelumnya - 1),
+                    )
+                  }
+                  disabled={!bisaSebelumnya}
+                  className="rounded-lg border border-slate-200 px-3 py-1 text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:text-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Sebelumnya
+                </button>
+                <span className="text-sm text-slate-600">
+                  Halaman {halamanAman}
+                </span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setHalamanSaatIni((sebelumnya) => sebelumnya + 1)
+                  }
+                  disabled={!bisaSelanjutnya}
+                  className="rounded-lg border border-slate-200 px-3 py-1 text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:text-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Selanjutnya
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

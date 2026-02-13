@@ -43,6 +43,8 @@ const DataKelasTables: React.FC = () => {
   const [errorMsg, setErrorMsg] = useState("");
 
   const [idTerpilih, setIdTerpilih] = useState<Set<number>>(new Set());
+  const [batasData, setBatasData] = useState(12);
+  const [halamanSaatIni, setHalamanSaatIni] = useState(1);
   const [modalKonfirmasiTerbuka, setModalKonfirmasiTerbuka] = useState(false);
   const [sedangMemprosesKonfirmasi, setSedangMemprosesKonfirmasi] =
     useState(false);
@@ -121,17 +123,21 @@ const DataKelasTables: React.FC = () => {
     [opsiTingkat],
   );
 
+  const totalData = daftarKelas.length;
+  const awalIndex = (halamanSaatIni - 1) * batasData;
+  const dataTerlihat = daftarKelas.slice(awalIndex, awalIndex + batasData);
+
   const semuaTerlihatTerpilih =
-    daftarKelas.length > 0 &&
-    daftarKelas.every((k) => idTerpilih.has(k.id_nama_kelas));
+    dataTerlihat.length > 0 &&
+    dataTerlihat.every((k) => idTerpilih.has(k.id_nama_kelas));
 
   const togglePilihSemuaTerlihat = () => {
     setIdTerpilih((prev) => {
       const next = new Set(prev);
       if (semuaTerlihatTerpilih) {
-        daftarKelas.forEach((kelas) => next.delete(kelas.id_nama_kelas));
+        dataTerlihat.forEach((kelas) => next.delete(kelas.id_nama_kelas));
       } else {
-        daftarKelas.forEach((kelas) => next.add(kelas.id_nama_kelas));
+        dataTerlihat.forEach((kelas) => next.add(kelas.id_nama_kelas));
       }
       return next;
     });
@@ -175,8 +181,7 @@ const DataKelasTables: React.FC = () => {
             ? "Gagal Menghapus. Data kelas terkait dengan data lain"
             : "Data kelas gagal dihapus"
           : "Data kelas gagal dihapus";
-            toast.error(message);
-
+      toast.error(message);
     }
   };
 
@@ -229,8 +234,28 @@ const DataKelasTables: React.FC = () => {
 
   const resetFilter = () => {
     setKataKunci("");
+    setHalamanSaatIni(1);
     setTingkatKelas(null);
   };
+
+  useEffect(() => {
+    setHalamanSaatIni(1);
+  }, [debouncedKataKunci, batasData, tingkatKelas]);
+
+  const totalHalaman = Math.max(1, Math.ceil(totalData / batasData));
+  const halamanAman = Math.min(halamanSaatIni, totalHalaman);
+
+  useEffect(() => {
+    if (halamanSaatIni > totalHalaman) {
+      setHalamanSaatIni(totalHalaman);
+    }
+  }, [halamanSaatIni, totalHalaman]);
+
+  const awalData = totalData === 0 ? 0 : (halamanAman - 1) * batasData + 1;
+  const akhirData =
+    totalData === 0 ? 0 : Math.min(halamanAman * batasData, totalData);
+  const bisaSebelumnya = halamanAman > 1;
+  const bisaSelanjutnya = halamanAman < totalHalaman;
 
   return (
     <div className="w-full space-y-6">
@@ -364,10 +389,12 @@ const DataKelasTables: React.FC = () => {
         <div className="text-sm text-slate-600">
           {loading ? (
             <span>Memuat data...</span>
+          ) : errorMsg ? (
+            <span className="text-rose-600">{errorMsg}</span>
           ) : (
             <span>
-              Menampilkan{" "}
-              <span className="font-medium">{daftarKelas.length}</span> hasil.
+              Menampilkan <span className="font-medium">{totalData}</span>{" "}
+              hasil.
             </span>
           )}
         </div>
@@ -400,8 +427,8 @@ const DataKelasTables: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
-              {daftarKelas.length > 0 ? (
-                daftarKelas.map((kelas) => (
+              {dataTerlihat.length > 0 ? (
+                dataTerlihat.map((kelas) => (
                   <tr
                     key={kelas.id_nama_kelas}
                     className={`transition-colors hover:bg-slate-50 ${
@@ -482,19 +509,61 @@ const DataKelasTables: React.FC = () => {
             </tbody>
           </table>
         </div>
-
         <div className="flex items-center justify-between border-t border-slate-200 bg-white px-4 py-3 sm:px-6">
-          <div className="flex flex-1 items-center justify-between">
-            <p className="text-sm text-slate-700">
-              Menampilkan <span className="font-medium">1</span> sampai{" "}
-              <span className="font-medium">{daftarKelas.length}</span> dari{" "}
-              <span className="font-medium">{daftarKelas.length}</span> hasil
-            </p>
-            <p className="hidden text-xs text-slate-500 sm:block">
-              Geser tabel ke kanan/kiri untuk melihat kolom lainnya.
-            </p>
+          <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm text-slate-700">
+                Menampilkan <span className="font-medium">{awalData}</span>{" "}
+                sampai <span className="font-medium">{akhirData}</span> dari{" "}
+                <span className="font-medium">{totalData}</span> hasil
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="flex cursor-pointer items-center gap-2 text-sm text-slate-600">
+                <span>Tampilkan</span>
+                <select
+                  value={batasData}
+                  onChange={(event) => setBatasData(Number(event.target.value))}
+                  className="cursor-pointer appearance-none rounded-lg border border-slate-200 bg-white px-7 py-1 text-sm text-slate-700 focus:border-[#397e50] focus:outline-none focus:ring-1 focus:ring-[#397e50]"
+                >
+                  {[12, 20, 30, 40, 50].map((opsi) => (
+                    <option key={opsi} value={opsi}>
+                      {opsi}
+                    </option>
+                  ))}
+                </select>
+                <span>baris</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setHalamanSaatIni((sebelumnya) =>
+                      Math.max(1, sebelumnya - 1),
+                    )
+                  }
+                  disabled={!bisaSebelumnya}
+                  className="rounded-lg border border-slate-200 px-3 py-1 text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:text-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Sebelumnya
+                </button>
+                <span className="text-sm text-slate-600">
+                  Halaman {halamanAman}
+                </span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setHalamanSaatIni((sebelumnya) => sebelumnya + 1)
+                  }
+                  disabled={!bisaSelanjutnya}
+                  className="rounded-lg border border-slate-200 px-3 py-1 text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:text-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Selanjutnya
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
+        </div>{" "}
       </div>
 
       <ConfirmAlert

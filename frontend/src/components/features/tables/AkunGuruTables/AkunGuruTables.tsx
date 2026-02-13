@@ -66,7 +66,7 @@ const AkunGuruTables: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<StatusAkun>("AKTIF");
   const [idTerpilih, setIdTerpilih] = useState<Set<number>>(new Set());
   const [samarkanDataSensitif, setSamarkanDataSensitif] = useState(true);
-  const [batasData, setBatasData] = useState(10);
+  const [batasData, setBatasData] = useState(12);
   const [halamanSaatIni, setHalamanSaatIni] = useState(1);
   const [modalKonfirmasiTerbuka, setModalKonfirmasiTerbuka] = useState(false);
   const [sedangMemprosesKonfirmasi, setSedangMemprosesKonfirmasi] =
@@ -519,7 +519,7 @@ const AkunGuruTables: React.FC = () => {
                   onChange={(event) => setBatasData(Number(event.target.value))}
                   className="cursor-pointer appearance-none rounded-lg border border-slate-200 bg-white px-7 py-1 text-sm text-slate-700 focus:border-[#397e50] focus:outline-none focus:ring-1 focus:ring-[#397e50]"
                 >
-                  {[10, 20, 30, 40, 50].map((opsi) => (
+                  {[12, 20, 30, 40, 50].map((opsi) => (
                     <option key={opsi} value={opsi}>
                       {opsi}
                     </option>
