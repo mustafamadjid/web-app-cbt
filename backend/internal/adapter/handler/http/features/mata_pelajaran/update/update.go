@@ -81,7 +81,7 @@ func (h *UpdateMapelHandler) UpdateMapel(w http.ResponseWriter, r *http.Request,
 			return
 		}
 		if err := validator.ValidateInputSafe(kodeMapel, "kode_mapel"); err != nil {
-			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", err.Error())
+			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "invalid input")
 			return
 		}
 		patch.KodeMapel = &kodeMapel
@@ -94,7 +94,7 @@ func (h *UpdateMapelHandler) UpdateMapel(w http.ResponseWriter, r *http.Request,
 			return
 		}
 		if err := validator.ValidateInputSafe(namaMapel, "nama_mapel"); err != nil {
-			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", err.Error())
+			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "invalid input")
 			return
 		}
 		patch.NamaMapel = &namaMapel
@@ -107,7 +107,7 @@ func (h *UpdateMapelHandler) UpdateMapel(w http.ResponseWriter, r *http.Request,
 			return
 		}
 		if err := validator.ValidateInputSafe(deskripsi, "deskripsi"); err != nil {
-			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", err.Error())
+			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "invalid input")
 			return
 		}
 		patch.Deskripsi = &deskripsi

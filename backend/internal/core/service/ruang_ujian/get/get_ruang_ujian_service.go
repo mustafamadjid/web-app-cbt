@@ -64,6 +64,9 @@ func(r *GetRuangUjianRepo)GetRuangUjianById(ctx context.Context, idRuangan int)(
 func(r *GetRuangUjianRepo)GetRuangUjianByKode(ctx context.Context, kodeRuang string)(ruangujian.RuangUjian, error){
 	logger := corelog.FromContext(ctx)
 
+	kodeRuang = strings.TrimSpace(kodeRuang)
+	kodeRuang =strings.ToUpper(kodeRuang)
+
 	if len(kodeRuang) == 0 || kodeRuang == "" {
 		logger.Error(ctx,"failed get ruang ujian","layer","core.service","op","ruangujian.get_by_kode","err",coreerror.ErrMissingField)
 		return ruangujian.RuangUjian{},coreerror.ErrMissingField

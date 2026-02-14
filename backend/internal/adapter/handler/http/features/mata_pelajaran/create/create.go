@@ -107,5 +107,5 @@ func (h *CreateMapelHandler) CreateMapel(w http.ResponseWriter, r *http.Request,
 		}
 	}
 
-	httpResponse.WriteOK(w, http.StatusOK, CreateMapelResponse{Success: true}, "success create mata pelajaran")
+	httpResponse.WriteOKNoData(w,http.StatusOK,"success")
 }

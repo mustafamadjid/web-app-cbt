@@ -48,5 +48,5 @@ func (h *DeleteMapelHandler) DeleteMapel(w http.ResponseWriter, r *http.Request,
 		}
 	}
 
-	httpResponse.WriteOK(w, http.StatusOK, DeleteMapelResponse{Success: true}, "success delete mata pelajaran")
+	httpResponse.WriteOKNoData(w,http.StatusOK,"success")
 }

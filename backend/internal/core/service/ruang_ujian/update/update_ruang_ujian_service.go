@@ -10,15 +10,15 @@ import (
 	updatepatch "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/update_patch"
 )
 
-type UpdateRuangUjianRepo struct {
+type UpdateRuangUjianService struct {
 	ruangRepo ruangujian_repo.RuangUjianRepo
 }
 
-func NewUpdateRuangUjianService(ruangRepo ruangujian_repo.RuangUjianRepo) *UpdateRuangUjianRepo {
-	return &UpdateRuangUjianRepo{ruangRepo: ruangRepo}
+func NewUpdateRuangUjianService(ruangRepo ruangujian_repo.RuangUjianRepo) *UpdateRuangUjianService {
+	return &UpdateRuangUjianService{ruangRepo: ruangRepo}
 }
 
-func(r *UpdateRuangUjianRepo)UpdateRuangUjian(ctx context.Context, idRuangan int, ruangUjian updatepatch.UpdateRuangUjianPatch) error{
+func(r *UpdateRuangUjianService)UpdateRuangUjian(ctx context.Context, idRuangan int, ruangUjian updatepatch.UpdateRuangUjianPatch) error{
 	logger := corelog.FromContext(ctx)
 
 	
@@ -46,8 +46,17 @@ func(r *UpdateRuangUjianRepo)UpdateRuangUjian(ctx context.Context, idRuangan int
 		ruangUjian.NamaRuang = &s
 	}
 
-	err := r.ruangRepo.UpdateRuangUjian(ctx,idRuangan,ruangUjian)
+	existKode,err := r.ruangRepo.ExistByKodeRuang(ctx,*ruangUjian.KodeRuang)
 	if err != nil {
+		logger.Error(ctx,"failed update ruang ujian","layer","core.service","op","ruangujian.update","err",err)
+		return err
+	}
+
+	if existKode {
+		return coreerror.ErrKodeRuangUjianExist
+	}
+
+	if err := r.ruangRepo.UpdateRuangUjian(ctx,idRuangan,ruangUjian);err != nil {
 		logger.Error(ctx,"failed update ruang ujian","layer","core.service","op","ruangujian.update","err",err)
 		return err
 	}
