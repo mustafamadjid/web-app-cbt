@@ -2,13 +2,17 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 
 import EditRuangForm from "@/layouts/Form/Admin/DataMaster/EditRuangForm";
-import type { RuangUjianFormValues } from "@/types/DataMaster/RuangUjian";
-import { getRuangUjianById, updateRuangUjian } from "@/services/Api/features-api/DataMaster/ruang-ujian.service";
-import { ApiError } from "@/services/Api/api";
 import { paths } from "@/routes/paths";
+import { ApiError } from "@/services/Api/api";
+import {
+  getRuangUjianById,
+  updateRuangUjianPartial,
+} from "@/services/Api/features-api/DataMaster/ruang-ujian.service";
+import type { RuangUjianFormValues } from "@/types/DataMaster/RuangUjian";
 
 const buildInitialValues = (): RuangUjianFormValues => ({
-  nama_ruangan_ujian: "",
+  kode_ruang: "",
+  nama_ruangan: "",
 });
 
 const EditRuangUjian = () => {
@@ -23,6 +27,7 @@ const EditRuangUjian = () => {
 
   useEffect(() => {
     let active = true;
+
     const loadRuang = async () => {
       if (!id || Number.isNaN(ruangId)) {
         setLoading(false);
@@ -31,7 +36,7 @@ const EditRuangUjian = () => {
 
       try {
         const data = await getRuangUjianById(ruangId);
-        if (!active || !data) return;
+        if (!active) return;
         setInitialValues(data);
       } finally {
         if (active) setLoading(false);
@@ -52,7 +57,7 @@ const EditRuangUjian = () => {
 
     setSubmitting(true);
     try {
-      await updateRuangUjian(ruangId, values);
+      await updateRuangUjianPartial(ruangId, values, initialValues);
       navigate(paths.dashboard.data_master_ruang);
     } finally {
       setSubmitting(false);

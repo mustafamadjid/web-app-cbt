@@ -1,147 +1,130 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router";
 
 import InputField from "@/components/common/Input/InputField";
-
-import type { RuangUjianFormValues } from "@/types/DataMaster/RuangUjian";
-
 import { createSetField } from "@/helper/setField/setField";
 import { createValidator, requiredString } from "@/helper/validate/validateForm";
+import { paths } from "@/routes/paths";
+import { ApiError } from "@/services/Api/api";
+import { createRuangUjian } from "@/services/Api/features-api/DataMaster/ruang-ujian.service";
+import type { RuangUjianFormValues } from "@/types/DataMaster/RuangUjian";
 
 const initialValues: RuangUjianFormValues = {
-  nama_ruangan_ujian: "",
+  kode_ruang: "",
+  nama_ruangan: "",
 };
 
-const sectionTitle = "text-sm font-semibold text-slate-800";
-const helperText = "text-xs text-slate-500";
-
 const DataRuangForm = () => {
+  const navigate = useNavigate();
   const [values, setValues] = useState<RuangUjianFormValues>(initialValues);
-  const [touched, setTouched] = useState<
-    Record<keyof RuangUjianFormValues, boolean>
-  >({
-    nama_ruangan_ujian: false,
+  const [touched, setTouched] = useState<Record<keyof RuangUjianFormValues, boolean>>({
+    kode_ruang: false,
+    nama_ruangan: false,
   });
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const setField = createSetField(setValues);
-  const onBlur = (name: keyof RuangUjianFormValues) => {
-    setTouched((prev) => ({ ...prev, [name]: true }));
-  };
 
-  const normalizeNama = (s: string) => s.trim().replace(/\s+/g, " ");
+  const normalize = (s: string) => s.trim().replace(/\s+/g, " ");
 
   const validate = createValidator<RuangUjianFormValues>({
-    nama_ruangan_ujian: [
-      requiredString("Nama ruangan ujian wajib diisi."),
-      (value) => {
-        if (!value.trim()) return null;
-        return normalizeNama(value).length < 2
-          ? "Nama ruangan ujian terlalu pendek."
-          : null;
-      },
-    ],
+    kode_ruang: [requiredString("Kode ruang wajib diisi.")],
+    nama_ruangan: [requiredString("Nama ruangan wajib diisi.")],
   });
 
   const errors = validate(values);
-  const hasError = (name: keyof RuangUjianFormValues) =>
-    !!errors[name] && !!touched[name];
+  const hasError = (name: keyof RuangUjianFormValues) => !!errors[name] && touched[name];
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitError(null);
-
-    setTouched({ nama_ruangan_ujian: true });
+    setTouched({ kode_ruang: true, nama_ruangan: true });
 
     const currentErrors = validate(values);
     if (Object.keys(currentErrors).length > 0) {
-      setSubmitError(
-        "Periksa kembali input yang masih kosong atau tidak valid."
-      );
+      setSubmitError("Periksa kembali input yang masih kosong atau tidak valid.");
       return;
     }
 
-    const payload = {
-      nama_ruangan_ujian: normalizeNama(values.nama_ruangan_ujian),
+    const payload: RuangUjianFormValues = {
+      kode_ruang: normalize(values.kode_ruang),
+      nama_ruangan: normalize(values.nama_ruangan),
     };
 
-    console.log("READY_TO_SUBMIT", payload);
+    setSubmitting(true);
+    try {
+      await createRuangUjian(payload);
+      navigate(paths.dashboard.data_master_ruang);
+    } catch (e) {
+      const message =
+        e instanceof ApiError
+          ? e.message === "bad request: kode ruang ujian already exist"
+            ? "Kode ruang ujian sudah ada."
+            : "Ruang ujian gagal ditambahkan."
+          : "Ruang ujian gagal ditambahkan.";
+      setSubmitError(message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
-    <div className="min-h-screen w-full py-8">
-      <div className="mx-auto w-full max-w-5xl px-4">
-        <div className="mb-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div>
-            <h1 className="text-base font-semibold text-slate-900">
-              Data Ruangan Ujian
-            </h1>
-            <p className="mt-1 text-sm text-slate-500">
-              Masukkan nama ruangan ujian yang akan ditambahkan.
-            </p>
-          </div>
+    <form onSubmit={onSubmit} className="space-y-6">
+      <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <InputField
+            id="kode_ruang"
+            label="Kode Ruang"
+            value={values.kode_ruang}
+            onChange={(v) => setField("kode_ruang", v)}
+            onBlur={() => setTouched((p) => ({ ...p, kode_ruang: true }))}
+            placeholder="Contoh: RU-01"
+            inputClassName={hasError("kode_ruang") ? "border-rose-300 ring-rose-100" : ""}
+            required
+          />
+          <InputField
+            id="nama_ruangan"
+            label="Nama Ruangan"
+            value={values.nama_ruangan}
+            onChange={(v) => setField("nama_ruangan", v)}
+            onBlur={() => setTouched((p) => ({ ...p, nama_ruangan: true }))}
+            placeholder="Contoh: Lab Komputer"
+            inputClassName={hasError("nama_ruangan") ? "border-rose-300 ring-rose-100" : ""}
+            required
+          />
         </div>
-
-        <form onSubmit={onSubmit} className="space-y-6">
-          <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div className="mb-4">
-              <h2 className={sectionTitle}>Informasi Ruangan</h2>
-              <p className={helperText}>Isi nama ruangan ujian.</p>
-            </div>
-
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <div className="md:col-span-1">
-                <InputField
-                  id="nama_ruangan_ujian"
-                  label="Nama Ruangan Ujian"
-                  value={values.nama_ruangan_ujian}
-                  onChange={(v) => setField("nama_ruangan_ujian", v)}
-                  onBlur={() => onBlur("nama_ruangan_ujian")}
-                  placeholder="Contoh: Ruang 01 / Lab Komputer / Aula"
-                  inputClassName={
-                    hasError("nama_ruangan_ujian")
-                      ? "border-rose-300 ring-rose-100"
-                      : ""
-                  }
-                  required
-                />
-                {hasError("nama_ruangan_ujian") && (
-                  <p className="mt-1 text-xs text-rose-500">
-                    {errors.nama_ruangan_ujian}
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {submitError && (
-            <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600">
-              {submitError}
-            </div>
-          )}
-
-          <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-            <button
-              type="button"
-              className="inline-flex items-center justify-center cursor-pointer rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
-              onClick={() => {
-                setValues(initialValues);
-                setTouched({ nama_ruangan_ujian: false });
-                setSubmitError(null);
-              }}
-            >
-              Reset
-            </button>
-
-            <button
-              type="submit"
-              className="inline-flex cursor-pointer items-center justify-center rounded-lg bg-[#397e50] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#2f6a43]"
-            >
-              Simpan Ruangan Ujian
-            </button>
-          </div>
-        </form>
       </div>
-    </div>
+
+      {submitError && (
+        <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600">
+          {submitError}
+        </div>
+      )}
+
+      <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+        <button
+          type="button"
+          className="inline-flex cursor-pointer items-center justify-center rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+          onClick={() => {
+            setValues(initialValues);
+            setTouched({ kode_ruang: false, nama_ruangan: false });
+            setSubmitError(null);
+          }}
+          disabled={submitting}
+        >
+          Reset
+        </button>
+
+        <button
+          type="submit"
+          className="inline-flex cursor-pointer items-center justify-center rounded-lg bg-[#397e50] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#2f6a43] disabled:cursor-not-allowed disabled:opacity-70"
+          disabled={submitting}
+        >
+          Simpan Ruangan Ujian
+        </button>
+      </div>
+    </form>
   );
 };
 

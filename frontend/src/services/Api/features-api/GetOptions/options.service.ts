@@ -97,7 +97,7 @@ export async function getMataPelajaranOptions(
 
 export async function getRuangUjianOptions(): Promise<RuangUjianRow[]> {
   const data = await getRuangUjian();
-  return [...data].sort((a, b) => a.id - b.id);
+  return [...data].sort((a, b) => a.id_ruangan - b.id_ruangan);
 }
 
 export async function getAngkatanOptions(): Promise<number[]> {

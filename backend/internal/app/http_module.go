@@ -23,7 +23,7 @@ type HTTPModule struct {
 	Server  *http.Server
 }
 
-func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSekolah *ProfilSekolahModule, aktivitasUser *AktivitasUserModule, kelas *KelasModule, mapel *MataPelajaranModule, tokens *TokenModule,infra *InfraModule, logger corelog.Logger) *HTTPModule {
+func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSekolah *ProfilSekolahModule, aktivitasUser *AktivitasUserModule, kelas *KelasModule, mapel *MataPelajaranModule, ruangUjian *RuangUjianModule, tokens *TokenModule, infra *InfraModule, logger corelog.Logger) *HTTPModule {
 	cookies := cookie.CookieConfig{
 		AccessName:  cfg.Cookie.AccessName,
 		RefreshName: cfg.Cookie.RefreshName,
@@ -53,7 +53,7 @@ func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSeko
 				next(w, r, ps)
 			})
 			handler = middleware.RequestLogger(handler, logger)
-			middleware. RequireValidTokenAndSession(handler, tokens.AccessTokenSvc,tokens.RefreshTokenSvc,infra.Sessions, cookies).ServeHTTP(w, r)
+			middleware.RequireValidTokenAndSession(handler, tokens.AccessTokenSvc, tokens.RefreshTokenSvc, infra.Sessions, cookies).ServeHTTP(w, r)
 		}
 	}
 
@@ -65,7 +65,7 @@ func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSeko
 				})
 				handler = middleware.RequireActorRole(handler, roles...)
 				handler = middleware.RequestLogger(handler, logger)
-				middleware. RequireValidTokenAndSession(handler, tokens.AccessTokenSvc,tokens.RefreshTokenSvc,infra.Sessions, cookies).ServeHTTP(w, r)
+				middleware.RequireValidTokenAndSession(handler, tokens.AccessTokenSvc, tokens.RefreshTokenSvc, infra.Sessions, cookies).ServeHTTP(w, r)
 			}
 		}
 	}
@@ -139,6 +139,14 @@ func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSeko
 	router.POST("/admin/mata-pelajaran", requireAdmin(rateLimitStandard(mapel.CreateHandler.CreateMapel)))
 	router.PATCH("/admin/mata-pelajaran/:idMapel", requireAdmin(rateLimitStandard(mapel.UpdateHandler.UpdateMapel)))
 	router.DELETE("/admin/mata-pelajaran/:idMapel", requireAdmin(rateLimitStandard(mapel.DeleteHandler.DeleteMapel)))
+
+	// RUANG UJIAN
+	router.GET("/admin/ruang-ujian", requireAdmin(rateLimitStandard(ruangUjian.GetHandler.GetRuangUjian)))
+	router.GET("/admin/ruang-ujian/id/:IdRuangan", requireAdmin(rateLimitStandard(ruangUjian.GetHandler.GetRuangUjianByID)))
+	router.GET("/admin/ruang-ujian/kode/:KodeRuang", requireAdmin(rateLimitStandard(ruangUjian.GetHandler.GetRuangUjianByKode)))
+	router.POST("/admin/ruang-ujian", requireAdmin(rateLimitStandard(ruangUjian.CreateHandler.CreateRuangUian)))
+	router.PATCH("/admin/ruang-ujian/:idRuangan", requireAdmin(rateLimitStandard(ruangUjian.UpdateHandler.UpdateRuangUjian)))
+	router.DELETE("/admin/ruang-ujian/:idRuangan", requireAdmin(rateLimitStandard(ruangUjian.DeleteHandler.DeleteRuangUjian)))
 
 	// Siswa
 

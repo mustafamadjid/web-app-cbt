@@ -257,8 +257,8 @@ const JadwalUjian = () => {
               >
                 <option value="">Semua Ruangan</option>
                 {ruangOptions.map((r) => (
-                  <option key={r.id} value={r.id}>
-                    {r.namaRuangan}
+                  <option key={r.id_ruangan} value={r.id_ruangan}>
+                    {r.nama_ruangan}
                   </option>
                 ))}
               </select>

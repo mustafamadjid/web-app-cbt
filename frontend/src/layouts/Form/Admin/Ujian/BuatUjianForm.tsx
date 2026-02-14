@@ -727,8 +727,8 @@ const BuatUjianForm = () => {
                 >
                   <option value={0}>Pilih ruang ujian</option>
                   {ruangOptions.map((ruang) => (
-                    <option key={ruang.id} value={ruang.id}>
-                      {ruang.namaRuangan}
+                    <option key={ruang.id_ruangan} value={ruang.id_ruangan}>
+                      {ruang.nama_ruangan}
                     </option>
                   ))}
                 </select>

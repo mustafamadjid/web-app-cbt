@@ -1,14 +1,21 @@
 export type RuangUjianFormValues = {
-  nama_ruangan_ujian: string;
+  kode_ruang: string;
+  nama_ruangan: string;
 };
 
 export type RuangUjianRow = {
-  id: number;
-  namaRuangan: string;
+  id_ruangan: number;
+  kode_ruang: string;
+  nama_ruangan: string;
 };
 
 export type RuangUjianFilterParams = {
   q?: string;
+  search?: string;
   limit?: number;
   offset?: number;
 };
+
+export type ListRuangUjianResponse = RuangUjianRow[];
+
+export type UpdateRuangUjianPayload = Partial<RuangUjianFormValues>;
