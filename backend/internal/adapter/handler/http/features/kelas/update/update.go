@@ -9,9 +9,10 @@ import (
 	"strings"
 
 	"github.com/julienschmidt/httprouter"
+	"github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/middleware"
+	validator "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/validation"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/aktivitas_user"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/kelas"
-	"github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/middleware"
 
 	httphelper "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper"
 	httpResponse "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper/response_envelope"
@@ -85,6 +86,11 @@ func (h *UpdateKelasHandler) UpdateNamaKelas(w http.ResponseWriter, r *http.Requ
 		namaKelas := strings.TrimSpace(*dataRequest.NamaKelas)
 		if namaKelas == "" {
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: nama kelas is required")
+			return
+		}
+
+		if err := validator.ValidateInputSafe(namaKelas, "nama_kelas"); err != nil {
+			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", err.Error())
 			return
 		}
 		patch.NamaKelas = &namaKelas

@@ -10,6 +10,7 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 	httpResponse "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper/response_envelope"
+	validator "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/validation"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	matapelajaran "github.com/mustafamadjid/web-app-cbt/internal/core/domain/mata_pelajaran"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
@@ -79,6 +80,10 @@ func (h *UpdateMapelHandler) UpdateMapel(w http.ResponseWriter, r *http.Request,
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: kode mapel is required")
 			return
 		}
+		if err := validator.ValidateInputSafe(kodeMapel, "kode_mapel"); err != nil {
+			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", err.Error())
+			return
+		}
 		patch.KodeMapel = &kodeMapel
 	}
 
@@ -88,6 +93,10 @@ func (h *UpdateMapelHandler) UpdateMapel(w http.ResponseWriter, r *http.Request,
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: nama mapel is required")
 			return
 		}
+		if err := validator.ValidateInputSafe(namaMapel, "nama_mapel"); err != nil {
+			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", err.Error())
+			return
+		}
 		patch.NamaMapel = &namaMapel
 	}
 
@@ -95,6 +104,10 @@ func (h *UpdateMapelHandler) UpdateMapel(w http.ResponseWriter, r *http.Request,
 		deskripsi := strings.TrimSpace(*dataRequest.Deskripsi)
 		if deskripsi == "" {
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: deskripsi is required")
+			return
+		}
+		if err := validator.ValidateInputSafe(deskripsi, "deskripsi"); err != nil {
+			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", err.Error())
 			return
 		}
 		patch.Deskripsi = &deskripsi

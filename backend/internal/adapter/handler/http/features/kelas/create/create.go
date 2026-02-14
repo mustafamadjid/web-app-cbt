@@ -9,6 +9,7 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/middleware"
+	validator "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/validation"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/aktivitas_user"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/kelas"
 
@@ -140,6 +141,11 @@ func (h *CreateKelasHandler) CreateNamaKelas(w http.ResponseWriter, r *http.Requ
 
 	if strings.TrimSpace(dataRequest.NamaKelas) == "" {
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: nama kelas is required")
+		return
+	}
+
+	if err := validator.ValidateInputSafe(dataRequest.NamaKelas, "nama_kelas"); err != nil {
+		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", err.Error())
 		return
 	}
 
