@@ -69,6 +69,7 @@ func (r *GetMapelRepo)GetMapelById(ctx context.Context, idMapel int) (matapelaja
 	logger := corelog.FromContext(ctx)
 
 	if idMapel <= 0 {
+		logger.Error(ctx,"failed get mapel by id","layer","core.service","op","matapelajaran.get_by_id","err",coreerror.ErrMissingId)
 		return matapelajaran.MataPelajaran{}, coreerror.ErrMissingId
 	}
 

@@ -36,45 +36,62 @@ func (r *UpdateMapelRepo)UpdateMapelService(ctx context.Context, idMapel int, ma
 	}
 
 	if mapel.KodeMapel != nil {
-		if *mapel.KodeMapel == "" {
-			logger.Error(ctx, "failed updating mapel", "layer", "core.service", "op", "matapelajaran.update_mapel.KodeMapel", "err", coreerror.ErrMissingField)
-			return coreerror.ErrMissingField
-		}
+    s := strings.TrimSpace(*mapel.KodeMapel)
+    if s == "" {
+        logger.Error(ctx, "failed updating mapel",
+            "layer", "core.service",
+            "op", "matapelajaran.update_mapel.KodeMapel",
+            "err", coreerror.ErrMissingField,
+        )
+        return coreerror.ErrMissingField
+    }
 
-		s := strings.TrimSpace(*mapel.KodeMapel)
-		s = strings.ToUpper(*mapel.KodeMapel)
-		mapel.KodeMapel = &s
+    s = strings.ToUpper(s)
+    mapel.KodeMapel = &s
 
-		exist, err := r.mapelRepo.ExistKodeMapel(ctx,*mapel.KodeMapel)
-		if err != nil {
-			logger.Error(ctx, "failed updating mapel", "layer", "core.service", "op", "matapelajaran.update_mapel.existKodeMapel", "err", err)
-			return err
-		}
+    exist, err := r.mapelRepo.ExistKodeMapel(ctx, *mapel.KodeMapel)
+    if err != nil {
+        logger.Error(ctx, "failed updating mapel",
+            "layer", "core.service",
+            "op", "matapelajaran.update_mapel.existKodeMapel",
+            "err", err,
+        )
+        return err
+    }
 
-		if exist {
-			return coreerror.ErrKodeMapelExist
-		}
-	}
+    if exist {
+        return coreerror.ErrKodeMapelExist
+    }
+}
 
-	if mapel.NamaMapel != nil {
-		if *mapel.NamaMapel == "" {
-			logger.Error(ctx, "failed updating mapel", "layer", "core.service", "op", "matapelajaran.update_mapel.NamaMapel", "err", coreerror.ErrMissingField)
-			return coreerror.ErrMissingField
-		}
+if mapel.NamaMapel != nil {
+    s := strings.TrimSpace(*mapel.NamaMapel)
+    if s == "" {
+        logger.Error(ctx, "failed updating mapel",
+            "layer", "core.service",
+            "op", "matapelajaran.update_mapel.NamaMapel",
+            "err", coreerror.ErrMissingField,
+        )
+        return coreerror.ErrMissingField
+    }
 
-		s := strings.TrimSpace(*mapel.NamaMapel)
-		mapel.NamaMapel = &s
-	}
+    mapel.NamaMapel = &s
+}
 
-	if mapel.Deskripsi != nil {
-		if *mapel.Deskripsi == "" {
-			logger.Error(ctx, "failed updating mapel", "layer", "core.service", "op", "matapelajaran.update_mapel.Deskripsi", "err", coreerror.ErrMissingField)
-			return coreerror.ErrMissingField
-		}
+if mapel.Deskripsi != nil {
+    s := strings.TrimSpace(*mapel.Deskripsi)
+    if s == "" {
+        logger.Error(ctx, "failed updating mapel",
+            "layer", "core.service",
+            "op", "matapelajaran.update_mapel.Deskripsi",
+            "err", coreerror.ErrMissingField,
+        )
+        return coreerror.ErrMissingField
+    }
 
-		s := strings.TrimSpace(*mapel.Deskripsi)
-		mapel.Deskripsi = &s
-	}
+    mapel.Deskripsi = &s
+}
+
 
 	if err := r.mapelRepo.UpdateMapel(ctx, idMapel, mapel); err != nil {
 		logger.Error(ctx, "failed updating mapel", "layer", "core.service", "op", "matapelajaran.update_mapel.UpdateMapel", "err", err)

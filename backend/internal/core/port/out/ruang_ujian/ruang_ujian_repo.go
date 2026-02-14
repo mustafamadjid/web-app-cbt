@@ -13,6 +13,8 @@ type RuangUjianRepo interface {
 	GetRuangUjianById(ctx context.Context, idRuangan int)(ruangujian.RuangUjian, error)
 	GetRuangUjianByKode(ctx context.Context, kodeRuang string)(ruangujian.RuangUjian, error)
 
+	ExistByKodeRuang(ctx context.Context, kodeRuang string)(bool, error)
+
 	CreateRuangUjian(ctx context.Context, ruangUjian ruangujian.RuangUjian) error
 	UpdateRuangUjian(ctx context.Context, idRuangan int, ruangUjian updatepatch.UpdateRuangUjianPatch) error
 	DeleteRuangUjian(ctx context.Context, idRuangan int) error
