@@ -9,6 +9,7 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 	httpResponse "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper/response_envelope"
+	validator "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/validation"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	matapelajaran "github.com/mustafamadjid/web-app-cbt/internal/core/domain/mata_pelajaran"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
@@ -61,14 +62,26 @@ func (h *CreateMapelHandler) CreateMapel(w http.ResponseWriter, r *http.Request,
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: kode mapel is required")
 		return
 	}
+	if err := validator.ValidateInputSafe(dataRequest.KodeMapel, "kode_mapel"); err != nil {
+		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", err.Error())
+		return
+	}
 
 	if strings.TrimSpace(dataRequest.NamaMapel) == "" {
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: nama mapel is required")
 		return
 	}
+	if err := validator.ValidateInputSafe(dataRequest.NamaMapel, "nama_mapel"); err != nil {
+		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", err.Error())
+		return
+	}
 
 	if strings.TrimSpace(dataRequest.Deskripsi) == "" {
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: deskripsi is required")
+		return
+	}
+	if err := validator.ValidateInputSafe(dataRequest.Deskripsi, "deskripsi"); err != nil {
+		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", err.Error())
 		return
 	}
 
