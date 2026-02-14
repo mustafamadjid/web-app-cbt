@@ -174,9 +174,9 @@ const DetailUjian = () => {
   const ruangLabel = useMemo(() => {
     if (!detail?.ruang_ujian_id) return detail?.ruang_ujian ?? "-";
     const ruang = ruangOptions.find(
-      (item) => item.id === detail.ruang_ujian_id,
+      (item) => item.id_ruangan === detail.ruang_ujian_id,
     );
-    return ruang ? ruang.namaRuangan : (detail.ruang_ujian ?? "-");
+    return ruang ? ruang.nama_ruangan : (detail.ruang_ujian ?? "-");
   }, [detail, ruangOptions]);
 
   const bankSoalLabel = useMemo(() => {
