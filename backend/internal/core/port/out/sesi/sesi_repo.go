@@ -13,6 +13,8 @@ type SesiRepository interface {
 	GetSesiById(ctx context.Context, idSesi int) (sesi.Sesi, error)
 	GetSesiByKode(ctx context.Context, kodeSesi string) (sesi.Sesi, error)
 
+	ExistByKodeSesi(ctx context.Context, kodeSesi string) (bool, error)
+
 	CreateSesi(ctx context.Context, sesi sesi.Sesi) error
 	UpdateSesi(ctx context.Context, idSesi int, sesi updatepatch.UpdateSesiPatch) error
 	DeleteSesi(ctx context.Context, idSesi int) error

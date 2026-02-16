@@ -223,6 +223,5 @@ func (r *RuangUjianRepo) DeleteRuangUjian(ctx context.Context, idRuangan int) er
 	if tag.RowsAffected() == 0 {
 		return coreerror.ErrNotFound
 	}
-
 	return nil
 }

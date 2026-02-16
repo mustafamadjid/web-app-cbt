@@ -36,6 +36,17 @@ func(r *CreateSesiService)CreateSesiService(ctx context.Context,sesi sesi.Sesi) 
 		return coreerror.ErrMissingField
 	}
 
+	exist, err := r.sesiRepo.ExistByKodeSesi(ctx,sesi.KodeSesi)
+	if err != nil {
+		logger.Error(ctx,"failed check exist sesi","layer","core.service","op","sesi.create","err",err)
+		return err
+	}
+
+	if exist {
+		logger.Error(ctx,"failed create sesi","layer","core.service","op","sesi.create","err",err)
+		return coreerror.ErrSesiUjianExist
+	}
+
 	if err := r.sesiRepo.CreateSesi(ctx,sesi); err != nil {
 		logger.Error(ctx,"failed create sesi","layer","core.service","op","sesi.create","err",err)
 		return err
