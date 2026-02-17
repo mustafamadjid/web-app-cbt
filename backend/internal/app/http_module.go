@@ -23,7 +23,7 @@ type HTTPModule struct {
 	Server  *http.Server
 }
 
-func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSekolah *ProfilSekolahModule, aktivitasUser *AktivitasUserModule, kelas *KelasModule, mapel *MataPelajaranModule, ruangUjian *RuangUjianModule, tokens *TokenModule, infra *InfraModule, logger corelog.Logger) *HTTPModule {
+func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSekolah *ProfilSekolahModule, aktivitasUser *AktivitasUserModule, kelas *KelasModule, mapel *MataPelajaranModule, ruangUjian *RuangUjianModule, sesi *SesiModule, tokens *TokenModule, infra *InfraModule, logger corelog.Logger) *HTTPModule {
 	cookies := cookie.CookieConfig{
 		AccessName:  cfg.Cookie.AccessName,
 		RefreshName: cfg.Cookie.RefreshName,
@@ -147,6 +147,14 @@ func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSeko
 	router.POST("/admin/ruang-ujian", requireAdmin(rateLimitStandard(ruangUjian.CreateHandler.CreateRuangUian)))
 	router.PATCH("/admin/ruang-ujian/:idRuangan", requireAdmin(rateLimitStandard(ruangUjian.UpdateHandler.UpdateRuangUjian)))
 	router.DELETE("/admin/ruang-ujian/:idRuangan", requireAdmin(rateLimitStandard(ruangUjian.DeleteHandler.DeleteRuangUjian)))
+
+	// SESI
+	router.GET("/admin/sesi", requireAdmin(rateLimitStandard(sesi.GetHandler.ListSesi)))
+	router.GET("/admin/sesi/:idSesi", requireAdmin(rateLimitStandard(sesi.GetHandler.GetSesiByID)))
+	router.GET("/admin/sesi/kode/:kodeSesi", requireAdmin(rateLimitStandard(sesi.GetHandler.GetSesiByKode)))
+	router.POST("/admin/sesi", requireAdmin(rateLimitStandard(sesi.CreateHandler.CreateSesiHandler)))
+	router.PATCH("/admin/sesi/:idSesi", requireAdmin(rateLimitStandard(sesi.UpdateHandler.UpdateSesi)))
+	router.DELETE("/admin/sesi/:idSesi", requireAdmin(rateLimitStandard(sesi.DeleteHandler.DeleteSesi)))
 
 	// Siswa
 
