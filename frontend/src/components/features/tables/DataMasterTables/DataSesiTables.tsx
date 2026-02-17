@@ -191,7 +191,7 @@ const DataSesiTables: React.FC = () => {
                       <td className="px-6 py-4">
                         <div className="flex flex-col">
                           <span className="font-semibold text-slate-900">{sesi.nama_sesi}</span>
-                          <span className="text-xs text-slate-500">ID: {sesi.id_sesi}</span>
+                          
                         </div>
                       </td>
                       <td className="px-6 py-4 text-right">

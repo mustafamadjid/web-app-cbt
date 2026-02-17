@@ -34,8 +34,8 @@ func (r *SesiRepo)GetSesi(ctx context.Context,filter query.ListSesiFilter) ([]se
 		SELECT
 			id_sesi,
 			kode_sesi,
-			nama_sesi,
-		FROM sesi	
+			nama_sesi
+		FROM sesi_ujian	
 	`
 
 	where := make([]string, 0, 1)
@@ -92,7 +92,7 @@ func(r *SesiRepo)GetSesiById(ctx context.Context,idSesi int) (sesi.Sesi, error) 
 			id_sesi,
 			kode_sesi,
 			nama_sesi,
-		FROM sesi	
+		FROM sesi_ujian	
 		WHERE id_sesi = $1
 	`
 
@@ -120,7 +120,7 @@ func(r *SesiRepo)GetSesiByKode(ctx context.Context,kodeSesi string) (sesi.Sesi, 
 			id_sesi,
 			kode_sesi,
 			nama_sesi,
-		FROM sesi	
+		FROM sesi_ujian		
 		WHERE kode_sesi = $1
 	`
 
@@ -146,7 +146,7 @@ func(r *SesiRepo)ExistByKodeSesi(ctx context.Context,kodeSesi string) (bool, err
 	query := `
 		SELECT EXISTS (
 			SELECT 1
-			FROM sesi
+			FROM sesi_ujian	
 			WHERE kode_sesi = $1
 		)
 	`
@@ -164,11 +164,10 @@ func(r *SesiRepo)ExistByKodeSesi(ctx context.Context,kodeSesi string) (bool, err
 
 func(r *SesiRepo)CreateSesi(ctx context.Context, sesi sesi.Sesi) error {
 	query := `
-		INSERT INTO sesi (id_sesi,kode_sesi,nama_sesi)
-		VALUES ($1,$2,$3)
+		INSERT INTO sesi_ujian (kode_sesi,nama_sesi)
+		VALUES ($1,$2)
 	`
 	_, err := r.q.Exec(ctx, query,
-		sesi.IdSesi,
 		sesi.KodeSesi,
 		sesi.NamaSesi,
 	)
@@ -181,7 +180,7 @@ func(r *SesiRepo)CreateSesi(ctx context.Context, sesi sesi.Sesi) error {
 
 func (r *SesiRepo)UpdateSesi(ctx context.Context, idSesi int, sesi updatepatch.UpdateSesiPatch) error {
 	query := `
-		UPDATE sesi
+		UPDATE sesi_ujian	
 		SET
 			kode_sesi = COALESCE($1,kode_sesi),
 			nama_sesi = COALESCE($2,nama_sesi)
@@ -210,7 +209,7 @@ func (r *SesiRepo)UpdateSesi(ctx context.Context, idSesi int, sesi updatepatch.U
 
 func (r *SesiRepo)DeleteSesi(ctx context.Context, idSesi int) error {
 	query := `
-		DELETE FROM sesi
+		DELETE FROM sesi_ujian	
 		WHERE id_sesi = $1
 	`
 	tag, err := r.q.Exec(ctx, query, idSesi)
