@@ -193,7 +193,6 @@ const RuangUjianTables: React.FC = () => {
                       <td className="px-6 py-4">
                         <div className="flex flex-col">
                           <span className="font-semibold text-slate-900">{ruang.nama_ruangan}</span>
-                          <span className="text-xs text-slate-500">ID: {ruang.id_ruangan}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4 text-slate-700">{ruang.kode_ruang}</td>

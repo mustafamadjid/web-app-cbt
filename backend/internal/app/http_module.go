@@ -150,7 +150,7 @@ func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSeko
 
 	// SESI
 	router.GET("/admin/sesi", requireAdmin(rateLimitStandard(sesi.GetHandler.ListSesi)))
-	router.GET("/admin/sesi/:idSesi", requireAdmin(rateLimitStandard(sesi.GetHandler.GetSesiByID)))
+	router.GET("/admin/sesi/sesi-id/:idSesi", requireAdmin(rateLimitStandard(sesi.GetHandler.GetSesiByID)))
 	router.GET("/admin/sesi/kode/:kodeSesi", requireAdmin(rateLimitStandard(sesi.GetHandler.GetSesiByKode)))
 	router.POST("/admin/sesi", requireAdmin(rateLimitStandard(sesi.CreateHandler.CreateSesiHandler)))
 	router.PATCH("/admin/sesi/:idSesi", requireAdmin(rateLimitStandard(sesi.UpdateHandler.UpdateSesi)))
