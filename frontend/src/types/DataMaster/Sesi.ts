@@ -4,13 +4,20 @@ export type SesiFormValues = {
 };
 
 export type SesiRow = {
-  id: number;
-  kodeSesi: string;
-  namaSesi: string;
+  id_sesi: number;
+  kode_sesi: string;
+  nama_sesi: string;
 };
 
 export type SesiFilterParams = {
   q?: string;
+  search?: string;
   limit?: number;
   offset?: number;
 };
+
+export type ListSesiResponse = {
+  items: SesiRow[];
+};
+
+export type UpdateSesiPayload = Partial<SesiFormValues>;

@@ -1,11 +1,13 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router";
 
 import InputField from "@/components/common/Input/InputField";
-
-import type { SesiFormValues } from "@/types/DataMaster/Sesi";
-
 import { createSetField } from "@/helper/setField/setField";
 import { createValidator, requiredString } from "@/helper/validate/validateForm";
+import { paths } from "@/routes/paths";
+import { ApiError } from "@/services/Api/api";
+import { createSesi } from "@/services/Api/features-api/DataMaster/sesi.service";
+import type { SesiFormValues } from "@/types/DataMaster/Sesi";
 
 const initialValues: SesiFormValues = {
   kode_sesi: "",
@@ -16,16 +18,19 @@ const sectionTitle = "text-sm font-semibold text-slate-800";
 const helperText = "text-xs text-slate-500";
 
 const DataSesiForm = () => {
+  const navigate = useNavigate();
   const [values, setValues] = useState<SesiFormValues>(initialValues);
   const [touched, setTouched] = useState<Record<keyof SesiFormValues, boolean>>(
     {
       kode_sesi: false,
       nama_sesi: false,
-    }
+    },
   );
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const setField = createSetField(setValues);
+
   const onBlur = (name: keyof SesiFormValues) => {
     setTouched((prev) => ({ ...prev, [name]: true }));
   };
@@ -38,13 +43,11 @@ const DataSesiForm = () => {
   });
 
   const errors = validate(values);
-  const hasError = (name: keyof SesiFormValues) =>
-    !!errors[name] && !!touched[name];
+  const hasError = (name: keyof SesiFormValues) => !!errors[name] && !!touched[name];
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitError(null);
-
     setTouched({
       kode_sesi: true,
       nama_sesi: true,
@@ -52,18 +55,30 @@ const DataSesiForm = () => {
 
     const currentErrors = validate(values);
     if (Object.keys(currentErrors).length > 0) {
-      setSubmitError(
-        "Periksa kembali input yang masih kosong atau tidak valid."
-      );
+      setSubmitError("Periksa kembali input yang masih kosong atau tidak valid.");
       return;
     }
 
-    const payload = {
+    const payload: SesiFormValues = {
       kode_sesi: normalizeText(values.kode_sesi),
       nama_sesi: normalizeText(values.nama_sesi),
     };
 
-    console.log("READY_TO_SUBMIT", payload);
+    setSubmitting(true);
+    try {
+      await createSesi(payload);
+      navigate(paths.dashboard.data_master_sesi);
+    } catch (e) {
+      const message =
+        e instanceof ApiError
+          ? e.message === "bad request: kode sesi already exist"
+            ? "Kode sesi sudah ada."
+            : "Data sesi gagal ditambahkan."
+          : "Data sesi gagal ditambahkan.";
+      setSubmitError(message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -71,9 +86,7 @@ const DataSesiForm = () => {
       <div className="mx-auto w-full max-w-5xl px-4">
         <div className="mb-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <div>
-            <h1 className="text-base font-semibold text-slate-900">
-              Data Sesi Ujian
-            </h1>
+            <h1 className="text-base font-semibold text-slate-900">Data Sesi Ujian</h1>
             <p className="mt-1 text-sm text-slate-500">
               Lengkapi informasi sesi ujian yang akan ditambahkan.
             </p>
@@ -96,15 +109,12 @@ const DataSesiForm = () => {
                   onChange={(v) => setField("kode_sesi", v)}
                   onBlur={() => onBlur("kode_sesi")}
                   placeholder="Contoh: SESI-01"
-                  inputClassName={
-                    hasError("kode_sesi") ? "border-rose-300 ring-rose-100" : ""
-                  }
+                  inputClassName={hasError("kode_sesi") ? "border-rose-300 ring-rose-100" : ""}
+                  disabled={submitting}
                   required
                 />
                 {hasError("kode_sesi") && (
-                  <p className="mt-1 text-xs text-rose-500">
-                    {errors.kode_sesi}
-                  </p>
+                  <p className="mt-1 text-xs text-rose-500">{errors.kode_sesi}</p>
                 )}
               </div>
 
@@ -116,15 +126,12 @@ const DataSesiForm = () => {
                   onChange={(v) => setField("nama_sesi", v)}
                   onBlur={() => onBlur("nama_sesi")}
                   placeholder="Contoh: Sesi Pagi"
-                  inputClassName={
-                    hasError("nama_sesi") ? "border-rose-300 ring-rose-100" : ""
-                  }
+                  inputClassName={hasError("nama_sesi") ? "border-rose-300 ring-rose-100" : ""}
+                  disabled={submitting}
                   required
                 />
                 {hasError("nama_sesi") && (
-                  <p className="mt-1 text-xs text-rose-500">
-                    {errors.nama_sesi}
-                  </p>
+                  <p className="mt-1 text-xs text-rose-500">{errors.nama_sesi}</p>
                 )}
               </div>
             </div>
@@ -139,7 +146,7 @@ const DataSesiForm = () => {
           <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
             <button
               type="button"
-              className="inline-flex items-center justify-center rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+              className="inline-flex cursor-pointer items-center justify-center rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
               onClick={() => {
                 setValues(initialValues);
                 setTouched({
@@ -148,13 +155,15 @@ const DataSesiForm = () => {
                 });
                 setSubmitError(null);
               }}
+              disabled={submitting}
             >
               Reset
             </button>
 
             <button
               type="submit"
-              className="inline-flex items-center justify-center rounded-lg bg-[#397e50] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#2f6a43]"
+              className="inline-flex cursor-pointer items-center justify-center rounded-lg bg-[#397e50] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#2f6a43] disabled:cursor-not-allowed disabled:opacity-70"
+              disabled={submitting}
             >
               Simpan Sesi
             </button>

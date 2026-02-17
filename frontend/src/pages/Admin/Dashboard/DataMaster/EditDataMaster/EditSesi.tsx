@@ -3,7 +3,10 @@ import { useNavigate, useParams } from "react-router";
 
 import EditSesiForm from "@/layouts/Form/Admin/DataMaster/EditSesiForm";
 import type { SesiFormValues } from "@/types/DataMaster/Sesi";
-import { getSesiById, updateSesi } from "@/services/Api/features-api/DataMaster/sesi.service";
+import {
+  getSesiById,
+  updateSesiPartial,
+} from "@/services/Api/features-api/DataMaster/sesi.service";
 import { ApiError } from "@/services/Api/api";
 import { paths } from "@/routes/paths";
 
@@ -53,7 +56,7 @@ const EditSesi = () => {
 
     setSubmitting(true);
     try {
-      await updateSesi(sesiId, values);
+      await updateSesiPartial(sesiId, values, initialValues);
       navigate(paths.dashboard.data_master_sesi);
     } finally {
       setSubmitting(false);
@@ -62,6 +65,7 @@ const EditSesi = () => {
 
   return (
     <EditSesiForm
+      key={`${initialValues.kode_sesi}-${initialValues.nama_sesi}`}
       initialValues={initialValues}
       onSubmit={handleSubmit}
       loading={loading}

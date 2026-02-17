@@ -1,56 +1,84 @@
-import type { SesiFilterParams, SesiFormValues, SesiRow } from "@/types/DataMaster/Sesi";
-import { api } from "@/services/Api/api";
-import type { ApiEnvelope } from "@/services/Api/api";
 import { buildJsonData } from "@/helper/FormData/BuildJsonData";
+import { api } from "@/services/Api/api";
+import type {
+  ListSesiResponse,
+  SesiFilterParams,
+  SesiFormValues,
+  SesiRow,
+  UpdateSesiPayload,
+} from "@/types/DataMaster/Sesi";
 
-const DUMMY_SESI: SesiRow[] = [
-  { id: 1, kodeSesi: "SESI-01", namaSesi: "Sesi Pagi" },
-  { id: 2, kodeSesi: "SESI-02", namaSesi: "Sesi Siang" },
-  { id: 3, kodeSesi: "SESI-03", namaSesi: "Sesi Sore" },
-  { id: 4, kodeSesi: "SESI-04", namaSesi: "Sesi Malam" },
-];
+const SESI_ENDPOINT = "/admin/sesi";
 
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const toPartialPayload = (
+  values: SesiFormValues,
+  initialValues: SesiFormValues,
+): UpdateSesiPayload => {
+  const payload: UpdateSesiPayload = {};
 
-const normalize = (value: string) => value.toLowerCase().trim();
+  if (values.kode_sesi !== initialValues.kode_sesi) {
+    payload.kode_sesi = values.kode_sesi;
+  }
 
-export async function getSesi(
-  params: SesiFilterParams = {}
-): Promise<SesiRow[]> {
-  await sleep(200);
-  const q = params.q ? normalize(params.q) : "";
+  if (values.nama_sesi !== initialValues.nama_sesi) {
+    payload.nama_sesi = values.nama_sesi;
+  }
 
-  const filtered = !q
-    ? DUMMY_SESI
-    : DUMMY_SESI.filter((sesi) => {
-        return (
-          sesi.kodeSesi.toLowerCase().includes(q) ||
-          sesi.namaSesi.toLowerCase().includes(q)
-        );
-      });
+  return payload;
+};
 
-  const offset = params.offset ?? 0;
-  const limit = params.limit ?? filtered.length;
+export async function createSesi(values: SesiFormValues) {
+  const data = buildJsonData(values);
 
-  return filtered.slice(offset, offset + limit);
+  return await api<null>(SESI_ENDPOINT, {
+    method: "POST",
+    data,
+  });
 }
 
-export async function getSesiById(id: number): Promise<SesiFormValues | null> {
-  const target = DUMMY_SESI.find((sesi) => sesi.id === id);
-  if (!target) return null;
+export async function getSesi(
+  params: SesiFilterParams = {},
+): Promise<SesiRow[]> {
+  const response = await api<ListSesiResponse>(SESI_ENDPOINT, {
+    method: "GET",
+    params: {
+      q: params.q?.trim() || undefined,
+      search: params.search?.trim() || undefined,
+      limit: params.limit != null ? String(params.limit) : undefined,
+      offset: params.offset != null ? String(params.offset) : undefined,
+    },
+  });
+
+  return response.items;
+}
+
+export async function getSesiById(idSesi: number): Promise<SesiFormValues> {
+  const response = await api<SesiRow>(`${SESI_ENDPOINT}/sesi-id/${idSesi}`, {
+    method: "GET",
+  });
 
   return {
-    kode_sesi: target.kodeSesi,
-    nama_sesi: target.namaSesi,
+    kode_sesi: response.kode_sesi,
+    nama_sesi: response.nama_sesi,
   };
 }
 
-export async function updateSesi(id: number, values: SesiFormValues) {
-  const data = buildJsonData(values);
-  const res = await api<ApiEnvelope<{ id: number }>>(`/sesi/${id}`, {
-    method: "PUT",
+export async function updateSesiPartial(
+  idSesi: number,
+  values: SesiFormValues,
+  initialValues: SesiFormValues,
+) {
+  const payload = toPartialPayload(values, initialValues);
+  const data = buildJsonData(payload);
+
+  return await api<null>(`${SESI_ENDPOINT}/${idSesi}`, {
+    method: "PATCH",
     data,
   });
+}
 
-  return res.data;
+export async function deleteSesi(idSesi: number) {
+  return await api<null>(`${SESI_ENDPOINT}/${idSesi}`, {
+    method: "DELETE",
+  });
 }
