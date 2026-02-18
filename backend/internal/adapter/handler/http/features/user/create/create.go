@@ -90,7 +90,7 @@ func (h *UserHandler) CreateGuru(write http.ResponseWriter, req *http.Request, _
 		Foto:         relPath,
 	}
 
-	if cmd.Username == "" || cmd.Email == "" || cmd.Password == "" || cmd.NamaLengkap == "" || cmd.JenisKelamin == "" || cmd.NoHp == "" || cmd.Nip == "" || cmd.Jabatan == "" || cmd.BidangStudi == ""  {
+	if cmd.Username == "" || cmd.Email == "" || cmd.Password == "" || cmd.NamaLengkap == "" || cmd.JenisKelamin == "" || cmd.NoHp == "" || cmd.Nip == "" || cmd.Jabatan == "" || cmd.BidangStudi == "" {
 		httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request : invalid request body")
 		return
 	}
@@ -99,6 +99,14 @@ func (h *UserHandler) CreateGuru(write http.ResponseWriter, req *http.Request, _
 		return
 	}
 	if err := validator.ValidateInputSafe(cmd.Email, "email"); err != nil {
+		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
+		return
+	}
+	if err := validator.ValidateEmail(cmd.Email); err != nil {
+		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
+		return
+	}
+	if err := validator.ValidatePassword(cmd.Password); err != nil {
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
@@ -235,10 +243,7 @@ func (h *UserHandler) CreateSiswa(write http.ResponseWriter, req *http.Request, 
 		return
 	}
 
-	
 	idNamaKelasRaw := strings.TrimSpace(req.FormValue("id_nama_kelas"))
-
-	
 
 	idNamaKelasInt, err := strconv.ParseInt(idNamaKelasRaw, 10, 64)
 	if err != nil {
@@ -264,13 +269,12 @@ func (h *UserHandler) CreateSiswa(write http.ResponseWriter, req *http.Request, 
 		NoHp:         strings.TrimSpace(req.FormValue("no_hp")),
 		Foto:         relPath,
 
-		
-		IdNamaKelas:    user.ID(idNamaKelasInt),
-		Nisn:           strings.TrimSpace(req.FormValue("nisn")),
-		NoAbsen:        noAbsen,
-		Angkatan:       angkatan,
-		TempatLahir:    strings.TrimSpace(req.FormValue("tempat_lahir")),
-		TanggalLahir:   tanggalLahir,
+		IdNamaKelas:  user.ID(idNamaKelasInt),
+		Nisn:         strings.TrimSpace(req.FormValue("nisn")),
+		NoAbsen:      noAbsen,
+		Angkatan:     angkatan,
+		TempatLahir:  strings.TrimSpace(req.FormValue("tempat_lahir")),
+		TanggalLahir: tanggalLahir,
 	}
 
 	actor, ok := middleware.ActorFromContext(req.Context())
@@ -300,6 +304,14 @@ func (h *UserHandler) CreateSiswa(write http.ResponseWriter, req *http.Request, 
 		return
 	}
 	if err := validator.ValidateInputSafe(cmd.Email, "email"); err != nil {
+		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
+		return
+	}
+	if err := validator.ValidateEmail(cmd.Email); err != nil {
+		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
+		return
+	}
+	if err := validator.ValidatePassword(cmd.Password); err != nil {
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
