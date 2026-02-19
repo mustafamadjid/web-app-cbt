@@ -24,11 +24,12 @@ type InfraModule struct {
 	Sessions  out.SessionRepository
 	AuthUsers outauth.AuthUserrepository
 
-	users           outuser.UserRepository
-	profilSiswa     outuser.GetListSiswaRepo
-	profilSiswaRepo outuser.ProfilSiswaRepository
-	profilGuru      outuser.GetGuruListRepo
-	profilGuruRepo  outuser.ProfilGuruRepository
+	users                 outuser.UserRepository
+	userResetPasswordRepo outuser.UserResetPasswordRepo
+	profilSiswa           outuser.GetListSiswaRepo
+	profilSiswaRepo       outuser.ProfilSiswaRepository
+	profilGuru            outuser.GetGuruListRepo
+	profilGuruRepo        outuser.ProfilGuruRepository
 
 	profilSekolah outprofil.ProfilSekolahRepository
 	aktivitasUser outaktivitas.AktivitasUserRepository
@@ -46,20 +47,21 @@ func BuildInfraModule(pool *pgxpool.Pool, logger corelog.Logger) *InfraModule {
 	profilSiswaRepo := pg.NewProfilSiswaRepo(pool, logger)
 
 	return &InfraModule{
-		Pool:            pool,
-		Txm:             txm,
-		Sessions:        pg.NewSessionRepo(pool, logger),
-		AuthUsers:       pg.NewAuthUserRepo(pool, logger),
-		users:           pg.NewUserRepo(pool, logger),
-		profilSiswa:     profilSiswaRepo,
-		profilSiswaRepo: profilSiswaRepo,
-		profilGuru:      profilGuruRepo,
-		profilGuruRepo:  profilGuruRepo,
-		profilSekolah:   pg.NewProfilSekolahRepo(pool, logger),
-		aktivitasUser:   pg.NewAktivitasUserRepo(pool, logger),
-		kelasRepo:       pg.NewKelasRepo(pool, logger),
-		mapelRepo:       pg.NewMapelRepo(pool, logger),
-		ruangUjianRepo:  pg.NewRuangUjianRepo(pool, logger),
-		sesiRepo:        pg.NewSesirepo(pool, logger),
+		Pool:                  pool,
+		Txm:                   txm,
+		Sessions:              pg.NewSessionRepo(pool, logger),
+		AuthUsers:             pg.NewAuthUserRepo(pool, logger),
+		users:                 pg.NewUserRepo(pool, logger),
+		userResetPasswordRepo: pg.NewResetPasswordRepo(pool, logger),
+		profilSiswa:           profilSiswaRepo,
+		profilSiswaRepo:       profilSiswaRepo,
+		profilGuru:            profilGuruRepo,
+		profilGuruRepo:        profilGuruRepo,
+		profilSekolah:         pg.NewProfilSekolahRepo(pool, logger),
+		aktivitasUser:         pg.NewAktivitasUserRepo(pool, logger),
+		kelasRepo:             pg.NewKelasRepo(pool, logger),
+		mapelRepo:             pg.NewMapelRepo(pool, logger),
+		ruangUjianRepo:        pg.NewRuangUjianRepo(pool, logger),
+		sesiRepo:              pg.NewSesirepo(pool, logger),
 	}
 }

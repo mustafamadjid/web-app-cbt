@@ -4,6 +4,7 @@ import InputField from "@/components/common/Input/InputField";
 import ImageUpload from "@/components/features/Upload/ImageUpload";
 
 import type { TeacherUpdateFormValues } from "@/types/KelolaAkun/AkunGuru";
+import type { ResetPasswordFormValues } from "@/types/KelolaAkun/ResetPassword";
 import type { StatusAkun } from "@/types/OpsiTypes/Option";
 
 import { createSetField } from "@/helper/setField/setField";
@@ -21,6 +22,7 @@ type EditAkunGuruFormProps = {
   initialValues: TeacherUpdateFormValues;
   initialFotoUrl?: string;
   onSubmit: (values: TeacherUpdateFormValues) => Promise<void>;
+  onSubmitResetPassword: (values: ResetPasswordFormValues) => Promise<void>;
   loading?: boolean;
   submitting?: boolean;
 };
@@ -40,12 +42,20 @@ const EditAkunGuruForm = ({
   initialValues,
   initialFotoUrl,
   onSubmit,
+  onSubmitResetPassword,
   loading = false,
   submitting = false,
 }: EditAkunGuruFormProps) => {
   const [values, setValues] = useState<TeacherUpdateFormValues>(initialValues);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const [resetPasswordValues, setResetPasswordValues] = useState<ResetPasswordFormValues>({
+    password: "",
+    konfirmasi_password: "",
+  });
+  const [resetPasswordTouched, setResetPasswordTouched] = useState<Record<string, boolean>>({});
+  const [resetPasswordError, setResetPasswordError] = useState<string | null>(null);
   const [fotoUrl, setFotoUrl] = useState<string>(initialFotoUrl ?? "");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -134,6 +144,32 @@ const EditAkunGuruForm = ({
     } catch (error) {
       if (error instanceof ApiError) {
         setSubmitError(error.message);
+      }
+    }
+  };
+
+
+  const handleSubmitResetPassword = async () => {
+    setResetPasswordError(null);
+    setResetPasswordTouched({ password: true, konfirmasi_password: true });
+
+    if (!resetPasswordValues.password.trim()) {
+      setResetPasswordError("Password wajib diisi.");
+      return;
+    }
+
+    if (resetPasswordValues.password !== resetPasswordValues.konfirmasi_password) {
+      setResetPasswordError("Konfirmasi password tidak sama.");
+      return;
+    }
+
+    try {
+      await onSubmitResetPassword(resetPasswordValues);
+      setResetPasswordValues({ password: "", konfirmasi_password: "" });
+      setResetPasswordTouched({});
+    } catch (error) {
+      if (error instanceof ApiError) {
+        setResetPasswordError(error.message);
       }
     }
   };
@@ -422,6 +458,66 @@ const EditAkunGuruForm = ({
           {hasError("foto_profil") && (
             <p className="-mt-4 text-xs text-rose-600">{errors.foto_profil}</p>
           )}
+
+
+
+          <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="mb-4">
+              <h2 className={sectionTitle}>Update Password</h2>
+              <p className={helperText}>Gunakan form terpisah untuk reset password pengguna.</p>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <InputField
+                  id="password_baru_guru"
+                  type="password"
+                  label="Password Baru"
+                  value={resetPasswordValues.password}
+                  onChange={(v) => setResetPasswordValues((prev) => ({ ...prev, password: v }))}
+                  onBlur={() => setResetPasswordTouched((prev) => ({ ...prev, password: true }))}
+                  disabled={isDisabled}
+                  required
+                />
+                {!!resetPasswordTouched.password && !resetPasswordValues.password.trim() && (
+                  <p className="mt-1 text-xs text-rose-600">Password wajib diisi.</p>
+                )}
+              </div>
+
+              <div>
+                <InputField
+                  id="konfirmasi_password_baru_guru"
+                  type="password"
+                  label="Konfirmasi Password"
+                  value={resetPasswordValues.konfirmasi_password}
+                  onChange={(v) => setResetPasswordValues((prev) => ({ ...prev, konfirmasi_password: v }))}
+                  onBlur={() => setResetPasswordTouched((prev) => ({ ...prev, konfirmasi_password: true }))}
+                  disabled={isDisabled}
+                  required
+                />
+                {!!resetPasswordTouched.konfirmasi_password && resetPasswordValues.password !== resetPasswordValues.konfirmasi_password && (
+                  <p className="mt-1 text-xs text-rose-600">Konfirmasi password tidak sama.</p>
+                )}
+              </div>
+            </div>
+
+            {resetPasswordError && (
+              <div className="mt-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600">
+                {resetPasswordError}
+              </div>
+            )}
+
+            <div className="mt-4 flex justify-end">
+              <button
+                type="button"
+                onClick={handleSubmitResetPassword}
+                className="inline-flex cursor-pointer items-center justify-center rounded-lg bg-[#397e50] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#2f6a43] disabled:cursor-not-allowed disabled:opacity-70"
+                disabled={isDisabled}
+              >
+                Update Password
+              </button>
+            </div>
+          </div>
 
           {submitError && (
             <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600">

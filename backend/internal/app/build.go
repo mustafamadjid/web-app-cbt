@@ -19,6 +19,7 @@ type App struct {
 	MataPelajaran *MataPelajaranModule
 	RuangUjian    *RuangUjianModule
 	Sesi          *SesiModule
+	ResetPassword *ResetPasswordModule
 	HTTP          *HTTPModule
 }
 
@@ -38,7 +39,8 @@ func Build(ctx context.Context, cfg Config, dbURL string, hasher out.PasswordHas
 	mapel := BuildMataPelajaranModule(infra)
 	ruangUjian := BuildRuangUjianModule(infra)
 	sesi := BuildSesiModule(infra)
-	httpm := BuildHTTPModule(cfg, auth, users, profilSekolah, aktivitasUser, kelas, mapel, ruangUjian, sesi, tokens, infra, logger)
+	resetPassword := BuildResetPasswordModule(infra, hasher)
+	httpm := BuildHTTPModule(cfg, auth, users, profilSekolah, aktivitasUser, kelas, mapel, ruangUjian, sesi, resetPassword, tokens, infra, logger)
 
 	return &App{
 		Infra:         infra,
@@ -51,6 +53,7 @@ func Build(ctx context.Context, cfg Config, dbURL string, hasher out.PasswordHas
 		MataPelajaran: mapel,
 		RuangUjian:    ruangUjian,
 		Sesi:          sesi,
+		ResetPassword: resetPassword,
 		HTTP:          httpm,
 	}, nil
 }

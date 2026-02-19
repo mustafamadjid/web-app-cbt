@@ -3,7 +3,9 @@ import { useNavigate, useParams } from "react-router";
 
 import EditAkunGuruForm from "@/layouts/Form/Admin/KelolaAkun/EditAkunGuruForm";
 import type { TeacherUpdateFormValues } from "@/types/KelolaAkun/AkunGuru";
+import type { ResetPasswordFormValues } from "@/types/KelolaAkun/ResetPassword";
 import { getGuruById, updateGuru } from "@/services/Api/features-api/KelolaAkun/akunguru.service";
+import { resetPasswordPengguna } from "@/services/Api/features-api/KelolaAkun/akun.service";
 import { ApiError } from "@/services/Api/api";
 import { paths } from "@/routes/paths";
 import toast from "react-hot-toast";
@@ -88,11 +90,26 @@ const EditAkunGuru = () => {
     }
   };
 
+  const handleSubmitResetPassword = async (values: ResetPasswordFormValues) => {
+    if (!id || Number.isNaN(guruId)) {
+      throw new ApiError("ID guru tidak ditemukan.");
+    }
+
+    setSubmitting(true);
+    try {
+      await resetPasswordPengguna(guruId, { password: values.password });
+      toast.success("Password akun guru berhasil diperbarui.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <EditAkunGuruForm
       initialValues={initialValues}
       initialFotoUrl={fotoUrl}
       onSubmit={handleSubmit}
+      onSubmitResetPassword={handleSubmitResetPassword}
       loading={loading}
       submitting={submitting}
     />

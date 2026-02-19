@@ -11,25 +11,24 @@ import (
 
 type ResetPasswordService struct {
 	userRepo outuser.UserResetPasswordRepo
-	hasher out.PasswordHasher
+	hasher   out.PasswordHasher
 }
-
 
 func NewResetPasswordService(userRepo outuser.UserResetPasswordRepo, hasher out.PasswordHasher) *ResetPasswordService {
 	return &ResetPasswordService{userRepo: userRepo, hasher: hasher}
 }
 
-func(r *ResetPasswordService)ResetPasswordService(ctx context.Context,userID user.ID, password string)error {
+func (r *ResetPasswordService) ResetPasswordService(ctx context.Context, userID user.ID, password string) error {
 	logger := corelog.FromContext(ctx)
 
 	hashedPassword, err := r.hasher.GenerateHash(password)
 	if err != nil {
-		logger.Error(ctx,"failed hashing password","layer","core.service","op","user.reset_password","err",err)
+		logger.Error(ctx, "failed hashing password", "layer", "core.service", "op", "user.reset_password", "err", err)
 		return err
 	}
 
-	if err := r.userRepo.ResetPassword(ctx,userID,hashedPassword); err != nil {
-		logger.Error(ctx,"failed reset password","layer","core.service","op","user.reset_password","err",err)
+	if err := r.userRepo.ResetPassword(ctx, userID, hashedPassword); err != nil {
+		logger.Error(ctx, "failed reset password", "layer", "core.service", "op", "user.reset_password", "err", err)
 		return err
 	}
 	return nil

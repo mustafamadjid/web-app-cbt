@@ -9,7 +9,7 @@ import (
 )
 
 type ResetPasswordRepo struct {
-	q Executor
+	q      Executor
 	logger corelog.Logger
 }
 
@@ -21,16 +21,16 @@ func (r *ResetPasswordRepo) loggerFor(ctx context.Context) corelog.Logger {
 	return corelog.FromContextOr(ctx, r.logger)
 }
 
-func(r *ResetPasswordRepo)ResetPassword(ctx context.Context, idPengguna user.ID, password string) error {
+func (r *ResetPasswordRepo) ResetPassword(ctx context.Context, idPengguna user.ID, password string) error {
 	const query = `
 		UPDATE pengguna
 		SET password = $1
 		WHERE id_pengguna = $2
 	`
 
-	tag,err := r.q.Exec(ctx,query,password,idPengguna)
+	tag, err := r.q.Exec(ctx, query, password, idPengguna)
 	if err != nil {
-		r.loggerFor(ctx).Error(ctx,"failed reset password", "op", "reset_password_repo.reset", "user_id", idPengguna, "err", err)
+		r.loggerFor(ctx).Error(ctx, "failed reset password", "op", "reset_password_repo.reset", "user_id", idPengguna, "err", err)
 		return err
 	}
 	if tag.RowsAffected() == 0 {

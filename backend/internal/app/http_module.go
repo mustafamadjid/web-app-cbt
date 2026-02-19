@@ -23,7 +23,7 @@ type HTTPModule struct {
 	Server  *http.Server
 }
 
-func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSekolah *ProfilSekolahModule, aktivitasUser *AktivitasUserModule, kelas *KelasModule, mapel *MataPelajaranModule, ruangUjian *RuangUjianModule, sesi *SesiModule, tokens *TokenModule, infra *InfraModule, logger corelog.Logger) *HTTPModule {
+func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSekolah *ProfilSekolahModule, aktivitasUser *AktivitasUserModule, kelas *KelasModule, mapel *MataPelajaranModule, ruangUjian *RuangUjianModule, sesi *SesiModule, resetPassword *ResetPasswordModule, tokens *TokenModule, infra *InfraModule, logger corelog.Logger) *HTTPModule {
 	cookies := cookie.CookieConfig{
 		AccessName:  cfg.Cookie.AccessName,
 		RefreshName: cfg.Cookie.RefreshName,
@@ -117,6 +117,9 @@ func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSeko
 	// PENGGUNA
 	router.DELETE("/admin/pengguna", requireAdmin(rateLimitStandard(users.DeleteHandler.DeleteUsers)))
 	router.DELETE("/admin/pengguna/:id", requireAdmin(rateLimitStandard(users.DeleteHandler.DeleteUser)))
+
+	// RESET PASSWORD
+	router.PUT("/admin/pengguna/:idPengguna/reset-password", requireAdmin(rateLimitStandard(resetPassword.Handler.ResetPasswordHandler)))
 
 	// AKTIVITAS USER
 	router.GET("/admin/aktivitas-user", requireAdmin(rateLimitStandard(aktivitasUser.GetHandler.GetAktivitasUser)))

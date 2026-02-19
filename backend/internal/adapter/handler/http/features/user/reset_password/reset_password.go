@@ -31,7 +31,7 @@ func (h *ResetPasswordHandler) ResetPasswordHandler(w http.ResponseWriter, r *ht
 		return
 	}
 
-	idPengguna,err := strconv.Atoi(ps.ByName("idPengguna"))
+	idPengguna, err := strconv.Atoi(ps.ByName("idPengguna"))
 	if err != nil || idPengguna <= 0 {
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: invalid id pengguna")
 		return
@@ -59,7 +59,7 @@ func (h *ResetPasswordHandler) ResetPasswordHandler(w http.ResponseWriter, r *ht
 	}
 
 	if err := h.svc.ResetPasswordService(r.Context(), userID, dataRequest.Password); err != nil {
-		logger.Error(r.Context(),"failed updating password","layer","adapter.http.handler","op","user.reset_password","user_id",userID,"err",err)
+		logger.Error(r.Context(), "failed updating password", "layer", "adapter.http.handler", "op", "user.reset_password", "user_id", userID, "err", err)
 		httpResponse.WriteErr(w, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error")
 		return
 	}

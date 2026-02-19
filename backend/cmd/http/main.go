@@ -96,8 +96,9 @@ func main() {
 	mapelMod := app.BuildMataPelajaranModule(infra)
 	ruangUjianMod := app.BuildRuangUjianModule(infra)
 	sesiMod := app.BuildSesiModule(infra)
+	resetPasswordMod := app.BuildResetPasswordModule(infra, hasher)
 
-	httpMod := app.BuildHTTPModule(cfg, authMod, userMod, profilSekolahMod, aktivitasUserMod, kelasMod, mapelMod, ruangUjianMod, sesiMod, tokens, infra, logger)
+	httpMod := app.BuildHTTPModule(cfg, authMod, userMod, profilSekolahMod, aktivitasUserMod, kelasMod, mapelMod, ruangUjianMod, sesiMod, resetPasswordMod, tokens, infra, logger)
 
 	log.Println("Listening on", cfg.HTTP.Addr)
 	if err := httpMod.Server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
