@@ -3,10 +3,13 @@ import { useNavigate, useParams } from "react-router";
 
 import EditAkunSiswaForm from "@/layouts/Form/Admin/KelolaAkun/EditAkunSiswaForm";
 import type { StudentUpdateFormValues } from "@/types/KelolaAkun/AkunSiswa";
+import type { ResetPasswordFormValues } from "@/types/KelolaAkun/ResetPassword";
 import { getSiswaById, updateSiswa } from "@/services/Api/features-api/KelolaAkun/akunsiswa.service";
+import { resetPasswordPengguna } from "@/services/Api/features-api/KelolaAkun/akun.service";
 import { ApiError } from "@/services/Api/api";
 import { paths } from "@/routes/paths";
 import { GetDataKelasFull } from "@/services/Api/features-api/DataMaster/kelas.service";
+import toast from "react-hot-toast";
 
 const buildInitialValues = (): StudentUpdateFormValues => ({
   id_pengguna: 0,
@@ -104,11 +107,26 @@ const EditAkunSiswa = () => {
     }
   };
 
+  const handleSubmitResetPassword = async (values: ResetPasswordFormValues) => {
+    if (!id || Number.isNaN(siswaId)) {
+      throw new ApiError("ID siswa tidak ditemukan.");
+    }
+
+    setSubmitting(true);
+    try {
+      await resetPasswordPengguna(siswaId, { password: values.password });
+      toast.success("Password akun siswa berhasil diperbarui.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <EditAkunSiswaForm
       initialValues={initialValues}
       initialFotoUrl={fotoUrl}
       onSubmit={handleSubmit}
+      onSubmitResetPassword={handleSubmitResetPassword}
       loading={loading}
       submitting={submitting}
     />

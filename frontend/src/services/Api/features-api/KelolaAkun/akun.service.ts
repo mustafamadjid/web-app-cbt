@@ -1,3 +1,5 @@
+import { buildJsonData } from "@/helper/FormData/BuildJsonData";
+import type { ResetPasswordRequest } from "@/types/KelolaAkun/ResetPassword";
 // export async function GetAllGuru(
 //   params: GuruFilterParams = {}
 // ): Promise<DataGuru[]> {
@@ -32,5 +34,13 @@ export async function DeletePenggunaBulk(ids: number[]) {
   return api<any>("/admin/pengguna", {
     method: "DELETE",
     data: { ids },
+  });
+}
+
+
+export function resetPasswordPengguna(idPengguna: number, payload: ResetPasswordRequest) {
+  return api<ResetPasswordRequest>(`/admin/pengguna/${idPengguna}/reset-password`, {
+    method: "PUT",
+    data: buildJsonData(payload),
   });
 }
