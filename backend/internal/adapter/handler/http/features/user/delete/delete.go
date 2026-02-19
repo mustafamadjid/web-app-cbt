@@ -1,17 +1,16 @@
 package httpx
 
 import (
-	"encoding/json"
 	"errors"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"github.com/julienschmidt/httprouter"
-	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
-	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/aktivitas_user"
 	"github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/middleware"
-	
+	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/aktivitas_user"
+	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
+
 	httphelper "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper"
 	httpResponse "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper/response_envelope"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
@@ -91,11 +90,14 @@ func (h *DeleteHandler) DeleteUsers(write http.ResponseWriter, req *http.Request
 	}
 
 	var reqBody DeleteUsersRequest
-	dec := json.NewDecoder(req.Body)
-	dec.DisallowUnknownFields()
-	if err := dec.Decode(&reqBody); err != nil {
+	if err := httphelper.JSONDecoder(req, &reqBody); err != nil {
 		logger.Error(req.Context(), "failed decoding delete users request", "layer", "adapter.http.handler", "op", "user.delete_many", "err", err)
-		httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request")
+		switch {
+		case errors.Is(err, coreerror.ErrInvalidRequestBody):
+			httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "bad request: invalid request body")
+		default:
+			httpResponse.WriteErr(write, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error")
+		}
 		return
 	}
 
