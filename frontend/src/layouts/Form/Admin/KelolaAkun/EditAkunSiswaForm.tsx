@@ -584,7 +584,6 @@ const EditAkunSiswaForm = ({
           <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="mb-4">
               <h2 className={sectionTitle}>Update Password</h2>
-              <p className={helperText}>Gunakan form terpisah untuk reset password pengguna.</p>
             </div>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
