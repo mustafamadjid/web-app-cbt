@@ -237,6 +237,9 @@ const EditAkunSiswaForm = ({
   };
 
   const isDisabled = loading || submitting;
+  const isResetPasswordStarted =
+    !!resetPasswordValues.password.trim() ||
+    !!resetPasswordValues.konfirmasi_password.trim();
 
   return (
     <div className="min-h-screen w-full bg-slate-50 py-8">
@@ -596,9 +599,8 @@ const EditAkunSiswaForm = ({
                   onChange={(v) => setResetPasswordValues((prev) => ({ ...prev, password: v }))}
                   onBlur={() => setResetPasswordTouched((prev) => ({ ...prev, password: true }))}
                   disabled={isDisabled}
-                  required
                 />
-                {!!resetPasswordTouched.password && !resetPasswordValues.password.trim() && (
+                {!!resetPasswordTouched.password && isResetPasswordStarted && !resetPasswordValues.password.trim() && (
                   <p className="mt-1 text-xs text-rose-600">Password wajib diisi.</p>
                 )}
               </div>
@@ -612,9 +614,8 @@ const EditAkunSiswaForm = ({
                   onChange={(v) => setResetPasswordValues((prev) => ({ ...prev, konfirmasi_password: v }))}
                   onBlur={() => setResetPasswordTouched((prev) => ({ ...prev, konfirmasi_password: true }))}
                   disabled={isDisabled}
-                  required
                 />
-                {!!resetPasswordTouched.konfirmasi_password && resetPasswordValues.password !== resetPasswordValues.konfirmasi_password && (
+                {!!resetPasswordTouched.konfirmasi_password && isResetPasswordStarted && resetPasswordValues.password !== resetPasswordValues.konfirmasi_password && (
                   <p className="mt-1 text-xs text-rose-600">Konfirmasi password tidak sama.</p>
                 )}
               </div>
