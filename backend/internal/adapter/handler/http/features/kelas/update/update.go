@@ -1,9 +1,7 @@
 package httpx
 
 import (
-	"encoding/json"
 	"errors"
-	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -54,16 +52,13 @@ func (h *UpdateKelasHandler) UpdateNamaKelas(w http.ResponseWriter, r *http.Requ
 	r.Body = http.MaxBytesReader(w, r.Body, 10<<20)
 
 	var dataRequest UpdateKelasRequest
-	dec := json.NewDecoder(r.Body)
-	dec.DisallowUnknownFields()
-
-	if err := dec.Decode(&dataRequest); err != nil {
-		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: invalid request body")
-		return
-	}
-
-	if dec.Decode(&struct{}{}) != io.EOF {
-		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: invalid request body")
+	if err := httphelper.JSONDecoder(r, &dataRequest); err != nil {
+		switch {
+		case errors.Is(err, coreerror.ErrInvalidRequestBody):
+			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: invalid request body")
+		default:
+			httpResponse.WriteErr(w, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error")
+		}
 		return
 	}
 

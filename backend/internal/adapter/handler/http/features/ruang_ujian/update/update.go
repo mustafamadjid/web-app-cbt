@@ -1,14 +1,13 @@
 package httpx
 
 import (
-	"encoding/json"
 	"errors"
-	"io"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"github.com/julienschmidt/httprouter"
+	httphelper "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper"
 	httpResponse "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper/response_envelope"
 	validator "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/validation"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
@@ -23,9 +22,9 @@ type UpdateRuangUjianHandler struct {
 
 func NewUpdateRuangUjianHandler(svc *ruangujian_service.UpdateRuangUjianService) *UpdateRuangUjianHandler {
 	return &UpdateRuangUjianHandler{svc: svc}
-}	
+}
 
-func(h *UpdateRuangUjianHandler)UpdateRuangUjian(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (h *UpdateRuangUjianHandler) UpdateRuangUjian(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	logger := corelog.FromContext(r.Context())
 
 	if r.Method != http.MethodPatch {
@@ -46,18 +45,16 @@ func(h *UpdateRuangUjianHandler)UpdateRuangUjian(w http.ResponseWriter, r *http.
 	}
 
 	r.Body = http.MaxBytesReader(w, r.Body, 10<<20)
-	
+
 	var dataRequest UpdateRuangUjianRequest
 
-	dec := json.NewDecoder(r.Body)
-	dec.DisallowUnknownFields()
-	if err := dec.Decode(&dataRequest); err != nil {
-		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: invalid request body")
-		return
-	}
-
-	if dec.Decode(&struct{}{}) != io.EOF {
-		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: invalid request body")
+	if err := httphelper.JSONDecoder(r, &dataRequest); err != nil {
+		switch {
+		case errors.Is(err, coreerror.ErrInvalidRequestBody):
+			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: invalid request body")
+		default:
+			httpResponse.WriteErr(w, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error")
+		}
 		return
 	}
 
@@ -65,7 +62,6 @@ func(h *UpdateRuangUjianHandler)UpdateRuangUjian(w http.ResponseWriter, r *http.
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: invalid request body")
 		return
 	}
-
 
 	patch := updatepatch.UpdateRuangUjianPatch{}
 
@@ -76,7 +72,7 @@ func(h *UpdateRuangUjianHandler)UpdateRuangUjian(w http.ResponseWriter, r *http.
 			return
 		}
 
-		if err := validator.ValidateInputSafe(namaRuangan,"nama_ruang"); err != nil {
+		if err := validator.ValidateInputSafe(namaRuangan, "nama_ruang"); err != nil {
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "invalid input")
 			return
 		}
@@ -91,7 +87,7 @@ func(h *UpdateRuangUjianHandler)UpdateRuangUjian(w http.ResponseWriter, r *http.
 			return
 		}
 
-		if err := validator.ValidateInputSafe(kodeRuang,"kode_ruang"); err != nil {
+		if err := validator.ValidateInputSafe(kodeRuang, "kode_ruang"); err != nil {
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "invalid input")
 			return
 		}
@@ -99,13 +95,13 @@ func(h *UpdateRuangUjianHandler)UpdateRuangUjian(w http.ResponseWriter, r *http.
 		patch.KodeRuang = &kodeRuang
 	}
 
-	if err := h.svc.UpdateRuangUjian(r.Context(),idRuangan,patch); err != nil {
+	if err := h.svc.UpdateRuangUjian(r.Context(), idRuangan, patch); err != nil {
 		logger.Error(r.Context(), "failed update ruang ujian", "layer", "core.service", "op", "ruangujian.update", "err", err)
 		switch {
-		case errors.Is(err,coreerror.ErrKodeRuangUjianExist):
+		case errors.Is(err, coreerror.ErrKodeRuangUjianExist):
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: kode ruang ujian already exist")
 			return
-		case errors.Is(err,coreerror.ErrMissingId):
+		case errors.Is(err, coreerror.ErrMissingId):
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: missing id")
 			return
 		default:
@@ -113,6 +109,5 @@ func(h *UpdateRuangUjianHandler)UpdateRuangUjian(w http.ResponseWriter, r *http.
 			return
 		}
 	}
-	httpResponse.WriteOKNoData(w,http.StatusOK,"success")
+	httpResponse.WriteOKNoData(w, http.StatusOK, "success")
 }
-
