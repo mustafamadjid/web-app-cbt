@@ -41,4 +41,7 @@ var (
 	ErrInvalidFileFormat = errors.New("invalid file format")
 
 	ErrDeleteRestricted = errors.New("delete restricted")
+
+	ErrInvalidRequestBody = errors.New("invalid request body")
+	ErrMustBePointer = errors.New("must be pointer")
 )

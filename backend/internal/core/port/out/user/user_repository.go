@@ -18,3 +18,7 @@ type UserRepository interface {
 
 	ListUser(ctx context.Context) ([]user.Pengguna, error)
 }
+
+type UserResetPasswordRepo interface {
+	ResetPassword(ctx context.Context, idPengguna user.ID, password string) error
+}

@@ -46,6 +46,7 @@ func (h *CreateKelasHandler) CreateTingkatKelas(w http.ResponseWriter, r *http.R
 	r.Body = http.MaxBytesReader(w, r.Body, 10<<20)
 
 	var dataRequest CreateTingkatKelasReq
+	
 	dec := json.NewDecoder(r.Body)
 	dec.DisallowUnknownFields()
 
