@@ -11,6 +11,7 @@ var (
 	ErrConflict     = errors.New("conflict")
 	ErrDbError      = errors.New("db error")
 	ErrUserHasSession = errors.New("user has session")
+	ErrInvalidDateFormat = errors.New("invalid date format")
 
 	ErrInvalidToken = errors.New("invalid token")
 	ErrInvalidCreds = errors.New("invalid credentials")

@@ -1,10 +1,14 @@
 package pengumuman
 
+type ID int
+
+
 type Pengumuman struct {
-	IdPengumuman int
-	IdPengguna int
-	JudulPengumuman string
-	IsiPengumuman string
-	TanggalRilisPengumuman string
-	DokumenPengumuman string
+	IdPengumuman             ID
+	IdPengguna               ID
+	JudulPengumuman          string
+	IsiPengumuman            string
+	TanggalRilisPengumuman   string
+	TanggalSelesaiPengumuman string
+	DokumenPengumuman        string
 }
