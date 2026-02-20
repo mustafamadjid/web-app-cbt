@@ -258,9 +258,7 @@ const EditAkunGuruForm = ({
                   onBlur={() => onBlur("username")}
                   placeholder="contoh: budi.santoso"
                   inputClassName={
-                    hasError("username")
-                      ? "border-rose-300 ring-rose-100"
-                      : ""
+                    hasError("username") ? "border-rose-300 ring-rose-100" : ""
                   }
                   disabled={isDisabled}
                   required
@@ -273,7 +271,10 @@ const EditAkunGuruForm = ({
               </div>
 
               <div>
-                <label className="text-xs font-medium text-slate-600" htmlFor="jenis_kelamin">
+                <label
+                  className="text-xs font-medium text-slate-600"
+                  htmlFor="jenis_kelamin"
+                >
                   Jenis Kelamin
                 </label>
                 <select
@@ -287,7 +288,7 @@ const EditAkunGuruForm = ({
                   onChange={(e) =>
                     setField(
                       "jenis_kelamin",
-                      e.target.value as "LAKI_LAKI" | "PEREMPUAN"
+                      e.target.value as "LAKI_LAKI" | "PEREMPUAN",
                     )
                   }
                   onBlur={() => onBlur("jenis_kelamin")}
@@ -304,7 +305,10 @@ const EditAkunGuruForm = ({
               </div>
 
               <div>
-                <label className="text-xs font-medium text-slate-600" htmlFor="role">
+                <label
+                  className="text-xs font-medium text-slate-600"
+                  htmlFor="role"
+                >
                   Role Akun
                 </label>
                 <select
@@ -324,7 +328,10 @@ const EditAkunGuruForm = ({
               </div>
 
               <div>
-                <label className="text-xs font-medium text-slate-600" htmlFor="status_akun">
+                <label
+                  className="text-xs font-medium text-slate-600"
+                  htmlFor="status_akun"
+                >
                   Status Akun
                 </label>
                 <select
@@ -449,7 +456,11 @@ const EditAkunGuruForm = ({
             formatText="Format: JPG/PNG"
             imgSrc={fotoUrl}
             fileName={values.foto_profil?.name}
-            size={values.foto_profil?.size ? Number((values.foto_profil.size / (1024 * 1024)).toFixed(2)) : undefined}
+            size={
+              values.foto_profil?.size
+                ? Number((values.foto_profil.size / (1024 * 1024)).toFixed(2))
+                : undefined
+            }
             imageFileCheck={!!values.foto_profil}
             onChange={(e) => {
               const file = e.target.files?.[0] ?? null;
@@ -462,11 +473,8 @@ const EditAkunGuruForm = ({
             <p className="-mt-4 text-xs text-rose-600">{errors.foto_profil}</p>
           )}
 
-
-
           <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div className="mb-4">
-            </div>
+            <div className="mb-4"></div>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
@@ -475,13 +483,25 @@ const EditAkunGuruForm = ({
                   type="password"
                   label="Password Baru"
                   value={resetPasswordValues.password}
-                  onChange={(v) => setResetPasswordValues((prev) => ({ ...prev, password: v }))}
-                  onBlur={() => setResetPasswordTouched((prev) => ({ ...prev, password: true }))}
+                  onChange={(v) =>
+                    setResetPasswordValues((prev) => ({ ...prev, password: v }))
+                  }
+                  onBlur={() =>
+                    setResetPasswordTouched((prev) => ({
+                      ...prev,
+                      password: true,
+                    }))
+                  }
                   disabled={isDisabled}
+                  required={false}
                 />
-                {!!resetPasswordTouched.password && isResetPasswordStarted && !resetPasswordValues.password.trim() && (
-                  <p className="mt-1 text-xs text-rose-600">Password wajib diisi.</p>
-                )}
+                {!!resetPasswordTouched.password &&
+                  isResetPasswordStarted &&
+                  !resetPasswordValues.password.trim() && (
+                    <p className="mt-1 text-xs text-rose-600">
+                      Password wajib diisi.
+                    </p>
+                  )}
               </div>
 
               <div>
@@ -490,13 +510,29 @@ const EditAkunGuruForm = ({
                   type="password"
                   label="Konfirmasi Password"
                   value={resetPasswordValues.konfirmasi_password}
-                  onChange={(v) => setResetPasswordValues((prev) => ({ ...prev, konfirmasi_password: v }))}
-                  onBlur={() => setResetPasswordTouched((prev) => ({ ...prev, konfirmasi_password: true }))}
+                  onChange={(v) =>
+                    setResetPasswordValues((prev) => ({
+                      ...prev,
+                      konfirmasi_password: v,
+                    }))
+                  }
+                  onBlur={() =>
+                    setResetPasswordTouched((prev) => ({
+                      ...prev,
+                      konfirmasi_password: true,
+                    }))
+                  }
                   disabled={isDisabled}
+                  required={false}
                 />
-                {!!resetPasswordTouched.konfirmasi_password && isResetPasswordStarted && resetPasswordValues.password !== resetPasswordValues.konfirmasi_password && (
-                  <p className="mt-1 text-xs text-rose-600">Konfirmasi password tidak sama.</p>
-                )}
+                {!!resetPasswordTouched.konfirmasi_password &&
+                  isResetPasswordStarted &&
+                  resetPasswordValues.password !==
+                    resetPasswordValues.konfirmasi_password && (
+                    <p className="mt-1 text-xs text-rose-600">
+                      Konfirmasi password tidak sama.
+                    </p>
+                  )}
               </div>
             </div>
 

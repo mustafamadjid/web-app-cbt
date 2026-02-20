@@ -64,4 +64,5 @@ func (h *ResetPasswordHandler) ResetPasswordHandler(w http.ResponseWriter, r *ht
 		return
 	}
 
+	httpResponse.WriteOKNoData(w, http.StatusOK, "success")
 }

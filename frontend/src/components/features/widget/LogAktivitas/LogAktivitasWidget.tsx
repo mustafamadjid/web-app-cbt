@@ -10,11 +10,11 @@ import {
   Trash2,
   Settings,
   RefreshCw,
-  ChevronRight,
+
   Clock,
 } from "lucide-react";
 
-import { Link } from "react-router";
+
 
 import type { UserRole, AktivitasLogItem } from "@/types/Log/LogAktivitas";
 
@@ -114,7 +114,6 @@ const LogAktivitasWidget = ({
   items,
   className,
   maxHeightClassName = "max-h-[60vh] sm:max-h-[520px]",
-  lihatSemuaTo,
 }: AktivitasLogWidgetProps) => {
   return (
     <section
@@ -142,15 +141,7 @@ const LogAktivitasWidget = ({
           </div>
         </div>
 
-        {lihatSemuaTo && (
-          <Link
-            to={lihatSemuaTo}
-            className="group flex items-center gap-1 text-xs font-bold text-[#397e50] transition-colors hover:text-[#2f5c3f]"
-          >
-            Lihat Semua
-            <ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-          </Link>
-        )}
+        
       </header>
 
       {/* Content */}
