@@ -1,8 +1,7 @@
 package httpx
 
 import (
-	"crypto/rand"
-	"encoding/hex"
+	"archive/zip"
 	"errors"
 	"fmt"
 	"io"
@@ -17,20 +16,22 @@ import (
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 )
 
-type ImageStore struct {
+type DocumentStore struct {
 	Dir      string // contoh: "./public/uploads"
 	BaseURL  string // contoh: "https://example.com"
 	Route    string // contoh: "/uploads" (route publik)
 	MaxBytes int64  // contoh: 5 << 20
 }
 
-func (s *ImageStore) SavePhotoRelative(file multipart.File, fh *multipart.FileHeader) (string, error) {
+func (s *DocumentStore) SaveDocumentRelative(file multipart.File,fh *multipart.FileHeader)(string,error){
 	if s.Dir == "" || s.Route == "" {
-		return "", errors.New("ImageStore Dir/Route must be set")
+		return "", errors.New("DocumentStore Dir/Route must be set")
 	}
+
 	if s.MaxBytes <= 0 {
 		s.MaxBytes = 5 << 20
 	}
+
 	if fh != nil && fh.Size > s.MaxBytes {
 		return "", coreerror.ErrFileTooLarge
 	}
@@ -47,7 +48,6 @@ func (s *ImageStore) SavePhotoRelative(file multipart.File, fh *multipart.FileHe
 		}
 		return "", err
 	}
-
 	const sniffLen = 512
 	head := make([]byte, sniffLen)
 
@@ -57,8 +57,8 @@ func (s *ImageStore) SavePhotoRelative(file multipart.File, fh *multipart.FileHe
 	}
 	head = head[:n]
 
-	mime := http.DetectContentType(head)
-	ext, ok := allowedImageExt(mime)
+	mime := detectDocumentMIME(file, fh, head)
+	ext, ok := allowedDocumentExt(mime)
 	if !ok {
 		return "", fmt.Errorf("unsupported content type: %s", mime)
 	}
@@ -75,8 +75,10 @@ func (s *ImageStore) SavePhotoRelative(file multipart.File, fh *multipart.FileHe
 	datePrefix := time.Now().Format("20060102")
 	filename := fmt.Sprintf("%s_%s%s", datePrefix, name, ext)
 
+	
 	relativePath := strings.TrimRight(s.Route, "/") + "/" + filename
 
+	
 	dstPath := filepath.Join(s.Dir, filename)
 
 	tmpPath := dstPath + ".tmp"
@@ -142,34 +144,79 @@ func (s *ImageStore) SavePhotoRelative(file multipart.File, fh *multipart.FileHe
 	return relativePath, nil
 }
 
-func (s ImageStore) PublicURL(relativePath string) (string, error) {
-	if s.BaseURL == "" {
-		return "", errors.New("ImageStore BaseURL must be set")
-	}
-	if relativePath == "" {
-		return "", errors.New("relativePath must not be empty")
+func allowedDocumentExt(mime string) (string, bool) {
+	if mime == "application/pdf" {
+		return ".pdf", true
 	}
 
-	base := strings.TrimRight(s.BaseURL, "/")
-	path := "/" + strings.TrimLeft(relativePath, "/")
-	return base + path, nil
+	if mime == "application/vnd.openxmlformats-officedocument.wordprocessingml.document" {
+		return ".docx", true
+	}
+	return "", false
 }
 
-func allowedImageExt(mime string) (string, bool) {
-	switch mime {
-	case "image/jpeg":
-		return ".jpg", true
-	case "image/png":
-		return ".png", true
-	case "image/webp":
-		return ".webp", true
-	default:
-		return "", false
+func detectDocumentMIME(file multipart.File, fh *multipart.FileHeader, head []byte) string {
+	mime := http.DetectContentType(head)
+	if mime != "application/zip" {
+		return mime
 	}
+
+	if isDocxOOXML(file, fh) {
+		return "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+	}
+
+	return mime
 }
 
-func randomHex(nBytes int) string {
-	b := make([]byte, nBytes)
-	_, _ = rand.Read(b)
-	return hex.EncodeToString(b)
+func isDocxOOXML(file multipart.File, fh *multipart.FileHeader) bool {
+	size, ok := resolveUploadFileSize(file, fh)
+	if !ok || size <= 0 {
+		return false
+	}
+
+	zr, err := zip.NewReader(file, size)
+	if err != nil {
+		return false
+	}
+
+	hasContentTypes := false
+	hasWordDocument := false
+
+	for _, f := range zr.File {
+		switch f.Name {
+		case "[Content_Types].xml":
+			hasContentTypes = true
+		case "word/document.xml":
+			hasWordDocument = true
+		}
+
+		if hasContentTypes && hasWordDocument {
+			return true
+		}
+	}
+
+	return false
+}
+
+func resolveUploadFileSize(file multipart.File, fh *multipart.FileHeader) (int64, bool) {
+	if fh != nil && fh.Size > 0 {
+		return fh.Size, true
+	}
+
+	currentPos, err := file.Seek(0, io.SeekCurrent)
+	if err != nil {
+		return 0, false
+	}
+
+	endPos, err := file.Seek(0, io.SeekEnd)
+	if err != nil {
+		_, _ = file.Seek(currentPos, io.SeekStart)
+		return 0, false
+	}
+
+	if _, err := file.Seek(currentPos, io.SeekStart); err != nil {
+		return 0, false
+	}
+
+	return endPos, true
 }
