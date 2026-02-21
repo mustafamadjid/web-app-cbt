@@ -96,7 +96,7 @@ func TestUpdateRuangUjianService(t *testing.T) {
 			expectErr: repoErr,
 		},
 		{
-			name:      "loop coverage -> normalisasi patch dan berhasil",
+			name:      "happy path -> normalisasi patch dan berhasil",
 			idRuangan: 3,
 			patch:     updatepatch.UpdateRuangUjianPatch{KodeRuang: &kode, NamaRuang: &nama},
 			repo: &fakeUpdateRepo{

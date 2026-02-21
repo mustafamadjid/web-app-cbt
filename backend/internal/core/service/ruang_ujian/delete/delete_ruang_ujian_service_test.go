@@ -64,7 +64,7 @@ func TestDeleteRuangUjianService(t *testing.T) {
 			expectErr: repoErr,
 		},
 		{
-			name:      "loop coverage -> delete berhasil",
+			name:      "happy path -> delete berhasil",
 			idRuangan: 10,
 			repo:      &fakeDeleteRepo{deleteFn: func(context.Context, int) error { return nil }},
 			expectErr: nil,

@@ -69,7 +69,7 @@ func TestGetRuangUjian(t *testing.T) {
 			expectErr: repoErr,
 		},
 		{
-			name:   "loop coverage -> limit lebih dari 50 dan berhasil",
+			name:   "happy path -> limit lebih dari 50 dan berhasil",
 			filter: query.ListRuangUjianFilter{Limit: 99, Offset: 3, Search: " test "},
 			repo: &fakeGetRepo{getListFn: func(_ context.Context, got query.ListRuangUjianFilter) ([]ruangujian.RuangUjian, error) {
 				assert.Equal(t, 50, got.Limit)
@@ -107,7 +107,7 @@ func TestGetRuangUjianById(t *testing.T) {
 	}{
 		{name: "branch 1 -> id tidak valid", id: 0, repo: &fakeGetRepo{}, expectErr: coreerror.ErrMissingId},
 		{name: "branch 2 -> repo error", id: 1, repo: &fakeGetRepo{getByIDFn: func(context.Context, int) (ruangujian.RuangUjian, error) { return ruangujian.RuangUjian{}, repoErr }}, expectErr: repoErr},
-		{name: "loop coverage -> berhasil", id: 1, repo: &fakeGetRepo{getByIDFn: func(context.Context, int) (ruangujian.RuangUjian, error) { return expected, nil }}, want: expected},
+		{name: "happy path -> berhasil", id: 1, repo: &fakeGetRepo{getByIDFn: func(context.Context, int) (ruangujian.RuangUjian, error) { return expected, nil }}, want: expected},
 	}
 
 	for _, tc := range tests {
@@ -139,7 +139,7 @@ func TestGetRuangUjianByKode(t *testing.T) {
 			assert.Equal(t, "B1", got)
 			return ruangujian.RuangUjian{}, repoErr
 		}}, expectErr: repoErr},
-		{name: "loop coverage -> normalisasi kode dan berhasil", kode: " b1 ", repo: &fakeGetRepo{getByKodeFn: func(_ context.Context, got string) (ruangujian.RuangUjian, error) {
+		{name: "happy path -> normalisasi kode dan berhasil", kode: " b1 ", repo: &fakeGetRepo{getByKodeFn: func(_ context.Context, got string) (ruangujian.RuangUjian, error) {
 			assert.Equal(t, "B1", got)
 			return expected, nil
 		}}, want: expected},

@@ -78,7 +78,7 @@ func TestCreateRuangUjianService(t *testing.T) {
 			expectErr: repoErr,
 		},
 		{
-			name: "loop coverage -> normalisasi input dan berhasil",
+			name: "happy path -> normalisasi input dan berhasil",
 			repo: &fakeCreateRepo{
 				existFn: func(_ context.Context, kode string) (bool, error) {
 					assert.Equal(t, "A-01", kode)
