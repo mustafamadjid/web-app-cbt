@@ -23,7 +23,7 @@ type DocumentStore struct {
 	MaxBytes int64  // contoh: 5 << 20
 }
 
-func (s *DocumentStore) SaveDocumentRelative(file multipart.File,fh *multipart.FileHeader)(string,error){
+func (s *DocumentStore) SaveDocumentRelative(file multipart.File, fh *multipart.FileHeader) (string, error) {
 	if s.Dir == "" || s.Route == "" {
 		return "", errors.New("DocumentStore Dir/Route must be set")
 	}
@@ -75,10 +75,8 @@ func (s *DocumentStore) SaveDocumentRelative(file multipart.File,fh *multipart.F
 	datePrefix := time.Now().Format("20060102")
 	filename := fmt.Sprintf("%s_%s%s", datePrefix, name, ext)
 
-	
 	relativePath := strings.TrimRight(s.Route, "/") + "/" + filename
 
-	
 	dstPath := filepath.Join(s.Dir, filename)
 
 	tmpPath := dstPath + ".tmp"
