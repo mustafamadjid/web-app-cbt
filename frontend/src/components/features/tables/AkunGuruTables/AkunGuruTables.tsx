@@ -18,6 +18,7 @@ import { useNavigate } from "react-router";
 
 import type { StatusAkun } from "@/types/OpsiTypes/Option";
 import type { DataGuru } from "@/types/KelolaAkun/AkunGuru";
+import { resolveImageUrl } from "@/helper/MediaUrl/resolveMediaUrl";
 import { paths } from "@/routes/paths";
 import { GetAllGuru } from "@/services/Api/features-api/KelolaAkun/akunguru.service";
 import {
@@ -376,13 +377,15 @@ const AkunGuruTables: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-slate-200">
               {penggunaTersaring.length > 0 ? (
-                penggunaTersaring.map((p) => (
-                  <tr
-                    key={p.id_pengguna}
-                    className={`transition-colors hover:bg-slate-50 ${
-                      idTerpilih.has(p.id_pengguna) ? "bg-indigo-50/30" : ""
-                    }`}
-                  >
+                penggunaTersaring.map((p) => {
+                  const fotoUrl = resolveImageUrl(p.foto_profil);
+                  return (
+                    <tr
+                      key={p.id_pengguna}
+                      className={`transition-colors hover:bg-slate-50 ${
+                        idTerpilih.has(p.id_pengguna) ? "bg-indigo-50/30" : ""
+                      }`}
+                    >
                     <td className="p-4">
                       <div className="flex items-center">
                         <input
@@ -397,15 +400,11 @@ const AkunGuruTables: React.FC = () => {
                       <div className="flex items-center gap-3">
                         <button
                           className="cursor-pointer shrink-0"
-                          onClick={() =>
-                            window.open(
-                              `${import.meta.env.VITE_API_URL}${p.foto_profil}`,
-                            )
-                          }
+                          onClick={() => window.open(fotoUrl)}
                         >
                           <img
                             className="h-10 w-10 shrink-0 rounded-full object-cover ring-2 ring-white"
-                            src={`${import.meta.env.VITE_API_URL}${p.foto_profil}`}
+                            src={fotoUrl}
                             alt=""
                           />
                         </button>
@@ -452,7 +451,7 @@ const AkunGuruTables: React.FC = () => {
                         </span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-right">
+                      <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button
                           className="rounded-lg cursor-pointer p-2 text-slate-400 hover:bg-slate-100 hover:text-green-600 transition-colors"
@@ -480,9 +479,10 @@ const AkunGuruTables: React.FC = () => {
                           <Trash className="h-4 w-4" />
                         </button>
                       </div>
-                    </td>
-                  </tr>
-                ))
+                      </td>
+                    </tr>
+                  );
+                })
               ) : (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center">

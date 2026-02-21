@@ -20,6 +20,7 @@ import {
   type HasilUjianDetailResponse,
 } from "@/services/Api/features-api/Ujian/hasilUjian.service";
 import type { HasilUjianSiswa } from "@/types/Ujian/HasilUjian";
+import { resolveImageUrl } from "@/helper/MediaUrl/resolveMediaUrl";
 import { paths } from "@/routes/paths";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -229,7 +230,7 @@ const HasilUjianDetail = () => {
                       <div className="flex items-center gap-3">
                         <img
                           src={
-                            siswa.foto_profil ||
+                            resolveImageUrl(siswa.foto_profil) ||
                             `https://ui-avatars.com/api/?name=${siswa.nama_lengkap}&background=random`
                           }
                           alt={siswa.nama_lengkap}

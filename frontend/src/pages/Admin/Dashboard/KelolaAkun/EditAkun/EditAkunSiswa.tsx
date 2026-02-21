@@ -10,6 +10,7 @@ import { ApiError } from "@/services/Api/api";
 import { paths } from "@/routes/paths";
 import { GetDataKelasFull } from "@/services/Api/features-api/DataMaster/kelas.service";
 import toast from "react-hot-toast";
+import { resolveImageUrl } from "@/helper/MediaUrl/resolveMediaUrl";
 
 const buildInitialValues = (): StudentUpdateFormValues => ({
   id_pengguna: 0,
@@ -76,11 +77,7 @@ const EditAkunSiswa = () => {
           foto_profil: null,
           status_akun: data.status_akun,
         });
-        setFotoUrl(
-          data.foto_profil
-            ? `${import.meta.env.VITE_API_URL}${data.foto_profil}`
-            : "",
-        );
+        setFotoUrl(resolveImageUrl(data.foto_profil));
       } finally {
         if (active) setLoading(false);
       }

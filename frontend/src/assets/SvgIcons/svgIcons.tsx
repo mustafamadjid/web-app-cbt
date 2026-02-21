@@ -294,6 +294,31 @@ const SvgIcons = {
       />
     </svg>
   ),
+  announcement: (className: string) => (
+    <svg
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      width="24"
+      height="24"
+      aria-hidden="true"
+      fill="none"
+    >
+      <path
+        d="M3 11.5V12.5C3 13.0523 3.44772 13.5 4 13.5H5.5L7 18H9L8 13.5H13.3819L18 16V8L13.3819 10.5H4C3.44772 10.5 3 10.9477 3 11.5Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M19 9.5C19.8284 10.1716 20.3333 11.1815 20.3333 12.25C20.3333 13.3185 19.8284 14.3284 19 15"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  ),
 } as const;
 
 export default SvgIcons;

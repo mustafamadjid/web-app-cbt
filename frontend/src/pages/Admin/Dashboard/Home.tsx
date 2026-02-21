@@ -9,39 +9,15 @@ import TotalSiswaGuruWidget from "@/components/features/widget/StatistikPengguna
 import UjianBerlangsungWidget from "@/components/features/widget/UjianBerlangsung/UjianBerlangsungWidget";
 
 // Types
-import type { PengumumanItem } from "@/types/Widget/Pengumuman";
+import type { PengumumanGetResponse } from "@/types/Widget/Pengumuman";
 import type { JadwalUjianItem } from "@/types/Ujian/jadwalUjian";
 import type { AktivitasLogItem } from "@/types/Log/LogAktivitas";
 import type { UjianBerlangsungItem } from "@/types/Widget/UjianBerlangsung";
 import type { Role } from "@/types/Sidebar/SidebarMenu";
 import { useAuth } from "@/contexts/AuthContext";
 import { getLogAktivitas } from "@/services/Api/features-api/LogAktivitas/log-aktivitas.service";
+import { getPengumumanActive } from "@/services/Api/features-api/pengumuman/pengumuman.service";
 import { useEffect, useState } from "react";
-
-// --- DUMMY DATA ---
-const pengumuman: PengumumanItem[] = [
-  {
-    id: 1,
-    judul: "Informasi Perubahan Ruangan",
-    tanggal_rilis_pengumuman: "Senin, 24/11/2025",
-    isi_pengumuman:
-      "Dengan hormat, kami informasikan bahwa telah terjadi penyesuaian terkait pelaksanaan ujian...\n\nRuang sebelumnya: Ruang 02\nRuangan baru: Kelas ABC",
-    dokumen: [
-      {
-        name: "Surat Perubahan Ruangan.pdf",
-        url: "#",
-        sizeLabel: "412 KB",
-      },
-    ],
-  },
-  {
-    id: 2,
-    judul: "Informasi Perubahan Tanggal Ujian",
-    tanggal_rilis_pengumuman: "Senin, 24/11/2025",
-    isi_pengumuman: "Ujian diundur ke Selasa, 25/11/2025 pukul 09:00.",
-    dokumen: null,
-  },
-];
 
 export const dummyJadwalUjian: JadwalUjianItem[] = [
   {
@@ -107,10 +83,12 @@ export const dummyUjianBerlangsung: UjianBerlangsungItem[] = [
 ];
 
 export const Home = () => {
-  const {user} = useAuth(); 
+  const { user } = useAuth();
   const role = (user?.role ?? "SISWA") as Role;
   const [aktivitasItems, setAktivitasItems] =
     useState<AktivitasLogItem[]>([]);
+  const [pengumumanItems, setPengumumanItems] =
+    useState<PengumumanGetResponse[]>([]);
 
   useEffect(() => {
     const fetchAktivitas = async () => {
@@ -129,6 +107,23 @@ export const Home = () => {
     fetchAktivitas();
   }, [role]);
 
+  useEffect(() => {
+    const fetchPengumuman = async () => {
+      if (role !== "ADMIN" && role !== "GURU") {
+        return;
+      }
+
+      try {
+        const data = await getPengumumanActive();
+        setPengumumanItems(data);
+      } catch (error) {
+        console.error("Gagal memuat pengumuman", error);
+        setPengumumanItems([]);
+      }
+    };
+
+    fetchPengumuman();
+  }, [role]);
 
   return (
     <div className="min-h-screen bg-[#ecf1ed]  pb-20">
@@ -195,7 +190,7 @@ export const Home = () => {
           >
             <PengumumanWidget
               title="Papan Pengumuman"
-              items={pengumuman}
+              items={pengumumanItems}
               className="flex-1 min-h-0"
             />
 

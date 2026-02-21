@@ -6,14 +6,12 @@ import {
   CalendarDays,
   FileText,
 } from "lucide-react";
-import type {
-  AnnouncementDoc,
-  PengumumanItem,
-} from "@/types/Widget/Pengumuman";
+import { resolveDocumentUrl } from "@/helper/MediaUrl/resolveMediaUrl";
+import type { PengumumanGetResponse } from "@/types/Widget/Pengumuman";
 
 type PengumumanWidgetProps = {
   title?: string;
-  items: PengumumanItem[];
+  items: PengumumanGetResponse[];
   defaultOpenId?: number;
   allowMultipleOpen?: boolean;
   className?: string;
@@ -87,13 +85,13 @@ export const PengumumanWidget: React.FC<PengumumanWidgetProps> = ({
         ) : (
           <div className="space-y-3 pt-2">
             {items.map((item) => {
-              const isOpen = openIds.has(item.id);
+              const isOpen = openIds.has(item.id_pengumuman);
               return (
                 <AnnouncementRow
-                  key={item.id}
+                  key={item.id_pengumuman}
                   item={item}
                   isOpen={isOpen}
-                  onToggle={() => toggle(item.id)}
+                  onToggle={() => toggle(item.id_pengumuman)}
                 />
               );
             })}
@@ -109,11 +107,11 @@ function AnnouncementRow({
   isOpen,
   onToggle,
 }: {
-  item: PengumumanItem;
+  item: PengumumanGetResponse;
   isOpen: boolean;
   onToggle: () => void;
 }) {
-  const docs = normalizeDocs(item.dokumen);
+  const docs = normalizeDocs(item.dokumen_pengumuman);
 
   return (
     <article
@@ -135,7 +133,7 @@ function AnnouncementRow({
           {/* Tanggal */}
           <div className="flex items-center gap-1.5 text-xs font-medium text-gray-500">
             <CalendarDays className="h-3.5 w-3.5" />
-            <span>{item.tanggal_rilis_pengumuman}</span>
+            <span>{toReadableDate(item.tanggal_rilis_pengumuman)}</span>
           </div>
 
           {/* Judul */}
@@ -147,7 +145,7 @@ function AnnouncementRow({
                 : "text-gray-800 group-hover:text-[#37513d]",
             ].join(" ")}
           >
-            {item.judul}
+            {item.judul_pengumuman}
           </h3>
         </div>
 
@@ -193,12 +191,12 @@ function AnnouncementRow({
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     {docs.map((d, idx) => (
                       <a
-                        key={d.id ?? `${d.url}-${idx}`}
+                        key={`${d.url}-${idx}`}
                         href={d.url}
                         target="_blank"
                         rel="noreferrer"
                         className={[
-                          "group/doc flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50/50 p-2.5 transition-all",
+                          "group/doc flex cursor-pointer items-center gap-3 rounded-lg border border-gray-200 bg-gray-50/50 p-2.5 transition-all",
                           "hover:border-[#397e50]/50 hover:bg-[#397e50]/5 hover:shadow-sm",
                         ].join(" ")}
                         title={d.name}
@@ -213,11 +211,6 @@ function AnnouncementRow({
                           <p className="truncate text-xs font-bold text-gray-700 group-hover/doc:text-[#397e50]">
                             {d.name}
                           </p>
-                          {d.sizeLabel && (
-                            <p className="mt-0.5 text-2xs text-gray-500">
-                              {d.sizeLabel}
-                            </p>
-                          )}
                         </div>
                       </a>
                     ))}
@@ -232,7 +225,39 @@ function AnnouncementRow({
   );
 }
 
-function normalizeDocs(dokumen: PengumumanItem["dokumen"]): AnnouncementDoc[] {
-  if (!dokumen) return [];
-  return Array.isArray(dokumen) ? dokumen : [dokumen];
+type AnnouncementDoc = {
+  name: string;
+  url: string;
+};
+
+function normalizeDocs(dokumenPath?: string): AnnouncementDoc[] {
+  if (!dokumenPath) return [];
+  const cleanPath = dokumenPath.trim();
+  if (!cleanPath) return [];
+
+  const absoluteURL = resolveDocumentUrl(cleanPath);
+
+  const fileName = decodeURIComponent(
+    cleanPath.split("/").filter(Boolean).pop() ?? "Dokumen Pengumuman",
+  );
+
+  return [
+    {
+      name: fileName,
+      url: absoluteURL,
+    },
+  ];
+}
+
+function toReadableDate(value: string): string {
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return value;
+  }
+
+  return parsed.toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
 }

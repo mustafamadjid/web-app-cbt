@@ -1,15 +1,29 @@
-export type AnnouncementDoc = {
-  id?: number;
-  name: string;
-  url: string;
-  mimeType?: string;
-  sizeLabel?: string;
-};
-
-export type PengumumanItem = {
-  id: number;
-  judul: string;
+export type PengumumanGetResponse = {
+  id_pengumuman: number;
+  id_pengguna: number;
+  judul_pengumuman: string;
   isi_pengumuman: string;
   tanggal_rilis_pengumuman: string;
-  dokumen?: AnnouncementDoc | AnnouncementDoc[] | null;
+  tanggal_selesai_pengumuman: string;
+  dokumen_pengumuman?: string;
 };
+
+export type PengumumanFormValues = {
+  judul_pengumuman: string;
+  isi_pengumuman: string;
+  tanggal_rilis_pengumuman: string;
+  tanggal_selesai_pengumuman: string;
+  dokumen_pengumuman: File | null;
+};
+
+export type PengumumanCreatePayload = PengumumanFormValues;
+
+export type PengumumanUpdatePayload = Partial<{
+  judul_pengumuman: string;
+  isi_pengumuman: string;
+  tanggal_rilis_pengumuman: string;
+  tanggal_selesai_pengumuman: string;
+  dokumen_pengumuman: File | null;
+}>;
+
+export type PengumumanStatusKey = "incoming" | "active" | "non-active";

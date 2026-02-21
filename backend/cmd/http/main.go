@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"net/http"
+	"path/filepath"
 
 	// "fmt"
 	"log"
@@ -40,6 +41,9 @@ func main() {
 		baseURL = "http://localhost:8080"
 	}
 
+	imageUploadDir := filepath.Join(uploadDir, "image")
+	documentUploadDir := filepath.Join(uploadDir, "document")
+
 	cfg := app.Config{
 		HTTP: app.HTTPConfig{
 			Addr: ":8080",
@@ -61,10 +65,16 @@ func main() {
 			SameSite:    http.SameSiteLaxMode,
 		},
 		ImageStore: app.ImageStoreConfig{
-			Dir:      uploadDir,
+			Dir:      imageUploadDir,
 			BaseURL:  baseURL,
-			Route:    "/uploads",
+			Route:    "/uploads/image",
 			MaxBytes: 5 << 20,
+		},
+		DocumentStore: app.DocumentStoreConfig{
+			Dir:      documentUploadDir,
+			BaseURL:  baseURL,
+			Route:    "/uploads/document",
+			MaxBytes: 10 << 20,
 		},
 	}
 
@@ -96,9 +106,10 @@ func main() {
 	mapelMod := app.BuildMataPelajaranModule(infra)
 	ruangUjianMod := app.BuildRuangUjianModule(infra)
 	sesiMod := app.BuildSesiModule(infra)
+	pengumumanMod := app.BuildPengumumanModule(cfg, infra)
 	resetPasswordMod := app.BuildResetPasswordModule(infra, hasher)
 
-	httpMod := app.BuildHTTPModule(cfg, authMod, userMod, profilSekolahMod, aktivitasUserMod, kelasMod, mapelMod, ruangUjianMod, sesiMod, resetPasswordMod, tokens, infra, logger)
+	httpMod := app.BuildHTTPModule(cfg, authMod, userMod, profilSekolahMod, aktivitasUserMod, kelasMod, mapelMod, ruangUjianMod, sesiMod, pengumumanMod, resetPasswordMod, tokens, infra, logger)
 
 	log.Println("Listening on", cfg.HTTP.Addr)
 	if err := httpMod.Server.ListenAndServe(); err != nil && err != http.ErrServerClosed {

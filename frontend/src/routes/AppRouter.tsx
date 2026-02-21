@@ -48,6 +48,9 @@ import PengaturanProfil from "@/pages/Admin/Dashboard/Pengaturan/Pengaturan";
 import HasilUjian from "@/pages/Admin/Dashboard/Ujian/HasilUjian";
 import HasilUjianDetail from "@/pages/Admin/Dashboard/Ujian/DetailHasilUjian/HasilUjianDetail";
 import HasilUjianSiswaDetail from "@/pages/Admin/Dashboard/Ujian/DetailHasilUjian/HasilUjianSiswaDetail";
+import PengumumanManagement from "@/pages/Admin/Dashboard/Pengumuman/PengumumanManagement";
+import TambahPengumuman from "@/pages/Admin/Dashboard/Pengumuman/TambahPengumuman";
+import EditPengumuman from "@/pages/Admin/Dashboard/Pengumuman/EditPengumuman";
 import HomeSiswa from "@/pages/Siswa/HomeSiswa";
 import UjianSiswa from "@/pages/Siswa/Ujian/UjianSiswa/UjianSiswa";
 import UjianTokenSiswa from "@/pages/Siswa/Ujian/UjianSiswa/UjianTokenSiswa";
@@ -126,6 +129,10 @@ export const router = createBrowserRouter([
                 path: paths.dashboard.hasil_ujian_siswa_detail,
                 element: <HasilUjianSiswaDetail />,
               },
+              {
+                path: paths.dashboard.pengumuman_admin,
+                element: <PengumumanManagement />,
+              },
               { path: paths.dashboard.cetak, element: <Cetak /> },
             ],
           },
@@ -169,6 +176,14 @@ export const router = createBrowserRouter([
             path: paths.dashboard.tambah_bank_soal,
             element: <TambahBankSoal />,
           },
+          {
+            path: paths.dashboard.tambah_pengumuman_admin,
+            element: <TambahPengumuman />,
+          },
+          {
+            path: paths.dashboard.edit_pengumuman_admin,
+            element: <EditPengumuman />,
+          },
         ],
       },
     ],
@@ -210,9 +225,21 @@ export const router = createBrowserRouter([
                 path: paths.dashboard.hasil_ujian_siswa_detail_guru,
                 element: <HasilUjianSiswaDetail />,
               },
+              {
+                path: paths.dashboard.pengumuman_guru,
+                element: <PengumumanManagement />,
+              },
               { path: paths.dashboard.cetak_guru, element: <Cetak /> },
               { path: paths.dashboard.profil_guru, element: <ProfilePage /> },
             ],
+          },
+          {
+            path: paths.dashboard.tambah_pengumuman_guru,
+            element: <TambahPengumuman />,
+          },
+          {
+            path: paths.dashboard.edit_pengumuman_guru,
+            element: <EditPengumuman />,
           },
         ],
       },

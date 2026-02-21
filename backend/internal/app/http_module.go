@@ -23,7 +23,7 @@ type HTTPModule struct {
 	Server  *http.Server
 }
 
-func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSekolah *ProfilSekolahModule, aktivitasUser *AktivitasUserModule, kelas *KelasModule, mapel *MataPelajaranModule, ruangUjian *RuangUjianModule, sesi *SesiModule, resetPassword *ResetPasswordModule, tokens *TokenModule, infra *InfraModule, logger corelog.Logger) *HTTPModule {
+func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSekolah *ProfilSekolahModule, aktivitasUser *AktivitasUserModule, kelas *KelasModule, mapel *MataPelajaranModule, ruangUjian *RuangUjianModule, sesi *SesiModule, pengumuman *PengumumanModule, resetPassword *ResetPasswordModule, tokens *TokenModule, infra *InfraModule, logger corelog.Logger) *HTTPModule {
 	cookies := cookie.CookieConfig{
 		AccessName:  cfg.Cookie.AccessName,
 		RefreshName: cfg.Cookie.RefreshName,
@@ -92,7 +92,9 @@ func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSeko
 	}
 
 	requireAdmin := requireAccessRole(user.ADMIN)
-	// requireAdminGuru := requireAccessRole(user.ADMIN, user.GURU)
+	requireAdminGuru := requireAccessRole(user.ADMIN, user.GURU)
+	documentPengumumanRoute := strings.TrimRight(cfg.DocumentStore.Route, "/") + "/pengumuman/*filepath"
+	imageUploadRoute := strings.TrimRight(cfg.ImageStore.Route, "/") + "/*filepath"
 
 	// requireSiswa := requireAccessRole(user.SISWA)
 	// requireGuru := requireAccessRole(user.GURU)
@@ -159,11 +161,44 @@ func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSeko
 	router.PATCH("/admin/sesi/:idSesi", requireAdmin(rateLimitStandard(sesi.UpdateHandler.UpdateSesi)))
 	router.DELETE("/admin/sesi/:idSesi", requireAdmin(rateLimitStandard(sesi.DeleteHandler.DeleteSesi)))
 
+	// PENGUMUMAN
+	router.GET("/pengumuman/active", requireAdminGuru(rateLimitStandard(pengumuman.GetHandler.GetPengumumanActive)))
+	router.GET("/pengumuman/non-active", requireAdminGuru(rateLimitStandard(pengumuman.GetHandler.GetPengumumanNonActive)))
+	router.GET("/pengumuman/incoming", requireAdminGuru(rateLimitStandard(pengumuman.GetHandler.GetPengumumanIncoming)))
+	router.GET("/pengumuman/id/:idPengumuman", requireAdminGuru(rateLimitStandard(pengumuman.GetHandler.GetPengumumanByID)))
+	router.POST("/pengumuman", requireAdminGuru(rateLimitStandard(pengumuman.CreateHandler.CreatePengumuman)))
+	router.PATCH("/pengumuman/:idPengumuman", requireAdminGuru(rateLimitStandard(pengumuman.UpdateHandler.UpdatePengumuman)))
+	router.DELETE("/pengumuman/:idPengumuman", requireAdminGuru(rateLimitStandard(pengumuman.DeleteHandler.DeletePengumuman)))
+
 	// Siswa
 
 	// Guru
 
-	router.GET("/uploads/*filepath", rateLimitStandard(requireAccess(func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	router.GET(documentPengumumanRoute, requireAdminGuru(rateLimitStandard(func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		rel := ps.ByName("filepath")
+
+		if rel == "/" || rel == "" {
+			http.NotFound(w, r)
+			return
+		}
+
+		clean := path.Clean(rel)
+		if strings.Contains(clean, "..") {
+			http.Error(w, "bad path", http.StatusBadRequest)
+			return
+		}
+
+		clean = strings.TrimPrefix(clean, "/")
+		if clean == "." || clean == "" {
+			http.NotFound(w, r)
+			return
+		}
+
+		full := filepath.Join(cfg.DocumentStore.Dir, "pengumuman", clean)
+		http.ServeFile(w, r, full)
+	})))
+
+	router.GET(imageUploadRoute, rateLimitStandard(requireAccess(func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		rel := ps.ByName("filepath")
 
 		if rel == "/" || rel == "" {
@@ -176,7 +211,13 @@ func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSeko
 			return
 		}
 
-		full := filepath.Join("./public/uploads", clean)
+		clean = strings.TrimPrefix(clean, "/")
+		if clean == "." || clean == "" {
+			http.NotFound(w, r)
+			return
+		}
+
+		full := filepath.Join(cfg.ImageStore.Dir, clean)
 		http.ServeFile(w, r, full)
 	})))
 

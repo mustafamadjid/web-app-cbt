@@ -71,13 +71,13 @@ func (s *DocumentStore) SaveDocumentRelative(file multipart.File, fh *multipart.
 		}
 	}
 
-	name := randomHex(16)
-	datePrefix := time.Now().Format("20060102")
-	filename := fmt.Sprintf("%s_%s%s", datePrefix, name, ext)
+	filename := buildDocumentFilename(fh, ext)
+	filename, dstPath, err := findAvailableDocumentFilename(s.Dir, filename)
+	if err != nil {
+		return "", fmt.Errorf("resolve filename: %w", err)
+	}
 
 	relativePath := strings.TrimRight(s.Route, "/") + "/" + filename
-
-	dstPath := filepath.Join(s.Dir, filename)
 
 	tmpPath := dstPath + ".tmp"
 	out, err := os.OpenFile(tmpPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0o644)
@@ -140,6 +140,81 @@ func (s *DocumentStore) SaveDocumentRelative(file multipart.File, fh *multipart.
 
 	success = true
 	return relativePath, nil
+}
+
+func buildDocumentFilename(fh *multipart.FileHeader, ext string) string {
+	const fallbackName = "document"
+
+	originalName := fallbackName
+	if fh != nil && strings.TrimSpace(fh.Filename) != "" {
+		originalName = fh.Filename
+	}
+
+	// Normalize browser-provided values such as "C:\\fakepath\\file.docx".
+	originalName = strings.ReplaceAll(originalName, "\\", "/")
+	baseName := filepath.Base(originalName)
+	baseName = strings.TrimSuffix(baseName, filepath.Ext(baseName))
+	baseName = sanitizeDocumentBaseName(baseName)
+	if baseName == "" {
+		baseName = fallbackName
+	}
+
+	datePrefix := time.Now().Format("20060102")
+	return fmt.Sprintf("%s_%s%s", datePrefix, baseName, ext)
+}
+
+func sanitizeDocumentBaseName(value string) string {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return ""
+	}
+
+	const invalidChars = `<>:"/\|?*`
+	replacer := strings.NewReplacer(
+		"\n", " ",
+		"\r", " ",
+		"\t", " ",
+	)
+
+	value = replacer.Replace(value)
+	var b strings.Builder
+	for _, r := range value {
+		if r < 32 {
+			continue
+		}
+		if strings.ContainsRune(invalidChars, r) {
+			b.WriteRune('_')
+			continue
+		}
+		b.WriteRune(r)
+	}
+
+	cleaned := strings.TrimSpace(b.String())
+	cleaned = strings.Trim(cleaned, ". ")
+	if cleaned == "" {
+		return ""
+	}
+
+	return cleaned
+}
+
+func findAvailableDocumentFilename(dir string, filename string) (string, string, error) {
+	ext := filepath.Ext(filename)
+	baseName := strings.TrimSuffix(filename, ext)
+	candidate := filename
+
+	for idx := 1; ; idx++ {
+		dstPath := filepath.Join(dir, candidate)
+		_, err := os.Stat(dstPath)
+		if err == nil {
+			candidate = fmt.Sprintf("%s_%d%s", baseName, idx, ext)
+			continue
+		}
+		if errors.Is(err, os.ErrNotExist) {
+			return candidate, dstPath, nil
+		}
+		return "", "", err
+	}
 }
 
 func allowedDocumentExt(mime string) (string, bool) {

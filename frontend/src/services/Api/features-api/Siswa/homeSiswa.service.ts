@@ -1,8 +1,5 @@
 import type { JadwalUjianItem } from "@/types/Ujian/jadwalUjian";
-import type {
-  PengumumanItem,
-  AnnouncementDoc,
-} from "@/types/Widget/Pengumuman";
+import type { PengumumanGetResponse } from "@/types/Widget/Pengumuman";
 import type {
   SiswaDashboardSummary,
   SiswaProfile,
@@ -19,39 +16,36 @@ const dummyProfile: SiswaProfile = {
   tingkat_kelas_id: 2,
 };
 
-const dummyPengumumanDocs: AnnouncementDoc[] = [
+const dummyPengumuman: PengumumanGetResponse[] = [
   {
-    id: 11,
-    name: "Panduan Ujian Matematika.pdf",
-    url: "#",
-    sizeLabel: "320 KB",
-  },
-];
-
-const dummyPengumuman: PengumumanItem[] = [
-  {
-    id: 1,
-    judul: "Simulasi Ujian Tengah Semester",
+    id_pengumuman: 1,
+    id_pengguna: 1,
+    judul_pengumuman: "Simulasi Ujian Tengah Semester",
     isi_pengumuman:
       "Simulasi UTS akan dilaksanakan minggu depan. Pastikan kamu sudah mengunduh kisi-kisi yang tersedia di LMS.",
-    tanggal_rilis_pengumuman: "Senin, 24 Februari 2025",
-    dokumen: dummyPengumumanDocs,
+    tanggal_rilis_pengumuman: "2025-02-24",
+    tanggal_selesai_pengumuman: "2025-03-03",
+    dokumen_pengumuman: "",
   },
   {
-    id: 2,
-    judul: "Pengumpulan Tugas Praktikum",
+    id_pengumuman: 2,
+    id_pengguna: 1,
+    judul_pengumuman: "Pengumpulan Tugas Praktikum",
     isi_pengumuman:
       "Tugas praktikum IPA dikumpulkan paling lambat Jumat pukul 16.00 WIB.",
-    tanggal_rilis_pengumuman: "Rabu, 26 Februari 2025",
-    dokumen: null,
+    tanggal_rilis_pengumuman: "2025-02-26",
+    tanggal_selesai_pengumuman: "2025-03-07",
+    dokumen_pengumuman: "",
   },
   {
-    id: 3,
-    judul: "Kelas Tambahan Bahasa Inggris",
+    id_pengumuman: 3,
+    id_pengguna: 1,
+    judul_pengumuman: "Kelas Tambahan Bahasa Inggris",
     isi_pengumuman:
       "Kelas tambahan akan dibuka setiap Selasa pukul 15.00 di Ruang Multimedia.",
-    tanggal_rilis_pengumuman: "Jumat, 28 Februari 2025",
-    dokumen: null,
+    tanggal_rilis_pengumuman: "2025-02-28",
+    tanggal_selesai_pengumuman: "2025-03-10",
+    dokumen_pengumuman: "",
   },
 ];
 
@@ -84,7 +78,7 @@ export async function getSiswaJadwalUjian(): Promise<JadwalUjianItem[]> {
   return jadwal.filter((item) => item.status_ujian !== "selesai");
 }
 
-export async function getSiswaPengumuman(): Promise<PengumumanItem[]> {
+export async function getSiswaPengumuman(): Promise<PengumumanGetResponse[]> {
   await sleep(120);
   return dummyPengumuman;
 }

@@ -121,6 +121,15 @@ export const mainMenuItems: SidebarMenuItem[] = [
   {
     id: 6,
     type: "link",
+    label: "Pengumuman",
+    to: paths.dashboard.pengumuman_admin,
+    end: true,
+    icon: SvgIcons.announcement,
+    roles: ADMIN_ONLY,
+  },
+  {
+    id: 7,
+    type: "link",
     label: "Cetak",
     to: paths.dashboard.cetak,
     end: true,
@@ -176,6 +185,15 @@ export const mainMenuItems: SidebarMenuItem[] = [
         roles: GURU_ONLY,
       },
     ],
+  },
+  {
+    id: 106,
+    type: "link",
+    label: "Pengumuman",
+    to: paths.dashboard.pengumuman_guru,
+    end: true,
+    icon: SvgIcons.announcement,
+    roles: GURU_ONLY,
   },
 
   // MENU SISWA

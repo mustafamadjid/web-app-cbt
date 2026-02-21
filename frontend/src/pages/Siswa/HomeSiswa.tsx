@@ -4,7 +4,7 @@ import UjianTerlaksanaWidget from "@/components/features/widget/Siswa/UjianTerla
 import RataRataNilaiWidget from "@/components/features/widget/Siswa/RataRataNilaiWidget";
 import JadwalUjianSiswaWidget from "@/components/features/widget/JadwalUjian/JadwalUjianSiswaWidget";
 import { PengumumanWidget } from "@/components/features/widget/Pengumuman/PengumumanWidget";
-import type { PengumumanItem } from "@/types/Widget/Pengumuman";
+import type { PengumumanGetResponse } from "@/types/Widget/Pengumuman";
 import type { JadwalUjianItem } from "@/types/Ujian/jadwalUjian";
 import type {
   SiswaDashboardSummary,
@@ -23,7 +23,9 @@ const HomeSiswa = () => {
     null
   );
   const [jadwal, setJadwal] = React.useState<JadwalUjianItem[]>([]);
-  const [pengumuman, setPengumuman] = React.useState<PengumumanItem[]>([]);
+  const [pengumuman, setPengumuman] = React.useState<PengumumanGetResponse[]>(
+    [],
+  );
   const [rataRata, setRataRata] = React.useState<SiswaSemesterAverage[]>([]);
   const [loading, setLoading] = React.useState(true);
 

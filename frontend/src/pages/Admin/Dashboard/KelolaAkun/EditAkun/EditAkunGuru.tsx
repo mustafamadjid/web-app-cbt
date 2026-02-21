@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 
 import EditAkunGuruForm from "@/layouts/Form/Admin/KelolaAkun/EditAkunGuruForm";
+import { resolveImageUrl } from "@/helper/MediaUrl/resolveMediaUrl";
 import type { TeacherUpdateFormValues } from "@/types/KelolaAkun/AkunGuru";
 import type { ResetPasswordFormValues } from "@/types/KelolaAkun/ResetPassword";
 import { getGuruById, updateGuru } from "@/services/Api/features-api/KelolaAkun/akunguru.service";
@@ -62,7 +63,7 @@ const EditAkunGuru = () => {
           bidang_studi: data.bidang_studi,
           foto_profil: null,
         });
-        setFotoUrl(`${import.meta.env.VITE_API_URL}${data.foto_profil}`);
+        setFotoUrl(resolveImageUrl(data.foto_profil));
       } finally {
         if (active) setLoading(false);
       }

@@ -10,6 +10,7 @@ import (
 	kelas_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/kelas"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 	mapel_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/mata_pelajaran"
+	pengumuman_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/pengumuman"
 	outprofil "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/profil_sekolah"
 	ruangujian_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/ruang_ujian"
 	sesi_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/sesi"
@@ -36,6 +37,7 @@ type InfraModule struct {
 
 	kelasRepo      kelas_repo.KelasRepository
 	mapelRepo      mapel_repo.MataPelajaranRepository
+	pengumumanRepo pengumuman_repo.PengumumanRepo
 	ruangUjianRepo ruangujian_repo.RuangUjianRepo
 	sesiRepo       sesi_repo.SesiRepository
 }
@@ -61,6 +63,7 @@ func BuildInfraModule(pool *pgxpool.Pool, logger corelog.Logger) *InfraModule {
 		aktivitasUser:         pg.NewAktivitasUserRepo(pool, logger),
 		kelasRepo:             pg.NewKelasRepo(pool, logger),
 		mapelRepo:             pg.NewMapelRepo(pool, logger),
+		pengumumanRepo:        pg.NewPengumumanRepo(pool, logger),
 		ruangUjianRepo:        pg.NewRuangUjianRepo(pool, logger),
 		sesiRepo:              pg.NewSesirepo(pool, logger),
 	}

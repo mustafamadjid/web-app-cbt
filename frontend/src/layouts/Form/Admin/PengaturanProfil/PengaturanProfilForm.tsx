@@ -9,6 +9,7 @@ import type {
   ProfilSekolahUpdatePayload,
 } from "@/types/ProfilSekolah/ProfilSekolah";
 
+import { resolveImageUrl } from "@/helper/MediaUrl/resolveMediaUrl";
 import { createSetField } from "@/helper/setField/setField";
 import {
   createValidator,
@@ -67,8 +68,8 @@ const PengaturanProfilForm = () => {
     setInitialValues(nextValues);
 
     const logo = data.logo_sekolah ?? "";
-    setServerLogoUrl(`${import.meta.env.VITE_API_URL}${logo}`);
-    setLogoUrl(`${import.meta.env.VITE_API_URL}${logo}`);
+    setServerLogoUrl(resolveImageUrl(logo));
+    setLogoUrl(resolveImageUrl(logo));
   };
 
   useEffect(() => {

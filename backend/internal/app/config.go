@@ -6,18 +6,19 @@ import (
 )
 
 type Config struct {
-	HTTP   HTTPConfig
-	JWT    JWTConfig
-	Cookie CookieConfig
-	ImageStore ImageStoreConfig
+	HTTP          HTTPConfig
+	JWT           JWTConfig
+	Cookie        CookieConfig
+	ImageStore    ImageStoreConfig
+	DocumentStore DocumentStoreConfig
 }
 
 type JWTConfig struct {
-	Issuer   string
+	Issuer        string
 	AccessSecret  string
 	RefreshSecret string
-	AccessTTL  time.Duration
-	RefreshTTL time.Duration
+	AccessTTL     time.Duration
+	RefreshTTL    time.Duration
 }
 
 type CookieConfig struct {
@@ -33,6 +34,13 @@ type HTTPConfig struct {
 }
 
 type ImageStoreConfig struct {
+	Dir      string
+	BaseURL  string
+	Route    string
+	MaxBytes int64
+}
+
+type DocumentStoreConfig struct {
 	Dir      string
 	BaseURL  string
 	Route    string

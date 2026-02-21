@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { User } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { resolveImageUrl } from "@/helper/MediaUrl/resolveMediaUrl";
 import {
   getProfileByUserId,
   type ProfileData,
@@ -71,9 +72,7 @@ const ProfilePage = () => {
 
   const displayName = profile?.nama_lengkap ?? "-";
   const displayRole = profile?.role ? roleLabels[profile.role] ?? profile.role : "-";
-  const avatarUrl = profile?.foto_profil
-    ? `${import.meta.env.VITE_API_URL}${profile.foto_profil}`
-    : null;
+  const avatarUrl = profile?.foto_profil ? resolveImageUrl(profile.foto_profil) : null;
 
   const personalFields = useMemo<ProfileField[]>(
     () => [

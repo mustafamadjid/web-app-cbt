@@ -57,6 +57,10 @@ export const paths = {
       join("ujian", "/hasil/:id/siswa/:siswaId")
     ),
 
+    pengumuman_admin: djoinAdmin("pengumuman"),
+    tambah_pengumuman_admin: djoinAdmin(join("pengumuman", "/tambah")),
+    edit_pengumuman_admin: djoinAdmin(join("pengumuman", "/:id/edit")),
+
     bank_soal_guru: djoinGuru("bank-soal"),
     tambah_bank_soal_guru: djoinGuru(join("bank-soal", "/tambah")),
     preview_bank_soal_guru: djoinGuru(join("bank-soal", "/:id")),
@@ -69,6 +73,10 @@ export const paths = {
     hasil_ujian_siswa_detail_guru: djoinGuru(
       join("ujian", "/hasil/:id/siswa/:siswaId")
     ),
+
+    pengumuman_guru: djoinGuru("pengumuman"),
+    tambah_pengumuman_guru: djoinGuru(join("pengumuman", "/tambah")),
+    edit_pengumuman_guru: djoinGuru(join("pengumuman", "/:id/edit")),
 
     cetak: djoinAdmin("cetak"),
     cetak_guru: djoinGuru("cetak"),

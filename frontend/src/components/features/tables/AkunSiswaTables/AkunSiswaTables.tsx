@@ -30,6 +30,7 @@ import { GetDataKelasFull } from "@/services/Api/features-api/DataMaster/kelas.s
 
 import { paths } from "@/routes/paths";
 import type { DataAkunSiswa } from "@/types/KelolaAkun/AkunSiswa";
+import { resolveImageUrl } from "@/helper/MediaUrl/resolveMediaUrl";
 import { tahunOption } from "@/helper/TahunOption/TahunOption";
 
 /** ===== Helpers ===== */
@@ -571,9 +572,7 @@ const AkunSiswaTables: React.FC = () => {
                 siswaTerlihat.map((s) => {
                   const hpRaw = (s.no_hp ?? "").trim();
                   const emailRaw = (s.email ?? "").trim();
-                  const fotoUrl = s.foto_profil
-                    ? `${import.meta.env.VITE_API_URL}${s.foto_profil}`
-                    : "";
+                  const fotoUrl = resolveImageUrl(s.foto_profil);
 
                   const hpTampil = !hpRaw
                     ? "-"
