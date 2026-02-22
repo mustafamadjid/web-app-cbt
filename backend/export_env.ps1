@@ -1,6 +1,7 @@
 $env:ENVIRONMENT="prod"
 $env:BASE_URL="http://localhost:8080"
-$env:UPLOAD_DIR="./public/uploads"
+$env:APP_DIR="."
+$env:UPLOAD_DIR="public/uploads"
 $env:POSTGRES_DBURL="postgres://postgres:mustafa100304@localhost:5432/smafi_cbt_db?sslmode=disable"
 $env:ISSUER="web-app-cbt"
 $env:ACCESS_TOKEN_SECRET="Nitqv9-DFKwT7MxXF077oHc8A5OFFt3BDV7qr3fE0voJLpWrDXkF6FlUlderC0UpaZtZPWYQz5OZE5RQku1gQA"

@@ -45,4 +45,6 @@ var (
 
 	ErrInvalidRequestBody = errors.New("invalid request body")
 	ErrMustBePointer = errors.New("must be pointer")
+
+	ErrPathTraversal = errors.New("path traversal")
 )

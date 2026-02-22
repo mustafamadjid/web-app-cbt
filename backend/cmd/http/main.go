@@ -31,10 +31,8 @@ func main() {
 		cookieSecure = false
 	}
 
-	uploadDir := os.Getenv("UPLOAD_DIR")
-	if uploadDir == "" {
-		uploadDir = "./public/uploads"
-	}
+	appDir := ResolveAppDir()
+	uploadDir := ResolveUploadDir(appDir)
 
 	baseURL := os.Getenv("BASE_URL")
 	if baseURL == "" {
@@ -117,3 +115,4 @@ func main() {
 	}
 
 }
+

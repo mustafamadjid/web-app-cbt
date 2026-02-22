@@ -195,7 +195,7 @@ func (r *SessionRepo) RevokeExpiredSessions(ctx context.Context, userID user.ID)
 func (r *SessionRepo) RevokeSession(ctx context.Context, sessionID string) error {
 	const query = `
 		UPDATE sessions
-		SET revoked_at = now()
+		SET revoked_at = NOW()
 		WHERE id = $1
 			AND revoked_at IS NULL
 	`

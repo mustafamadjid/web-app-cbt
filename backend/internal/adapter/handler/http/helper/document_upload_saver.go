@@ -130,6 +130,8 @@ func (s *DocumentStore) SaveDocumentRelative(file multipart.File, fh *multipart.
 		return "", errors.New("empty file")
 	}
 
+	out.Sync()
+
 	if err := out.Close(); err != nil {
 		return "", fmt.Errorf("close: %w", err)
 	}
