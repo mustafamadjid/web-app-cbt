@@ -96,15 +96,17 @@ func main() {
 	tokens := app.BuildTokenModule(cfg)
 	hasher := bcrypt.NewHasher(0)
 
+	deleteFileSystem := app.BuildDeleteFileModule(uploadDir)
+
 	aktivitasUserMod := app.BuildAktivitasUserModule(infra)
 	authMod := app.BuildAuthModule(cfg, infra, tokens, hasher, aktivitasUserMod)
-	userMod := app.BuildUserModule(cfg, infra, hasher, aktivitasUserMod)
+	userMod := app.BuildUserModule(cfg, infra, hasher, aktivitasUserMod, deleteFileSystem)
 	profilSekolahMod := app.BuildProfilSekolahModule(cfg, infra)
 	kelasMod := app.BuildKelasModule(infra, aktivitasUserMod)
 	mapelMod := app.BuildMataPelajaranModule(infra)
 	ruangUjianMod := app.BuildRuangUjianModule(infra)
 	sesiMod := app.BuildSesiModule(infra)
-	pengumumanMod := app.BuildPengumumanModule(cfg, infra)
+	pengumumanMod := app.BuildPengumumanModule(cfg, infra, deleteFileSystem)
 	resetPasswordMod := app.BuildResetPasswordModule(infra, hasher)
 
 	httpMod := app.BuildHTTPModule(cfg, authMod, userMod, profilSekolahMod, aktivitasUserMod, kelasMod, mapelMod, ruangUjianMod, sesiMod, pengumumanMod, resetPasswordMod, tokens, infra, logger)

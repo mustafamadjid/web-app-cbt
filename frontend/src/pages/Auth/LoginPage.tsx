@@ -5,42 +5,75 @@ const LoginPage = () => {
   const navigate = useNavigate();
 
   return (
-    <>
-      <section className="bg-gray-50 min-h-screen flex items-center justify-center">
-        {/* Login Contrainer */}
-        <div className="bg-gray-100 flex items-center rounded-2xl max-w-5xl shadow-lg  p-5">
-          {/* Login Form */}
-          <div className="flex flex-col gap-10 sm:w-1/2 px-16 mb-20">
-            <div className="flex flex-col gap-8">
-              <div className="flex text-sm gap-3 items-center">
-                <div className="w-[45px]">
-                  <img src="/Images/LoginPageImg/logo-fi.png" alt="" />
-                </div>
-                <h1 className="text-md font-semibold">SMA IT Fitrah Insani</h1>
-              </div>
-
-              <div>
-                <h2 className="text-2xl font-bold">Halo,</h2>
-                <h2 className="text-2xl font-bold">Selamat Datang</h2>{" "}
-                <p className="text-sm opacity-80">
-                  Silakan masuk menggunakan akun anda{" "}
-                </p>{" "}
-              </div>
+    <div className="flex min-h-screen w-full bg-white">
+      {/* KIRI: Area Form */}
+      <div className="flex w-full flex-col justify-center bg-white px-6 py-12 lg:w-1/2 lg:px-20 xl:px-24">
+        <div className="mx-auto w-full max-w-md">
+          {/* Header / Logo */}
+          <div className="mb-10 flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl">
+              <img
+                src="/Images/LoginPageImg/logo-fi.png"
+                alt="Logo"
+                className="h-8 w-auto object-contain"
+              />
             </div>
+            <span className="text-lg font-bold text-slate-800">
+              SMA IT Fitrah Insani
+            </span>
+          </div>
 
+          {/* Titles */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+              Selamat Datang
+            </h1>
+            <p className="mt-3 text-base text-slate-500">
+              Silakan masukkan kredensial akun Anda untuk mengakses dashboard.
+            </p>
+          </div>
+
+          {/* Form Container */}
+          <div className="space-y-6">
             <LoginForm onSuccess={() => navigate("/dashboard")} />
           </div>
-          {/* Image */}
-          <div className="sm:block hidden w-1/2 p-3">
-            <img
-              className="rounded-2xl "
-              src="/Images/LoginPageImg/pict-1.jpg"
-              alt=""
-            />
+
+          {/* Footer Copyright (Opsional) */}
+          <div className="mt-10 text-center text-xs text-slate-400 lg:text-left">
+            &copy; {new Date().getFullYear()} SMA IT Fitrah Insani. All rights
+            reserved.
           </div>
         </div>
-      </section>
-    </>
+      </div>
+
+      {/* KANAN: Area Gambar (Hanya muncul di layar besar) */}
+      <div className="hidden lg:block lg:w-1/2 lg:p-6">
+        <div className="relative h-full w-full overflow-hidden rounded-[2rem] border-4 border-white shadow-2xl">
+          {/* Gambar Background */}
+          <img
+            className="absolute inset-0 h-full w-full object-cover"
+            src="/Images/LoginPageImg/pict-1.jpg"
+            alt="School Activity"
+          />
+
+          {/* Overlay tanpa gradasi */}
+          <div className="absolute inset-0 bg-black/35" />
+
+          {/* Konten Dekoratif di atas Gambar */}
+          <div className="absolute bottom-0 left-0 p-12 text-white">
+            <blockquote className="max-w-md border-l-4 border-white/40 pl-4">
+              <p className="text-lg font-medium leading-relaxed">
+                "Pendidikan adalah senjata paling mematikan di dunia, karena
+                dengan pendidikan, Anda dapat mengubah dunia."
+              </p>
+              <footer className="mt-4 text-sm font-semibold opacity-80">
+                - Nelson Mandela
+              </footer>
+            </blockquote>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 

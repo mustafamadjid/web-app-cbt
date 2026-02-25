@@ -27,7 +27,7 @@ type PengumumanModule struct {
 	DeleteHandler *httpdelete.DeletePengumumanHandler
 }
 
-func BuildPengumumanModule(cfg Config, infra *InfraModule) *PengumumanModule {
+func BuildPengumumanModule(cfg Config, infra *InfraModule,deleteFile *DeleteFileModule) *PengumumanModule {
 	documentStore := httphelper.DocumentStore{
 		Dir:      filepath.Join(cfg.DocumentStore.Dir, "pengumuman"),
 		BaseURL:  cfg.DocumentStore.BaseURL,
@@ -37,8 +37,8 @@ func BuildPengumumanModule(cfg Config, infra *InfraModule) *PengumumanModule {
 
 	getSvc := pengumuman_get_service.NewGetPengumumanService(infra.pengumumanRepo)
 	createSvc := pengumuman_create_service.NewCreatePengumumanRepo(infra.pengumumanRepo)
-	updateSvc := pengumuman_update_service.NewUpdatePengumumanService(infra.pengumumanRepo)
-	deleteSvc := pengumuman_delete_service.NewDeletePengumumanService(infra.pengumumanRepo)
+	updateSvc := pengumuman_update_service.NewUpdatePengumumanService(infra.pengumumanRepo,deleteFile.deleteFileRepo)
+	deleteSvc := pengumuman_delete_service.NewDeletePengumumanService(infra.pengumumanRepo,deleteFile.deleteFileRepo)
 
 	getHandler := httpget.NewGetPengumumanHandler(getSvc)
 	createHandler := httpcreate.NewCreatePengumumanHandler(createSvc, documentStore)

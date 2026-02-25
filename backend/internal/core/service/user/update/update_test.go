@@ -8,8 +8,8 @@ import (
 
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
-	fake_test "github.com/mustafamadjid/web-app-cbt/internal/core/service/user/update/fake_test"
 	user_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/user/update"
+	fake_test "github.com/mustafamadjid/web-app-cbt/internal/core/service/user/update/fake_test"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -259,7 +259,10 @@ func TestUpdateGuruBranchCoverage(t *testing.T) {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			service := user_service.NewUpdateGuruService(tc.txm)
+			sessionRepo := &fake_test.FakeSessionRepo{}
+			deleteFileRepo := &fake_test.FakeDeleteFileRepo{}
+			userRepo := &fake_test.FakeUserRepo{}
+			service := user_service.NewUpdateUserService(tc.txm, sessionRepo, deleteFileRepo, userRepo)
 
 			err := service.UpdateGuru(context.Background(), tc.cmd, tc.actor)
 
@@ -592,7 +595,10 @@ func TestUpdateSiswaBranchCoverage(t *testing.T) {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			service := user_service.NewUpdateSiswaService(tc.txm)
+			sessionRepo := &fake_test.FakeSessionRepo{}
+			deleteFileRepo := &fake_test.FakeDeleteFileRepo{}
+			userRepo := &fake_test.FakeUserRepo{}
+			service := user_service.NewUpdateUserService(tc.txm, sessionRepo, deleteFileRepo, userRepo)
 
 			err := service.UpdateSiswa(context.Background(), tc.cmd, tc.actor)
 
@@ -623,4 +629,72 @@ func TestUpdateSiswaBranchCoverage(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestUpdateGuru_DeleteFileErrorBranch(t *testing.T) {
+	t.Parallel()
+
+	actor := user.Actor{IdPengguna: 1, Role: user.ADMIN}
+	fotoBaru := "foto-baru.png"
+	deleteFileErr := errors.New("delete file failed")
+
+	cmd := user_service.UpdateGuruCmd{
+		IdPengguna: 10,
+		Foto:       &fotoBaru,
+	}
+
+	txm := &fake_test.FakeTxManager{Tx: &fake_test.FakeTx{
+		UserRepo:       &fake_test.FakeUserRepo{},
+		ProfilGuruRepo: &fake_test.FakeProfilGuruRepo{},
+	}}
+	sessionRepo := &fake_test.FakeSessionRepo{}
+	deleteFileRepo := &fake_test.FakeDeleteFileRepo{DeleteErr: deleteFileErr}
+	userRepo := &fake_test.FakeUserRepo{
+		FindResult: user.Pengguna{ID: cmd.IdPengguna, Foto: "foto-lama.png"},
+	}
+	service := user_service.NewUpdateUserService(txm, sessionRepo, deleteFileRepo, userRepo)
+
+	err := service.UpdateGuru(context.Background(), cmd, actor)
+
+	assert.ErrorIs(t, err, deleteFileErr)
+	assert.True(t, userRepo.FindCalled)
+	assert.Equal(t, cmd.IdPengguna, userRepo.LastFindID)
+	assert.True(t, deleteFileRepo.DeleteCalled)
+	assert.Equal(t, "foto-lama.png", deleteFileRepo.LastPath)
+	assert.False(t, txm.BeginCalled)
+	assert.False(t, sessionRepo.RevokeAllCalled)
+}
+
+func TestUpdateSiswa_DeleteFileErrorBranch(t *testing.T) {
+	t.Parallel()
+
+	actor := user.Actor{IdPengguna: 1, Role: user.ADMIN}
+	fotoBaru := "foto-baru.png"
+	deleteFileErr := errors.New("delete file failed")
+
+	cmd := user_service.UpdateSiswaCmd{
+		IdPengguna: 10,
+		Foto:       &fotoBaru,
+	}
+
+	txm := &fake_test.FakeTxManager{Tx: &fake_test.FakeTx{
+		UserRepo:        &fake_test.FakeUserRepo{},
+		ProfilSiswaRepo: &fake_test.FakeProfilSiswaRepo{},
+	}}
+	sessionRepo := &fake_test.FakeSessionRepo{}
+	deleteFileRepo := &fake_test.FakeDeleteFileRepo{DeleteErr: deleteFileErr}
+	userRepo := &fake_test.FakeUserRepo{
+		FindResult: user.Pengguna{ID: cmd.IdPengguna, Foto: "foto-lama.png"},
+	}
+	service := user_service.NewUpdateUserService(txm, sessionRepo, deleteFileRepo, userRepo)
+
+	err := service.UpdateSiswa(context.Background(), cmd, actor)
+
+	assert.ErrorIs(t, err, deleteFileErr)
+	assert.True(t, userRepo.FindCalled)
+	assert.Equal(t, cmd.IdPengguna, userRepo.LastFindID)
+	assert.True(t, deleteFileRepo.DeleteCalled)
+	assert.Equal(t, "foto-lama.png", deleteFileRepo.LastPath)
+	assert.False(t, txm.BeginCalled)
+	assert.False(t, sessionRepo.RevokeAllCalled)
 }

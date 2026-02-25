@@ -24,7 +24,7 @@ type App struct {
 	HTTP          *HTTPModule
 }
 
-func Build(ctx context.Context, cfg Config, dbURL string, hasher out.PasswordHasher, logger corelog.Logger) (*App, error) {
+func Build(ctx context.Context, cfg Config, dbURL string, hasher out.PasswordHasher, logger corelog.Logger, deleteFile *DeleteFileModule) (*App, error) {
 	pool, err := pgxpool.New(ctx, dbURL)
 	if err != nil {
 		return nil, err
@@ -34,13 +34,13 @@ func Build(ctx context.Context, cfg Config, dbURL string, hasher out.PasswordHas
 	tokens := BuildTokenModule(cfg)
 	aktivitasUser := BuildAktivitasUserModule(infra)
 	auth := BuildAuthModule(cfg, infra, tokens, hasher, aktivitasUser)
-	users := BuildUserModule(cfg, infra, hasher, aktivitasUser)
+	users := BuildUserModule(cfg, infra, hasher, aktivitasUser, deleteFile)
 	profilSekolah := BuildProfilSekolahModule(cfg, infra)
 	kelas := BuildKelasModule(infra, aktivitasUser)
 	mapel := BuildMataPelajaranModule(infra)
 	ruangUjian := BuildRuangUjianModule(infra)
 	sesi := BuildSesiModule(infra)
-	pengumuman := BuildPengumumanModule(cfg, infra)
+	pengumuman := BuildPengumumanModule(cfg, infra, deleteFile)
 	resetPassword := BuildResetPasswordModule(infra, hasher)
 	httpm := BuildHTTPModule(cfg, auth, users, profilSekolah, aktivitasUser, kelas, mapel, ruangUjian, sesi, pengumuman, resetPassword, tokens, infra, logger)
 

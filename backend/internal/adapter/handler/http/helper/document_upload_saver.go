@@ -14,14 +14,10 @@ import (
 	"time"
 
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
+	storeconfig "github.com/mustafamadjid/web-app-cbt/internal/core/domain/store_config"
 )
 
-type DocumentStore struct {
-	Dir      string // contoh: "./public/uploads"
-	BaseURL  string // contoh: "https://example.com"
-	Route    string // contoh: "/uploads" (route publik)
-	MaxBytes int64  // contoh: 5 << 20
-}
+type DocumentStore storeconfig.DocumentStore
 
 func (s *DocumentStore) SaveDocumentRelative(file multipart.File, fh *multipart.FileHeader) (string, error) {
 	if s.Dir == "" || s.Route == "" {

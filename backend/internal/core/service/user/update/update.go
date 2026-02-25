@@ -6,26 +6,27 @@ import (
 	"strings"
 
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
+	"github.com/mustafamadjid/web-app-cbt/internal/core/port/out"
 
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
-	"github.com/mustafamadjid/web-app-cbt/internal/core/port/out"
+	delete_file_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/delete_file_system"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 	txout "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/tx"
 	updatepatch "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/update_patch"
+	outuser "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
 )
 
 type UpdateTx struct {
 	txm txout.TxManager
 	sessions out.SessionRepository
+	deleteFile delete_file_repo.DeleteFileRepo
+	users outuser.UserRepository
 }
 
-func NewUpdateGuruService(txm txout.TxManager,session out.SessionRepository) *UpdateTx {
-	return &UpdateTx{txm: txm,sessions: session}
+func NewUpdateUserService(txm txout.TxManager,session out.SessionRepository, deleteFile delete_file_repo.DeleteFileRepo, users outuser.UserRepository) *UpdateTx {
+	return &UpdateTx{txm: txm,sessions: session, deleteFile: deleteFile, users: users}
 }
 
-func NewUpdateSiswaService(txm txout.TxManager,session out.SessionRepository) *UpdateTx {
-	return &UpdateTx{txm: txm,sessions: session}
-}
 
 func hasPenggunaPatch(p updatepatch.Pengguna) bool {
 	return p.NamaLengkap != nil || p.Email != nil || p.NoHp != nil || p.Foto != nil || p.StatusAkun != nil || p.Role != nil
@@ -48,6 +49,8 @@ func (u *UpdateTx) UpdateGuru(ctx context.Context, cmd UpdateGuruCmd, actor user
 	if cmd.IdPengguna == 0 {
 		return errors.New("Id pengguna required")
 	}
+
+	
 
 	// Normalisasi dan Validasi
 	if cmd.Username != nil {
@@ -79,6 +82,21 @@ func (u *UpdateTx) UpdateGuru(ctx context.Context, cmd UpdateGuruCmd, actor user
 	}
 	if cmd.Foto != nil {
 		s := strings.TrimSpace(*cmd.Foto)
+
+		if s == "" {
+			return coreerror.ErrMissingField
+		}// user
+		userData,err := u.users.FindUserByID(ctx,cmd.IdPengguna)
+		if err != nil {
+			logger.Error(ctx, "failed finding user", "layer", "core.service", "op", "user.update", "user_id", cmd.IdPengguna, "err", err)
+			return err
+		}
+		
+		if err := u.deleteFile.DeleteFile(ctx,userData.Foto); err != nil {
+			logger.Error(ctx, "failed deleting old phot user", "layer", "core.service", "op", "user.update_user.delete_file_foto", "user_id", cmd.IdPengguna, "err", err)
+			return err
+		}
+
 		cmd.Foto = &s
 	}
 	if cmd.Nip != nil {
@@ -175,6 +193,8 @@ func (u *UpdateTx) UpdateSiswa(ctx context.Context, cmd UpdateSiswaCmd, actor us
 		return errors.New("Id pengguna required")
 	}
 
+	
+
 	if cmd.Username != nil {
 		s := strings.TrimSpace(*cmd.Username)
 		if s == "" {
@@ -205,6 +225,20 @@ func (u *UpdateTx) UpdateSiswa(ctx context.Context, cmd UpdateSiswaCmd, actor us
 	}
 	if cmd.Foto != nil {
 		s := strings.TrimSpace(*cmd.Foto)
+		if s == "" {
+			return coreerror.ErrMissingField
+		}
+		userData,err := u.users.FindUserByID(ctx,cmd.IdPengguna)
+		if err != nil {
+			logger.Error(ctx, "failed finding user", "layer", "core.service", "op", "user.update_siswa", "user_id", cmd.IdPengguna, "err", err)
+			return err
+		}
+
+		if err := u.deleteFile.DeleteFile(ctx,userData.Foto); err != nil {
+			logger.Error(ctx, "failed deleting user", "layer", "core.service", "op", "user.update_file_foto", "user_id", cmd.IdPengguna, "err", err)
+			return err
+		}
+
 		cmd.Foto = &s
 	}
 	if cmd.Nisn != nil {

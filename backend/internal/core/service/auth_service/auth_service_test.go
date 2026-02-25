@@ -2,276 +2,245 @@ package auth_service_test
 
 import (
 	"context"
-	"fmt"
-	"strconv"
-	"strings"
+	"errors"
+	"testing"
 	"time"
 
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/auth/session"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
-	updatepatch "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/update_patch"
+	auth_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/auth_service"
+	fake_test "github.com/mustafamadjid/web-app-cbt/internal/core/service/auth_service/fake_test"
+	"github.com/stretchr/testify/assert"
 )
 
-type FakeAuthUserRepo struct {
-	ByUsername      map[string]user.Pengguna
-	FindUsernameErr error
-}
+func TestAuthServiceLoginBasisPath(t *testing.T) {
+	t.Parallel()
 
-type FakeUserRepo struct {
-	ByID        map[user.ID]user.Pengguna
-	FindUserErr error
-}
+	const (
+		username = "admin"
+		password = "rahasia"
+	)
 
-type FakeHasher struct {
-	Ok bool
-}
-
-type FakeSessionRepo struct {
-	SessionNextID    string
-	Store            map[string]session.Session
-	CreateSessionErr error
-	RevokeSessionErr error
-	HasActiveErr     error
-
-	// NEW: for RevokeExpiredSessions
-	RevokeExpiredErr error
-}
-
-type FakeAccessToken struct {
-	GenerateAccessTokenErr error
-}
-
-type FakeRefreshToken struct {
-	GenerateRefreshTokenErr error
-	VerifyRefreshTokenErr   error
-}
-
-type FakeRefreshTTl struct {
-	TTL time.Duration
-}
-
-func (fakeRepo *FakeAuthUserRepo) FindByUsername(ctx context.Context, username string) (user.Pengguna, error) {
-	if fakeRepo.FindUsernameErr != nil {
-		return user.Pengguna{}, fakeRepo.FindUsernameErr
-	}
-	u, ok := fakeRepo.ByUsername[username]
-	if !ok {
-		return user.Pengguna{}, coreerror.ErrNotFound
-	}
-	return u, nil
-}
-
-func (fakeRepo *FakeUserRepo) FindUserByID(ctx context.Context, id user.ID) (user.Pengguna, error) {
-	if fakeRepo.FindUserErr != nil {
-		return user.Pengguna{}, fakeRepo.FindUserErr
-	}
-	if fakeRepo.ByID == nil {
-		return user.Pengguna{}, coreerror.ErrNotFound
-	}
-	u, ok := fakeRepo.ByID[id]
-	if !ok {
-		return user.Pengguna{}, coreerror.ErrNotFound
-	}
-	return u, nil
-}
-
-func (fakeRepo *FakeUserRepo) UserExistByUsername(ctx context.Context, username string) (bool, error) {
-	return false, nil
-}
-
-func (fakeRepo *FakeUserRepo) CreateUser(ctx context.Context, pengguna user.Pengguna) (user.ID, error) {
-	return 0, nil
-}
-
-func (fakeRepo *FakeUserRepo) UpdateUser(ctx context.Context, idPengguna user.ID, pengguna updatepatch.Pengguna) error {
-	return nil
-}
-
-func (fakeRepo *FakeUserRepo) DeleteUser(ctx context.Context, id user.ID) error {
-	return nil
-}
-
-func (fakeRepo *FakeUserRepo) DeleteUsers(ctx context.Context, ids []user.ID) (int64, error) {
-	return int64(len(ids)), nil
-}
-
-func (fakeRepo *FakeUserRepo) ListUser(ctx context.Context) ([]user.Pengguna, error) {
-	return []user.Pengguna{}, nil
-}
-
-func (fakeHash *FakeHasher) ComparePaswordAndHashed(hash string, plain string) bool {
-	return fakeHash.Ok
-}
-
-func (fakeHash *FakeHasher) GenerateHash(plain string) (string, error) {
-	return "hashed password", nil
-}
-
-func (fakeSession *FakeSessionRepo) CreateSession(ctx context.Context, userID user.ID, expiresAt time.Time) (string, error) {
-	if fakeSession.CreateSessionErr != nil {
-		return "", fakeSession.CreateSessionErr
-	}
-	if fakeSession.Store == nil {
-		fakeSession.Store = map[string]session.Session{}
-	}
-	if fakeSession.SessionNextID == "" {
-		fakeSession.SessionNextID = "session_user_1"
-	}
-	id := fakeSession.SessionNextID
-	fakeSession.Store[id] = session.Session{
-		SessionID: id,
-		UserID:    userID,
-		Revoked:   false,
-		ExpiresAt: expiresAt,
-	}
-	return id, nil
-}
-
-func (fakeSession *FakeSessionRepo) GetSession(ctx context.Context, sessionID string) (session.Session, error) {
-	ss, ok := fakeSession.Store[sessionID]
-	if !ok {
-		return session.Session{}, coreerror.ErrNotFound
-	}
-	return ss, nil
-}
-
-func (fakeSession *FakeSessionRepo) RevokeSession(ctx context.Context, sessionID string) error {
-	if fakeSession.RevokeSessionErr != nil {
-		return fakeSession.RevokeSessionErr
-	}
-	ss, ok := fakeSession.Store[sessionID]
-	if !ok {
-		return coreerror.ErrNotFound
-	}
-	ss.Revoked = true
-	fakeSession.Store[sessionID] = ss
-	return nil
-}
-
-func (fakeSession *FakeSessionRepo) RevokeSessionAllbyUser(ctx context.Context, userID user.ID) error {
-	for ssid, sess := range fakeSession.Store {
-		if sess.UserID == userID && !sess.Revoked && now.Before(sess.ExpiresAt) {
-			sess.Revoked = true
-			fakeSession.Store[ssid] = sess
-		}
-	}
-	return nil
-}
-
-func (fakeSession *FakeSessionRepo) GetSessionByUserId(ctx context.Context, userId user.ID) (session.Session, error) {
-	for _, sess := range fakeSession.Store {
-		if sess.UserID == userId {
-			return sess, nil
-		}
-	}
-	return session.Session{}, coreerror.ErrNotFound
-}
-
-func (fakeSession *FakeSessionRepo) GetAllActiveSession(ctx context.Context) ([]session.Session, error) {
-	var sessions []session.Session
-	for _, sess := range fakeSession.Store {
-		if !sess.Revoked {
-			sessions = append(sessions, sess)
-		}
-	}
-	return sessions, nil
-}
-
-func (fakeSession *FakeSessionRepo) HasActiveSession(ctx context.Context, userID user.ID) (bool, error) {
-	if fakeSession.HasActiveErr != nil {
-		return false, fakeSession.HasActiveErr
-	}
-	for _, sess := range fakeSession.Store {
-		if sess.UserID == userID && !sess.Revoked {
-			return true, nil
-		}
-	}
-	return false, nil
-}
-
-// NEW: RevokeExpiredSessions
-// Meniru query DB:
-//   UPDATE sessions SET revoked_at=NOW()
-//   WHERE id_pengguna=$1 AND revoked_at IS NULL AND expires_at <= NOW()
-//
-// Di fake kita pakai:
-// - revoked_at diganti dengan Revoked bool
-// - NOW() diganti time.Now() (karena signature tidak menerima now)
-func (fakeSession *FakeSessionRepo) RevokeExpiredSessions(ctx context.Context, userID user.ID) (bool, error) {
-	if fakeSession.RevokeExpiredErr != nil {
-		return false, fakeSession.RevokeExpiredErr
-	}
-	if fakeSession.Store == nil {
-		return false, nil
+	cmd := auth_service.LoginCmd{
+		Username: username,
+		Password: password,
 	}
 
-	now := time.Now()
-	changed := false
-
-	for id, sess := range fakeSession.Store {
-		if sess.UserID != userID {
-			continue
-		}
-		if sess.Revoked {
-			continue
-		}
-		if sess.ExpiresAt.After(now) {
-			continue // masih aktif
-		}
-
-		sess.Revoked = true
-		fakeSession.Store[id] = sess
-		changed = true
+	baseUser := user.Pengguna{
+		ID:             1,
+		Username:       username,
+		PasswordHashed: "hashed-password",
+		Role:           user.ADMIN,
+		StatusAkun:     user.AKTIF,
 	}
 
-	return changed, nil
-}
+	testErr := errors.New("test error")
 
-func (f *FakeAccessToken) GenerateAccessToken(userID user.ID, role user.Role, username string, tokenDuration time.Duration) (string, error) {
-	if f.GenerateAccessTokenErr != nil {
-		return "", f.GenerateAccessTokenErr
-	}
-	return fmt.Sprintf("ACCESS TOKEN :|%v|%v|%s", userID, role, username), nil
-}
-
-func (f *FakeAccessToken) VerifyAccessToken(token string, now time.Time) (userID user.ID, role user.Role, username string, err error) {
-	const prefix = "ACCESS TOKEN :|"
-	if !strings.HasPrefix(token, prefix) {
-		return 0, "", "", coreerror.ErrInvalidToken
-	}
-
-	parts := strings.Split(strings.TrimPrefix(token, prefix), "|")
-	if len(parts) != 3 {
-		return 0, "", "", coreerror.ErrInvalidToken
-	}
-
-	id, convErr := strconv.Atoi(parts[0])
-	if convErr != nil {
-		return 0, "", "", coreerror.ErrInvalidToken
-	}
-	return user.ID(id), user.Role(parts[1]), parts[2], nil
-}
-
-func (f *FakeRefreshToken) GenerateRefreshToken(sessionID string, tokenDuration time.Duration) (string, error) {
-	if f.GenerateRefreshTokenErr != nil {
-		return "", f.GenerateRefreshTokenErr
-	}
-	return fmt.Sprintf("REFRESH TOKEN : %s", sessionID), nil
-}
-
-func (f *FakeRefreshToken) VerifyRefreshToken(token string, now time.Time) (sessionID string, err error) {
-	if f.VerifyRefreshTokenErr != nil {
-		return "", f.VerifyRefreshTokenErr
-	}
-	const prefix = "REFRESH TOKEN : "
-	if !strings.HasPrefix(token, prefix) {
-		return "", coreerror.ErrInvalidToken
+	newDeps := func() (
+		*fake_test.FakeAuthUserRepo,
+		*fake_test.FakeUserRepo,
+		*fake_test.FakeHasher,
+		*fake_test.FakeSessionRepo,
+		*fake_test.FakeAccessToken,
+		*fake_test.FakeRefreshToken,
+	) {
+		return &fake_test.FakeAuthUserRepo{
+				ByUsername: map[string]user.Pengguna{},
+			},
+			&fake_test.FakeUserRepo{},
+			&fake_test.FakeHasher{Ok: true},
+			&fake_test.FakeSessionRepo{Store: map[string]session.Session{}, SessionNextID: "session_user_1"},
+			&fake_test.FakeAccessToken{},
+			&fake_test.FakeRefreshToken{}
 	}
 
-	sessionID = strings.TrimPrefix(token, prefix)
-	if sessionID == "" {
-		return "", coreerror.ErrInvalidToken
+	testCases := []struct {
+		name      string
+		setup     func(*fake_test.FakeAuthUserRepo, *fake_test.FakeHasher, *fake_test.FakeSessionRepo, *fake_test.FakeAccessToken, *fake_test.FakeRefreshToken)
+		wantErr   error
+		assertion func(*testing.T, auth_service.LoginRes, *fake_test.FakeAuthUserRepo, *fake_test.FakeHasher, *fake_test.FakeSessionRepo, *fake_test.FakeAccessToken, *fake_test.FakeRefreshToken)
+	}{
+		{
+			name: "Path 1 -> Username gagal ditemukan",
+			setup: func(authRepo *fake_test.FakeAuthUserRepo, hasher *fake_test.FakeHasher, sessionRepo *fake_test.FakeSessionRepo, accessToken *fake_test.FakeAccessToken, refreshToken *fake_test.FakeRefreshToken) {
+				authRepo.ByUsername = map[string]user.Pengguna{}
+			},
+			wantErr: coreerror.ErrInvalidCreds,
+			assertion: func(t *testing.T, got auth_service.LoginRes, authRepo *fake_test.FakeAuthUserRepo, hasher *fake_test.FakeHasher, sessionRepo *fake_test.FakeSessionRepo, accessToken *fake_test.FakeAccessToken, refreshToken *fake_test.FakeRefreshToken) {
+				assert.Equal(t, auth_service.LoginRes{}, got)
+				assert.True(t, authRepo.FindCalled)
+				assert.False(t, hasher.CompareCalled)
+				assert.False(t, sessionRepo.RevokeExpiredCalled)
+			},
+		},
+		{
+			name: "Path 2 -> Status akun tidak aktif",
+			setup: func(authRepo *fake_test.FakeAuthUserRepo, hasher *fake_test.FakeHasher, sessionRepo *fake_test.FakeSessionRepo, accessToken *fake_test.FakeAccessToken, refreshToken *fake_test.FakeRefreshToken) {
+				inactiveUser := baseUser
+				inactiveUser.StatusAkun = user.NONAKTIF
+				authRepo.ByUsername[username] = inactiveUser
+			},
+			wantErr: coreerror.ErrInvalidCreds,
+			assertion: func(t *testing.T, got auth_service.LoginRes, authRepo *fake_test.FakeAuthUserRepo, hasher *fake_test.FakeHasher, sessionRepo *fake_test.FakeSessionRepo, accessToken *fake_test.FakeAccessToken, refreshToken *fake_test.FakeRefreshToken) {
+				assert.Equal(t, auth_service.LoginRes{}, got)
+				assert.True(t, authRepo.FindCalled)
+				assert.False(t, hasher.CompareCalled)
+				assert.False(t, sessionRepo.RevokeExpiredCalled)
+			},
+		},
+		{
+			name: "Path 3 -> Password tidak cocok",
+			setup: func(authRepo *fake_test.FakeAuthUserRepo, hasher *fake_test.FakeHasher, sessionRepo *fake_test.FakeSessionRepo, accessToken *fake_test.FakeAccessToken, refreshToken *fake_test.FakeRefreshToken) {
+				authRepo.ByUsername[username] = baseUser
+				hasher.Ok = false
+			},
+			wantErr: coreerror.ErrInvalidCreds,
+			assertion: func(t *testing.T, got auth_service.LoginRes, authRepo *fake_test.FakeAuthUserRepo, hasher *fake_test.FakeHasher, sessionRepo *fake_test.FakeSessionRepo, accessToken *fake_test.FakeAccessToken, refreshToken *fake_test.FakeRefreshToken) {
+				assert.Equal(t, auth_service.LoginRes{}, got)
+				assert.True(t, hasher.CompareCalled)
+				assert.False(t, sessionRepo.RevokeExpiredCalled)
+			},
+		},
+		{
+			name: "Path 4 -> Revoke expired session gagal",
+			setup: func(authRepo *fake_test.FakeAuthUserRepo, hasher *fake_test.FakeHasher, sessionRepo *fake_test.FakeSessionRepo, accessToken *fake_test.FakeAccessToken, refreshToken *fake_test.FakeRefreshToken) {
+				authRepo.ByUsername[username] = baseUser
+				sessionRepo.RevokeExpiredErr = testErr
+			},
+			wantErr: testErr,
+			assertion: func(t *testing.T, got auth_service.LoginRes, authRepo *fake_test.FakeAuthUserRepo, hasher *fake_test.FakeHasher, sessionRepo *fake_test.FakeSessionRepo, accessToken *fake_test.FakeAccessToken, refreshToken *fake_test.FakeRefreshToken) {
+				assert.Equal(t, auth_service.LoginRes{}, got)
+				assert.True(t, sessionRepo.RevokeExpiredCalled)
+				assert.False(t, sessionRepo.HasActiveCalled)
+			},
+		},
+		{
+			name: "Path 5 -> Cek active session gagal",
+			setup: func(authRepo *fake_test.FakeAuthUserRepo, hasher *fake_test.FakeHasher, sessionRepo *fake_test.FakeSessionRepo, accessToken *fake_test.FakeAccessToken, refreshToken *fake_test.FakeRefreshToken) {
+				authRepo.ByUsername[username] = baseUser
+				sessionRepo.HasActiveErr = testErr
+			},
+			wantErr: testErr,
+			assertion: func(t *testing.T, got auth_service.LoginRes, authRepo *fake_test.FakeAuthUserRepo, hasher *fake_test.FakeHasher, sessionRepo *fake_test.FakeSessionRepo, accessToken *fake_test.FakeAccessToken, refreshToken *fake_test.FakeRefreshToken) {
+				assert.Equal(t, auth_service.LoginRes{}, got)
+				assert.True(t, sessionRepo.RevokeExpiredCalled)
+				assert.True(t, sessionRepo.HasActiveCalled)
+				assert.False(t, sessionRepo.CreateSessionCalled)
+			},
+		},
+		{
+			name: "Path 6 -> User masih memiliki session aktif",
+			setup: func(authRepo *fake_test.FakeAuthUserRepo, hasher *fake_test.FakeHasher, sessionRepo *fake_test.FakeSessionRepo, accessToken *fake_test.FakeAccessToken, refreshToken *fake_test.FakeRefreshToken) {
+				authRepo.ByUsername[username] = baseUser
+				sessionRepo.Store["existing_session"] = session.Session{
+					SessionID: "existing_session",
+					UserID:    baseUser.ID,
+					Revoked:   false,
+					ExpiresAt: time.Now().Add(1 * time.Hour),
+				}
+			},
+			wantErr: coreerror.ErrHasSession,
+			assertion: func(t *testing.T, got auth_service.LoginRes, authRepo *fake_test.FakeAuthUserRepo, hasher *fake_test.FakeHasher, sessionRepo *fake_test.FakeSessionRepo, accessToken *fake_test.FakeAccessToken, refreshToken *fake_test.FakeRefreshToken) {
+				assert.Equal(t, auth_service.LoginRes{}, got)
+				assert.True(t, sessionRepo.HasActiveCalled)
+				assert.False(t, sessionRepo.CreateSessionCalled)
+			},
+		},
+		{
+			name: "Path 7 -> Create session gagal",
+			setup: func(authRepo *fake_test.FakeAuthUserRepo, hasher *fake_test.FakeHasher, sessionRepo *fake_test.FakeSessionRepo, accessToken *fake_test.FakeAccessToken, refreshToken *fake_test.FakeRefreshToken) {
+				authRepo.ByUsername[username] = baseUser
+				sessionRepo.CreateSessionErr = testErr
+			},
+			wantErr: testErr,
+			assertion: func(t *testing.T, got auth_service.LoginRes, authRepo *fake_test.FakeAuthUserRepo, hasher *fake_test.FakeHasher, sessionRepo *fake_test.FakeSessionRepo, accessToken *fake_test.FakeAccessToken, refreshToken *fake_test.FakeRefreshToken) {
+				assert.Equal(t, auth_service.LoginRes{}, got)
+				assert.True(t, sessionRepo.CreateSessionCalled)
+				assert.False(t, accessToken.GenerateCalled)
+			},
+		},
+		{
+			name: "Path 8 -> Generate access token gagal",
+			setup: func(authRepo *fake_test.FakeAuthUserRepo, hasher *fake_test.FakeHasher, sessionRepo *fake_test.FakeSessionRepo, accessToken *fake_test.FakeAccessToken, refreshToken *fake_test.FakeRefreshToken) {
+				authRepo.ByUsername[username] = baseUser
+				accessToken.GenerateAccessTokenErr = testErr
+			},
+			wantErr: testErr,
+			assertion: func(t *testing.T, got auth_service.LoginRes, authRepo *fake_test.FakeAuthUserRepo, hasher *fake_test.FakeHasher, sessionRepo *fake_test.FakeSessionRepo, accessToken *fake_test.FakeAccessToken, refreshToken *fake_test.FakeRefreshToken) {
+				assert.Equal(t, auth_service.LoginRes{}, got)
+				assert.True(t, sessionRepo.CreateSessionCalled)
+				assert.True(t, accessToken.GenerateCalled)
+				assert.False(t, refreshToken.GenerateCalled)
+				_, exists := sessionRepo.Store["session_user_1"]
+				assert.True(t, exists)
+			},
+		},
+		{
+			name: "Path 9 -> Generate refresh token gagal",
+			setup: func(authRepo *fake_test.FakeAuthUserRepo, hasher *fake_test.FakeHasher, sessionRepo *fake_test.FakeSessionRepo, accessToken *fake_test.FakeAccessToken, refreshToken *fake_test.FakeRefreshToken) {
+				authRepo.ByUsername[username] = baseUser
+				refreshToken.GenerateRefreshTokenErr = testErr
+			},
+			wantErr: testErr,
+			assertion: func(t *testing.T, got auth_service.LoginRes, authRepo *fake_test.FakeAuthUserRepo, hasher *fake_test.FakeHasher, sessionRepo *fake_test.FakeSessionRepo, accessToken *fake_test.FakeAccessToken, refreshToken *fake_test.FakeRefreshToken) {
+				assert.Equal(t, auth_service.LoginRes{}, got)
+				assert.True(t, sessionRepo.CreateSessionCalled)
+				assert.True(t, accessToken.GenerateCalled)
+				assert.True(t, refreshToken.GenerateCalled)
+				_, exists := sessionRepo.Store["session_user_1"]
+				assert.True(t, exists)
+			},
+		},
+		{
+			name: "Path 10 -> Login berhasil",
+			setup: func(authRepo *fake_test.FakeAuthUserRepo, hasher *fake_test.FakeHasher, sessionRepo *fake_test.FakeSessionRepo, accessToken *fake_test.FakeAccessToken, refreshToken *fake_test.FakeRefreshToken) {
+				authRepo.ByUsername[username] = baseUser
+			},
+			assertion: func(t *testing.T, got auth_service.LoginRes, authRepo *fake_test.FakeAuthUserRepo, hasher *fake_test.FakeHasher, sessionRepo *fake_test.FakeSessionRepo, accessToken *fake_test.FakeAccessToken, refreshToken *fake_test.FakeRefreshToken) {
+				assert.Equal(t, baseUser.ID, got.IdPengguna)
+				assert.Equal(t, baseUser.Username, got.Username)
+				assert.Equal(t, "ACCESS TOKEN :|1|ADMIN|admin", got.AccessToken)
+				assert.Equal(t, "REFRESH TOKEN : session_user_1", got.RefreshToken)
+				assert.True(t, sessionRepo.CreateSessionCalled)
+				assert.True(t, accessToken.GenerateCalled)
+				assert.True(t, refreshToken.GenerateCalled)
+
+				sess, exists := sessionRepo.Store["session_user_1"]
+				assert.True(t, exists)
+				assert.Equal(t, baseUser.ID, sess.UserID)
+				assert.False(t, sess.Revoked)
+			},
+		},
 	}
-	return sessionID, nil
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			authRepo, userRepo, hasher, sessionRepo, accessToken, refreshToken := newDeps()
+			tc.setup(authRepo, hasher, sessionRepo, accessToken, refreshToken)
+
+			service := auth_service.NewAuthService(
+				authRepo,
+				userRepo,
+				hasher,
+				sessionRepo,
+				accessToken,
+				refreshToken,
+				14*24*time.Hour,
+			)
+
+			got, err := service.Login(context.Background(), cmd)
+
+			if tc.wantErr != nil {
+				assert.ErrorIs(t, err, tc.wantErr)
+			} else {
+				assert.NoError(t, err)
+			}
+
+			tc.assertion(t, got, authRepo, hasher, sessionRepo, accessToken, refreshToken)
+		})
+	}
 }

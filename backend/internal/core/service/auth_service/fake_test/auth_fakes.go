@@ -16,15 +16,18 @@ import (
 type FakeAuthUserRepo struct {
 	ByUsername      map[string]user.Pengguna
 	FindUsernameErr error
+	FindCalled      bool
 }
 
 type FakeUserRepo struct {
 	ByID        map[user.ID]user.Pengguna
 	FindUserErr error
+	FindCalled  bool
 }
 
 type FakeHasher struct {
-	Ok bool
+	Ok            bool
+	CompareCalled bool
 }
 
 type FakeSessionRepo struct {
@@ -33,15 +36,23 @@ type FakeSessionRepo struct {
 	CreateSessionErr error
 	RevokeSessionErr error
 	HasActiveErr     error
+	RevokeExpiredErr error
+
+	CreateSessionCalled bool
+	HasActiveCalled     bool
+	RevokeExpiredCalled bool
 }
 
 type FakeAccessToken struct {
 	GenerateAccessTokenErr error
+	GenerateCalled         bool
 }
 
 type FakeRefreshToken struct {
 	GenerateRefreshTokenErr error
 	VerifyRefreshTokenErr   error
+	GenerateCalled          bool
+	VerifyCalled            bool
 }
 
 type FakeRefreshTTl struct {
@@ -49,6 +60,8 @@ type FakeRefreshTTl struct {
 }
 
 func (fakeRepo *FakeAuthUserRepo) FindByUsername(ctx context.Context, username string) (user.Pengguna, error) {
+	fakeRepo.FindCalled = true
+
 	if fakeRepo.FindUsernameErr != nil {
 		return user.Pengguna{}, fakeRepo.FindUsernameErr
 	}
@@ -60,6 +73,8 @@ func (fakeRepo *FakeAuthUserRepo) FindByUsername(ctx context.Context, username s
 }
 
 func (fakeRepo *FakeUserRepo) FindUserByID(ctx context.Context, id user.ID) (user.Pengguna, error) {
+	fakeRepo.FindCalled = true
+
 	if fakeRepo.FindUserErr != nil {
 		return user.Pengguna{}, fakeRepo.FindUserErr
 	}
@@ -98,6 +113,7 @@ func (fakeRepo *FakeUserRepo) ListUser(ctx context.Context) ([]user.Pengguna, er
 }
 
 func (fakeHash *FakeHasher) ComparePaswordAndHashed(hash string, plain string) bool {
+	fakeHash.CompareCalled = true
 	return fakeHash.Ok
 }
 
@@ -106,6 +122,8 @@ func (fakeHash *FakeHasher) GenerateHash(plain string) (string, error) {
 }
 
 func (fakeSession *FakeSessionRepo) CreateSession(ctx context.Context, userID user.ID, expiresAt time.Time) (string, error) {
+	fakeSession.CreateSessionCalled = true
+
 	if fakeSession.CreateSessionErr != nil {
 		return "", fakeSession.CreateSessionErr
 	}
@@ -148,7 +166,7 @@ func (fakeSession *FakeSessionRepo) RevokeSession(ctx context.Context, sessionID
 
 func (fakeSession *FakeSessionRepo) RevokeSessionAllbyUser(ctx context.Context, userID user.ID) error {
 	for ssid, sess := range fakeSession.Store {
-		if sess.UserID == userID && !sess.Revoked && now.Before(sess.ExpiresAt) {
+		if sess.UserID == userID && !sess.Revoked {
 			sess.Revoked = true
 			fakeSession.Store[ssid] = sess
 		}
@@ -176,6 +194,8 @@ func (fakeSession *FakeSessionRepo) GetAllActiveSession(ctx context.Context) ([]
 }
 
 func (fakeSession *FakeSessionRepo) HasActiveSession(ctx context.Context, userID user.ID) (bool, error) {
+	fakeSession.HasActiveCalled = true
+
 	if fakeSession.HasActiveErr != nil {
 		return false, fakeSession.HasActiveErr
 	}
@@ -187,7 +207,41 @@ func (fakeSession *FakeSessionRepo) HasActiveSession(ctx context.Context, userID
 	return false, nil
 }
 
+func (fakeSession *FakeSessionRepo) RevokeExpiredSessions(ctx context.Context, userID user.ID) (bool, error) {
+	fakeSession.RevokeExpiredCalled = true
+
+	if fakeSession.RevokeExpiredErr != nil {
+		return false, fakeSession.RevokeExpiredErr
+	}
+	if fakeSession.Store == nil {
+		return false, nil
+	}
+
+	now := time.Now()
+	changed := false
+
+	for id, sess := range fakeSession.Store {
+		if sess.UserID != userID {
+			continue
+		}
+		if sess.Revoked {
+			continue
+		}
+		if sess.ExpiresAt.After(now) {
+			continue
+		}
+
+		sess.Revoked = true
+		fakeSession.Store[id] = sess
+		changed = true
+	}
+
+	return changed, nil
+}
+
 func (f *FakeAccessToken) GenerateAccessToken(userID user.ID, role user.Role, username string, tokenDuration time.Duration) (string, error) {
+	f.GenerateCalled = true
+
 	if f.GenerateAccessTokenErr != nil {
 		return "", f.GenerateAccessTokenErr
 	}
@@ -213,6 +267,8 @@ func (f *FakeAccessToken) VerifyAccessToken(token string, now time.Time) (userID
 }
 
 func (f *FakeRefreshToken) GenerateRefreshToken(sessionID string, tokenDuration time.Duration) (string, error) {
+	f.GenerateCalled = true
+
 	if f.GenerateRefreshTokenErr != nil {
 		return "", f.GenerateRefreshTokenErr
 	}
@@ -220,6 +276,8 @@ func (f *FakeRefreshToken) GenerateRefreshToken(sessionID string, tokenDuration 
 }
 
 func (f *FakeRefreshToken) VerifyRefreshToken(token string, now time.Time) (sessionID string, err error) {
+	f.VerifyCalled = true
+
 	if f.VerifyRefreshTokenErr != nil {
 		return "", f.VerifyRefreshTokenErr
 	}

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 
+import DatePicker from "@/components/common/DateInput/DatePicker";
 import { useAuth } from "@/contexts/AuthContext";
 import { createSetField } from "@/helper/setField/setField";
 import { createValidator, requiredString } from "@/helper/validate/validateForm";
@@ -189,49 +190,25 @@ const CreatePengumumanForm = () => {
                 />
               </div>
 
-              <div>
-                <label
-                  htmlFor="tanggal_rilis_pengumuman"
-                  className="text-xs font-medium text-slate-600"
-                >
-                  Tanggal Rilis
-                </label>
-                <input
+              <div className="cursor-pointer">
+                <DatePicker
                   id="tanggal_rilis_pengumuman"
-                  type="date"
+                  label="Tanggal Rilis"
                   value={values.tanggal_rilis_pengumuman}
-                  onChange={(event) =>
-                    setField("tanggal_rilis_pengumuman", event.target.value)
-                  }
+                  onChange={(date) => setField("tanggal_rilis_pengumuman", date)}
                   onBlur={() => onBlur("tanggal_rilis_pengumuman")}
-                  className={`mt-1 w-full cursor-pointer rounded-lg border px-3 py-2 text-sm outline-none transition focus:border-[#397e50] focus:ring-1 focus:ring-[#397e50] ${
-                    hasError("tanggal_rilis_pengumuman")
-                      ? "border-rose-300 ring-rose-100"
-                      : "border-slate-200"
-                  }`}
+                  error={hasError("tanggal_rilis_pengumuman")}
                 />
               </div>
 
               <div>
-                <label
-                  htmlFor="tanggal_selesai_pengumuman"
-                  className="text-xs font-medium text-slate-600"
-                >
-                  Tanggal Selesai
-                </label>
-                <input
+                <DatePicker
                   id="tanggal_selesai_pengumuman"
-                  type="date"
+                  label="Tanggal Selesai"
                   value={values.tanggal_selesai_pengumuman}
-                  onChange={(event) =>
-                    setField("tanggal_selesai_pengumuman", event.target.value)
-                  }
+                  onChange={(date) => setField("tanggal_selesai_pengumuman", date)}
                   onBlur={() => onBlur("tanggal_selesai_pengumuman")}
-                  className={`mt-1 w-full cursor-pointer rounded-lg border px-3 py-2 text-sm outline-none transition focus:border-[#397e50] focus:ring-1 focus:ring-[#397e50] ${
-                    hasError("tanggal_selesai_pengumuman")
-                      ? "border-rose-300 ring-rose-100"
-                      : "border-slate-200"
-                  }`}
+                  error={hasError("tanggal_selesai_pengumuman")}
                 />
               </div>
 

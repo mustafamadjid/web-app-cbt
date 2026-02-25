@@ -14,9 +14,18 @@ import (
 )
 
 type fakeDeletePengumumanRepo struct {
-	deleteFn     func(context.Context, pengumuman.ID) error
+	getByIDFn     func(context.Context, pengumuman.ID) (pengumuman.Pengumuman, error)
+	getByIDCalled bool
+	gotGetByID    pengumuman.ID
+	deleteFn      func(context.Context, pengumuman.ID) error
+	deleteCalled  bool
+	gotID         pengumuman.ID
+}
+
+type fakeDeleteFileRepo struct {
+	deleteFn     func(context.Context, string) error
 	deleteCalled bool
-	gotID        pengumuman.ID
+	gotPath      string
 }
 
 func (f *fakeDeletePengumumanRepo) GetPengumumanActive(context.Context) ([]pengumuman.Pengumuman, error) {
@@ -31,8 +40,13 @@ func (f *fakeDeletePengumumanRepo) GetPengumumanIncoming(context.Context) ([]pen
 	return nil, nil
 }
 
-func (f *fakeDeletePengumumanRepo) GetPengumumanById(context.Context, pengumuman.ID) (pengumuman.Pengumuman, error) {
-	return pengumuman.Pengumuman{}, nil
+func (f *fakeDeletePengumumanRepo) GetPengumumanById(ctx context.Context, id pengumuman.ID) (pengumuman.Pengumuman, error) {
+	f.getByIDCalled = true
+	f.gotGetByID = id
+	if f.getByIDFn != nil {
+		return f.getByIDFn(ctx, id)
+	}
+	return pengumuman.Pengumuman{DokumenPengumuman: "dokumen-lama.pdf"}, nil
 }
 
 func (f *fakeDeletePengumumanRepo) CreatePengumuman(context.Context, pengumuman.Pengumuman) error {
@@ -52,53 +66,108 @@ func (f *fakeDeletePengumumanRepo) DeletePengumuman(ctx context.Context, idPengu
 	return nil
 }
 
+func (f *fakeDeleteFileRepo) DeleteFile(ctx context.Context, filePath string) error {
+	f.deleteCalled = true
+	f.gotPath = filePath
+	if f.deleteFn != nil {
+		return f.deleteFn(ctx, filePath)
+	}
+	return nil
+}
+
 func TestDeletePengumumanService(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
 	repoErr := errors.New("repo error")
+	deleteFileErr := errors.New("delete file error")
 
 	tests := []struct {
-		name           string
-		idPengumuman   pengumuman.ID
-		repo           *fakeDeletePengumumanRepo
-		expectErr      error
-		wantRepoCalled bool
+		name                 string
+		idPengumuman         pengumuman.ID
+		repo                 *fakeDeletePengumumanRepo
+		deleteFile           *fakeDeleteFileRepo
+		expectErr            error
+		wantGetByIDCalled    bool
+		wantDeleteFileCalled bool
+		wantDeleteRepoCalled bool
 	}{
 		{
-			name:           "branch 1 -> id pengumuman tidak valid",
-			idPengumuman:   0,
-			repo:           &fakeDeletePengumumanRepo{},
-			expectErr:      coreerror.ErrMissingId,
-			wantRepoCalled: false,
+			name:                 "branch 1 -> id pengumuman tidak valid",
+			idPengumuman:         0,
+			repo:                 &fakeDeletePengumumanRepo{},
+			deleteFile:           &fakeDeleteFileRepo{},
+			expectErr:            coreerror.ErrMissingId,
+			wantGetByIDCalled:    false,
+			wantDeleteFileCalled: false,
+			wantDeleteRepoCalled: false,
 		},
 		{
-			name:           "branch 2 -> delete restricted",
-			idPengumuman:   10,
-			repo:           &fakeDeletePengumumanRepo{deleteFn: func(context.Context, pengumuman.ID) error { return coreerror.ErrDeleteRestricted }},
-			expectErr:      coreerror.ErrDeleteRestricted,
-			wantRepoCalled: true,
+			name:         "branch 2 -> get by id gagal",
+			idPengumuman: 10,
+			repo: &fakeDeletePengumumanRepo{
+				getByIDFn: func(context.Context, pengumuman.ID) (pengumuman.Pengumuman, error) {
+					return pengumuman.Pengumuman{}, repoErr
+				},
+			},
+			deleteFile:           &fakeDeleteFileRepo{},
+			expectErr:            repoErr,
+			wantGetByIDCalled:    true,
+			wantDeleteFileCalled: false,
+			wantDeleteRepoCalled: false,
 		},
 		{
-			name:           "branch 3 -> repo error lain",
-			idPengumuman:   10,
-			repo:           &fakeDeletePengumumanRepo{deleteFn: func(context.Context, pengumuman.ID) error { return repoErr }},
-			expectErr:      repoErr,
-			wantRepoCalled: true,
+			name:         "branch 3 -> delete file gagal",
+			idPengumuman: 10,
+			repo:         &fakeDeletePengumumanRepo{},
+			deleteFile: &fakeDeleteFileRepo{
+				deleteFn: func(context.Context, string) error { return deleteFileErr },
+			},
+			expectErr:            deleteFileErr,
+			wantGetByIDCalled:    true,
+			wantDeleteFileCalled: true,
+			wantDeleteRepoCalled: false,
 		},
 		{
-			name:           "happy path -> delete pengumuman berhasil",
-			idPengumuman:   11,
-			repo:           &fakeDeletePengumumanRepo{},
-			expectErr:      nil,
-			wantRepoCalled: true,
+			name:         "branch 4 -> delete restricted",
+			idPengumuman: 10,
+			repo: &fakeDeletePengumumanRepo{
+				deleteFn: func(context.Context, pengumuman.ID) error { return coreerror.ErrDeleteRestricted },
+			},
+			deleteFile:           &fakeDeleteFileRepo{},
+			expectErr:            coreerror.ErrDeleteRestricted,
+			wantGetByIDCalled:    true,
+			wantDeleteFileCalled: true,
+			wantDeleteRepoCalled: true,
+		},
+		{
+			name:         "branch 5 -> repo error lain",
+			idPengumuman: 10,
+			repo: &fakeDeletePengumumanRepo{
+				deleteFn: func(context.Context, pengumuman.ID) error { return repoErr },
+			},
+			deleteFile:           &fakeDeleteFileRepo{},
+			expectErr:            repoErr,
+			wantGetByIDCalled:    true,
+			wantDeleteFileCalled: true,
+			wantDeleteRepoCalled: true,
+		},
+		{
+			name:                 "happy path -> delete pengumuman berhasil",
+			idPengumuman:         11,
+			repo:                 &fakeDeletePengumumanRepo{},
+			deleteFile:           &fakeDeleteFileRepo{},
+			expectErr:            nil,
+			wantGetByIDCalled:    true,
+			wantDeleteFileCalled: true,
+			wantDeleteRepoCalled: true,
 		},
 	}
 
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			svc := pengumuman_service.NewDeletePengumumanService(tt.repo)
+			svc := pengumuman_service.NewDeletePengumumanService(tt.repo, tt.deleteFile)
 			err := svc.DeletePengumumanService(ctx, tt.idPengumuman)
 
 			if tt.expectErr != nil {
@@ -107,8 +176,18 @@ func TestDeletePengumumanService(t *testing.T) {
 				assert.NoError(t, err)
 			}
 
-			assert.Equal(t, tt.wantRepoCalled, tt.repo.deleteCalled)
-			if tt.wantRepoCalled {
+			assert.Equal(t, tt.wantGetByIDCalled, tt.repo.getByIDCalled)
+			if tt.wantGetByIDCalled {
+				assert.Equal(t, tt.idPengumuman, tt.repo.gotGetByID)
+			}
+
+			assert.Equal(t, tt.wantDeleteFileCalled, tt.deleteFile.deleteCalled)
+			if tt.wantDeleteFileCalled {
+				assert.Equal(t, "dokumen-lama.pdf", tt.deleteFile.gotPath)
+			}
+
+			assert.Equal(t, tt.wantDeleteRepoCalled, tt.repo.deleteCalled)
+			if tt.wantDeleteRepoCalled {
 				assert.Equal(t, tt.idPengumuman, tt.repo.gotID)
 			}
 		})

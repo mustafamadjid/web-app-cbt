@@ -9,12 +9,17 @@ import (
 
 type FakeDeleteUserRepo struct {
 	DeleteErr error
+	FindErr   error
 
 	DeleteCalled bool
 	LastID       user.ID
 
 	DeleteUsersCalled bool
 	LastIDs           []user.ID
+
+	FindCalled bool
+	LastFindID user.ID
+	FindResult user.Pengguna
 }
 
 func (r *FakeDeleteUserRepo) DeleteUser(ctx context.Context, id user.ID) error {
@@ -36,7 +41,15 @@ func (r *FakeDeleteUserRepo) DeleteUsers(ctx context.Context, ids []user.ID) (in
 }
 
 func (r *FakeDeleteUserRepo) FindUserByID(ctx context.Context, id user.ID) (user.Pengguna, error) {
-	panic("not used in this test")
+	r.FindCalled = true
+	r.LastFindID = id
+	if r.FindErr != nil {
+		return user.Pengguna{}, r.FindErr
+	}
+	if r.FindResult.ID == 0 {
+		r.FindResult = user.Pengguna{ID: id, Foto: "foto-lama.png"}
+	}
+	return r.FindResult, nil
 }
 
 func (r *FakeDeleteUserRepo) UserExistByUsername(ctx context.Context, username string) (bool, error) {

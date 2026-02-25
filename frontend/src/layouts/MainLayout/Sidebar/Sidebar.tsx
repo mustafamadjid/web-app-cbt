@@ -306,7 +306,7 @@ const filteredFooterMenuItems = useMemo(
               onClick={handleLogout}
               className={[
                 "mt-4 flex w-full items-center gap-3 rounded-base px-3 py-2 text-sm font-semibold text-white",
-                "bg-white/10 hover:bg-white/20 transition-colors",
+                " hover:bg-white/20 transition-colors cursor-pointer",
                 "focus:outline-none focus:ring-4 focus:ring-white/20",
               ].join(" ")}
             >

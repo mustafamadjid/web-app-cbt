@@ -39,7 +39,7 @@ const LoginInputField = ({
         }
         className="
           peer w-full
-          border-gray-100  rounded-xl
+          border-gray-300  rounded-xl
           text-[1rem] bg-white
           p-2 pt-4
           transition-[border-color] duration-150 ease-in-out

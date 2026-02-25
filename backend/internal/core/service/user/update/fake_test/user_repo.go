@@ -11,10 +11,15 @@ import (
 
 type FakeUserRepo struct {
 	UpdateErr error
+	FindErr   error
 
 	UpdateCalled bool
 	LastID       user.ID
 	LastPatch    updatepatch.Pengguna
+
+	FindCalled bool
+	LastFindID user.ID
+	FindResult user.Pengguna
 }
 
 func (r *FakeUserRepo) UpdateUser(ctx context.Context, idPengguna user.ID, pengguna updatepatch.Pengguna) error {
@@ -30,7 +35,15 @@ func (r *FakeUserRepo) UpdateUser(ctx context.Context, idPengguna user.ID, pengg
 // ---- methods below are NOT used by this test; keep minimal ----
 
 func (r *FakeUserRepo) FindUserByID(ctx context.Context, id user.ID) (user.Pengguna, error) {
-	panic("not used in this test")
+	r.FindCalled = true
+	r.LastFindID = id
+	if r.FindErr != nil {
+		return user.Pengguna{}, r.FindErr
+	}
+	if r.FindResult.ID == 0 {
+		r.FindResult = user.Pengguna{ID: id, Foto: "foto-lama.png"}
+	}
+	return r.FindResult, nil
 }
 
 func (r *FakeUserRepo) UserExistByUsername(ctx context.Context, username string) (bool, error) {
