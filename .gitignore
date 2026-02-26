@@ -1,0 +1,2 @@
+backend/run.ps1
+backend/internal/db/migrations/migrate.ps1

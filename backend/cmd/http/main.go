@@ -108,8 +108,14 @@ func main() {
 	sesiMod := app.BuildSesiModule(infra)
 	pengumumanMod := app.BuildPengumumanModule(cfg, infra, deleteFileSystem)
 	resetPasswordMod := app.BuildResetPasswordModule(infra, hasher)
+	importSoalMod := app.BuildImportSoalModule(infra, cfg, logger)
 
-	httpMod := app.BuildHTTPModule(cfg, authMod, userMod, profilSekolahMod, aktivitasUserMod, kelasMod, mapelMod, ruangUjianMod, sesiMod, pengumumanMod, resetPasswordMod, tokens, infra, logger)
+	httpMod := app.BuildHTTPModule(cfg, authMod, userMod, profilSekolahMod, aktivitasUserMod, kelasMod, mapelMod, ruangUjianMod, sesiMod, pengumumanMod, resetPasswordMod, importSoalMod, tokens, infra, logger)
+
+	// Start background import soal worker
+	workerCtx, workerCancel := context.WithCancel(ctx)
+	defer workerCancel()
+	go importSoalMod.Worker.Start(workerCtx)
 
 	log.Println("Listening on", cfg.HTTP.Addr)
 	if err := httpMod.Server.ListenAndServe(); err != nil && err != http.ErrServerClosed {

@@ -1,6 +1,8 @@
 import React from "react";
+import { useNavigate } from "react-router";
 
 import SvgIcons from "@/assets/SvgIcons/svgIcons";
+import { paths } from "@/routes/paths";
 
 import type { BankSoalItem } from "@/types/BankSoal/BankSoal";
 
@@ -49,6 +51,8 @@ const BoxBankSoal: React.FC<BoxBankSoalProps> = ({
   onHapus,
   className = "",
 }) => {
+  const navigate = useNavigate();
+
   return (
     <div
       className={[
@@ -115,20 +119,30 @@ const BoxBankSoal: React.FC<BoxBankSoalProps> = ({
         {/* Divider & Actions */}
         <div className="mt-auto border-t border-gray-100 pt-4">
           <div className="flex items-center justify-between gap-3">
-            {/* Primary Button: Preview */}
-            <button
-              type="button"
-              onClick={onPreview}
-              disabled={!onPreview}
-              className={[
-                "inline-flex cursor-pointer items-center gap-2 rounded-full px-5 py-2 text-sm font-bold text-white shadow-md transition-all",
-                "bg-[#397e50] hover:bg-[#2f5c3f] hover:shadow-lg active:scale-95",
-                "disabled:cursor-not-allowed disabled:opacity-50",
-              ].join(" ")}
-            >
-              {SvgIcons.eye("h-4 w-4")}
-              Preview
-            </button>
+            <div className="flex items-center gap-2">
+              {/* Primary Button: Preview */}
+              <button
+                type="button"
+                onClick={onPreview}
+                disabled={!onPreview}
+                className={[
+                  "inline-flex cursor-pointer items-center gap-2 rounded-full px-5 py-2 text-sm font-bold text-white shadow-md transition-all",
+                  "bg-[#397e50] hover:bg-[#2f5c3f] hover:shadow-lg active:scale-95",
+                  "disabled:cursor-not-allowed disabled:opacity-50",
+                ].join(" ")}
+              >
+                {SvgIcons.eye("h-4 w-4")}
+                Preview
+              </button>
+
+              <button
+                type="button"
+                onClick={() => navigate(paths.dashboard.tambah_bank_soal)}
+                className="inline-flex cursor-pointer items-center rounded-full border border-[#397e50]/30 px-4 py-2 text-sm font-semibold text-[#397e50] transition-colors hover:bg-[#397e50]/10"
+              >
+                Upload bank soal
+              </button>
+            </div>
 
             {/* Icon Buttons Group */}
             <div className="flex items-center gap-1">

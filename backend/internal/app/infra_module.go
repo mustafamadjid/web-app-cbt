@@ -7,6 +7,7 @@ import (
 	out "github.com/mustafamadjid/web-app-cbt/internal/core/port/out"
 	outaktivitas "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/aktivitas_user"
 	outauth "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/auth_port_out"
+	importsoal_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/import_soal"
 	kelas_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/kelas"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 	mapel_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/mata_pelajaran"
@@ -40,6 +41,9 @@ type InfraModule struct {
 	pengumumanRepo pengumuman_repo.PengumumanRepo
 	ruangUjianRepo ruangujian_repo.RuangUjianRepo
 	sesiRepo       sesi_repo.SesiRepository
+
+	importSoalJobRepo importsoal_repo.ImportSoalJobRepo
+	isiSoalBatchRepo  importsoal_repo.IsiSoalBatchRepo
 }
 
 func BuildInfraModule(pool *pgxpool.Pool, logger corelog.Logger) *InfraModule {
@@ -66,5 +70,7 @@ func BuildInfraModule(pool *pgxpool.Pool, logger corelog.Logger) *InfraModule {
 		pengumumanRepo:        pg.NewPengumumanRepo(pool, logger),
 		ruangUjianRepo:        pg.NewRuangUjianRepo(pool, logger),
 		sesiRepo:              pg.NewSesirepo(pool, logger),
+		importSoalJobRepo:     pg.NewImportSoalJobRepo(pool, logger),
+		isiSoalBatchRepo:      pg.NewIsiSoalBatchRepo(pool, logger),
 	}
 }

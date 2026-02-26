@@ -1,0 +1,23 @@
+Trajectory ID: 5ca8c0a7-20d1-4490-8b43-2f0e334070a7
+Error: HTTP 503 Service Unavailable
+Sherlog: 
+TraceID: 0x7ea866b24bafd7ac
+Headers: {"Alt-Svc":["h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000"],"Content-Length":["429"],"Content-Type":["text/event-stream"],"Date":["Thu, 26 Feb 2026 07:30:26 GMT"],"Server":["ESF"],"Server-Timing":["gfet4t7; dur=1173"],"Vary":["Origin","X-Origin","Referer"],"X-Cloudaicompanion-Trace-Id":["7ea866b24bafd7ac"],"X-Content-Type-Options":["nosniff"],"X-Frame-Options":["SAMEORIGIN"],"X-Xss-Protection":["0"]}
+
+{
+  "error": {
+    "code": 503,
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+        "domain": "cloudcode-pa.googleapis.com",
+        "metadata": {
+          "model": "claude-opus-4-6-thinking"
+        },
+        "reason": "MODEL_CAPACITY_EXHAUSTED"
+      }
+    ],
+    "message": "No capacity available for model claude-opus-4-6-thinking on the server",
+    "status": "UNAVAILABLE"
+  }
+}

@@ -44,6 +44,7 @@ export const paths = {
     edit_data_master_sesi: djoinAdmin(join("data-master", "/sesi/:id/edit")),
 
     bank_soal: djoinAdmin("bank-soal"),
+    buat_bank_soal: djoinAdmin(join("bank-soal", "/buat")),
     tambah_bank_soal: djoinAdmin(join("bank-soal", "/tambah")),
     preview_bank_soal: djoinAdmin(join("bank-soal", "/:id")),
 
