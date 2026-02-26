@@ -1,10 +1,12 @@
-import type { BankSoalItem } from "@/types/BankSoal/BankSoal";
+import { buildJsonData } from "@/helper/FormData/BuildJsonData";
+import type {
+  BankSoalItem,
+  CreateBankSoalPayload,
+} from "@/types/BankSoal/BankSoal";
 import { getTingkatKelasById } from "@/services/Api/features-api/DataMaster/kelas.service";
-import { api, type ApiEnvelope } from "../../api";
+import { api } from "../../api";
 
-// Catatan: BankSoalItem kamu saat ini punya `kelas: number` + `mata_pelajaran: string`.
-// Untuk filter mapel-by-id yang rapi, idealnya ada `mapelId` di item.
-// Sementara: kita simpan `__mapelId` sebagai field tambahan lokal (tidak wajib disimpan ke DB).
+
 type BankSoalItemLocal = BankSoalItem & {
   __kelasId: number;
   __mapelId: number;
@@ -107,6 +109,21 @@ type BankSoalFilterParams = {
   idGuru?: number;
 };
 
+const toBankSoalItem = (item: BankSoalItemLocal): BankSoalItem => ({
+  id: item.id,
+  id_guru: item.id_guru,
+  guru: item.guru,
+  nama_banksoal: item.nama_banksoal,
+  mata_pelajaran: item.mata_pelajaran,
+  materi: item.materi,
+  kelas: item.kelas,
+  deskripsi: item.deskripsi,
+  tgl_buat: item.tgl_buat,
+  jumlah_soal_pg: item.jumlah_soal_pg,
+  jumlah_soal_essay: item.jumlah_soal_essay,
+  total_soal: item.total_soal,
+});
+
 function filterBankSoal(params: BankSoalFilterParams) {
   const { tingkatKelasId, kelasId, mapelId, q, idGuru } = params;
   const tingkatKelas = getTingkatKelasById(tingkatKelasId);
@@ -158,11 +175,7 @@ export async function getBankSoalByKelas(params: {
   q?: string;
 }): Promise<BankSoalItem[]> {
   const result = filterBankSoal(params);
-
-  // balikin tanpa field internal
-  const stripped: BankSoalItem[] = result.map(
-    ({ __kelasId, __mapelId, ...rest }) => rest,
-  );
+  const stripped: BankSoalItem[] = result.map(toBankSoalItem);
 
   return new Promise((resolve) => setTimeout(() => resolve(stripped), 350));
 }
@@ -183,10 +196,7 @@ export async function getBankSoalByGuru(params: {
       ...params,
       idGuru: params.idGuru,
     });
-
-    const stripped: BankSoalItem[] = result.map(
-      ({ __kelasId, __mapelId, ...rest }) => rest,
-    );
+    const stripped: BankSoalItem[] = result.map(toBankSoalItem);
 
     return new Promise((resolve) => setTimeout(() => resolve(stripped), 350));
   }
@@ -198,8 +208,45 @@ export async function getBankSoalByGuru(params: {
     q: params.q ?? undefined,
   };
 
-  const res = await api<ApiEnvelope<BankSoalItem[]>>(`/guru/${params.idGuru}/bank-soal`, {
+  const res = await api<BankSoalItem[]>(`/guru/${params.idGuru}/bank-soal`, {
     params: queryParams,
   });
-  return res.data;
+  return res;
+}
+
+export async function createBankSoal(
+  values: CreateBankSoalPayload,
+): Promise<BankSoalItem> {
+  if (USE_DUMMY) {
+    const nextId =
+      DUMMY_BANKSOAL.reduce((maxId, item) => Math.max(maxId, item.id), 0) + 1;
+
+    const item: BankSoalItemLocal = {
+      id: nextId,
+      id_guru: values.id_guru ?? 0,
+      __kelasId: values.kelas,
+      __mapelId: values.mapel_id,
+      nama_banksoal: values.nama_banksoal,
+      kelas: values.kelas,
+      mata_pelajaran: values.mata_pelajaran,
+      materi: values.materi ?? "-",
+      deskripsi: values.deskripsi,
+      tgl_buat: new Date().toISOString(),
+      jumlah_soal_pg: 0,
+      jumlah_soal_essay: 0,
+    };
+
+    DUMMY_BANKSOAL.unshift(item);
+    return new Promise((resolve) =>
+      setTimeout(() => resolve(toBankSoalItem(item)), 250),
+    );
+  }
+
+  const data = buildJsonData(values);
+  const res = await api<BankSoalItem>("/admin/bank-soal", {
+    method: "POST",
+    data,
+  });
+
+  return res;
 }

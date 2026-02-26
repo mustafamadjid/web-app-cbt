@@ -34,6 +34,7 @@ import EditSesi from "@/pages/Admin/Dashboard/DataMaster/EditDataMaster/EditSesi
 
 import BankSoal from "@/pages/Admin/Dashboard/BankSoal/BankSoal";
 import TambahBankSoal from "@/pages/Admin/Dashboard/BankSoal/TambahBankSoal";
+import BuatBankSoal from "@/pages/Admin/Dashboard/BankSoal/BuatBankSoal";
 import DetailBankSoal from "@/pages/Admin/Dashboard/BankSoal/DetailBankSoal";
 
 import BuatUjian from "@/pages/Admin/Dashboard/Ujian/BuatUjian";
@@ -175,6 +176,10 @@ export const router = createBrowserRouter([
           {
             path: paths.dashboard.tambah_bank_soal,
             element: <TambahBankSoal />,
+          },
+          {
+            path: paths.dashboard.buat_bank_soal,
+            element: <BuatBankSoal />,
           },
           {
             path: paths.dashboard.tambah_pengumuman_admin,

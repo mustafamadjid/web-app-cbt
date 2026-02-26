@@ -23,7 +23,7 @@ type HTTPModule struct {
 	Server  *http.Server
 }
 
-func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSekolah *ProfilSekolahModule, aktivitasUser *AktivitasUserModule, kelas *KelasModule, mapel *MataPelajaranModule, ruangUjian *RuangUjianModule, sesi *SesiModule, pengumuman *PengumumanModule, resetPassword *ResetPasswordModule, tokens *TokenModule, infra *InfraModule, logger corelog.Logger) *HTTPModule {
+func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSekolah *ProfilSekolahModule, aktivitasUser *AktivitasUserModule, kelas *KelasModule, mapel *MataPelajaranModule, ruangUjian *RuangUjianModule, sesi *SesiModule, pengumuman *PengumumanModule, resetPassword *ResetPasswordModule, importSoal *ImportSoalModule, tokens *TokenModule, infra *InfraModule, logger corelog.Logger) *HTTPModule {
 	cookies := cookie.CookieConfig{
 		AccessName:  cfg.Cookie.AccessName,
 		RefreshName: cfg.Cookie.RefreshName,
@@ -169,6 +169,11 @@ func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSeko
 	router.POST("/pengumuman", requireAdminGuru(rateLimitStandard(pengumuman.CreateHandler.CreatePengumuman)))
 	router.PATCH("/pengumuman/:idPengumuman", requireAdminGuru(rateLimitStandard(pengumuman.UpdateHandler.UpdatePengumuman)))
 	router.DELETE("/pengumuman/:idPengumuman", requireAdminGuru(rateLimitStandard(pengumuman.DeleteHandler.DeletePengumuman)))
+
+	// IMPORT SOAL
+	router.POST("/admin/bank-soal/import/:idBankSoal", requireAdminGuru(rateLimitStandard(importSoal.ImportHandler.ImportSoal)))
+	router.GET("/admin/bank-soal/import-job/:idJob", requireAdminGuru(rateLimitStandard(importSoal.GetJobHandler.GetJobByID)))
+	router.GET("/admin/bank-soal/import-jobs/:idBankSoal", requireAdminGuru(rateLimitStandard(importSoal.GetJobHandler.GetJobsByBankSoal)))
 
 	// Siswa
 

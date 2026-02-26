@@ -47,4 +47,9 @@ var (
 	ErrMustBePointer = errors.New("must be pointer")
 
 	ErrPathTraversal = errors.New("path traversal")
+
+	ErrImportJobNotFound  = errors.New("import job not found")
+	ErrInvalidDocxFormat  = errors.New("invalid docx format")
+	ErrParsingFailed      = errors.New("parsing failed")
+	ErrBankSoalNotFound   = errors.New("bank soal not found")
 )

@@ -211,7 +211,7 @@ const BankSoal = () => {
           </div>
           <AddButton
             label="Buat Bank Soal"
-            onClick={() => navigate(`${paths.dashboard.tambah_bank_soal}`)}
+            onClick={() => navigate(paths.dashboard.buat_bank_soal)}
           />
         </div>
 
