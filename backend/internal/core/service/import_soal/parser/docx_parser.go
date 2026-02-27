@@ -89,8 +89,7 @@ func ExtractParagraphs(data []byte) ([]string, error) {
 	return paragraphs, nil
 }
 
-// ExtractImageFiles returns a map of image filename -> image bytes from the
-// DOCX ZIP archive (word/media/*).
+
 func ExtractImageFiles(data []byte) (map[string][]byte, error) {
 	zr, err := zip.NewReader(bytes.NewReader(data), int64(len(data)))
 	if err != nil {
@@ -153,6 +152,7 @@ func ParseMarkers(paragraphs []string) ([]importsoal.ParsedSoal, error) {
 				Pertanyaan: teks,
 				TipeSoal:   "pilihan_ganda",
 				BobotSoal:  1,
+				NoUrutSoal: i,
 			}
 
 		case strings.HasPrefix(upper, "[Q:ESSAY]"):
@@ -162,6 +162,7 @@ func ParseMarkers(paragraphs []string) ([]importsoal.ParsedSoal, error) {
 				Pertanyaan: teks,
 				TipeSoal:   "essay",
 				BobotSoal:  1,
+				NoUrutSoal: i,
 			}
 
 		case isOptionMarker(upper):

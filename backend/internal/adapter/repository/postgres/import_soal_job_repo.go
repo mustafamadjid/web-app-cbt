@@ -174,8 +174,8 @@ func (r *IsiSoalBatchRepo) InsertSoalBatch(ctx context.Context, bankSoalID int64
 	for i, soal := range soalList {
 		// Insert isi_soal
 		insertSoal := `
-			INSERT INTO isi_soal (id_bank_soal, tipe_soal, pertanyaan, gambar, bobot_soal)
-			VALUES ($1, $2, $3, $4, $5)
+			INSERT INTO isi_soal (id_bank_soal, tipe_soal, pertanyaan, gambar, bobot_soal,no_urut_soal)
+			VALUES ($1, $2, $3, $4, $5, $6)
 			RETURNING id_soal
 		`
 
@@ -185,7 +185,7 @@ func (r *IsiSoalBatchRepo) InsertSoalBatch(ctx context.Context, bankSoalID int64
 		}
 
 		var idSoal int64
-		err := r.q.QueryRow(ctx, insertSoal, bankSoalID, soal.TipeSoal, soal.Pertanyaan, gambar, soal.BobotSoal).Scan(&idSoal)
+		err := r.q.QueryRow(ctx, insertSoal, bankSoalID, soal.TipeSoal, soal.Pertanyaan, gambar, soal.BobotSoal,soal.NoUrutSoal).Scan(&idSoal)
 		if err != nil {
 			r.loggerFor(ctx).Error(ctx, "failed inserting soal", "layer", "repo.db", "op", "isi_soal_batch.insert", "soal_index", i, "err", err)
 			return fmt.Errorf("insert soal ke-%d: %w", i+1, err)

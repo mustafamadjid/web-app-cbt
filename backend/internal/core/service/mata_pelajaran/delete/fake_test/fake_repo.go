@@ -9,14 +9,10 @@ import (
 )
 
 type FakeMapelRepo struct {
-	ExistKodeMapelRet bool
-	ExistKodeMapelErr error
-	CreateMapelErr    error
+	DeleteMapelErr error
 
-	ExistKodeMapelCalled bool
-	CreateMapelCalled    bool
-	GotKodeMapel         string
-	GotCreateMapel       matapelajaran.MataPelajaran
+	DeleteMapelCalled bool
+	GotDeleteId       int
 }
 
 func (f *FakeMapelRepo) GetMapel(_ context.Context, _ query.ListMapelFilter) ([]matapelajaran.MataPelajaran, error) {
@@ -27,22 +23,20 @@ func (f *FakeMapelRepo) GetMapelById(_ context.Context, _ int) (matapelajaran.Ma
 	panic("not used in this test")
 }
 
-func (f *FakeMapelRepo) CreateMapel(_ context.Context, mapel matapelajaran.MataPelajaran) error {
-	f.CreateMapelCalled = true
-	f.GotCreateMapel = mapel
-	return f.CreateMapelErr
+func (f *FakeMapelRepo) CreateMapel(_ context.Context, _ matapelajaran.MataPelajaran) error {
+	panic("not used in this test")
 }
 
 func (f *FakeMapelRepo) UpdateMapel(_ context.Context, _ int, _ updatepatch.UpdateMapelPatch) error {
 	panic("not used in this test")
 }
 
-func (f *FakeMapelRepo) DeleteMapel(_ context.Context, _ int) error {
-	panic("not used in this test")
+func (f *FakeMapelRepo) DeleteMapel(_ context.Context, idMapel int) error {
+	f.DeleteMapelCalled = true
+	f.GotDeleteId = idMapel
+	return f.DeleteMapelErr
 }
 
-func (f *FakeMapelRepo) ExistKodeMapel(_ context.Context, kodeMapel string) (bool, error) {
-	f.ExistKodeMapelCalled = true
-	f.GotKodeMapel = kodeMapel
-	return f.ExistKodeMapelRet, f.ExistKodeMapelErr
+func (f *FakeMapelRepo) ExistKodeMapel(_ context.Context, _ string) (bool, error) {
+	panic("not used in this test")
 }
