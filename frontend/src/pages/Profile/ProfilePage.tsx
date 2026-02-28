@@ -1,13 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { User } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { resolveImageUrl } from "@/helper/MediaUrl/resolveMediaUrl";
 import {
-  getProfileByUserId,
-  type ProfileData,
+  useGetProfileByUserId,
 } from "@/services/Api/features-api/Profile/profile.service";
 
-type LoadState = "loading" | "success" | "error";
+
 
 type ProfileField = {
   label: string;
@@ -38,37 +37,13 @@ const getInitials = (name?: string) => {
 
 const ProfilePage = () => {
   const { user } = useAuth();
-  const [profile, setProfile] = useState<ProfileData | null>(null);
-  const [state, setState] = useState<LoadState>("loading");
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!user?.id_pengguna) {
-      setState("error");
-      setErrorMessage("Data profil belum tersedia.");
-      return;
-    }
+  // Hook: fetch profile by user ID
+  const { data: profile, loading, error: errorMessage } = useGetProfileByUserId(
+    user?.id_pengguna ?? 0,
+  );
 
-    let isActive = true;
-    setState("loading");
-    void getProfileByUserId(user.id_pengguna)
-      .then((data) => {
-        if (!isActive) return;
-        setProfile(data);
-        setState("success");
-        setErrorMessage(null);
-      })
-      .catch((error: Error) => {
-        if (!isActive) return;
-        setProfile(null);
-        setState("error");
-        setErrorMessage(error.message || "Gagal memuat profil.");
-      });
-
-    return () => {
-      isActive = false;
-    };
-  }, [user?.id_pengguna]);
+  const state = loading ? "loading" : errorMessage ? "error" : "success";
 
   const displayName = profile?.nama_lengkap ?? "-";
   const displayRole = profile?.role ? roleLabels[profile.role] ?? profile.role : "-";

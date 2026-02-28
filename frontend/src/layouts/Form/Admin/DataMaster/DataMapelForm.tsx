@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import InputField from "@/components/common/Input/InputField";
 
 import type { MataPelajaranFormValues } from "@/types/DataMaster/MataPelajaran";
 import type { TingkatKelas } from "@/types/DataMaster/Kelas";
-import { GetDataKelasFull } from "@/services/Api/features-api/DataMaster/kelas.service";
+import { useGetDataKelasFull } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { createMataPelajaran } from "@/services/Api/features-api/DataMaster/mapel.service";
 import { ApiError } from "@/services/Api/api";
 
@@ -32,23 +32,11 @@ const DataMapelForm = () => {
   const [values, setValues] = useState<MataPelajaranFormValues>(initialValues);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [kelasOptions, setKelasOptions] = useState<TingkatKelas[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
   const navigate = useNavigate();
-
-  useEffect(() => {
-    let active = true;
-    const loadKelas = async () => {
-      const data = await GetDataKelasFull();
-      if (!active) return;
-      setKelasOptions(data.item_tingkat_kelas);
-    };
-    loadKelas();
-    return () => {
-      active = false;
-    };
-  }, []);
+  const { data: kelasData } = useGetDataKelasFull();
+  const kelasOptions: TingkatKelas[] = kelasData?.item_tingkat_kelas ?? [];
 
   const setField = createSetField(setValues);
 

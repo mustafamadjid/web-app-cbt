@@ -29,6 +29,31 @@ var allowedSortGuru = map[string]struct{}{
 }
 
 func (s *GetGuruService) ListGuru(ctx context.Context, filter query.ListGuruFilter) ([]query.GuruListItem, error) {
+	filter = sanitizeListGuruFilter(filter)
+
+	var err error
+	filter, err = validateListGuruFilter(filter)
+	if err != nil {
+		return nil, err
+	}
+
+	items, err := s.guruSvc.GetListGuru(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+
+	return items, nil
+}
+
+func (s *GetGuruService) FindProfilGuruByID(ctx context.Context, id user.ID) (user.DataGuru, error) {
+	return s.profilGuruSv.FindProfilGuruByID(ctx, id)
+}
+
+// -----------------------
+// Sanitizer and validator
+// -----------------------
+
+func sanitizeListGuruFilter(filter query.ListGuruFilter) query.ListGuruFilter {
 	filter.Search = strings.TrimSpace(filter.Search)
 
 	if filter.Limit <= 0 {
@@ -47,35 +72,29 @@ func (s *GetGuruService) ListGuru(ctx context.Context, filter query.ListGuruFilt
 		filter.SortBy = "created_at"
 	}
 
+	if filter.Bidang != nil {
+		trimmedBidang := strings.TrimSpace(*filter.Bidang)
+		filter.Bidang = &trimmedBidang
+	}
+
+	return filter
+}
+
+func validateListGuruFilter(filter query.ListGuruFilter) (query.ListGuruFilter, error) {
 	if _, ok := allowedSortGuru[filter.SortBy]; !ok {
-		return nil, coreerror.ErrInvalidInput
+		return filter, coreerror.ErrInvalidInput
 	}
 
 	if filter.Status == nil {
-		s := user.AKTIF
-		filter.Status = &s
-	} else {
-		if *filter.Status != user.AKTIF && *filter.Status != user.NONAKTIF {
-			return nil, coreerror.ErrInvalidInput
-		}
+		defaultStatus := user.AKTIF
+		filter.Status = &defaultStatus
+	} else if *filter.Status != user.AKTIF && *filter.Status != user.NONAKTIF {
+		return filter, coreerror.ErrInvalidInput
 	}
 
-	if filter.Bidang != nil {
-		trimmed := strings.TrimSpace(*filter.Bidang)
-		if trimmed == "" {
-			return nil, coreerror.ErrInvalidInput
-		}
-		filter.Bidang = &trimmed
+	if filter.Bidang != nil && *filter.Bidang == "" {
+		return filter, coreerror.ErrInvalidInput
 	}
 
-	items, err := s.guruSvc.GetListGuru(ctx, filter)
-	if err != nil {
-		return nil, err
-	}
-
-	return items, nil
-}
-
-func (s *GetGuruService) FindProfilGuruByID(ctx context.Context, id user.ID) (user.DataGuru, error) {
-	return s.profilGuruSv.FindProfilGuruByID(ctx, id)
+	return filter, nil
 }

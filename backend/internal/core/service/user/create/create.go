@@ -2,9 +2,9 @@ package user_service
 
 import (
 	"context"
-	"strings"
-	"github.com/mustafamadjid/web-app-cbt/internal/core/port/out"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
+	"github.com/mustafamadjid/web-app-cbt/internal/core/port/out"
+	"strings"
 
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
@@ -26,40 +26,27 @@ func NewCreateSiswaService(txm txout.TxManager, hasher out.PasswordHasher) *Crea
 
 func (uc *CreateTx) CreateGuru(ctx context.Context, cmd CreateGuruCmd, actor user.Actor) (CreateGuruRes, error) {
 	logger := corelog.FromContext(ctx)
-	// Cek role
-	if actor.Role != user.ADMIN {
-		return CreateGuruRes{}, coreerror.ErrForbidden
+
+	if err := validateCreateGuruActor(actor); err != nil {
+		return CreateGuruRes{}, err
 	}
 
-	// Normalisasi
-	cmd.Username = strings.TrimSpace(cmd.Username)
-	cmd.Email = strings.TrimSpace(cmd.Email)
-	cmd.Password = strings.TrimSpace(cmd.Password)
-	cmd.NamaLengkap = strings.TrimSpace(cmd.NamaLengkap)
-	cmd.JenisKelamin = strings.TrimSpace(cmd.JenisKelamin)
-	cmd.NoHp = strings.TrimSpace(cmd.NoHp)
-	cmd.Nip = strings.TrimSpace(cmd.Nip)
-	cmd.Foto = strings.TrimSpace(cmd.Foto)
-	cmd.Jabatan = strings.TrimSpace(cmd.Jabatan)
-	cmd.BidangStudi = strings.TrimSpace(cmd.BidangStudi)
-
-
+	cmd = sanitizeCreateGuruCmd(cmd)
 
 	isDashedNip := cmd.Nip == "-"
 
 	nipToStore := user.NIP(cmd.Nip)
 
 	var nipValidated user.NIP
-	
+
 	if !isDashedNip {
 		v, error := user.CheckNewNip(cmd.Nip)
-	if error != nil {
-		return CreateGuruRes{}, error
+		if error != nil {
+			return CreateGuruRes{}, error
 		}
 		nipValidated = v
 		nipToStore = v
 	}
-
 
 	// Validasi
 	emailValidated, error := user.CheckNewEmail(cmd.Email)
@@ -68,7 +55,6 @@ func (uc *CreateTx) CreateGuru(ctx context.Context, cmd CreateGuruCmd, actor use
 		return CreateGuruRes{}, error
 	}
 
-	
 	// Hash password
 	hashedPassword, error := uc.hasher.GenerateHash(cmd.Password)
 	if error != nil {
@@ -94,19 +80,17 @@ func (uc *CreateTx) CreateGuru(ctx context.Context, cmd CreateGuruCmd, actor use
 		return CreateGuruRes{}, coreerror.ErrUsernameTaken
 	}
 
-
 	if !isDashedNip {
 		existNip, error := tx.ProfilGuru().ExistByNIP(ctx, nipValidated)
-	if error != nil {
-		logger.Error(ctx, "failed checking nip", "layer", "core.service", "op", "user.create_guru", "err", error)
-		return CreateGuruRes{}, error
+		if error != nil {
+			logger.Error(ctx, "failed checking nip", "layer", "core.service", "op", "user.create_guru", "err", error)
+			return CreateGuruRes{}, error
+		}
+		if existNip {
+			logger.Error(ctx, "failed checking nip", "layer", "core.service", "op", "user.create_guru", "err", coreerror.ErrNipTaken)
+			return CreateGuruRes{}, coreerror.ErrNipTaken
+		}
 	}
-	if existNip {
-		logger.Error(ctx, "failed checking nip", "layer", "core.service", "op", "user.create_guru", "err", coreerror.ErrNipTaken)
-		return CreateGuruRes{}, coreerror.ErrNipTaken
-	}
-	}
-	
 
 	userData := user.Pengguna{
 		Username:       cmd.Username,
@@ -153,19 +137,11 @@ func (uc *CreateTx) CreateGuru(ctx context.Context, cmd CreateGuruCmd, actor use
 
 func (uc *CreateTx) CreateSiswa(ctx context.Context, cmd CreateSiswaCmd, actor user.Actor) (CreateSiswaRes, error) {
 	logger := corelog.FromContext(ctx)
-	if actor.Role != user.ADMIN {
-		return CreateSiswaRes{}, coreerror.ErrForbidden
+	if err := validateCreateSiswaActor(actor); err != nil {
+		return CreateSiswaRes{}, err
 	}
 
-	cmd.Username = strings.TrimSpace(cmd.Username)
-	cmd.Email = strings.TrimSpace(cmd.Email)
-	cmd.Password = strings.TrimSpace(cmd.Password)
-	cmd.NamaLengkap = strings.TrimSpace(cmd.NamaLengkap)
-	cmd.JenisKelamin = strings.TrimSpace(cmd.JenisKelamin)
-	cmd.NoHp = strings.TrimSpace(cmd.NoHp)
-	cmd.Foto = strings.TrimSpace(cmd.Foto)
-	cmd.Nisn = strings.TrimSpace(cmd.Nisn)
-	cmd.TempatLahir = strings.TrimSpace(cmd.TempatLahir)
+	cmd = sanitizeCreateSiswaCmd(cmd)
 
 	isDashedNisn := cmd.Nisn == "-"
 
@@ -174,7 +150,7 @@ func (uc *CreateTx) CreateSiswa(ctx context.Context, cmd CreateSiswaCmd, actor u
 	var nisnValidated user.NISN
 
 	if !isDashedNisn {
-		v,err := user.CheckNewNISN(cmd.Nisn)
+		v, err := user.CheckNewNISN(cmd.Nisn)
 		if err != nil {
 			return CreateSiswaRes{}, err
 		}
@@ -219,15 +195,14 @@ func (uc *CreateTx) CreateSiswa(ctx context.Context, cmd CreateSiswaCmd, actor u
 
 	if !isDashedNisn {
 		existNisn, err := tx.ProfilSiswa().ExistByNISN(ctx, string(nisnValidated))
-	if err != nil {
-		logger.Error(ctx, "failed checking nisn", "layer", "core.service", "op", "user.create_siswa", "err", err)
-		return CreateSiswaRes{}, err
+		if err != nil {
+			logger.Error(ctx, "failed checking nisn", "layer", "core.service", "op", "user.create_siswa", "err", err)
+			return CreateSiswaRes{}, err
+		}
+		if existNisn {
+			return CreateSiswaRes{}, coreerror.ErrNisnTaken
+		}
 	}
-	if existNisn {
-		return CreateSiswaRes{}, coreerror.ErrNisnTaken
-	}
-	}
-	
 
 	userData := user.Pengguna{
 		Username:       cmd.Username,
@@ -248,13 +223,13 @@ func (uc *CreateTx) CreateSiswa(ctx context.Context, cmd CreateSiswaCmd, actor u
 	}
 
 	profilSiswaData := user.ProfilSiswa{
-		IdPengguna:     idPengguna,
-		IdNamaKelas:    cmd.IdNamaKelas,
-		Nisn:           nisnToStore,
-		NoAbsen:        cmd.NoAbsen,
-		Angkatan:       cmd.Angkatan,
-		TempatLahir:    cmd.TempatLahir,
-		TanggalLahir:   cmd.TanggalLahir,
+		IdPengguna:   idPengguna,
+		IdNamaKelas:  cmd.IdNamaKelas,
+		Nisn:         nisnToStore,
+		NoAbsen:      cmd.NoAbsen,
+		Angkatan:     cmd.Angkatan,
+		TempatLahir:  cmd.TempatLahir,
+		TanggalLahir: cmd.TanggalLahir,
 	}
 	// IdTingkatKelas: cmd.IdTingkatKelas,
 
@@ -274,4 +249,49 @@ func (uc *CreateTx) CreateSiswa(ctx context.Context, cmd CreateSiswaCmd, actor u
 		IdPengguna:    idPengguna,
 		IdProfilSiswa: idProfilSiswa,
 	}, nil
+}
+
+// -----------------------
+// Sanitizer and validator
+// -----------------------
+
+func validateCreateGuruActor(actor user.Actor) error {
+	if actor.Role != user.ADMIN {
+		return coreerror.ErrForbidden
+	}
+	return nil
+}
+
+func validateCreateSiswaActor(actor user.Actor) error {
+	if actor.Role != user.ADMIN {
+		return coreerror.ErrForbidden
+	}
+	return nil
+}
+
+func sanitizeCreateGuruCmd(cmd CreateGuruCmd) CreateGuruCmd {
+	cmd.Username = strings.TrimSpace(cmd.Username)
+	cmd.Email = strings.TrimSpace(cmd.Email)
+	cmd.Password = strings.TrimSpace(cmd.Password)
+	cmd.NamaLengkap = strings.TrimSpace(cmd.NamaLengkap)
+	cmd.JenisKelamin = strings.TrimSpace(cmd.JenisKelamin)
+	cmd.NoHp = strings.TrimSpace(cmd.NoHp)
+	cmd.Nip = strings.TrimSpace(cmd.Nip)
+	cmd.Foto = strings.TrimSpace(cmd.Foto)
+	cmd.Jabatan = strings.TrimSpace(cmd.Jabatan)
+	cmd.BidangStudi = strings.TrimSpace(cmd.BidangStudi)
+	return cmd
+}
+
+func sanitizeCreateSiswaCmd(cmd CreateSiswaCmd) CreateSiswaCmd {
+	cmd.Username = strings.TrimSpace(cmd.Username)
+	cmd.Email = strings.TrimSpace(cmd.Email)
+	cmd.Password = strings.TrimSpace(cmd.Password)
+	cmd.NamaLengkap = strings.TrimSpace(cmd.NamaLengkap)
+	cmd.JenisKelamin = strings.TrimSpace(cmd.JenisKelamin)
+	cmd.NoHp = strings.TrimSpace(cmd.NoHp)
+	cmd.Foto = strings.TrimSpace(cmd.Foto)
+	cmd.Nisn = strings.TrimSpace(cmd.Nisn)
+	cmd.TempatLahir = strings.TrimSpace(cmd.TempatLahir)
+	return cmd
 }

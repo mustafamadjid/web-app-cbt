@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import {
   Search,
@@ -18,14 +18,14 @@ import type { TingkatKelas } from "@/types/DataMaster/Kelas";
 import type { MataPelajaranOption } from "@/types/DataMaster/MataPelajaran";
 
 import {
-  getBankSoalByKelas,
-  getBankSoalByGuru,
+  useGetBankSoalByKelas,
+  useGetBankSoalByGuru,
 } from "@/services/Api/features-api/BankSoal/banksoal.service";
 import {
-  getMataPelajaranOptions,
+  useGetMataPelajaranOptions,
 } from "@/services/Api/features-api/GetOptions/options.service";
 
-import { getTingkatKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
+import { useGetTingkatKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { paths } from "@/routes/paths";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -56,125 +56,52 @@ const BankSoal = () => {
   const debouncedSearch = useDebouncedValue(search, 400);
   const [selectedMapelId, setSelectedMapelId] = useState<number | null>(null);
 
-  // ----- Data State -----
-  const [TingkatKelass, setTingkatKelass] = useState<TingkatKelas[]>([]);
-  const [mapelOptions, setMapelOptions] = useState<MataPelajaranOption[]>([]);
-  const [items, setItems] = useState<BankSoalItem[]>([]);
-  const [myItems, setMyItems] = useState<BankSoalItem[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [loadingMyItems, setLoadingMyItems] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string>("");
-  const [myErrorMsg, setMyErrorMsg] = useState<string>("");
+  const { data: tingkatKelasData } = useGetTingkatKelas();
+  const TingkatKelass: TingkatKelas[] = tingkatKelasData ?? [];
 
-  const requestSeq = useRef(0);
-  const requestMySeq = useRef(0);
+  const { data: mapelOptionsData = [] } = useGetMataPelajaranOptions({
+    source: "bankSoal",
+    tingkatKelasId:
+      viewMode === "BY_KELAS" ? (selectedTingkatId ?? undefined) : undefined,
+  });
+  const mapelOptions: MataPelajaranOption[] = mapelOptionsData ?? [];
 
-  // 1. Load Kelas Options
+  const {
+    data: itemsData = [],
+    loading,
+    error,
+  } = useGetBankSoalByKelas({
+    tingkatKelasId:
+      viewMode === "BY_KELAS" ? (selectedTingkatId ?? undefined) : undefined,
+    mapelId: selectedMapelId ?? undefined,
+    q: debouncedSearch?.trim() || undefined,
+  });
+
+  const resolvedGuruId = user?.id_pengguna ?? -1;
+  const {
+    data: myItemsData = [],
+    loading: loadingMyItems,
+    error: myErrorMsg,
+  } = useGetBankSoalByGuru({
+    idGuru: resolvedGuruId,
+    tingkatKelasId:
+      viewMode === "BY_KELAS" ? (selectedTingkatId ?? undefined) : undefined,
+    mapelId: selectedMapelId ?? undefined,
+    q: debouncedSearch?.trim() || undefined,
+  });
+
+  const items: BankSoalItem[] = itemsData ?? [];
+  const myItems: BankSoalItem[] = user?.id_pengguna ? (myItemsData ?? []) : [];
+  const errorMsg = error ?? "";
+
   useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const kelas = await getTingkatKelas();
-        if (!mounted) return;
-        setTingkatKelass(kelas);
-      } catch (e) {
-        if (mounted) setErrorMsg("Gagal memuat data tingkat kelas.");
-      }
-    })();
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  // 2. Load Mapel Options
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const mapel = await getMataPelajaranOptions({
-          source: "bankSoal",
-          tingkatKelasId:
-            viewMode === "BY_KELAS"
-              ? (selectedTingkatId ?? undefined)
-              : undefined,
-        });
-        if (!mounted) return;
-        setMapelOptions(mapel);
-        if (
-          selectedMapelId != null &&
-          !mapel.some((m) => m.id === selectedMapelId)
-        ) {
-          setSelectedMapelId(null);
-        }
-      } catch (e) {
-        if (mounted) setErrorMsg("Gagal memuat data mata pelajaran.");
-      }
-    })();
-    return () => {
-      mounted = false;
-    };
-  }, [viewMode, selectedTingkatId]);
-
-  // 3. Load Bank Soal Data
-  useEffect(() => {
-    const seq = ++requestSeq.current;
-    (async () => {
-      try {
-        setLoading(true);
-        setErrorMsg("");
-        const data = await getBankSoalByKelas({
-          tingkatKelasId:
-            viewMode === "BY_KELAS"
-              ? (selectedTingkatId ?? undefined)
-              : undefined,
-          mapelId: selectedMapelId ?? undefined,
-          q: debouncedSearch?.trim() || undefined,
-        });
-        if (seq !== requestSeq.current) return;
-        setItems(data);
-      } catch (e) {
-        if (seq !== requestSeq.current) return;
-        setErrorMsg("Gagal memuat data bank soal.");
-        setItems([]);
-      } finally {
-        if (seq === requestSeq.current) setLoading(false);
-      }
-    })();
-  }, [viewMode, selectedTingkatId, selectedMapelId, debouncedSearch]);
-
-  // 4. Load Bank Soal "Soal Saya"
-  useEffect(() => {
-    const seq = ++requestMySeq.current;
-    (async () => {
-      if (!user?.id) {
-        setMyItems([]);
-        setMyErrorMsg("");
-        return;
-      }
-
-      try {
-        setLoadingMyItems(true);
-        setMyErrorMsg("");
-        const data = await getBankSoalByGuru({
-          idGuru: user.id,
-          tingkatKelasId:
-            viewMode === "BY_KELAS"
-              ? (selectedTingkatId ?? undefined)
-              : undefined,
-          mapelId: selectedMapelId ?? undefined,
-          q: debouncedSearch?.trim() || undefined,
-        });
-        if (seq !== requestMySeq.current) return;
-        setMyItems(data);
-      } catch (e) {
-        if (seq !== requestMySeq.current) return;
-        setMyErrorMsg("Gagal memuat data soal saya.");
-        setMyItems([]);
-      } finally {
-        if (seq === requestMySeq.current) setLoadingMyItems(false);
-      }
-    })();
-  }, [user?.id, viewMode, selectedTingkatId, selectedMapelId, debouncedSearch]);
+    if (
+      selectedMapelId != null &&
+      !mapelOptions.some((m) => m.id === selectedMapelId)
+    ) {
+      setSelectedMapelId(null);
+    }
+  }, [mapelOptions, selectedMapelId]);
 
   // Helper untuk mengubah kelas (Logic penggabungan ViewMode & TingkatID)
   const handleTingkatChange = (value: string) => {

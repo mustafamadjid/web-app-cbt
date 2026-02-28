@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Archive,
   BookOpen,
@@ -13,13 +13,11 @@ import AddButton from "@/components/common/Button/AddButton";
 import ConfirmAlert from "@/components/ui/ConfirmAlert/ConfirmAlert";
 import type {
   MataPelajaranOption,
-  MataPelajaranRow,
 } from "@/types/DataMaster/MataPelajaran";
-import type { TingkatKelas } from "@/types/DataMaster/Kelas";
-import { GetDataKelasFull } from "@/services/Api/features-api/DataMaster/kelas.service";
+import { useGetDataKelasFull } from "@/services/Api/features-api/DataMaster/kelas.service";
 import {
   deleteMataPelajaran,
-  getMapel,
+  useGetMapel,
 } from "@/services/Api/features-api/DataMaster/mapel.service";
 import toast from "react-hot-toast";
 
@@ -43,13 +41,6 @@ const DataMataPelajaran: React.FC = () => {
   const [tingkatTerpilih, setTingkatTerpilih] = useState<number | null>(null);
   const [mapelTerpilih, setMapelTerpilih] = useState<string>("");
 
-  const [opsiTingkatKelas, setOpsiTingkatKelas] = useState<TingkatKelas[]>([]);
-  const [opsiMapel, setOpsiMapel] = useState<MataPelajaranOption[]>([]);
-
-  const [daftarMapel, setDaftarMapel] = useState<MataPelajaranRow[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
-
   const [idTerpilih, setIdTerpilih] = useState<Set<number>>(new Set());
   const [batasData, setBatasData] = useState(12);
   const [halamanSaatIni, setHalamanSaatIni] = useState(1);
@@ -58,82 +49,34 @@ const DataMataPelajaran: React.FC = () => {
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
 
   const debouncedKataKunci = useDebouncedValue(kataKunci, 300);
-  const requestSeq = useRef(0);
 
-  useEffect(() => {
-    let mounted = true;
+  // Hook: fetch kelas options on mount
+  const { data: kelasData } = useGetDataKelasFull();
+  const opsiTingkatKelas = kelasData?.item_tingkat_kelas ?? [];
 
-    (async () => {
-      try {
-        setErrorMsg("");
-        const [kelas, mapelFull] = await Promise.all([
-          GetDataKelasFull(),
-          getMapel(),
-        ]);
-        if (!mounted) return;
-        setOpsiTingkatKelas(kelas.item_tingkat_kelas);
-        const uniqNamaMapel = Array.from(
-          new Set(mapelFull.map((item) => item.namaMapel)),
-        ).sort((a, b) => a.localeCompare(b, "id", { sensitivity: "base" }));
-        setOpsiMapel(
-          uniqNamaMapel.map((nama, index) => ({ id: index + 1, label: nama })),
-        );
-      } catch {
-        if (!mounted) return;
-        setErrorMsg("Gagal memuat opsi mata pelajaran.");
-      }
-    })();
+  // Hook: fetch mapel list with filters (auto re-fetch on dep change)
+  const {
+    data: daftarMapel,
+    loading,
+    error: errorMsg,
+    refetch: refetchMapel,
+  } = useGetMapel({
+    search: debouncedKataKunci.trim() || undefined,
+    tingkatKelas: tingkatTerpilih ?? undefined,
+    namaMapel: mapelTerpilih || undefined,
+    limit: batasData,
+    offset: (halamanSaatIni - 1) * batasData,
+  });
 
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    const seq = ++requestSeq.current;
-
-    (async () => {
-      try {
-        setLoading(true);
-        setErrorMsg("");
-
-        const data = await getMapel({
-          search: debouncedKataKunci.trim() || undefined,
-          tingkatKelas: tingkatTerpilih ?? undefined,
-          namaMapel: mapelTerpilih || undefined,
-          limit: batasData,
-          offset: (halamanSaatIni - 1) * batasData,
-        });
-
-        if (seq !== requestSeq.current) return;
-
-        setDaftarMapel(data);
-        setIdTerpilih((prev) => {
-          if (prev.size === 0) return prev;
-          const ids = new Set(data.map((mapel) => mapel.id));
-          const next = new Set<number>();
-          prev.forEach((id) => {
-            if (ids.has(id)) next.add(id);
-          });
-          return next;
-        });
-      } catch {
-        if (seq !== requestSeq.current) return;
-        setErrorMsg("Gagal memuat data mata pelajaran.");
-        setDaftarMapel([]);
-      } finally {
-        if (seq === requestSeq.current) {
-          setLoading(false);
-        }
-      }
-    })();
-  }, [
-    debouncedKataKunci,
-    tingkatTerpilih,
-    mapelTerpilih,
-    batasData,
-    halamanSaatIni,
-  ]);
+  // Build mapel filter options from the full list
+  const { data: mapelFullForOptions } = useGetMapel();
+  const opsiMapel = useMemo<MataPelajaranOption[]>(() => {
+    if (!mapelFullForOptions) return [];
+    const uniqNamaMapel = Array.from(
+      new Set(mapelFullForOptions.map((item) => item.namaMapel)),
+    ).sort((a, b) => a.localeCompare(b, "id", { sensitivity: "base" }));
+    return uniqNamaMapel.map((nama, index) => ({ id: index + 1, label: nama }));
+  }, [mapelFullForOptions]);
 
   const kelasLabelById = useMemo(() => {
     return opsiTingkatKelas.reduce<Record<number, string>>((acc, tingkat) => {
@@ -142,8 +85,9 @@ const DataMataPelajaran: React.FC = () => {
     }, {});
   }, [opsiTingkatKelas]);
 
-  const totalData = daftarMapel.length;
-  const dataTerlihat = daftarMapel;
+  const mapelList = daftarMapel ?? [];
+  const totalData = mapelList.length;
+  const dataTerlihat = mapelList;
 
   const semuaTerlihatTerpilih =
     dataTerlihat.length > 0 &&
@@ -170,29 +114,16 @@ const DataMataPelajaran: React.FC = () => {
     });
   };
 
-  const fetchDaftarMapel = async () => {
-    return getMapel({
-      search: debouncedKataKunci.trim() || undefined,
-      tingkatKelas: tingkatTerpilih ?? undefined,
-      namaMapel: mapelTerpilih || undefined,
-      limit: batasData,
-      offset: (halamanSaatIni - 1) * batasData,
-    });
-  };
-
   const executeDeleteMapel = async (idMapel: number) => {
     try {
       setIsDeleteLoading(true);
       await deleteMataPelajaran(idMapel);
-
-      const data = await fetchDaftarMapel();
-      setDaftarMapel(data);
+      await refetchMapel();
       setIdTerpilih((prev) => {
         const next = new Set(prev);
         next.delete(idMapel);
         return next;
       });
-
       toast.success("Berhasil menghapus data mata pelajaran");
     } catch {
       toast.error("Gagal menghapus data mata pelajaran");
@@ -204,17 +135,13 @@ const DataMataPelajaran: React.FC = () => {
 
   const executeBulkDelete = async () => {
     if (idTerpilih.size === 0) return;
-
     const ids = Array.from(idTerpilih);
     try {
       setIsDeleteLoading(true);
       await Promise.all(ids.map((id) => deleteMataPelajaran(id)));
-
-      const data = await fetchDaftarMapel();
-      setDaftarMapel(data);
+      await refetchMapel();
       setIdTerpilih(new Set());
       setDropdownAksiTerbuka(false);
-
       toast.success("Berhasil menghapus data mata pelajaran terpilih");
     } catch {
       toast.error("Gagal menghapus data mata pelajaran terpilih");
@@ -407,7 +334,7 @@ const DataMataPelajaran: React.FC = () => {
           ) : (
             <span>
               Menampilkan{" "}
-              <span className="font-medium">{daftarMapel.length}</span> hasil.
+              <span className="font-medium">{mapelList.length}</span> hasil.
             </span>
           )}
         </div>

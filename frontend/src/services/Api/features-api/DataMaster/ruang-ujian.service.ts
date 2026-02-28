@@ -1,5 +1,6 @@
 import { buildJsonData } from "@/helper/FormData/BuildJsonData";
 import { api } from "@/services/Api/api";
+import { useFetch, usePost, usePut, useDelete } from "@/hooks/fetch";
 import type {
   ListRuangUjianResponse,
   RuangUjianFilterParams,
@@ -81,4 +82,34 @@ export async function deleteRuangUjian(idRuangan: number) {
   return api<null>(`${RUANG_UJIAN_ENDPOINT}/${idRuangan}`, {
     method: "DELETE",
   });
+}
+
+// =====================
+// Hook Wrappers
+// =====================
+
+export function useGetRuangUjian(params: RuangUjianFilterParams = {}) {
+  return useFetch(
+    () => getRuangUjian(params),
+    [params.q, params.search, params.limit, params.offset],
+  );
+}
+
+export function useGetRuangUjianById(idRuangan: number) {
+  return useFetch(() => getRuangUjianById(idRuangan), [idRuangan]);
+}
+
+export function useCreateRuangUjian() {
+  return usePost((values: RuangUjianFormValues) => createRuangUjian(values));
+}
+
+export function useUpdateRuangUjian() {
+  return usePut(
+    (payload: { id: number; values: RuangUjianFormValues; initialValues: RuangUjianFormValues }) =>
+      updateRuangUjianPartial(payload.id, payload.values, payload.initialValues),
+  );
+}
+
+export function useDeleteRuangUjian() {
+  return useDelete((idRuangan: number) => deleteRuangUjian(idRuangan));
 }

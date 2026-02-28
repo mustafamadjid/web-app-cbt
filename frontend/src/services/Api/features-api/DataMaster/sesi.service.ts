@@ -1,5 +1,6 @@
 import { buildJsonData } from "@/helper/FormData/BuildJsonData";
 import { api } from "@/services/Api/api";
+import { useFetch, usePost, usePut, useDelete } from "@/hooks/fetch";
 import type {
   ListSesiResponse,
   SesiFilterParams,
@@ -81,4 +82,34 @@ export async function deleteSesi(idSesi: number) {
   return await api<null>(`${SESI_ENDPOINT}/${idSesi}`, {
     method: "DELETE",
   });
+}
+
+// =====================
+// Hook Wrappers
+// =====================
+
+export function useGetSesi(params: SesiFilterParams = {}) {
+  return useFetch(
+    () => getSesi(params),
+    [params.q, params.search, params.limit, params.offset],
+  );
+}
+
+export function useGetSesiById(idSesi: number) {
+  return useFetch(() => getSesiById(idSesi), [idSesi]);
+}
+
+export function useCreateSesi() {
+  return usePost((values: SesiFormValues) => createSesi(values));
+}
+
+export function useUpdateSesi() {
+  return usePut(
+    (payload: { id: number; values: SesiFormValues; initialValues: SesiFormValues }) =>
+      updateSesiPartial(payload.id, payload.values, payload.initialValues),
+  );
+}
+
+export function useDeleteSesi() {
+  return useDelete((idSesi: number) => deleteSesi(idSesi));
 }

@@ -9,15 +9,12 @@ import TotalSiswaGuruWidget from "@/components/features/widget/StatistikPengguna
 import UjianBerlangsungWidget from "@/components/features/widget/UjianBerlangsung/UjianBerlangsungWidget";
 
 // Types
-import type { PengumumanGetResponse } from "@/types/Widget/Pengumuman";
 import type { JadwalUjianItem } from "@/types/Ujian/jadwalUjian";
-import type { AktivitasLogItem } from "@/types/Log/LogAktivitas";
 import type { UjianBerlangsungItem } from "@/types/Widget/UjianBerlangsung";
 import type { Role } from "@/types/Sidebar/SidebarMenu";
 import { useAuth } from "@/contexts/AuthContext";
-import { getLogAktivitas } from "@/services/Api/features-api/LogAktivitas/log-aktivitas.service";
-import { getPengumumanActive } from "@/services/Api/features-api/pengumuman/pengumuman.service";
-import { useEffect, useState } from "react";
+import { useGetLogAktivitas } from "@/services/Api/features-api/LogAktivitas/log-aktivitas.service";
+import { useGetPengumumanActive } from "@/services/Api/features-api/pengumuman/pengumuman.service";
 
 export const dummyJadwalUjian: JadwalUjianItem[] = [
   {
@@ -85,45 +82,12 @@ export const dummyUjianBerlangsung: UjianBerlangsungItem[] = [
 export const Home = () => {
   const { user } = useAuth();
   const role = (user?.role ?? "SISWA") as Role;
-  const [aktivitasItems, setAktivitasItems] =
-    useState<AktivitasLogItem[]>([]);
-  const [pengumumanItems, setPengumumanItems] =
-    useState<PengumumanGetResponse[]>([]);
 
-  useEffect(() => {
-    const fetchAktivitas = async () => {
-      if (role !== "ADMIN") {
-        return;
-      }
+  // Hook: fetch log aktivitas (only for ADMIN)
+  const { data: aktivitasItems } = useGetLogAktivitas();
 
-      try {
-        const data = await getLogAktivitas();
-        setAktivitasItems(data);
-      } catch (error) {
-        console.error("Gagal memuat log aktivitas", error);
-      }
-    };
-
-    fetchAktivitas();
-  }, [role]);
-
-  useEffect(() => {
-    const fetchPengumuman = async () => {
-      if (role !== "ADMIN" && role !== "GURU") {
-        return;
-      }
-
-      try {
-        const data = await getPengumumanActive();
-        setPengumumanItems(data);
-      } catch (error) {
-        console.error("Gagal memuat pengumuman", error);
-        setPengumumanItems([]);
-      }
-    };
-
-    fetchPengumuman();
-  }, [role]);
+  // Hook: fetch pengumuman aktif
+  const { data: pengumumanItems } = useGetPengumumanActive();
 
   return (
     <div className="min-h-screen bg-[#ecf1ed]  pb-20">
@@ -190,7 +154,7 @@ export const Home = () => {
           >
             <PengumumanWidget
               title="Papan Pengumuman"
-              items={pengumumanItems}
+              items={pengumumanItems ?? []}
               className="flex-1 min-h-0"
             />
 
@@ -210,7 +174,7 @@ export const Home = () => {
 
             {role === "ADMIN" && (
               <LogAktivitasWidget
-                items={aktivitasItems}
+                items={aktivitasItems ?? []}
                 lihatSemuaTo="/log-aktivitas"
                 className="flex-1 min-h-0"
                 maxHeightClassName="max-h-[400px] overflow-y-auto "

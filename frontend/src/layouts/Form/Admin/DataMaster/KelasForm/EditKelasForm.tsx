@@ -4,8 +4,8 @@ import { useNavigate, useParams } from "react-router";
 import type { KelasFormValues } from "@/types/DataMaster/Kelas";
 import { ApiError } from "@/services/Api/api";
 import {
-  GetDataKelasFull,
-  getKelasByIdsRequest,
+  useGetDataKelasFull,
+  useGetKelasByIds,
   updateNamaKelasPartial,
 } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { paths } from "@/routes/paths";
@@ -52,7 +52,6 @@ const EditKelasForm = () => {
   const [currentIdTingkatKelas, setCurrentIdTingkatKelas] = useState<number | null>(null);
   const [touchedTingkatKelas, setTouchedTingkatKelas] = useState<boolean>(false);
   const [touchedNamaKelas, setTouchedNamaKelas] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(true);
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [pageError, setPageError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -62,60 +61,48 @@ const EditKelasForm = () => {
     [idTingkatKelas],
   );
   const namaKelasId = useMemo(() => Number(idNamaKelas), [idNamaKelas]);
+  const isRouteValid =
+    Boolean(idTingkatKelas) &&
+    Boolean(idNamaKelas) &&
+    !Number.isNaN(tingkatKelasId) &&
+    !Number.isNaN(namaKelasId);
+
+  const {
+    data: kelasByIdsData,
+    loading: loadingKelasByIds,
+    error: kelasByIdsError,
+  } = useGetKelasByIds(
+    isRouteValid ? tingkatKelasId : -1,
+    isRouteValid ? namaKelasId : -1,
+  );
+
+  const { data: kelasData } = useGetDataKelasFull();
 
   const setField = createSetField(setValues);
 
   useEffect(() => {
-    let active = true;
+    if (!isRouteValid) {
+      setPageError("Parameter edit kelas tidak valid.");
+      return;
+    }
 
-    const loadKelasByIds = async () => {
-      if (
-        !idTingkatKelas ||
-        !idNamaKelas ||
-        Number.isNaN(tingkatKelasId) ||
-        Number.isNaN(namaKelasId)
-      ) {
-        setPageError("Parameter edit kelas tidak valid.");
-        setLoading(false);
-        return;
-      }
+    if (kelasByIdsError) {
+      setPageError(kelasByIdsError);
+      return;
+    }
 
-      try {
-        const dataKelas = await getKelasByIdsRequest(tingkatKelasId, namaKelasId);
+    if (!kelasByIdsData) return;
 
-        if (!active) return;
+    const nextValues = {
+      tingkat_kelas: kelasByIdsData.item_tingkat_kelas.tingkat_kelas,
+      nama_kelas: kelasByIdsData.item_nama_kelas.nama_kelas,
+    } satisfies KelasFormValues;
 
-        if (!dataKelas) {
-          setPageError("Data kelas tidak ditemukan.");
-          return;
-        }
-
-        const nextValues = {
-          tingkat_kelas: dataKelas.item_tingkat_kelas.tingkat_kelas,
-          nama_kelas: dataKelas.item_nama_kelas.nama_kelas,
-        } satisfies KelasFormValues;
-
-        setCurrentIdTingkatKelas(dataKelas.item_tingkat_kelas.id_tingkat_kelas);
-        setInitialValues(nextValues);
-        setValues(nextValues);
-      } catch (error) {
-        if (!active) return;
-        if (error instanceof ApiError) {
-          setPageError(error.message);
-          return;
-        }
-        setPageError("Gagal memuat data kelas.");
-      } finally {
-        if (active) setLoading(false);
-      }
-    };
-
-    loadKelasByIds();
-
-    return () => {
-      active = false;
-    };
-  }, [idTingkatKelas, idNamaKelas, tingkatKelasId, namaKelasId]);
+    setPageError(null);
+    setCurrentIdTingkatKelas(kelasByIdsData.item_tingkat_kelas.id_tingkat_kelas);
+    setInitialValues(nextValues);
+    setValues(nextValues);
+  }, [kelasByIdsData, kelasByIdsError, isRouteValid]);
 
   const tingkatKelasErrors = validateTingkatKelas({
     tingkat_kelas: values.tingkat_kelas,
@@ -149,8 +136,7 @@ const EditKelasForm = () => {
       }
 
       if (values.tingkat_kelas !== initialValues.tingkat_kelas) {
-        const dataKelas = await GetDataKelasFull();
-        const matchedTingkatKelas = dataKelas.item_tingkat_kelas.find(
+        const matchedTingkatKelas = kelasData?.item_tingkat_kelas.find(
           (item) => item.tingkat_kelas === values.tingkat_kelas,
         );
 
@@ -185,6 +171,7 @@ const EditKelasForm = () => {
     }
   };
 
+  const loading = isRouteValid ? loadingKelasByIds : false;
   const isDisabled = loading || submitting;
 
   return (

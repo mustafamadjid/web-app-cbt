@@ -8,7 +8,7 @@ import type { ResetPasswordFormValues } from "@/types/KelolaAkun/ResetPassword";
 import type { JenisKelamin, StatusAkun } from "@/types/OpsiTypes/Option";
 import type { NamaKelas } from "@/types/DataMaster/Kelas";
 
-import { GetDataKelasFull } from "@/services/Api/features-api/DataMaster/kelas.service";
+import { useGetDataKelasFull } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { ApiError } from "@/services/Api/api";
 
 import { createSetField } from "@/helper/setField/setField";
@@ -72,8 +72,8 @@ const EditAkunSiswaForm = ({
   const [resetPasswordError, setResetPasswordError] = useState<string | null>(null);
   const [fotoUrl, setFotoUrl] = useState<string>(initialFotoUrl ?? "");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-
-  const [daftarKelas, setDaftarKelas] = useState<NamaKelas[]>([]);
+  const { data: kelasData } = useGetDataKelasFull();
+  const daftarKelas: NamaKelas[] = kelasData?.item_nama_kelas ?? [];
 
   useEffect(() => {
     setValues(initialValues);
@@ -90,19 +90,6 @@ const EditAkunSiswaForm = ({
     setFotoUrl(initialFotoUrl ?? "");
     return undefined;
   }, [initialFotoUrl, values.foto_profil]);
-
-  useEffect(() => {
-    let active = true;
-    const loadKelas = async () => {
-      const data = await GetDataKelasFull();
-      if (!active) return;
-      setDaftarKelas(data.item_nama_kelas ?? []);
-    };
-    loadKelas();
-    return () => {
-      active = false;
-    };
-  }, []);
 
   const setField = createSetField(setValues);
 

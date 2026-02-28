@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 
-import { GetDataKelasFull } from "@/services/Api/features-api/DataMaster/kelas.service";
+import { useGetDataKelasFull } from "@/services/Api/features-api/DataMaster/kelas.service";
 import type { KelasFormValues, TingkatKelas } from "@/types/DataMaster/Kelas";
 
 type EditTingkatKelasFormProps = {
@@ -18,24 +18,11 @@ const EditTingkatKelasForm = ({
   onChange,
   onBlur,
 }: EditTingkatKelasFormProps) => {
-  const [opsiTingkat, setOpsiTingkat] = useState<TingkatKelas[]>([]);
-
-  useEffect(() => {
-    let aktif = true;
-
-    const loadOpsiTingkat = async () => {
-      const data = await GetDataKelasFull();
-      if (aktif) {
-        setOpsiTingkat(data.item_tingkat_kelas ?? []);
-      }
-    };
-
-    loadOpsiTingkat();
-
-    return () => {
-      aktif = false;
-    };
-  }, []);
+  const { data: kelasData } = useGetDataKelasFull();
+  const opsiTingkat: TingkatKelas[] = useMemo(
+    () => kelasData?.item_tingkat_kelas ?? [],
+    [kelasData?.item_tingkat_kelas],
+  );
 
   return (
     <div>

@@ -1,68 +1,88 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import axios from "axios";
-import { api } from "@/services/Api/api";
+import type { DependencyList } from "react";
+import { ApiError } from "@/services/Api/api";
 
-type UseFetchState<T> = {
+/**
+ * State yang dikembalikan oleh useFetch.
+ */
+export type UseFetchState<T> = {
+  /** Data hasil fetch, null saat belum ada atau error. */
   data: T | null;
+  /** Pesan error, null jika tidak ada error. */
   error: string | null;
+  /** true selama proses fetching berlangsung. */
   loading: boolean;
+  /** Panggil untuk memicu re-fetch manual. */
   refetch: () => Promise<void>;
 };
 
-export default function useFetch<T>(url: string): UseFetchState<T> {
+/**
+ * Generic hook untuk operasi GET (read) yang dipicu otomatis oleh useEffect.
+ *
+ * @param fetcher - Fungsi async yang mengembalikan data. Boleh memanggil
+ *   service function apapun yang menggunakan `api()` wrapper dari `api.ts`.
+ * @param deps - Dependency array; setiap kali berubah, fetcher dijalankan ulang.
+ *
+ * @example
+ * ```ts
+ * const { data, loading, error, refetch } = useFetch(
+ *   () => getMapel({ search, tingkatKelas }),
+ *   [search, tingkatKelas],
+ * );
+ * ```
+ */
+export default function useFetch<T>(
+  fetcher: () => Promise<T>,
+  deps: DependencyList = [],
+): UseFetchState<T> {
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
-  const controllerRef = useRef<AbortController | null>(null);
+  // Untuk mencegah race condition saat dependency berubah cepat
   const requestIdRef = useRef(0);
+  // Untuk mencegah state update setelah unmount
+  const mountedRef = useRef(true);
 
   const run = useCallback(async () => {
-    // batalkan request sebelumnya kalau masih jalan
-    controllerRef.current?.abort();
-
-    const controller = new AbortController();
-    controllerRef.current = controller;
-
     const requestId = ++requestIdRef.current;
 
     setLoading(true);
     setError(null);
 
     try {
-      const res = await api.get<T>(url, { signal: controller.signal });
+      const result = await fetcher();
 
-      // abaikan kalau ada request baru yang sudah dimulai
-      if (requestId !== requestIdRef.current) return;
+      // Abaikan response jika sudah ada request baru atau komponen unmount
+      if (requestId !== requestIdRef.current || !mountedRef.current) return;
 
-      setData(res.data);
+      setData(result);
     } catch (e: unknown) {
-      // Abort bukan error yang perlu ditampilkan
-      if (e instanceof DOMException && e.name === "AbortError") return;
+      if (requestId !== requestIdRef.current || !mountedRef.current) return;
 
-      if (requestId !== requestIdRef.current) return;
-
-      if (axios.isAxiosError(e)) {
-        setError((e.response?.data as any)?.message ?? e.message);
+      if (e instanceof ApiError) {
+        setError(e.message);
       } else if (e instanceof Error) {
         setError(e.message);
       } else {
-        setError("Unknown error");
+        setError("Terjadi kesalahan yang tidak diketahui.");
       }
 
       setData(null);
     } finally {
-      if (requestId === requestIdRef.current) {
+      if (requestId === requestIdRef.current && mountedRef.current) {
         setLoading(false);
       }
     }
-  }, [url]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, deps);
 
   useEffect(() => {
+    mountedRef.current = true;
     void run();
 
     return () => {
-      controllerRef.current?.abort();
+      mountedRef.current = false;
     };
   }, [run]);
 

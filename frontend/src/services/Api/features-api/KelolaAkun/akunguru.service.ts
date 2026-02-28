@@ -1,4 +1,5 @@
 import { api } from "../../api";
+import { useFetch, usePost, usePut } from "@/hooks/fetch";
 import { buildFormData } from "@/helper/FormData/BuildFormData";
 
 import type {
@@ -192,4 +193,28 @@ export async function GetAllGuru(
 
 // const USE_DUMMY = true;
 
+// =====================
+// Hook Wrappers
+// =====================
 
+export function useGetAllGuru(params: GuruFilterParams = {}) {
+  return useFetch(
+    () => GetAllGuru(params),
+    [params.q, params.status, params.limit, params.offset],
+  );
+}
+
+export function useGetGuruById(id: number) {
+  return useFetch(() => getGuruById(id), [id]);
+}
+
+export function useSubmitTeacherRegister() {
+  return usePost((values: TeacherRegisterFormValues) => submitTeacherRegister(values));
+}
+
+export function useUpdateGuru() {
+  return usePut(
+    (payload: { id: number; values: TeacherUpdatePayload }) =>
+      updateGuru(payload.id, payload.values),
+  );
+}

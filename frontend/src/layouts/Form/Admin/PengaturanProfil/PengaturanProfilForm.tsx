@@ -19,7 +19,7 @@ import {
   requiredString,
 } from "@/helper/validate/validateForm";
 import {
-  getProfilSekolah,
+  useGetProfilSekolah,
   updateProfilSekolah,
 } from "@/services/Api/features-api/ProfilSekolah/profil_sekolah.service";
 
@@ -47,48 +47,39 @@ const PengaturanProfilForm = () => {
   const [serverLogoUrl, setServerLogoUrl] = useState<string>("");
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const {
+    data: profilData,
+    error: profilError,
+    refetch: refetchProfil,
+  } = useGetProfilSekolah();
 
-  const loadProfilSekolah = async () => {
-    const data = await getProfilSekolah();
+  useEffect(() => {
+    if (!profilData) return;
 
     const nextValues: ProfilSekolahFormValues = {
-      nama_sekolah: data.nama_sekolah ?? "",
-      alamat_sekolah: data.alamat_sekolah ?? "",
-      no_telp_sekolah: data.no_telp_sekolah ?? "",
-      email_sekolah: data.email_sekolah ?? "",
-      kepala_sekolah: data.kepala_sekolah ?? "",
-      waka_sekolah: data.waka_sekolah ?? "",
+      nama_sekolah: profilData.nama_sekolah ?? "",
+      alamat_sekolah: profilData.alamat_sekolah ?? "",
+      no_telp_sekolah: profilData.no_telp_sekolah ?? "",
+      email_sekolah: profilData.email_sekolah ?? "",
+      kepala_sekolah: profilData.kepala_sekolah ?? "",
+      waka_sekolah: profilData.waka_sekolah ?? "",
       logo_sekolah: null,
     };
 
-    setValues((prev) => ({
-      ...prev,
-      ...nextValues,
-    }));
+    setValues(nextValues);
     setInitialValues(nextValues);
 
-    const logo = data.logo_sekolah ?? "";
+    const logo = profilData.logo_sekolah ?? "";
     setServerLogoUrl(resolveImageUrl(logo));
     setLogoUrl(resolveImageUrl(logo));
-  };
+  }, [profilData]);
 
   useEffect(() => {
-     let isMounted = true;
-     (async () => {
-       try {
-         if (!isMounted) return;
-         await loadProfilSekolah();
-       } catch (e) {
-         console.error(e);
-         toast.error("Gagal memuat profil sekolah.", {
-           position: "top-center",
-         });
-       }
-     })();
-     return () => {
-       isMounted = false;
-     };
-  }, []);
+    if (!profilError) return;
+    toast.error("Gagal memuat profil sekolah.", {
+      position: "top-center",
+    });
+  }, [profilError]);
 
   useEffect(() => {
     if (!values.logo_sekolah) {
@@ -189,7 +180,7 @@ const PengaturanProfilForm = () => {
         position: "top-center",
       });
 
-      await loadProfilSekolah();
+      await refetchProfil();
     } catch (error) {
       console.error("Gagal memperbarui profil sekolah:", error);
       toast.error("Gagal memperbarui profil sekolah.", {

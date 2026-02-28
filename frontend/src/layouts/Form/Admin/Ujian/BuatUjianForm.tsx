@@ -12,21 +12,20 @@ import type {
 } from "@/types/Ujian/BuatUjian";
 import type { NamaKelas, TingkatKelas } from "@/types/DataMaster/Kelas";
 import {
-  getUjianSiswaPreview,
+  useGetUjianSiswaPreview,
   submitBuatUjian,
 } from "@/services/Api/features-api/Ujian/ujian.service";
 
 import { ApiError } from "@/services/Api/api";
 import {
-  getNamaKelas,
-  getTingkatKelas,
-  getTingkatKelasById,
+  useGetNamaKelas,
+  useGetTingkatKelas,
 } from "@/services/Api/features-api/DataMaster/kelas.service";
 import {
-  getRuangUjianOptions,
-  getUjianBankSoalOptions,
-  getUjianGuruPengawasOptions,
-  getUjianSesiOptions,
+  useGetRuangUjianOptions,
+  useGetUjianBankSoalOptions,
+  useGetUjianGuruPengawasOptions,
+  useGetUjianSesiOptions,
 } from "@/services/Api/features-api/GetOptions/options.service";
 
 // helper
@@ -70,17 +69,6 @@ const BuatUjianForm = () => {
   const [values, setValues] = useState<BuatUjianFormValues>(initialValues);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [loadingBankSoal, setLoadingBankSoal] = useState(false);
-  const [loadingSiswa, setLoadingSiswa] = useState(false);
-  const [loadingKelasDetail, setLoadingKelasDetail] = useState(false);
-
-  const [kelasOptions, setKelasOptions] = useState<TingkatKelas[]>([]);
-  const [kelasDetailOptions, setKelasDetailOptions] = useState<NamaKelas[]>([]);
-  const [bankSoalOptions, setBankSoalOptions] = useState<BankSoalOption[]>([]);
-  const [ruangOptions, setRuangOptions] = useState<RuangUjianRow[]>([]);
-  const [guruOptions, setGuruOptions] = useState<GuruPengawasOption[]>([]);
-  const [sesiOptions, setSesiOptions] = useState<SesiUjianOption[]>([]);
-  const [siswaPreview, setSiswaPreview] = useState<SiswaPreviewItem[]>([]);
 
   const setField = createSetField(setValues);
 
@@ -89,10 +77,66 @@ const BuatUjianForm = () => {
   };
 
   const selectedKelasId = useMemo(() => {
-    const tingkatKelas =
-      values.kelas_id === 0 ? undefined : getTingkatKelasById(values.kelas_id);
-    return tingkatKelas ?? undefined;
+    return values.kelas_id === 0 ? undefined : values.kelas_id;
   }, [values.kelas_id]);
+
+  const {
+    data: kelasOptionsData,
+    error: kelasOptionsError,
+  } = useGetTingkatKelas();
+  const {
+    data: ruangOptionsData,
+    error: ruangOptionsError,
+  } = useGetRuangUjianOptions();
+  const {
+    data: guruOptionsData,
+    error: guruOptionsError,
+  } = useGetUjianGuruPengawasOptions();
+  const {
+    data: sesiOptionsData,
+    error: sesiOptionsError,
+  } = useGetUjianSesiOptions();
+  const {
+    data: kelasDetailData,
+    loading: loadingKelasDetail,
+    error: kelasDetailError,
+  } = useGetNamaKelas({
+    tingkatKelas: values.kelas_id === 0 ? undefined : values.kelas_id,
+  });
+  const {
+    data: bankSoalData,
+    loading: loadingBankSoal,
+    error: bankSoalError,
+  } = useGetUjianBankSoalOptions({
+    tingkatKelasId: selectedKelasId,
+  });
+  const {
+    data: siswaPreviewData,
+    loading: loadingSiswa,
+    error: siswaPreviewError,
+  } = useGetUjianSiswaPreview({
+    tingkatKelasId: selectedKelasId,
+  });
+
+  const kelasOptions: TingkatKelas[] = kelasOptionsData ?? [];
+  const kelasDetailOptions: NamaKelas[] =
+    values.kelas_id === 0 ? [] : (kelasDetailData ?? []);
+  const bankSoalOptions: BankSoalOption[] =
+    selectedKelasId == null ? [] : (bankSoalData ?? []);
+  const ruangOptions: RuangUjianRow[] = ruangOptionsData ?? [];
+  const guruOptions: GuruPengawasOption[] = guruOptionsData ?? [];
+  const sesiOptions: SesiUjianOption[] = sesiOptionsData ?? [];
+  const siswaPreview: SiswaPreviewItem[] =
+    selectedKelasId == null ? [] : (siswaPreviewData ?? []);
+
+  const loadErrorMessage =
+    kelasOptionsError ||
+    ruangOptionsError ||
+    guruOptionsError ||
+    sesiOptionsError ||
+    kelasDetailError ||
+    bankSoalError ||
+    siswaPreviewError;
 
   const kelasDetailById = useMemo(() => {
     return new Map(
@@ -116,122 +160,32 @@ const BuatUjianForm = () => {
       : bankSoalById.get(values.bank_soal_id);
 
   useEffect(() => {
-    let active = true;
-
-    const loadOptions = async () => {
-      try {
-        const [kelas, ruang, guru, sesi] = await Promise.all([
-          getTingkatKelas(),
-          getRuangUjianOptions(),
-          getUjianGuruPengawasOptions(),
-          getUjianSesiOptions(),
-        ]);
-
-        if (!active) return;
-        setKelasOptions(kelas);
-        setRuangOptions(ruang);
-        setGuruOptions(guru);
-        setSesiOptions(sesi);
-      } catch (error) {
-        if (!active) return;
-        setSubmitError("Gagal memuat data pendukung ujian.");
-      }
-    };
-
-    loadOptions();
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    let active = true;
-    const loadKelasDetail = async () => {
-      setLoadingKelasDetail(true);
-      try {
-        const data = await getNamaKelas({
-          tingkatKelas: values.kelas_id === 0 ? undefined : values.kelas_id,
-        });
-        if (!active) return;
-        setKelasDetailOptions(data);
-      } finally {
-        if (active) setLoadingKelasDetail(false);
-      }
-    };
-
-    if (values.kelas_id !== 0) {
-      loadKelasDetail();
-    } else {
-      setKelasDetailOptions([]);
+    if (values.kelas_detail_id !== 0) {
+      setField("kelas_detail_id", 0);
     }
-
-    setField("kelas_detail_id", 0);
-
-    return () => {
-      active = false;
-    };
+    if (values.kelas_id === 0 && values.bank_soal_id !== 0) {
+      setField("bank_soal_id", 0);
+    }
+    if (values.kelas_id === 0 && values.jumlah_soal !== 0) {
+      setField("jumlah_soal", 0);
+    }
   }, [values.kelas_id]);
 
   useEffect(() => {
-    if (values.kelas_scope === "SEMUA") {
+    if (values.kelas_scope === "SEMUA" && values.kelas_detail_id !== 0) {
       setField("kelas_detail_id", 0);
     }
-  }, [values.kelas_scope]);
+  }, [values.kelas_detail_id, values.kelas_scope]);
 
   useEffect(() => {
-    let active = true;
-    const loadBankSoal = async () => {
-      setLoadingBankSoal(true);
-      try {
-        const data = await getUjianBankSoalOptions({
-          tingkatKelasId: values.kelas_id === 0 ? undefined : values.kelas_id,
-        });
-        if (!active) return;
-        setBankSoalOptions(data);
-      } finally {
-        if (active) setLoadingBankSoal(false);
-      }
-    };
-
-    if (selectedKelasId != null) {
-      loadBankSoal();
-    } else {
-      setBankSoalOptions([]);
+    if (selectedKelasId == null) return;
+    if (
+      values.bank_soal_id !== 0 &&
+      !bankSoalOptions.some((bank) => bank.id === values.bank_soal_id)
+    ) {
       setField("bank_soal_id", 0);
-      setField("jumlah_soal", 0);
     }
-
-    return () => {
-      active = false;
-    };
-  }, [selectedKelasId]);
-
-  useEffect(() => {
-    let active = true;
-    const loadSiswa = async () => {
-      setLoadingSiswa(true);
-      try {
-        const data = await getUjianSiswaPreview({
-          tingkatKelasId: values.kelas_id === 0 ? undefined : values.kelas_id,
-        });
-        if (!active) return;
-        // harusnya data dari server sudah di sorting
-        setSiswaPreview(data);
-      } finally {
-        if (active) setLoadingSiswa(false);
-      }
-    };
-
-    if (selectedKelasId != null) {
-      loadSiswa();
-    } else {
-      setSiswaPreview([]);
-    }
-
-    return () => {
-      active = false;
-    };
-  }, [selectedKelasId]);
+  }, [bankSoalOptions, selectedKelasId, values.bank_soal_id]);
 
   useEffect(() => {
     if (selectedBankSoal) {
@@ -997,9 +951,9 @@ const BuatUjianForm = () => {
             </div>
           </div>
 
-          {submitError && (
+          {(submitError || loadErrorMessage) && (
             <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600">
-              {submitError}
+              {submitError || loadErrorMessage}
             </div>
           )}
 
@@ -1011,9 +965,6 @@ const BuatUjianForm = () => {
                 setValues(initialValues);
                 setTouched({});
                 setSubmitError(null);
-                setBankSoalOptions([]);
-                setKelasDetailOptions([]);
-                setSiswaPreview([]);
               }}
             >
               Reset

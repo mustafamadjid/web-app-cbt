@@ -1,4 +1,5 @@
 import { api, type ApiEnvelope } from "../../api";
+import { useFetch, usePost } from "@/hooks/fetch";
 import { buildJsonData } from "@/helper/FormData/BuildJsonData";
 
 import type {
@@ -39,4 +40,19 @@ export async function submitBuatUjian(values: BuatUjianFormValues) {
   });
 
   return res.data;
+}
+
+// =====================
+// Hook Wrappers
+// =====================
+
+export function useGetUjianSiswaPreview(params: { tingkatKelasId?: number }) {
+  return useFetch(
+    () => getUjianSiswaPreview(params),
+    [params.tingkatKelasId],
+  );
+}
+
+export function useSubmitBuatUjian() {
+  return usePost((values: BuatUjianFormValues) => submitBuatUjian(values));
 }

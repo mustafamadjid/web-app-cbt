@@ -12,6 +12,7 @@ import { getBankSoalByKelas } from "@/services/Api/features-api/BankSoal/banksoa
 import { getTingkatKelasById } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { getMapel } from "@/services/Api/features-api/DataMaster/mapel.service";
 import { getRuangUjian } from "@/services/Api/features-api/DataMaster/ruang-ujian.service";
+import { useFetch } from "@/hooks/fetch";
 
 const DUMMY_BANKSOAL_MAPEL: MataPelajaranOption[] = [
   { id: 101, label: "Bahasa Indonesia (Kelas 10)" },
@@ -144,4 +145,42 @@ export async function getUjianBankSoalOptions(params: {
     jumlah_soal_essay: item.jumlah_soal_essay,
     total_soal: getTotalSoal(item),
   }));
+}
+
+// =====================
+// Hook Wrappers
+// =====================
+
+export function useGetMataPelajaranOptions(params: MataPelajaranOptionsParams = {}) {
+  return useFetch(
+    () => getMataPelajaranOptions(params),
+    [params.source, params.tingkatKelasId],
+  );
+}
+
+export function useGetRuangUjianOptions() {
+  return useFetch(() => getRuangUjianOptions(), []);
+}
+
+export function useGetAngkatanOptions() {
+  return useFetch(() => getAngkatanOptions(), []);
+}
+
+export function useGetJenisKelaminOptions() {
+  return useFetch(() => getJenisKelaminOptions(), []);
+}
+
+export function useGetUjianGuruPengawasOptions() {
+  return useFetch(() => getUjianGuruPengawasOptions(), []);
+}
+
+export function useGetUjianSesiOptions() {
+  return useFetch(() => getUjianSesiOptions(), []);
+}
+
+export function useGetUjianBankSoalOptions(params: { tingkatKelasId?: number }) {
+  return useFetch(
+    () => getUjianBankSoalOptions(params),
+    [params.tingkatKelasId],
+  );
 }

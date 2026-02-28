@@ -20,7 +20,7 @@ import type { StatusAkun } from "@/types/OpsiTypes/Option";
 import type { DataGuru } from "@/types/KelolaAkun/AkunGuru";
 import { resolveImageUrl } from "@/helper/MediaUrl/resolveMediaUrl";
 import { paths } from "@/routes/paths";
-import { GetAllGuru } from "@/services/Api/features-api/KelolaAkun/akunguru.service";
+import { useGetAllGuru } from "@/services/Api/features-api/KelolaAkun/akunguru.service";
 import {
   DeletePengguna,
   DeletePenggunaBulk,
@@ -76,43 +76,29 @@ const AkunGuruTables: React.FC = () => {
     null | (() => Promise<void>)
   >(null);
 
-  const [daftarPengguna, setDaftarPengguna] = useState<DataGuru[]>([]);
-
   useEffect(() => {
     const handle = window.setTimeout(() => {
       setKataKunciDebounce(kataKunci.trim());
     }, 500);
-
-    return () => {
-      window.clearTimeout(handle);
-    };
+    return () => window.clearTimeout(handle);
   }, [kataKunci]);
 
   useEffect(() => {
     setHalamanSaatIni(1);
   }, [kataKunciDebounce, statusFilter, batasData]);
 
-  useEffect(() => {
-    let aktif = true;
+  // Hook: fetch guru list
+  const {
+    data: rawData,
+    refetch: refetchGuru,
+  } = useGetAllGuru({
+    q: kataKunciDebounce,
+    status: statusFilter,
+    limit: batasData,
+    offset: (halamanSaatIni - 1) * batasData,
+  });
 
-    const fetchGuru = async () => {
-      const data = await GetAllGuru({
-        q: kataKunciDebounce,
-        status: statusFilter,
-        limit: batasData,
-        offset: (halamanSaatIni - 1) * batasData,
-      });
-      if (aktif) {
-        setDaftarPengguna(data);
-      }
-    };
-
-    fetchGuru();
-
-    return () => {
-      aktif = false;
-    };
-  }, [kataKunciDebounce, statusFilter, batasData, halamanSaatIni]);
+  const daftarPengguna: DataGuru[] = rawData ?? [];
 
   const penggunaTersaring = daftarPengguna;
 
@@ -143,27 +129,15 @@ const AkunGuruTables: React.FC = () => {
 
   const navigate = useNavigate();
 
-  const fetchGuruList = async () => {
-    return GetAllGuru({
-      q: kataKunciDebounce,
-      status: statusFilter,
-      limit: batasData,
-      offset: (halamanSaatIni - 1) * batasData,
-    });
-  };
-
   const DeleteUser = async (id: number) => {
     try {
       await DeletePengguna(id);
-
-      const data = await fetchGuruList();
-      setDaftarPengguna(data);
+      await refetchGuru();
       setIdTerpilih((sebelumnya) => {
         const berikutnya = new Set(sebelumnya);
         berikutnya.delete(id);
         return berikutnya;
       });
-
       toast.success("Berhasil menghapus akun guru");
     } catch {
       toast.error("Gagal menghapus akun guru");
@@ -175,12 +149,9 @@ const AkunGuruTables: React.FC = () => {
     const ids = Array.from(idTerpilih);
     try {
       await DeletePenggunaBulk(ids);
-
-      const data = await fetchGuruList();
-      setDaftarPengguna(data);
+      await refetchGuru();
       setIdTerpilih(new Set());
       setDropdownAksiTerbuka(false);
-
       toast.success("Berhasil menghapus akun guru terpilih");
     } catch {
       toast.error("Gagal menghapus akun guru terpilih");

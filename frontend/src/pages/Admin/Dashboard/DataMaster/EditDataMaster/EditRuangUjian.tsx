@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 
 import EditRuangForm from "@/layouts/Form/Admin/DataMaster/EditRuangForm";
 import { paths } from "@/routes/paths";
 import { ApiError } from "@/services/Api/api";
 import {
-  getRuangUjianById,
+  useGetRuangUjianById,
   updateRuangUjianPartial,
 } from "@/services/Api/features-api/DataMaster/ruang-ujian.service";
 import type { RuangUjianFormValues } from "@/types/DataMaster/RuangUjian";
@@ -18,37 +18,19 @@ const buildInitialValues = (): RuangUjianFormValues => ({
 const EditRuangUjian = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [initialValues, setInitialValues] =
-    useState<RuangUjianFormValues>(buildInitialValues());
-  const [loading, setLoading] = useState<boolean>(true);
   const [submitting, setSubmitting] = useState<boolean>(false);
 
   const ruangId = useMemo(() => Number(id), [id]);
+  const isRuangIdValid = Boolean(id) && !Number.isNaN(ruangId);
 
-  useEffect(() => {
-    let active = true;
+  const { data: fetchedInitialValues, loading } = useGetRuangUjianById(
+    isRuangIdValid ? ruangId : -1,
+  );
 
-    const loadRuang = async () => {
-      if (!id || Number.isNaN(ruangId)) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const data = await getRuangUjianById(ruangId);
-        if (!active) return;
-        setInitialValues(data);
-      } finally {
-        if (active) setLoading(false);
-      }
-    };
-
-    loadRuang();
-
-    return () => {
-      active = false;
-    };
-  }, [id, ruangId]);
+  const initialValues = useMemo<RuangUjianFormValues>(
+    () => fetchedInitialValues ?? buildInitialValues(),
+    [fetchedInitialValues],
+  );
 
   const handleSubmit = async (values: RuangUjianFormValues) => {
     if (!id || Number.isNaN(ruangId)) {
@@ -68,7 +50,7 @@ const EditRuangUjian = () => {
     <EditRuangForm
       initialValues={initialValues}
       onSubmit={handleSubmit}
-      loading={loading}
+      loading={isRuangIdValid ? loading : false}
       submitting={submitting}
     />
   );

@@ -1,4 +1,5 @@
 import { api, type ApiEnvelope } from "@/services/Api/api";
+import { useFetch } from "@/hooks/fetch";
 import type { SoalUjianResponse } from "@/types/BankSoal/BankSoal";
 
 
@@ -79,4 +80,12 @@ export async function getSoalUjian(
     }
   );
   return res.data;
+}
+
+// =====================
+// Hook Wrappers
+// =====================
+
+export function useGetSoalUjian(bankSoalId: number) {
+  return useFetch(() => getSoalUjian(bankSoalId), [bankSoalId]);
 }

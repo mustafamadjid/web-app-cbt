@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import toast from "react-hot-toast";
 
@@ -6,8 +6,8 @@ import InputField from "@/components/common/Input/InputField";
 import { paths } from "@/routes/paths";
 import { ApiError } from "@/services/Api/api";
 import { createBankSoal } from "@/services/Api/features-api/BankSoal/banksoal.service";
-import { GetDataKelasFull } from "@/services/Api/features-api/DataMaster/kelas.service";
-import { getMataPelajaranOptions } from "@/services/Api/features-api/GetOptions/options.service";
+import { useGetDataKelasFull } from "@/services/Api/features-api/DataMaster/kelas.service";
+import { useGetMataPelajaranOptions } from "@/services/Api/features-api/GetOptions/options.service";
 import { createSetField } from "@/helper/setField/setField";
 import {
   createValidator,
@@ -38,11 +38,24 @@ const BankSoalForm = () => {
 
   const [values, setValues] = useState<BankSoalFormValues>(initialValues);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
-  const [kelasOptions, setKelasOptions] = useState<TingkatKelas[]>([]);
-  const [mapelOptions, setMapelOptions] = useState<MataPelajaranOption[]>([]);
-  const [loadingOptions, setLoadingOptions] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const {
+    data: kelasData,
+    loading: loadingKelasOptions,
+    error: kelasOptionsError,
+  } = useGetDataKelasFull();
+  const {
+    data: mapelData,
+    loading: loadingMapelOptions,
+    error: mapelOptionsError,
+  } = useGetMataPelajaranOptions({ source: "dataMaster" });
+
+  const kelasOptions: TingkatKelas[] = kelasData?.item_tingkat_kelas ?? [];
+  const mapelOptions: MataPelajaranOption[] = mapelData ?? [];
+  const loadingOptions = loadingKelasOptions || loadingMapelOptions;
+  const optionsErrorMsg = kelasOptionsError || mapelOptionsError;
 
   const setField = createSetField(setValues);
 
@@ -56,34 +69,6 @@ const BankSoalForm = () => {
     () => mapelOptions.find((item) => item.id === values.mapelId),
     [mapelOptions, values.mapelId],
   );
-
-  useEffect(() => {
-    let active = true;
-
-    const loadOptions = async () => {
-      setLoadingOptions(true);
-      try {
-        const [dataKelas, mapel] = await Promise.all([
-          GetDataKelasFull(),
-          getMataPelajaranOptions({ source: "dataMaster" }),
-        ]);
-
-        if (!active) return;
-        setKelasOptions(dataKelas.item_tingkat_kelas);
-        setMapelOptions(mapel);
-      } catch {
-        if (!active) return;
-        setSubmitError("Gagal memuat data tingkat kelas dan mata pelajaran.");
-      } finally {
-        if (active) setLoadingOptions(false);
-      }
-    };
-
-    loadOptions();
-    return () => {
-      active = false;
-    };
-  }, []);
 
   const onBlur = (name: keyof BankSoalFormValues) => {
     setTouched((prev) => ({ ...prev, [name]: true }));
@@ -303,9 +288,9 @@ const BankSoalForm = () => {
             </div>
           </div>
 
-          {submitError && (
+          {(submitError || optionsErrorMsg) && (
             <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600">
-              {submitError}
+              {submitError || optionsErrorMsg}
             </div>
           )}
 

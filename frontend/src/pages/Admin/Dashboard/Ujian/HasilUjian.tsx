@@ -1,66 +1,37 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import BoxHasilUjian from "@/components/features/Ujian/BoxHasilUjian";
-import { getHasilUjianList } from "@/services/Api/features-api/Ujian/hasilUjian.service";
-import type { JadwalUjianItem } from "@/types/Ujian/jadwalUjian";
+import { useGetHasilUjianList } from "@/services/Api/features-api/Ujian/hasilUjian.service";
 import { paths } from "@/routes/paths";
-import type { TingkatKelas } from "@/types/DataMaster/Kelas";
 import { tahunOption } from "@/helper/TahunOption/TahunOption";
 import { Calendar, Layers } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { getTingkatKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
+import { useGetTingkatKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
 
 const HasilUjian = () => {
   const { user } = useAuth();
 
-  const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
-  const [daftarUjian, setDaftarUjian] = useState<JadwalUjianItem[]>([]);
-  const [TingkatKelass, setTingkatKelass] = useState<TingkatKelas[]>([]);
-  const [tahunOptions, setTahunOptions] = useState<string[]>([]);
   const [selectedTingkatId, setSelectedTingkatId] = useState<number | null>(
     null,
   );
   const [selectedTahun, setSelectedTahun] = useState<string | null>(null);
-  const requestSeq = useRef(0);
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const [options, tahunOptionsData] = await Promise.all([
-          getTingkatKelas(),
-          tahunOption(),
-        ]);
-        setTingkatKelass(options);
-        setTahunOptions(tahunOptionsData);
-      } catch {
-        setTingkatKelass([]);
-        setTahunOptions([]);
-      }
-    })();
-  }, []);
+  const tahunOptions = useMemo(
+    () => tahunOption().map((year) => String(year)),
+    [],
+  );
 
-  useEffect(() => {
-    const seq = ++requestSeq.current;
-    (async () => {
-      try {
-        setLoading(true);
-        setErrorMsg("");
-        const data = await getHasilUjianList({
-          tingkatKelasId: selectedTingkatId ?? undefined,
-          tahun: selectedTahun ?? undefined,
-        });
-        if (seq !== requestSeq.current) return;
-        setDaftarUjian(data);
-      } catch {
-        if (seq !== requestSeq.current) return;
-        setErrorMsg("Gagal memuat data hasil ujian.");
-        setDaftarUjian([]);
-      } finally {
-        if (seq !== requestSeq.current) return;
-        setLoading(false);
-      }
-    })();
-  }, [selectedTingkatId, selectedTahun]);
+  const { data: tingkatKelasData } = useGetTingkatKelas();
+  const TingkatKelass = tingkatKelasData ?? [];
+
+  const {
+    data: daftarUjianData,
+    loading,
+    error: errorMsg,
+  } = useGetHasilUjianList({
+    tingkatKelasId: selectedTingkatId ?? undefined,
+    tahun: selectedTahun ?? undefined,
+  });
+  const daftarUjian = daftarUjianData ?? [];
 
   const daftarSelesai = useMemo(
     () => daftarUjian.filter((ujian) => ujian.status_ujian === "selesai"),

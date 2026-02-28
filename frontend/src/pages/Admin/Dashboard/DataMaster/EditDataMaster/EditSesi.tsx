@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 
 import EditSesiForm from "@/layouts/Form/Admin/DataMaster/EditSesiForm";
 import type { SesiFormValues } from "@/types/DataMaster/Sesi";
 import {
-  getSesiById,
+  useGetSesiById,
   updateSesiPartial,
 } from "@/services/Api/features-api/DataMaster/sesi.service";
 import { ApiError } from "@/services/Api/api";
@@ -18,36 +18,19 @@ const buildInitialValues = (): SesiFormValues => ({
 const EditSesi = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [initialValues, setInitialValues] =
-    useState<SesiFormValues>(buildInitialValues());
-  const [loading, setLoading] = useState<boolean>(true);
   const [submitting, setSubmitting] = useState<boolean>(false);
 
   const sesiId = useMemo(() => Number(id), [id]);
+  const isSesiIdValid = Boolean(id) && !Number.isNaN(sesiId);
 
-  useEffect(() => {
-    let active = true;
-    const loadSesi = async () => {
-      if (!id || Number.isNaN(sesiId)) {
-        setLoading(false);
-        return;
-      }
+  const { data: fetchedInitialValues, loading } = useGetSesiById(
+    isSesiIdValid ? sesiId : -1,
+  );
 
-      try {
-        const data = await getSesiById(sesiId);
-        if (!active || !data) return;
-        setInitialValues(data);
-      } finally {
-        if (active) setLoading(false);
-      }
-    };
-
-    loadSesi();
-
-    return () => {
-      active = false;
-    };
-  }, [id, sesiId]);
+  const initialValues = useMemo<SesiFormValues>(
+    () => fetchedInitialValues ?? buildInitialValues(),
+    [fetchedInitialValues],
+  );
 
   const handleSubmit = async (values: SesiFormValues) => {
     if (!id || Number.isNaN(sesiId)) {
@@ -68,7 +51,7 @@ const EditSesi = () => {
       key={`${initialValues.kode_sesi}-${initialValues.nama_sesi}`}
       initialValues={initialValues}
       onSubmit={handleSubmit}
-      loading={loading}
+      loading={isSesiIdValid ? loading : false}
       submitting={submitting}
     />
   );

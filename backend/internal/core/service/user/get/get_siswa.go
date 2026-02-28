@@ -9,7 +9,6 @@ import (
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
 
-
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 	query "github.com/mustafamadjid/web-app-cbt/internal/core/query/user"
@@ -34,6 +33,32 @@ var allowedSort = map[string]struct{}{
 func (s *GetSiswaService) ListSiswa(ctx context.Context, filter query.ListSiswaFilter) ([]query.SiswaListItem, error) {
 	logger := corelog.FromContext(ctx)
 
+	filter = sanitizeListSiswaFilter(filter)
+
+	var err error
+	filter, err = validateListSiswaFilter(filter, time.Now().Year())
+	if err != nil {
+		return nil, err
+	}
+
+	items, err := s.siswaSvc.GetListSiswa(ctx, filter)
+	if err != nil {
+		logger.Error(ctx, "failed get list siswa", "layer", "core.service", "op", "user.get", "err", err)
+		return nil, err
+	}
+
+	return items, nil
+}
+
+func (s *GetSiswaService) FindProfilSiswaByID(ctx context.Context, id user.ID) (user.DataSiswa, error) {
+	return s.profilSiswaSv.FindProfilSiswaByID(ctx, id)
+}
+
+// -----------------------
+// Sanitizer and validator
+// -----------------------
+
+func sanitizeListSiswaFilter(filter query.ListSiswaFilter) query.ListSiswaFilter {
 	filter.Search = strings.TrimSpace(filter.Search)
 
 	if filter.Limit <= 0 {
@@ -52,47 +77,32 @@ func (s *GetSiswaService) ListSiswa(ctx context.Context, filter query.ListSiswaF
 		filter.SortBy = "created_at"
 	}
 
+	return filter
+}
+
+func validateListSiswaFilter(filter query.ListSiswaFilter, nowYear int) (query.ListSiswaFilter, error) {
 	if _, ok := allowedSort[filter.SortBy]; !ok {
-		return nil, coreerror.ErrInvalidInput
+		return filter, coreerror.ErrInvalidInput
 	}
 
 	if filter.Status == nil {
-		s := user.AKTIF
-		filter.Status = &s
-	} else {
-		if *filter.Status != user.AKTIF && *filter.Status != user.NONAKTIF {
-			return nil, coreerror.ErrInvalidInput
-		}
+		defaultStatus := user.AKTIF
+		filter.Status = &defaultStatus
+	} else if *filter.Status != user.AKTIF && *filter.Status != user.NONAKTIF {
+		return filter, coreerror.ErrInvalidInput
 	}
 
-	if filter.Angkatan != nil {
-		nowYear := time.Now().Year()
-		if *filter.Angkatan > nowYear || *filter.Angkatan < 2019 {
-			return nil, coreerror.ErrInvalidInput
-		}
+	if filter.Angkatan != nil && (*filter.Angkatan > nowYear || *filter.Angkatan < 2019) {
+		return filter, coreerror.ErrInvalidInput
 	}
 
-	if filter.TingkatKelas != nil {
-		if *filter.TingkatKelas < 0 {
-			return nil, coreerror.ErrInvalidInput
-		}
+	if filter.TingkatKelas != nil && *filter.TingkatKelas < 0 {
+		return filter, coreerror.ErrInvalidInput
 	}
 
-	if filter.JenisKelamin != nil {
-		if *filter.JenisKelamin <= 0 || *filter.JenisKelamin > 2 {
-			return nil, coreerror.ErrInvalidInput
-		}
+	if filter.JenisKelamin != nil && (*filter.JenisKelamin <= 0 || *filter.JenisKelamin > 2) {
+		return filter, coreerror.ErrInvalidInput
 	}
 
-	items, err := s.siswaSvc.GetListSiswa(ctx, filter)
-	if err != nil {
-		logger.Error(ctx, "failed get list siswa", "layer", "core.service", "op", "user.get", "err", err)
-		return nil, err
-	}
-
-	return items, nil
-}
-
-func (s *GetSiswaService) FindProfilSiswaByID(ctx context.Context, id user.ID) (user.DataSiswa, error) {
-	return s.profilSiswaSv.FindProfilSiswaByID(ctx, id)
+	return filter, nil
 }

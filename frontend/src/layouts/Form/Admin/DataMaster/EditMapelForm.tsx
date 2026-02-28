@@ -5,9 +5,9 @@ import InputField from "@/components/common/Input/InputField";
 
 import type { MataPelajaranFormValues } from "@/types/DataMaster/MataPelajaran";
 import type { TingkatKelas } from "@/types/DataMaster/Kelas";
-import { GetDataKelasFull } from "@/services/Api/features-api/DataMaster/kelas.service";
+import { useGetDataKelasFull } from "@/services/Api/features-api/DataMaster/kelas.service";
 import {
-  getMapelById,
+  useGetMapelById,
   updateMataPelajaranPartial,
 } from "@/services/Api/features-api/DataMaster/mapel.service";
 import { ApiError } from "@/services/Api/api";
@@ -41,48 +41,23 @@ const EditMapelForm = () => {
     useState<MataPelajaranFormValues>(buildInitialValues());
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [kelasOptions, setKelasOptions] = useState<TingkatKelas[]>([]);
-  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const isMapelIdValid = Boolean(id) && !Number.isNaN(mapelId);
+
+  const { data: kelasData } = useGetDataKelasFull();
+  const kelasOptions: TingkatKelas[] = kelasData?.item_tingkat_kelas ?? [];
+
+  const {
+    data: fetchedMapel,
+    loading,
+    error: mapelError,
+  } = useGetMapelById(isMapelIdValid ? mapelId : -1);
 
   useEffect(() => {
-    let active = true;
-
-    const loadData = async () => {
-      if (!id || Number.isNaN(mapelId)) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const [kelas, mapel] = await Promise.all([
-          GetDataKelasFull(),
-          getMapelById(mapelId),
-        ]);
-
-        if (!active) return;
-
-        setKelasOptions(kelas.item_tingkat_kelas);
-        setValues(mapel);
-        setInitialValues(mapel);
-      } catch (error) {
-        if (!active) return;
-        if (error instanceof ApiError) {
-          setSubmitError(error.message);
-        } else {
-          setSubmitError("Gagal memuat data mata pelajaran.");
-        }
-      } finally {
-        if (active) setLoading(false);
-      }
-    };
-
-    loadData();
-
-    return () => {
-      active = false;
-    };
-  }, [id, mapelId]);
+    if (!fetchedMapel) return;
+    setValues(fetchedMapel);
+    setInitialValues(fetchedMapel);
+  }, [fetchedMapel]);
 
   const setField = createSetField(setValues);
 
@@ -139,6 +114,9 @@ const EditMapelForm = () => {
   };
 
   const isDisabled = loading || submitting;
+  const fetchErrorMessage = !isMapelIdValid
+    ? "ID mata pelajaran tidak valid."
+    : mapelError;
 
   return (
     <div className="min-h-screen w-full py-8">
@@ -270,9 +248,9 @@ const EditMapelForm = () => {
             </div>
           </div>
 
-          {submitError && (
+          {(submitError || fetchErrorMessage) && (
             <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600">
-              {submitError}
+              {submitError || fetchErrorMessage}
             </div>
           )}
 

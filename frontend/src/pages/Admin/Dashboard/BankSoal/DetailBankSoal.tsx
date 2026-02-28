@@ -3,58 +3,42 @@ import { useNavigate, useParams } from "react-router";
 
 import SoalLayout from "@/layouts/BankSoalLayout/SoalLayout";
 import { paths } from "@/routes/paths";
-import { getSoalUjian } from "@/services/Api/features-api/BankSoal/soalUjian.service";
-import type { SoalUjianItem } from "@/types/BankSoal/BankSoal";
+import { useGetSoalUjian } from "@/services/Api/features-api/BankSoal/soalUjian.service";
 
 const DetailBankSoal = () => {
   const params = useParams();
   const navigate = useNavigate();
   const bankSoalId = Number(params.id);
+  const isBankSoalIdValid = Number.isFinite(bankSoalId);
 
-  const [soalUjian, setSoalUjian] = useState<{
-    namaUjian: string;
-    sisaWaktu: string;
-    soal: SoalUjianItem[];
-  } | null>(null);
   const [selectedOptions, setSelectedOptions] = useState<
     Record<number, string>
   >({});
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [errorMsg, setErrorMsg] = useState("");
+
+  const {
+    data: rawSoalUjian,
+    loading,
+    error,
+  } = useGetSoalUjian(isBankSoalIdValid ? bankSoalId : -1);
+
+  const soalUjian = useMemo(
+    () =>
+      rawSoalUjian
+        ? {
+            namaUjian: rawSoalUjian.nama_ujian,
+            sisaWaktu: rawSoalUjian.sisa_waktu ?? "00:00:00",
+            soal: rawSoalUjian.soal,
+          }
+        : null,
+    [rawSoalUjian],
+  );
 
   useEffect(() => {
-    let active = true;
-    const loadSoal = async () => {
-      if (!Number.isFinite(bankSoalId)) {
-        setErrorMsg("ID bank soal tidak valid.");
-        setLoading(false);
-        return;
-      }
-      try {
-        setLoading(true);
-        setErrorMsg("");
-        const data = await getSoalUjian(bankSoalId);
-        if (!active) return;
-        setSoalUjian({
-          namaUjian: data.nama_ujian,
-          sisaWaktu: data.sisa_waktu ?? "00:00:00",
-          soal: data.soal,
-        });
-        setCurrentIndex(0);
-      } catch {
-        if (!active) return;
-        setErrorMsg("Soal bank soal tidak ditemukan.");
-        setSoalUjian(null);
-      } finally {
-        if (active) setLoading(false);
-      }
-    };
-    loadSoal();
-    return () => {
-      active = false;
-    };
-  }, [bankSoalId]);
+    setCurrentIndex(0);
+  }, [soalUjian?.namaUjian]);
+
+  const errorMsg = !isBankSoalIdValid ? "ID bank soal tidak valid." : (error ?? "");
 
   const totalSoal = useMemo(
     () => soalUjian?.soal.length ?? 0,

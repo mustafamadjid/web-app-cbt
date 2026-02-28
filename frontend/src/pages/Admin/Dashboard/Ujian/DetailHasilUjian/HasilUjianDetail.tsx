@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo } from "react";
 import { Link, useParams } from "react-router";
 import {
   ArrowLeft,
@@ -16,7 +16,7 @@ import {
   Medal,
 } from "lucide-react";
 import {
-  getHasilUjianDetail,
+  useGetHasilUjianDetail,
   type HasilUjianDetailResponse,
 } from "@/services/Api/features-api/Ujian/hasilUjian.service";
 import type { HasilUjianSiswa } from "@/types/Ujian/HasilUjian";
@@ -65,38 +65,18 @@ const HasilUjianDetail = () => {
   const { user } = useAuth();
 
   const { id } = useParams();
-  const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
-  const [statistik, setStatistik] = useState<
-    HasilUjianDetailResponse["statistik"] | null
-  >(null);
-  const [daftarSiswa, setDaftarSiswa] = useState<HasilUjianSiswa[]>([]);
-
-  const requestSeq = useRef(0);
   const ujianId = useMemo(() => Number(id), [id]);
+  const isUjianIdValid = Number.isFinite(ujianId);
+  const {
+    data: hasilDetail,
+    loading,
+    error,
+  } = useGetHasilUjianDetail(isUjianIdValid ? ujianId : -1);
 
-  useEffect(() => {
-    if (!ujianId || Number.isNaN(ujianId)) return;
-    const seq = ++requestSeq.current;
-    (async () => {
-      try {
-        setLoading(true);
-        setErrorMsg("");
-        const data = await getHasilUjianDetail(ujianId);
-        if (seq !== requestSeq.current) return;
-        setStatistik(data.statistik);
-        setDaftarSiswa(data.siswa);
-      } catch {
-        if (seq !== requestSeq.current) return;
-        setErrorMsg("Gagal memuat detail hasil ujian.");
-        setStatistik(null);
-        setDaftarSiswa([]);
-      } finally {
-        if (seq !== requestSeq.current) return;
-        setLoading(false);
-      }
-    })();
-  }, [ujianId]);
+  const statistik: HasilUjianDetailResponse["statistik"] | null =
+    hasilDetail?.statistik ?? null;
+  const daftarSiswa: HasilUjianSiswa[] = hasilDetail?.siswa ?? [];
+  const errorMsg = !isUjianIdValid ? "ID ujian tidak valid." : (error ?? "");
 
   const widgetData = [
     {
@@ -314,10 +294,14 @@ const HasilUjianDetail = () => {
                       <Link
                         to={
                           user?.role === "ADMIN"
-                            ? paths.dashboard.hasil_ujian_detail_admin
-                            : paths.dashboard.hasil_ujian_detail_admin_guru
-                                .replace(":id", String(ujianId))
-                                .replace(":siswaId", String(siswa.id_pengguna))
+                            ? paths.dashboard.hasil_ujian_detail.replace(
+                                ":id",
+                                String(ujianId),
+                              )
+                            : paths.dashboard.hasil_ujian_detail_guru.replace(
+                                ":id",
+                                String(ujianId),
+                              )
                         }
                         className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-400 transition-colors hover:border-[#397e50] hover:bg-[#397e50] hover:text-white"
                         title="Lihat Detail"

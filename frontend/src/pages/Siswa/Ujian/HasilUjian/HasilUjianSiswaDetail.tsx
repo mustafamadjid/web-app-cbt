@@ -1,30 +1,18 @@
 import React from "react";
 import { useNavigate, useParams } from "react-router";
 import { ArrowLeft, Award, CheckCircle2, CalendarDays, XCircle } from "lucide-react";
-import { getUjianSiswaResultDetail } from "@/services/Api/features-api/Ujian/ujianSiswa.service";
-import type { UjianSiswaResultItem } from "@/types/Ujian/ujianSiswa";
+import { useGetUjianSiswaResultDetail } from "@/services/Api/features-api/Ujian/ujianSiswa.service";
 import { paths } from "@/routes/paths";
 
 const HasilUjianSiswaDetail: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams();
-  const [detail, setDetail] = React.useState<UjianSiswaResultItem | null>(null);
-  const [loading, setLoading] = React.useState(true);
-
-  React.useEffect(() => {
-    const fetchDetail = async () => {
-      if (!id) return;
-      setLoading(true);
-      try {
-        const response = await getUjianSiswaResultDetail(Number(id));
-        setDetail(response);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    void fetchDetail();
-  }, [id]);
+  const detailId = Number(id);
+  const isDetailIdValid = Number.isFinite(detailId);
+  const {
+    data: detail,
+    loading,
+  } = useGetUjianSiswaResultDetail(isDetailIdValid ? detailId : -1);
 
   return (
     <div className="space-y-6 px-8 py-10">
@@ -104,7 +92,9 @@ const HasilUjianSiswaDetail: React.FC = () => {
         </section>
       ) : (
         <div className="rounded-xl border border-dashed border-gray-200 bg-white p-6 text-center text-sm text-gray-500">
-          Detail hasil ujian tidak ditemukan.
+          {!isDetailIdValid
+            ? "ID detail hasil ujian tidak valid."
+            : "Detail hasil ujian tidak ditemukan."}
         </div>
       )}
     </div>

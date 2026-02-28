@@ -22,25 +22,18 @@ func NewUpdateKelasService(kelasRepo kelas_repo.KelasRepository) *UpdateKelasSer
 func (s *UpdateKelasService) UpdateNamaKelas(ctx context.Context, idNamaKelas int, dataUpdate updatepatch.NamaKelasPatch) error {
 	logger := corelog.FromContext(ctx)
 
-	if idNamaKelas <= 0 {
-		return coreerror.ErrMissingId
+	if err := validateUpdateNamaKelasID(idNamaKelas); err != nil {
+		return err
 	}
 
-	if dataUpdate.NamaKelas != nil {
-		s := strings.TrimSpace(*dataUpdate.NamaKelas)
-
-		if s == "" {
-			logger.Error(ctx, "failed updating nama kelas", "layer", "core.service", "op", "kelas.update_nama_kelas.NamaKelas", "err", coreerror.ErrMissingField)
-			return coreerror.ErrMissingField
-		}
-		dataUpdate.NamaKelas = &s
+	if err := sanitizeNamaKelasPatch(&dataUpdate); err != nil {
+		logger.Error(ctx, "failed updating nama kelas", "layer", "core.service", "op", "kelas.update_nama_kelas.NamaKelas", "err", err)
+		return err
 	}
 
-	if dataUpdate.IdTingkatKelas != nil {
-		if *dataUpdate.IdTingkatKelas == 0 {
-			logger.Error(ctx, "failed updating nama kelas", "layer", "core.service", "op", "kelas.update_nama_kelas.IdTingkatKelas", "err", coreerror.ErrMissingField)
-			return coreerror.ErrMissingField
-		}
+	if err := validateIdTingkatKelasPatch(dataUpdate); err != nil {
+		logger.Error(ctx, "failed updating nama kelas", "layer", "core.service", "op", "kelas.update_nama_kelas.IdTingkatKelas", "err", err)
+		return err
 	}
 
 	if err := s.updateRepo.UpdateNamaKelas(ctx, idNamaKelas, dataUpdate); err != nil {
@@ -52,6 +45,38 @@ func (s *UpdateKelasService) UpdateNamaKelas(ctx context.Context, idNamaKelas in
 		default:
 			return err
 		}
+	}
+
+	return nil
+}
+
+// -----------------------
+// Sanitizer and validator
+// -----------------------
+
+func validateUpdateNamaKelasID(idNamaKelas int) error {
+	if idNamaKelas <= 0 {
+		return coreerror.ErrMissingId
+	}
+
+	return nil
+}
+
+func sanitizeNamaKelasPatch(dataUpdate *updatepatch.NamaKelasPatch) error {
+	if dataUpdate.NamaKelas != nil {
+		trimmedNamaKelas := strings.TrimSpace(*dataUpdate.NamaKelas)
+		if trimmedNamaKelas == "" {
+			return coreerror.ErrMissingField
+		}
+		dataUpdate.NamaKelas = &trimmedNamaKelas
+	}
+
+	return nil
+}
+
+func validateIdTingkatKelasPatch(dataUpdate updatepatch.NamaKelasPatch) error {
+	if dataUpdate.IdTingkatKelas != nil && *dataUpdate.IdTingkatKelas == 0 {
+		return coreerror.ErrMissingField
 	}
 
 	return nil

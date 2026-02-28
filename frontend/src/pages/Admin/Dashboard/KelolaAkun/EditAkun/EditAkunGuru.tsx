@@ -1,11 +1,14 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 
 import EditAkunGuruForm from "@/layouts/Form/Admin/KelolaAkun/EditAkunGuruForm";
 import { resolveImageUrl } from "@/helper/MediaUrl/resolveMediaUrl";
 import type { TeacherUpdateFormValues } from "@/types/KelolaAkun/AkunGuru";
 import type { ResetPasswordFormValues } from "@/types/KelolaAkun/ResetPassword";
-import { getGuruById, updateGuru } from "@/services/Api/features-api/KelolaAkun/akunguru.service";
+import {
+  useGetGuruById,
+  updateGuru,
+} from "@/services/Api/features-api/KelolaAkun/akunguru.service";
 import { resetPasswordPengguna } from "@/services/Api/features-api/KelolaAkun/akun.service";
 import { ApiError } from "@/services/Api/api";
 import { paths } from "@/routes/paths";
@@ -29,52 +32,38 @@ const buildInitialValues = (): TeacherUpdateFormValues => ({
 const EditAkunGuru = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [initialValues, setInitialValues] =
-    useState<TeacherUpdateFormValues>(buildInitialValues());
-  const [fotoUrl, setFotoUrl] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(true);
   const [submitting, setSubmitting] = useState<boolean>(false);
 
   const guruId = useMemo(() => Number(id), [id]);
+  const isGuruIdValid = Boolean(id) && !Number.isNaN(guruId);
 
-  useEffect(() => {
-    let active = true;
-    const loadGuru = async () => {
-      if (!id || Number.isNaN(guruId)) {
-        setLoading(false);
-        return;
-      }
+  const { data: guruData, loading } = useGetGuruById(
+    isGuruIdValid ? guruId : -1,
+  );
 
-      try {
-        const data = await getGuruById(guruId);
-        if (!active || !data) return;
+  const initialValues = useMemo<TeacherUpdateFormValues>(() => {
+    if (!guruData) return buildInitialValues();
 
-        setInitialValues({
-          id_pengguna: data.id_pengguna,
-          role: data.role ?? "GURU",
-          nama_lengkap: data.nama_lengkap,
-          email: data.email,
-          username: data.username,
-          no_hp: data.no_hp,
-          jenis_kelamin: data.jenis_kelamin,
-          status_akun: data.status_akun,
-          nip: data.nip,
-          jabatan: data.jabatan,
-          bidang_studi: data.bidang_studi,
-          foto_profil: null,
-        });
-        setFotoUrl(resolveImageUrl(data.foto_profil));
-      } finally {
-        if (active) setLoading(false);
-      }
+    return {
+      id_pengguna: guruData.id_pengguna,
+      role: guruData.role ?? "GURU",
+      nama_lengkap: guruData.nama_lengkap,
+      email: guruData.email,
+      username: guruData.username,
+      no_hp: guruData.no_hp,
+      jenis_kelamin: guruData.jenis_kelamin,
+      status_akun: guruData.status_akun,
+      nip: guruData.nip,
+      jabatan: guruData.jabatan,
+      bidang_studi: guruData.bidang_studi,
+      foto_profil: null,
     };
+  }, [guruData]);
 
-    loadGuru();
-
-    return () => {
-      active = false;
-    };
-  }, [guruId, id]);
+  const fotoUrl = useMemo(
+    () => resolveImageUrl(guruData?.foto_profil),
+    [guruData?.foto_profil],
+  );
 
   const handleSubmit = async (values: TeacherUpdateFormValues) => {
     if (!id || Number.isNaN(guruId)) {
@@ -111,7 +100,7 @@ const EditAkunGuru = () => {
       initialFotoUrl={fotoUrl}
       onSubmit={handleSubmit}
       onSubmitResetPassword={handleSubmitResetPassword}
-      loading={loading}
+      loading={isGuruIdValid ? loading : false}
       submitting={submitting}
     />
   );

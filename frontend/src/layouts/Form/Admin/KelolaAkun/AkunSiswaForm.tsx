@@ -6,12 +6,11 @@ import ImageUpload from "@/components/features/Upload/ImageUpload";
 
 import type { JenisKelamin } from "@/types/OpsiTypes/Option";
 import type { StudentRegisterFormValues } from "@/types/KelolaAkun/AkunSiswa";
-import type { FullDataKelas } from "@/types/DataMaster/Kelas";
 
 import { submitStudentRegister } from "@/services/Api/features-api/KelolaAkun/akunsiswa.service";
 import { paths } from "@/routes/paths";
 import { ApiError } from "@/services/Api/api";
-import { GetDataKelasFull } from "@/services/Api/features-api/DataMaster/kelas.service";
+import { useGetDataKelasFull } from "@/services/Api/features-api/DataMaster/kelas.service";
 
 import { createSetField } from "@/helper/setField/setField";
 import {
@@ -90,21 +89,7 @@ const AkunSiswaForm = () => {
     };
   }, [values.foto_profil]);
 
-  const [daftarKelas, setDaftarKelas] = useState<FullDataKelas | null>(null);
-
-  useEffect(() => {
-    let akitf = true;
-    const loadKelas = async () => {
-      const data = await GetDataKelasFull();
-      if (akitf) {
-        setDaftarKelas(data);
-      }
-    };
-    loadKelas();
-    return () => {
-      akitf = false;
-    };
-  }, []);
+  const { data: daftarKelasData } = useGetDataKelasFull();
 
   const setField = createSetField(setValues);
 
@@ -217,7 +202,7 @@ const AkunSiswaForm = () => {
     try {
       setSubmitting(true);
 
-      const kelasTerpilih = daftarKelas?.item_nama_kelas.find(
+      const kelasTerpilih = daftarKelasData?.item_nama_kelas.find(
         (kelas) => String(kelas.id_nama_kelas) === values.id_nama_kelas,
       );
 
@@ -524,7 +509,7 @@ const AkunSiswaForm = () => {
                   <option value="" disabled>
                     Pilih nama kelas...
                   </option>
-                  {(daftarKelas?.item_nama_kelas ?? []).map((kelas) => (
+                  {(daftarKelasData?.item_nama_kelas ?? []).map((kelas) => (
                     <option
                       key={kelas.id_nama_kelas}
                       value={String(kelas.id_nama_kelas)}

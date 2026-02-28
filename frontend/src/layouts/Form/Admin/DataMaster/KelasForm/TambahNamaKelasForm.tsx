@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
 import InputField from "@/components/common/Input/InputField";
 import type { TingkatKelas } from "@/types/DataMaster/Kelas";
 import { ApiError } from "@/services/Api/api";
 import {
-  GetDataKelasFull,
+  useGetDataKelasFull,
   createNamaKelas,
 } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { createValidator, requiredString, requiredValue } from "@/helper/validate/validateForm";
@@ -18,7 +18,6 @@ const validate = createValidator<{ tingkat_kelas: number | ""; nama_kelas: strin
 });
 
 const TambahNamaKelasForm = () => {
-  const [opsiTingkat, setOpsiTingkat] = useState<TingkatKelas[]>([]);
   const [tingkatKelas, setTingkatKelas] = useState<number | "">("");
   const [namaKelas, setNamaKelas] = useState("");
   const [touched, setTouched] = useState({
@@ -28,20 +27,8 @@ const TambahNamaKelasForm = () => {
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const navigate = useNavigate();
-
-  useEffect(() => {
-    let akitf = true;
-    const loadKelas = async () => {
-      const data = await GetDataKelasFull();
-      if (akitf) {
-        setOpsiTingkat(data.item_tingkat_kelas ?? []);
-      }
-    };
-    loadKelas();
-    return () => {
-      akitf = false;
-    };
-  }, []);
+  const { data: kelasData } = useGetDataKelasFull();
+  const opsiTingkat: TingkatKelas[] = kelasData?.item_tingkat_kelas ?? [];
 
   const errors = validate({ tingkat_kelas: tingkatKelas, nama_kelas: namaKelas });
   const hasError = (name: "tingkat_kelas" | "nama_kelas") =>
@@ -78,8 +65,8 @@ const TambahNamaKelasForm = () => {
       })
     } catch (error) {
       const message =
-        e instanceof ApiError
-          ? e.message === "bad request: nama kelas already exist"
+        error instanceof ApiError
+          ? error.message === "bad request: nama kelas already exist"
             ? "Nama kelas sudah ada."
             : "Nama kelas gagal ditambahkan"
           : "Nama kelas gagal ditambahkan";

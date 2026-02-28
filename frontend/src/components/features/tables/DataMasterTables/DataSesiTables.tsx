@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Clock3, Edit3, Search, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router";
 
@@ -8,9 +8,8 @@ import { paths } from "@/routes/paths";
 import { ApiError } from "@/services/Api/api";
 import {
   deleteSesi,
-  getSesi,
+  useGetSesi,
 } from "@/services/Api/features-api/DataMaster/sesi.service";
-import type { SesiRow } from "@/types/DataMaster/Sesi";
 
 function useDebouncedValue<T>(value: T, delayMs = 300) {
   const [debounced, setDebounced] = useState(value);
@@ -25,50 +24,29 @@ const DataSesiTables: React.FC = () => {
   const navigate = useNavigate();
 
   const [kataKunci, setKataKunci] = useState("");
-  const [daftarSesi, setDaftarSesi] = useState<SesiRow[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
   const [batasData, setBatasData] = useState(12);
   const [halamanSaatIni, setHalamanSaatIni] = useState(1);
 
   const [modalKonfirmasiTerbuka, setModalKonfirmasiTerbuka] = useState(false);
   const [idSesiAkanDihapus, setIdSesiAkanDihapus] = useState<number | null>(null);
   const [sedangHapus, setSedangHapus] = useState(false);
+  const [deleteErrorMsg, setDeleteErrorMsg] = useState("");
 
   const debouncedKataKunci = useDebouncedValue(kataKunci, 300);
-  const requestSeq = useRef(0);
 
-  const fetchSesi = useCallback(async () => {
-    return getSesi({
-      q: debouncedKataKunci.trim() || undefined,
-      limit: batasData,
-      offset: (halamanSaatIni - 1) * batasData,
-    });
-  }, [debouncedKataKunci, batasData, halamanSaatIni]);
+  // Hook: fetch sesi with filters
+  const {
+    data: rawData,
+    loading,
+    error: errorMsg,
+    refetch: refetchSesi,
+  } = useGetSesi({
+    q: debouncedKataKunci.trim() || undefined,
+    limit: batasData,
+    offset: (halamanSaatIni - 1) * batasData,
+  });
 
-  useEffect(() => {
-    const seq = ++requestSeq.current;
-
-    (async () => {
-      try {
-        setLoading(true);
-        setErrorMsg("");
-
-        const data = await fetchSesi();
-        if (seq !== requestSeq.current) return;
-
-        setDaftarSesi(data);
-      } catch {
-        if (seq !== requestSeq.current) return;
-        setErrorMsg("Gagal memuat data sesi.");
-        setDaftarSesi([]);
-      } finally {
-        if (seq === requestSeq.current) {
-          setLoading(false);
-        }
-      }
-    })();
-  }, [fetchSesi]);
+  const daftarSesi = rawData ?? [];
 
   useEffect(() => {
     setHalamanSaatIni(1);
@@ -88,14 +66,13 @@ const DataSesiTables: React.FC = () => {
     if (!idSesiAkanDihapus) return;
 
     setSedangHapus(true);
-    setErrorMsg("");
+    setDeleteErrorMsg("");
 
     try {
       await deleteSesi(idSesiAkanDihapus);
       setModalKonfirmasiTerbuka(false);
       setIdSesiAkanDihapus(null);
-      const data = await fetchSesi();
-      setDaftarSesi(data);
+      await refetchSesi();
     } catch (e) {
       const message =
         e instanceof ApiError
@@ -105,7 +82,7 @@ const DataSesiTables: React.FC = () => {
               ? "Sesi tidak bisa dihapus karena masih dipakai."
               : "Data sesi gagal dihapus."
           : "Data sesi gagal dihapus.";
-      setErrorMsg(message);
+      setDeleteErrorMsg(message);
     } finally {
       setSedangHapus(false);
     }
@@ -163,9 +140,9 @@ const DataSesiTables: React.FC = () => {
           </button>
         </div>
 
-        {errorMsg && (
+        {(errorMsg || deleteErrorMsg) && (
           <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-2 text-sm text-rose-600">
-            {errorMsg}
+            {errorMsg || deleteErrorMsg}
           </div>
         )}
       </div>

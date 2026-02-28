@@ -4,60 +4,23 @@ import UjianTerlaksanaWidget from "@/components/features/widget/Siswa/UjianTerla
 import RataRataNilaiWidget from "@/components/features/widget/Siswa/RataRataNilaiWidget";
 import JadwalUjianSiswaWidget from "@/components/features/widget/JadwalUjian/JadwalUjianSiswaWidget";
 import { PengumumanWidget } from "@/components/features/widget/Pengumuman/PengumumanWidget";
-import type { PengumumanGetResponse } from "@/types/Widget/Pengumuman";
-import type { JadwalUjianItem } from "@/types/Ujian/jadwalUjian";
-import type {
-  SiswaDashboardSummary,
-  SiswaSemesterAverage,
-} from "@/types/Widget/SiswaDashboard";
 import {
-  getSiswaDashboardSummary,
-  getSiswaJadwalUjian,
-  getSiswaPengumuman,
-  getSiswaRataRataSemester,
+  useGetSiswaDashboardSummary,
+  useGetSiswaJadwalUjian,
+  useGetSiswaPengumuman,
+  useGetSiswaRataRataSemester,
 } from "@/services/Api/features-api/Siswa/homeSiswa.service";
 
 const HomeSiswa = () => {
   const { user } = useAuth();
-  const [summary, setSummary] = React.useState<SiswaDashboardSummary | null>(
-    null
-  );
-  const [jadwal, setJadwal] = React.useState<JadwalUjianItem[]>([]);
-  const [pengumuman, setPengumuman] = React.useState<PengumumanGetResponse[]>(
-    [],
-  );
-  const [rataRata, setRataRata] = React.useState<SiswaSemesterAverage[]>([]);
-  const [loading, setLoading] = React.useState(true);
 
-  React.useEffect(() => {
-    let mounted = true;
-    const loadData = async () => {
-      setLoading(true);
-      try {
-        const [summaryData, jadwalData, pengumumanData, rataRataData] =
-          await Promise.all([
-            getSiswaDashboardSummary(),
-            getSiswaJadwalUjian(),
-            getSiswaPengumuman(),
-            getSiswaRataRataSemester(),
-          ]);
-        if (!mounted) return;
-        setSummary(summaryData);
-        setJadwal(jadwalData);
-        setPengumuman(pengumumanData);
-        setRataRata(rataRataData);
-      } finally {
-        if (mounted) {
-          setLoading(false);
-        }
-      }
-    };
+  // Hooks: fetch all siswa dashboard data
+  const { data: summary, loading: loadingSummary } = useGetSiswaDashboardSummary();
+  const { data: jadwal } = useGetSiswaJadwalUjian();
+  const { data: pengumuman } = useGetSiswaPengumuman();
+  const { data: rataRata } = useGetSiswaRataRataSemester();
 
-    void loadData();
-    return () => {
-      mounted = false;
-    };
-  }, []);
+  const loading = loadingSummary;
 
   return (
     <div className="min-h-screen bg-[#ecf1ed] pb-20">
@@ -84,16 +47,16 @@ const HomeSiswa = () => {
             />
           </div>
           <div className="lg:col-span-6">
-            <RataRataNilaiWidget items={rataRata} className="h-full" />
+            <RataRataNilaiWidget items={rataRata ?? []} className="h-full" />
           </div>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-12">
           <div className="lg:col-span-7">
-            <PengumumanWidget items={pengumuman} />
+            <PengumumanWidget items={pengumuman ?? []} />
           </div>
           <div className="lg:col-span-5">
-            <JadwalUjianSiswaWidget items={jadwal} />
+            <JadwalUjianSiswaWidget items={jadwal ?? []} />
           </div>
         </div>
 

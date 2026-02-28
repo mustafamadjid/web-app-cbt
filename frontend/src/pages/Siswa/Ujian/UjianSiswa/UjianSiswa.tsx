@@ -4,7 +4,7 @@ import UjianFilterBar from "@/components/features/Ujian/UjianFilterBar";
 import UjianSection from "@/components/features/Ujian/UjianSection";
 import UjianCard from "@/components/features/Ujian/UjianCard";
 import UjianResultCard from "@/components/features/Ujian/UjianResultCard";
-import { getUjianBySiswa } from "@/services/Api/features-api/Ujian/ujianSiswa.service";
+import { useGetUjianBySiswa } from "@/services/Api/features-api/Ujian/ujianSiswa.service";
 import type {
   UjianSiswaFilterParams,
   UjianSiswaResponse,
@@ -19,30 +19,21 @@ const UjianSiswa: React.FC = () => {
   const [activeCategory, setActiveCategory] = React.useState<
     "upcoming" | "ongoing" | "completed"
   >("upcoming");
-  const [data, setData] = React.useState<UjianSiswaResponse>({
-    upcoming: [],
-    ongoing: [],
-    completed: [],
-    mapelOptions: [],
+
+  const { data, loading } = useGetUjianBySiswa({
+    siswaId: DEFAULT_SISWA_ID,
+    filter,
   });
-  const [loading, setLoading] = React.useState(true);
 
-  const fetchData = React.useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await getUjianBySiswa({
-        siswaId: DEFAULT_SISWA_ID,
-        filter,
-      });
-      setData(response);
-    } finally {
-      setLoading(false);
-    }
-  }, [filter]);
-
-  React.useEffect(() => {
-    void fetchData();
-  }, [fetchData]);
+  const ujianData: UjianSiswaResponse = React.useMemo(
+    () => ({
+      upcoming: data?.upcoming ?? [],
+      ongoing: data?.ongoing ?? [],
+      completed: data?.completed ?? [],
+      mapelOptions: data?.mapelOptions ?? [],
+    }),
+    [data],
+  );
 
   const handleStartExam = (id: number, bankSoalId: number) => {
     navigate(
@@ -86,7 +77,7 @@ const UjianSiswa: React.FC = () => {
         month={filter.bulan}
         year={filter.tahun}
         mapel={filter.mapel}
-        mapelOptions={data.mapelOptions}
+        mapelOptions={ujianData.mapelOptions}
         onMonthChange={(value) =>
           setFilter((prev) => ({ ...prev, bulan: value }))
         }
@@ -164,12 +155,12 @@ const UjianSiswa: React.FC = () => {
               title="Jadwal Ujian Mendatang"
               description="Daftar ujian yang akan dilaksanakan dalam waktu dekat."
             >
-              {data.upcoming.length === 0 ? (
+              {ujianData.upcoming.length === 0 ? (
                 <div className="col-span-full rounded-xl border border-dashed border-gray-200 bg-white p-6 text-center text-sm text-gray-500">
                   Tidak ada jadwal ujian mendatang.
                 </div>
               ) : (
-                data.upcoming.map((item) => (
+                ujianData.upcoming.map((item) => (
                   <UjianCard key={item.id} item={item} />
                 ))
               )}
@@ -181,12 +172,12 @@ const UjianSiswa: React.FC = () => {
               title="Ujian Berlangsung Hari Ini"
               description="Ujian yang sedang berlangsung dan bisa dikerjakan sekarang."
             >
-              {data.ongoing.length === 0 ? (
+              {ujianData.ongoing.length === 0 ? (
                 <div className="col-span-full rounded-xl border border-dashed border-gray-200 bg-white p-6 text-center text-sm text-gray-500">
                   Tidak ada ujian yang sedang berlangsung.
                 </div>
               ) : (
-                data.ongoing.map((item) => (
+                ujianData.ongoing.map((item) => (
                   <UjianCard
                     key={item.id}
                     item={item}
@@ -203,12 +194,12 @@ const UjianSiswa: React.FC = () => {
               title="Hasil Ujian"
               description="Rekap ujian yang sudah kamu selesaikan beserta nilai."
             >
-              {data.completed.length === 0 ? (
+              {ujianData.completed.length === 0 ? (
                 <div className="col-span-full rounded-xl border border-dashed border-gray-200 bg-white p-6 text-center text-sm text-gray-500">
                   Belum ada hasil ujian yang tersedia.
                 </div>
               ) : (
-                data.completed.map((item) => (
+                ujianData.completed.map((item) => (
                   <UjianResultCard key={item.id} item={item} />
                 ))
               )}

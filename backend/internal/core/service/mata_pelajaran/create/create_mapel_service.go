@@ -20,20 +20,16 @@ func NewMapelService(mapelRepo matapelajaran_repo.MataPelajaranRepository) *Crea
 	}
 }
 
-func (r *CreateMapelRepo)CreateMapelService(ctx context.Context, mapel matapelajaran.MataPelajaran)error{
+func (r *CreateMapelRepo) CreateMapelService(ctx context.Context, mapel matapelajaran.MataPelajaran) error {
 	logger := corelog.FromContext(ctx)
 
-	mapel.KodeMapel = strings.TrimSpace(mapel.KodeMapel)
-	mapel.KodeMapel = strings.ToUpper(mapel.KodeMapel)
+	mapel = sanitizeMapel(mapel)
 
-	mapel.NamaMapel = strings.TrimSpace(mapel.NamaMapel)
-	mapel.Deskripsi = strings.TrimSpace(mapel.Deskripsi)
-
-	if mapel.IdKelas == 0 {
-		return coreerror.ErrInvalidInput
+	if err := validateMapelCreateInput(mapel); err != nil {
+		return err
 	}
 
-	exist, err := r.mapelRepo.ExistKodeMapel(ctx,mapel.KodeMapel)
+	exist, err := r.mapelRepo.ExistKodeMapel(ctx, mapel.KodeMapel)
 	if err != nil {
 		logger.Error(ctx, "failed creating mapel", "layer", "core.service", "op", "matapelajaran.create_mapel.existKodeMapel", "err", err)
 		return err
@@ -43,10 +39,29 @@ func (r *CreateMapelRepo)CreateMapelService(ctx context.Context, mapel matapelaj
 		return coreerror.ErrKodeMapelExist
 	}
 
-	if err:= r.mapelRepo.CreateMapel(ctx, mapel); err != nil {
+	if err := r.mapelRepo.CreateMapel(ctx, mapel); err != nil {
 		logger.Error(ctx, "failed creating mapel", "layer", "core.service", "op", "matapelajaran.create_mapel.CreateMapel", "err", err)
 		return err
 	}
 
+	return nil
+}
+
+// -----------------------
+// Sanitizer and validator
+// -----------------------
+
+func sanitizeMapel(mapel matapelajaran.MataPelajaran) matapelajaran.MataPelajaran {
+	mapel.KodeMapel = strings.TrimSpace(mapel.KodeMapel)
+	mapel.KodeMapel = strings.ToUpper(mapel.KodeMapel)
+	mapel.NamaMapel = strings.TrimSpace(mapel.NamaMapel)
+	mapel.Deskripsi = strings.TrimSpace(mapel.Deskripsi)
+	return mapel
+}
+
+func validateMapelCreateInput(mapel matapelajaran.MataPelajaran) error {
+	if mapel.IdKelas == 0 {
+		return coreerror.ErrInvalidInput
+	}
 	return nil
 }

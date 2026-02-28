@@ -1,4 +1,5 @@
 import { api } from "@/services/Api/api";
+import { useFetch } from "@/hooks/fetch";
 import type { DataAkunSiswa } from "@/types/KelolaAkun/AkunSiswa";
 import type { DataGuru } from "@/types/KelolaAkun/AkunGuru";
 
@@ -13,4 +14,12 @@ export async function getProfileByUserId(userId: number) {
     method: "GET",
     params: queryParams,
   });
+}
+
+// =====================
+// Hook Wrappers
+// =====================
+
+export function useGetProfileByUserId(userId: number) {
+  return useFetch(() => getProfileByUserId(userId), [userId]);
 }

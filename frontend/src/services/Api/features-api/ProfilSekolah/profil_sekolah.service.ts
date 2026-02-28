@@ -1,5 +1,6 @@
 import { api } from "@/services/Api/api";
 import { buildFormData } from "@/helper/FormData/BuildFormData";
+import { useFetch, usePut } from "@/hooks/fetch";
 
 import type {
   ProfilSekolahResponse,
@@ -34,4 +35,19 @@ export async function updateProfilSekolah(
     method: "PATCH",
     data: formData,
   });
+}
+
+// =====================
+// Hook Wrappers
+// =====================
+
+export function useGetProfilSekolah() {
+  return useFetch(() => getProfilSekolah(), []);
+}
+
+export function useUpdateProfilSekolah() {
+  return usePut(
+    (payload: { data: Partial<ProfilSekolahUpdatePayload>; logoFile?: File | null }) =>
+      updateProfilSekolah(payload.data, payload.logoFile),
+  );
 }

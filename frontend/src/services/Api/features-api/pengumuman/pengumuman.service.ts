@@ -1,5 +1,6 @@
 import { buildFormData } from "@/helper/FormData/BuildFormData";
 import { api } from "@/services/Api/api";
+import { useFetch, usePost, usePut, useDelete } from "@/hooks/fetch";
 import type {
   PengumumanCreatePayload,
   PengumumanFormValues,
@@ -43,7 +44,7 @@ const toPartialUpdatePayload = (
   return payload;
 };
 
-export async function createPengumuman(payload: PengumumanCreatePayload) {
+export function createPengumuman(payload: PengumumanCreatePayload) {
   const formData = buildFormData(payload, {
     transform: (_key, value) => {
       if (value instanceof Blob) return value;
@@ -53,39 +54,34 @@ export async function createPengumuman(payload: PengumumanCreatePayload) {
     skipNullish: true,
   });
 
-  return await api<null>(PENGUMUMAN_ENDPOINT, {
+  return api<null>(PENGUMUMAN_ENDPOINT, {
     method: "POST",
     data: formData,
   });
 }
 
-export async function getPengumumanActive(): Promise<PengumumanGetResponse[]> {
-  return await api<PengumumanGetResponse[]>(`${PENGUMUMAN_ENDPOINT}/active`, {
+export function getPengumumanActive(): Promise<PengumumanGetResponse[]> {
+  return api<PengumumanGetResponse[]>(`${PENGUMUMAN_ENDPOINT}/active`, {
     method: "GET",
   });
 }
 
-export async function getPengumumanIncoming(): Promise<PengumumanGetResponse[]> {
-  return await api<PengumumanGetResponse[]>(`${PENGUMUMAN_ENDPOINT}/incoming`, {
+export function getPengumumanIncoming(): Promise<PengumumanGetResponse[]> {
+  return api<PengumumanGetResponse[]>(`${PENGUMUMAN_ENDPOINT}/incoming`, {
     method: "GET",
   });
 }
 
-export async function getPengumumanNonActive(): Promise<
-  PengumumanGetResponse[]
-> {
-  return await api<PengumumanGetResponse[]>(
-    `${PENGUMUMAN_ENDPOINT}/non-active`,
-    {
-      method: "GET",
-    },
-  );
+export function getPengumumanNonActive(): Promise<PengumumanGetResponse[]> {
+  return api<PengumumanGetResponse[]>(`${PENGUMUMAN_ENDPOINT}/non-active`, {
+    method: "GET",
+  });
 }
 
-export async function getPengumumanById(
+export function getPengumumanById(
   idPengumuman: number,
 ): Promise<PengumumanGetResponse> {
-  return await api<PengumumanGetResponse>(
+  return api<PengumumanGetResponse>(
     `${PENGUMUMAN_ENDPOINT}/id/${idPengumuman}`,
     {
       method: "GET",
@@ -119,4 +115,49 @@ export async function deletePengumuman(idPengumuman: number) {
   return await api<null>(`${PENGUMUMAN_ENDPOINT}/${idPengumuman}`, {
     method: "DELETE",
   });
+}
+
+// =====================
+// Hook Wrappers
+// =====================
+
+export function useGetPengumumanActive() {
+  return useFetch(() => getPengumumanActive(), []);
+}
+
+export function useGetPengumumanIncoming() {
+  return useFetch(() => getPengumumanIncoming(), []);
+}
+
+export function useGetPengumumanNonActive() {
+  return useFetch(() => getPengumumanNonActive(), []);
+}
+
+export function useGetPengumumanById(idPengumuman: number) {
+  return useFetch(() => getPengumumanById(idPengumuman), [idPengumuman]);
+}
+
+export function useCreatePengumuman() {
+  return usePost((payload: PengumumanCreatePayload) =>
+    createPengumuman(payload),
+  );
+}
+
+export function useUpdatePengumuman() {
+  return usePut(
+    (payload: {
+      id: number;
+      values: PengumumanFormValues;
+      initialValues: PengumumanFormValues;
+    }) =>
+      updatePengumumanPartial(
+        payload.id,
+        payload.values,
+        payload.initialValues,
+      ),
+  );
+}
+
+export function useDeletePengumuman() {
+  return useDelete((idPengumuman: number) => deletePengumuman(idPengumuman));
 }

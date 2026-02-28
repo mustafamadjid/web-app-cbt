@@ -1,5 +1,6 @@
 import { api } from "../../api";
 import { buildJsonData } from "@/helper/FormData/BuildJsonData";
+import { useFetch, usePost, useDelete, usePut } from "@/hooks/fetch";
 
 import type {
   KelasFilterParams,
@@ -290,3 +291,59 @@ export const getTingkatKelasById = (id?: number | null): number | undefined => {
   const data = cachedTingkatKelas ?? (USE_DUMMY ? DUMMY_TINGKAT_KELAS : null);
   return data?.find((item) => item.id_tingkat_kelas === id)?.tingkat_kelas;
 };
+
+// =====================
+// Hook Wrappers
+// =====================
+
+export function useGetDataKelasFull(params: KelasFilterParams = {}) {
+  return useFetch(
+    () => GetDataKelasFull(params),
+    [params.search, params.tingkatKelas, params.limit, params.offset],
+  );
+}
+
+export function useGetTingkatKelas() {
+  return useFetch(() => getTingkatKelas(), []);
+}
+
+export function useGetNamaKelas(params: KelasFilterParams = {}) {
+  return useFetch(
+    () => getNamaKelas(params),
+    [params.search, params.tingkatKelas],
+  );
+}
+
+export function useGetKelasByIds(idTingkatKelas: number, idNamaKelas: number) {
+  return useFetch(
+    () => getKelasByIdsRequest(idTingkatKelas, idNamaKelas),
+    [idTingkatKelas, idNamaKelas],
+  );
+}
+
+export function useGetTingkatKelasRequestById(id: number) {
+  return useFetch(() => getTingkatKelasByIdRequest(id), [id]);
+}
+
+export function useGetNamaKelasById(id: number) {
+  return useFetch(() => getNamaKelasById(id), [id]);
+}
+
+export function useCreateTingkatKelas() {
+  return usePost((values: CreateTingkatKelasPayload) => createTingkatKelas(values));
+}
+
+export function useCreateNamaKelas() {
+  return usePost((values: CreateNamaKelasPayload) => createNamaKelas(values));
+}
+
+export function useDeleteNamaKelas() {
+  return useDelete((id: number) => deleteNamaKelas(id));
+}
+
+export function useUpdateNamaKelas() {
+  return usePut(
+    (payload: { id: number; values: UpdateNamaKelasPayload }) =>
+      updateNamaKelasPartial(payload.id, payload.values),
+  );
+}

@@ -1,4 +1,5 @@
 import { formatTanggalToIso } from "@/helper/dateFormatting/formatToIso";
+import { useFetch } from "@/hooks/fetch";
 import { normalize } from "@/helper/normalizeString/normalizeString";
 import type {
   JadwalUjianFilterParams,
@@ -409,4 +410,19 @@ export async function getJadwalUjianDetail(
 
   const res = await api<ApiEnvelope<DetailUjianItem>>(`/jadwal-ujian/${id}`);
   return res.data;
+}
+
+// =====================
+// Hook Wrappers
+// =====================
+
+export function useGetJadwalUjian(params: JadwalUjianFilterParams = {}) {
+  return useFetch(
+    () => getJadwalUjian(params),
+    [params.search, params.tanggal, params.tingkatKelasId, params.ruangUjianId, params.tahun],
+  );
+}
+
+export function useGetJadwalUjianDetail(id: number) {
+  return useFetch(() => getJadwalUjianDetail(id), [id]);
 }

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Search,
   Eye,
@@ -17,19 +17,17 @@ import AddButton from "@/components/common/Button/AddButton";
 import ConfirmAlert from "@/components/ui/ConfirmAlert/ConfirmAlert";
 import type { StatusAkun, JenisKelamin } from "@/types/OpsiTypes/Option";
 import { useNavigate } from "react-router";
-import type { TingkatKelas } from "@/types/DataMaster/Kelas";
 
-import { GetListSiswa } from "@/services/Api/features-api/KelolaAkun/akunsiswa.service";
+import { useGetListSiswa } from "@/services/Api/features-api/KelolaAkun/akunsiswa.service";
 import {
   DeletePengguna,
   DeletePenggunaBulk,
 } from "@/services/Api/features-api/KelolaAkun/akun.service";
-import { getJenisKelaminOptions } from "@/services/Api/features-api/GetOptions/options.service";
+import { useGetJenisKelaminOptions } from "@/services/Api/features-api/GetOptions/options.service";
 
-import { GetDataKelasFull } from "@/services/Api/features-api/DataMaster/kelas.service";
+import { useGetDataKelasFull } from "@/services/Api/features-api/DataMaster/kelas.service";
 
 import { paths } from "@/routes/paths";
-import type { DataAkunSiswa } from "@/types/KelolaAkun/AkunSiswa";
 import { resolveImageUrl } from "@/helper/MediaUrl/resolveMediaUrl";
 import { tahunOption } from "@/helper/TahunOption/TahunOption";
 
@@ -103,19 +101,13 @@ const AkunSiswaTables: React.FC = () => {
 
   const debouncedKataKunci = useDebouncedValue(kataKunci, 300);
 
-  // OPTIONS from server
-  const [opsiAngkatan, setOpsiAngkatan] = useState<number[]>([]);
-  const [opsiTingkatKelas, setOpsiTingkatKelas] = useState<TingkatKelas[]>([]);
-  const [opsiGender, setOpsiGender] = useState<
-    Array<{ value: JenisKelamin; label: string }>
-  >([]);
+  // OPTIONS from server via hooks
+  const opsiAngkatan = useMemo(() => tahunOption(), []);
+  const { data: kelasData } = useGetDataKelasFull();
+  const opsiTingkatKelas = kelasData?.item_tingkat_kelas ?? [];
+  const { data: opsiGender } = useGetJenisKelaminOptions();
 
-  // DATA from server
-  const [daftarSiswa, setDaftarSiswa] = useState<DataAkunSiswa[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
-
-  // Selection / privacy tetap
+  // Selection / privacy
   const [idTerpilih, setIdTerpilih] = useState<Set<number>>(new Set());
   const [samarkanDataSensitif, setSamarkanDataSensitif] = useState(true);
   const [batasData, setBatasData] = useState(12);
@@ -127,88 +119,22 @@ const AkunSiswaTables: React.FC = () => {
     null | (() => Promise<void>)
   >(null);
 
-  // Anti race condition
-  const requestSeq = useRef(0);
+  // Hook: fetch siswa list with filters
+  const {
+    data: rawSiswa,
+    loading,
+    error: errorMsg,
+    refetch: refetchSiswa,
+  } = useGetListSiswa({
+    q: debouncedKataKunci.trim() || undefined,
+    angkatan: angkatan ? Number(angkatan) : undefined,
+    tingkatKelas: tingkatKelasId ?? undefined,
+    jenisKelamin: (jenisKelamin as JenisKelamin) || undefined,
+    limit: batasData,
+    offset: (halamanSaatIni - 1) * batasData,
+  });
 
-  // ===== load filter options (sekali)
-  useEffect(() => {
-    let mounted = true;
-
-    (async () => {
-      try {
-        setErrorMsg("");
-        const [a, k, g] = await Promise.all([
-          tahunOption(),
-          GetDataKelasFull(),
-          getJenisKelaminOptions(),
-        ]);
-        if (!mounted) return;
-
-        setOpsiAngkatan(a);
-        setOpsiTingkatKelas(k.item_tingkat_kelas ?? []);
-        setOpsiGender(g);
-      } catch {
-        if (!mounted) return;
-        setErrorMsg("Gagal memuat opsi filter dari server.");
-      }
-    })();
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  // ===== fetch siswa saat filter berubah
-  useEffect(() => {
-    const seq = ++requestSeq.current;
-
-    (async () => {
-      try {
-        setLoading(true);
-        setErrorMsg("");
-
-        const data = await GetListSiswa({
-          q: debouncedKataKunci.trim() || undefined,
-          angkatan: angkatan ? Number(angkatan) : undefined,
-          tingkatKelas: tingkatKelasId ?? undefined,
-          jenisKelamin: (jenisKelamin as JenisKelamin) || undefined,
-          limit: batasData,
-          offset: (halamanSaatIni - 1) * batasData,
-        });
-
-        if (seq !== requestSeq.current) return;
-
-        setDaftarSiswa(data);
-
-        // bersihkan selection yang tidak ada lagi di hasil
-        setIdTerpilih((prev) => {
-          if (prev.size === 0) return prev;
-          const ids = new Set(data.map((x) => x.id_pengguna));
-          const next = new Set<number>();
-          prev.forEach((id) => {
-            if (ids.has(id)) next.add(id);
-          });
-          return next;
-        });
-      } catch {
-        if (seq !== requestSeq.current) return;
-        setErrorMsg("Gagal memuat data siswa.");
-        setDaftarSiswa([]);
-      } finally {
-        if (seq === requestSeq.current) {
-          setLoading(false);
-        }
-      }
-    })();
-  }, [
-    debouncedKataKunci,
-    angkatan,
-    tingkatKelasId,
-    jenisKelamin,
-    batasData,
-    halamanSaatIni,
-  ]);
-
+  const daftarSiswa = rawSiswa ?? [];
   const siswaTersaring = daftarSiswa;
   const totalData = siswaTersaring.length;
   const siswaTerlihat = siswaTersaring;
@@ -246,21 +172,9 @@ const AkunSiswaTables: React.FC = () => {
     setHalamanSaatIni(1);
   };
 
-  const fetchSiswa = async () => {
-    return GetListSiswa({
-      q: debouncedKataKunci.trim() || undefined,
-      angkatan: angkatan ? Number(angkatan) : undefined,
-      tingkatKelas: tingkatKelasId ?? undefined,
-      jenisKelamin: (jenisKelamin as JenisKelamin) || undefined,
-      limit: batasData,
-      offset: (halamanSaatIni - 1) * batasData,
-    });
-  };
-
   const handleDeleteSiswa = async (id_pengguna: number) => {
     await DeletePengguna(id_pengguna);
-    const data = await fetchSiswa();
-    setDaftarSiswa(data);
+    await refetchSiswa();
     setIdTerpilih((prev) => {
       const next = new Set(prev);
       next.delete(id_pengguna);
@@ -270,11 +184,9 @@ const AkunSiswaTables: React.FC = () => {
 
   const handleBulkDelete = async () => {
     if (idTerpilih.size === 0) return;
-
     const ids = Array.from(idTerpilih);
     await DeletePenggunaBulk(ids);
-    const data = await fetchSiswa();
-    setDaftarSiswa(data);
+    await refetchSiswa();
     setIdTerpilih(new Set());
   };
 
@@ -393,7 +305,7 @@ const AkunSiswaTables: React.FC = () => {
                 className="mt-1 w-full cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-[#397e50] focus:outline-none focus:ring-1 focus:ring-[#397e50]"
               >
                 <option value="">Semua</option>
-                {opsiAngkatan.map((a) => (
+                {(opsiAngkatan ?? []).map((a) => (
                   <option key={a} value={String(a)}>
                     {a}
                   </option>
@@ -438,7 +350,7 @@ const AkunSiswaTables: React.FC = () => {
                 className="mt-1 w-full cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-[#397e50] focus:outline-none focus:ring-1 focus:ring-[#397e50]"
               >
                 <option value="">Semua</option>
-                {opsiGender.map((g) => (
+                {(opsiGender ?? []).map((g) => (
                   <option key={g.value} value={g.value}>
                     {g.label}
                   </option>

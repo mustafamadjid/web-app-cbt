@@ -1,4 +1,5 @@
 import { api } from "../../api";
+import { usePost } from "@/hooks/fetch";
 
 export type ImportSoalResponse = {
   id_job: number;
@@ -19,5 +20,16 @@ export async function uploadImportSoal(
       data: formData,
       headers: { "Content-Type": "multipart/form-data" },
     },
+  );
+}
+
+// =====================
+// Hook Wrappers
+// =====================
+
+export function useUploadImportSoal() {
+  return usePost(
+    (payload: { idBankSoal: number; file: File }) =>
+      uploadImportSoal(payload.idBankSoal, payload.file),
   );
 }

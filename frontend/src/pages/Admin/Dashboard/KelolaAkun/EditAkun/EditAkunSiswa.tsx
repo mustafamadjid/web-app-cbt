@@ -1,14 +1,17 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 
 import EditAkunSiswaForm from "@/layouts/Form/Admin/KelolaAkun/EditAkunSiswaForm";
 import type { StudentUpdateFormValues } from "@/types/KelolaAkun/AkunSiswa";
 import type { ResetPasswordFormValues } from "@/types/KelolaAkun/ResetPassword";
-import { getSiswaById, updateSiswa } from "@/services/Api/features-api/KelolaAkun/akunsiswa.service";
+import {
+  useGetSiswaById,
+  updateSiswa,
+} from "@/services/Api/features-api/KelolaAkun/akunsiswa.service";
 import { resetPasswordPengguna } from "@/services/Api/features-api/KelolaAkun/akun.service";
 import { ApiError } from "@/services/Api/api";
 import { paths } from "@/routes/paths";
-import { GetDataKelasFull } from "@/services/Api/features-api/DataMaster/kelas.service";
+import { useGetDataKelasFull } from "@/services/Api/features-api/DataMaster/kelas.service";
 import toast from "react-hot-toast";
 import { resolveImageUrl } from "@/helper/MediaUrl/resolveMediaUrl";
 
@@ -33,62 +36,52 @@ const buildInitialValues = (): StudentUpdateFormValues => ({
 const EditAkunSiswa = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [initialValues, setInitialValues] =
-    useState<StudentUpdateFormValues>(buildInitialValues());
-  const [fotoUrl, setFotoUrl] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(true);
   const [submitting, setSubmitting] = useState<boolean>(false);
 
   const siswaId = useMemo(() => Number(id), [id]);
+  const isSiswaIdValid = Boolean(id) && !Number.isNaN(siswaId);
 
-  useEffect(() => {
-    let active = true;
-    const loadSiswa = async () => {
-      if (!id || Number.isNaN(siswaId)) {
-        setLoading(false);
-        return;
-      }
+  const {
+    data: siswaData,
+    loading: loadingSiswa,
+  } = useGetSiswaById(isSiswaIdValid ? siswaId : -1);
+  const {
+    data: kelasData,
+    loading: loadingKelas,
+  } = useGetDataKelasFull();
 
-      try {
-        const [data, kelas] = await Promise.all([
-          getSiswaById(siswaId),
-          GetDataKelasFull(),
-        ]);
-        if (!active || !data) return;
+  const initialValues = useMemo<StudentUpdateFormValues>(() => {
+    if (!siswaData) return buildInitialValues();
 
-        const namaMatch = kelas.item_nama_kelas.find(
-          (item) => item.nama_kelas === data.nama_kelas,
-        );
+    const namaMatch = kelasData?.item_nama_kelas.find(
+      (item) => item.nama_kelas === siswaData.nama_kelas,
+    );
 
-        setInitialValues({
-          id_pengguna: data.id_pengguna,
-          role: data.role ?? "SISWA",
-          nama_lengkap: data.nama_lengkap,
-          username: data.username,
-          jenis_kelamin: data.jenis_kelamin,
-          email: data.email ?? "",
-          no_hp: data.no_hp ?? "",
-          nisn: data.nisn ?? "",
-          no_absen: data.no_absen,
-          angkatan: data.angkatan,
-          tempat_lahir: data.tempat_lahir,
-          tanggal_lahir: data.tanggal_lahir,
-          id_nama_kelas: namaMatch ? String(namaMatch.id_nama_kelas) : "",
-          foto_profil: null,
-          status_akun: data.status_akun,
-        });
-        setFotoUrl(resolveImageUrl(data.foto_profil));
-      } finally {
-        if (active) setLoading(false);
-      }
+    return {
+      id_pengguna: siswaData.id_pengguna,
+      role: siswaData.role ?? "SISWA",
+      nama_lengkap: siswaData.nama_lengkap,
+      username: siswaData.username,
+      jenis_kelamin: siswaData.jenis_kelamin,
+      email: siswaData.email ?? "",
+      no_hp: siswaData.no_hp ?? "",
+      nisn: siswaData.nisn ?? "",
+      no_absen: siswaData.no_absen,
+      angkatan: siswaData.angkatan,
+      tempat_lahir: siswaData.tempat_lahir,
+      tanggal_lahir: siswaData.tanggal_lahir,
+      id_nama_kelas: namaMatch ? String(namaMatch.id_nama_kelas) : "",
+      foto_profil: null,
+      status_akun: siswaData.status_akun,
     };
+  }, [kelasData?.item_nama_kelas, siswaData]);
 
-    loadSiswa();
+  const fotoUrl = useMemo(
+    () => resolveImageUrl(siswaData?.foto_profil),
+    [siswaData?.foto_profil],
+  );
 
-    return () => {
-      active = false;
-    };
-  }, [id, siswaId]);
+  const loading = isSiswaIdValid ? loadingSiswa || loadingKelas : false;
 
   const handleSubmit = async (values: StudentUpdateFormValues) => {
     if (!id || Number.isNaN(siswaId)) {

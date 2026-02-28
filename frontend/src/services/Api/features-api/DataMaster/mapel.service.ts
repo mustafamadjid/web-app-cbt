@@ -1,5 +1,6 @@
 import { buildJsonData } from "@/helper/FormData/BuildJsonData";
 import { api } from "@/services/Api/api";
+import { useFetch, usePost, usePut, useDelete } from "@/hooks/fetch";
 import type {
   CreateMapelPayload,
   ListMapelResponse,
@@ -120,4 +121,34 @@ export async function deleteMataPelajaran(idMapel: number) {
     method: "DELETE",
     data,
   });
+}
+
+// =====================
+// Hook Wrappers
+// =====================
+
+export function useGetMapel(params: MataPelajaranFilterParams = {}) {
+  return useFetch(
+    () => getMapel(params),
+    [params.search, params.tingkatKelas, params.namaMapel, params.limit, params.offset],
+  );
+}
+
+export function useGetMapelById(idMapel: number) {
+  return useFetch(() => getMapelById(idMapel), [idMapel]);
+}
+
+export function useCreateMapel() {
+  return usePost((values: MataPelajaranFormValues) => createMataPelajaran(values));
+}
+
+export function useUpdateMapel() {
+  return usePut(
+    (payload: { id: number; values: MataPelajaranFormValues; initialValues: MataPelajaranFormValues }) =>
+      updateMataPelajaranPartial(payload.id, payload.values, payload.initialValues),
+  );
+}
+
+export function useDeleteMapel() {
+  return useDelete((idMapel: number) => deleteMataPelajaran(idMapel));
 }

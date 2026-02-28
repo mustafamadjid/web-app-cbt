@@ -6,6 +6,7 @@ import type {
   SiswaSemesterAverage,
 } from "@/types/Widget/SiswaDashboard";
 import { getJadwalUjian } from "@/services/Api/features-api/Ujian/jadwalujian.service";
+import { useFetch } from "@/hooks/fetch";
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -88,4 +89,24 @@ export async function getSiswaRataRataSemester(): Promise<
 > {
   await sleep(80);
   return dummyRataRata;
+}
+
+// =====================
+// Hook Wrappers
+// =====================
+
+export function useGetSiswaDashboardSummary() {
+  return useFetch(() => getSiswaDashboardSummary(), []);
+}
+
+export function useGetSiswaJadwalUjian() {
+  return useFetch(() => getSiswaJadwalUjian(), []);
+}
+
+export function useGetSiswaPengumuman() {
+  return useFetch(() => getSiswaPengumuman(), []);
+}
+
+export function useGetSiswaRataRataSemester() {
+  return useFetch(() => getSiswaRataRataSemester(), []);
 }

@@ -17,16 +17,15 @@ import (
 )
 
 type UpdateTx struct {
-	txm txout.TxManager
-	sessions out.SessionRepository
+	txm        txout.TxManager
+	sessions   out.SessionRepository
 	deleteFile delete_file_repo.DeleteFileRepo
-	users outuser.UserRepository
+	users      outuser.UserRepository
 }
 
-func NewUpdateUserService(txm txout.TxManager,session out.SessionRepository, deleteFile delete_file_repo.DeleteFileRepo, users outuser.UserRepository) *UpdateTx {
-	return &UpdateTx{txm: txm,sessions: session, deleteFile: deleteFile, users: users}
+func NewUpdateUserService(txm txout.TxManager, session out.SessionRepository, deleteFile delete_file_repo.DeleteFileRepo, users outuser.UserRepository) *UpdateTx {
+	return &UpdateTx{txm: txm, sessions: session, deleteFile: deleteFile, users: users}
 }
-
 
 func hasPenggunaPatch(p updatepatch.Pengguna) bool {
 	return p.NamaLengkap != nil || p.Email != nil || p.NoHp != nil || p.Foto != nil || p.StatusAkun != nil || p.Role != nil
@@ -42,90 +41,37 @@ func hasProfilSiswaPatch(p updatepatch.ProfilSiswa) bool {
 
 func (u *UpdateTx) UpdateGuru(ctx context.Context, cmd UpdateGuruCmd, actor user.Actor) error {
 	logger := corelog.FromContext(ctx)
-	if actor.Role != user.ADMIN {
-		return coreerror.ErrForbidden
+	if err := validateUpdateUserActor(actor); err != nil {
+		return err
 	}
 
-	if cmd.IdPengguna == 0 {
-		return errors.New("Id pengguna required")
+	if err := validateUpdateUserID(cmd.IdPengguna); err != nil {
+		return err
 	}
 
-	
-
-	// Normalisasi dan Validasi
-	if cmd.Username != nil {
-		s := strings.TrimSpace(*cmd.Username)
-		if s == "" {
-			return errors.New("username cannot be empty")
-		}
-		cmd.Username = &s
+	var (
+		emailVO *user.Email
+		err     error
+	)
+	cmd, emailVO, err = sanitizeAndValidateUpdateGuruCmd(cmd)
+	if err != nil {
+		return err
 	}
 
-	if cmd.NamaLengkap != nil {
-		s := strings.TrimSpace(*cmd.NamaLengkap)
-		if s == "" {
-			return errors.New("nama_lengkap cannot be empty")
-		}
-		cmd.NamaLengkap = &s
-	}
-	var emailVO *user.Email
-	if cmd.Email != nil {
-		e, err := user.CheckNewEmail(*cmd.Email)
-		if err != nil {
-			return err
-		}
-		emailVO = &e
-	}
-	if cmd.NoHp != nil {
-		s := strings.TrimSpace(*cmd.NoHp)
-		cmd.NoHp = &s
-	}
 	if cmd.Foto != nil {
-		s := strings.TrimSpace(*cmd.Foto)
-
-		if s == "" {
-			return coreerror.ErrMissingField
-		}// user
-		userData,err := u.users.FindUserByID(ctx,cmd.IdPengguna)
+		userData, err := u.users.FindUserByID(ctx, cmd.IdPengguna)
 		if err != nil {
 			logger.Error(ctx, "failed finding user", "layer", "core.service", "op", "user.update", "user_id", cmd.IdPengguna, "err", err)
 			return err
 		}
-		
-		if err := u.deleteFile.DeleteFile(ctx,userData.Foto); err != nil {
+
+		if err := u.deleteFile.DeleteFile(ctx, userData.Foto); err != nil {
 			logger.Error(ctx, "failed deleting old phot user", "layer", "core.service", "op", "user.update_user.delete_file_foto", "user_id", cmd.IdPengguna, "err", err)
 			return err
 		}
-
-		cmd.Foto = &s
-	}
-	if cmd.Nip != nil {
-		s := strings.TrimSpace(*cmd.Nip)
-		cmd.Nip = &s
-	}
-	if cmd.Jabatan != nil {
-		s := strings.TrimSpace(*cmd.Jabatan)
-		cmd.Jabatan = &s
-	}
-	if cmd.BidangStudi != nil {
-		s := strings.TrimSpace(*cmd.BidangStudi)
-		cmd.BidangStudi = &s
 	}
 
-	if cmd.JenisKelamin != nil {
-		s := strings.TrimSpace(*cmd.JenisKelamin)
-		cmd.JenisKelamin = &s
-	}
-
-	if cmd.NamaLengkap == nil &&
-		cmd.Email == nil &&
-		cmd.NoHp == nil &&
-		cmd.Foto == nil &&
-		cmd.StatusAkun == nil &&
-		cmd.Nip == nil &&
-		cmd.Jabatan == nil &&
-		cmd.BidangStudi == nil &&
-		cmd.JenisKelamin == nil {
+	if hasNoFieldToUpdateGuru(cmd) {
 		return coreerror.ErrNoFieldToUpdate
 	}
 
@@ -176,7 +122,7 @@ func (u *UpdateTx) UpdateGuru(ctx context.Context, cmd UpdateGuruCmd, actor user
 		return err
 	}
 
-	if err := u.sessions.RevokeSessionAllbyUser(ctx,cmd.IdPengguna); err != nil {
+	if err := u.sessions.RevokeSessionAllbyUser(ctx, cmd.IdPengguna); err != nil {
 		logger.Error(ctx, "failed revoking sessions", "layer", "core.service", "op", "user.update_guru", "user_id", cmd.IdPengguna, "err", err)
 		return err
 	}
@@ -185,98 +131,37 @@ func (u *UpdateTx) UpdateGuru(ctx context.Context, cmd UpdateGuruCmd, actor user
 
 func (u *UpdateTx) UpdateSiswa(ctx context.Context, cmd UpdateSiswaCmd, actor user.Actor) error {
 	logger := corelog.FromContext(ctx)
-	if actor.Role != user.ADMIN {
-		return coreerror.ErrForbidden
+	if err := validateUpdateUserActor(actor); err != nil {
+		return err
 	}
 
-	if cmd.IdPengguna == 0 {
-		return errors.New("Id pengguna required")
+	if err := validateUpdateUserID(cmd.IdPengguna); err != nil {
+		return err
 	}
 
-	
-
-	if cmd.Username != nil {
-		s := strings.TrimSpace(*cmd.Username)
-		if s == "" {
-			return errors.New("username cannot be empty")
-		}
-		cmd.Username = &s
+	var (
+		emailVO *user.Email
+		err     error
+	)
+	cmd, emailVO, err = sanitizeAndValidateUpdateSiswaCmd(cmd)
+	if err != nil {
+		return err
 	}
 
-	if cmd.NamaLengkap != nil {
-		s := strings.TrimSpace(*cmd.NamaLengkap)
-		if s == "" {
-			return errors.New("nama_lengkap cannot be empty")
-		}
-		cmd.NamaLengkap = &s
-	}
-
-	var emailVO *user.Email
-	if cmd.Email != nil {
-		e, err := user.CheckNewEmail(*cmd.Email)
-		if err != nil {
-			return err
-		}
-		emailVO = &e
-	}
-	if cmd.NoHp != nil {
-		s := strings.TrimSpace(*cmd.NoHp)
-		cmd.NoHp = &s
-	}
 	if cmd.Foto != nil {
-		s := strings.TrimSpace(*cmd.Foto)
-		if s == "" {
-			return coreerror.ErrMissingField
-		}
-		userData,err := u.users.FindUserByID(ctx,cmd.IdPengguna)
+		userData, err := u.users.FindUserByID(ctx, cmd.IdPengguna)
 		if err != nil {
 			logger.Error(ctx, "failed finding user", "layer", "core.service", "op", "user.update_siswa", "user_id", cmd.IdPengguna, "err", err)
 			return err
 		}
 
-		if err := u.deleteFile.DeleteFile(ctx,userData.Foto); err != nil {
+		if err := u.deleteFile.DeleteFile(ctx, userData.Foto); err != nil {
 			logger.Error(ctx, "failed deleting user", "layer", "core.service", "op", "user.update_file_foto", "user_id", cmd.IdPengguna, "err", err)
 			return err
 		}
-
-		cmd.Foto = &s
-	}
-	if cmd.Nisn != nil {
-		nisn, err := user.CheckNewNISN(*cmd.Nisn)
-		if err != nil {
-			return err
-		}
-		s := string(nisn)
-		cmd.Nisn = &s
-	}
-	if cmd.NoAbsen != nil {
-		if err := user.CheckAbsen(*cmd.NoAbsen); err != nil {
-			return err
-		}
-	}
-	if cmd.Angkatan != nil {
-		if err := user.CheckAngkatan(*cmd.Angkatan); err != nil {
-			return err
-		}
-	}
-	if cmd.TempatLahir != nil {
-		s := strings.TrimSpace(*cmd.TempatLahir)
-		cmd.TempatLahir = &s
 	}
 
-	if cmd.NamaLengkap == nil &&
-		cmd.Email == nil &&
-		cmd.NoHp == nil &&
-		cmd.Foto == nil &&
-		cmd.StatusAkun == nil &&
-		cmd.Role == nil &&
-		cmd.IdTingkatKelas == nil &&
-		cmd.IdNamaKelas == nil &&
-		cmd.Nisn == nil &&
-		cmd.NoAbsen == nil &&
-		cmd.Angkatan == nil &&
-		cmd.TempatLahir == nil &&
-		cmd.TanggalLahir == nil {
+	if hasNoFieldToUpdateSiswa(cmd) {
 		return coreerror.ErrNoFieldToUpdate
 	}
 
@@ -327,9 +212,185 @@ func (u *UpdateTx) UpdateSiswa(ctx context.Context, cmd UpdateSiswaCmd, actor us
 		return err
 	}
 
-	if err := u.sessions.RevokeSessionAllbyUser(ctx,cmd.IdPengguna); err != nil {
+	if err := u.sessions.RevokeSessionAllbyUser(ctx, cmd.IdPengguna); err != nil {
 		logger.Error(ctx, "failed revoking sessions", "layer", "core.service", "op", "user.update_guru", "user_id", cmd.IdPengguna, "err", err)
 		return err
 	}
 	return nil
+}
+
+// -----------------------
+// Sanitizer and validator
+// -----------------------
+
+func validateUpdateUserActor(actor user.Actor) error {
+	if actor.Role != user.ADMIN {
+		return coreerror.ErrForbidden
+	}
+	return nil
+}
+
+func validateUpdateUserID(idPengguna user.ID) error {
+	if idPengguna == 0 {
+		return errors.New("Id pengguna required")
+	}
+	return nil
+}
+
+func sanitizeAndValidateUpdateGuruCmd(cmd UpdateGuruCmd) (UpdateGuruCmd, *user.Email, error) {
+	if cmd.Username != nil {
+		trimmedUsername := strings.TrimSpace(*cmd.Username)
+		if trimmedUsername == "" {
+			return cmd, nil, errors.New("username cannot be empty")
+		}
+		cmd.Username = &trimmedUsername
+	}
+
+	if cmd.NamaLengkap != nil {
+		trimmedNamaLengkap := strings.TrimSpace(*cmd.NamaLengkap)
+		if trimmedNamaLengkap == "" {
+			return cmd, nil, errors.New("nama_lengkap cannot be empty")
+		}
+		cmd.NamaLengkap = &trimmedNamaLengkap
+	}
+
+	var emailVO *user.Email
+	if cmd.Email != nil {
+		email, err := user.CheckNewEmail(*cmd.Email)
+		if err != nil {
+			return cmd, nil, err
+		}
+		emailVO = &email
+	}
+
+	if cmd.NoHp != nil {
+		trimmedNoHp := strings.TrimSpace(*cmd.NoHp)
+		cmd.NoHp = &trimmedNoHp
+	}
+
+	if cmd.Foto != nil {
+		trimmedFoto := strings.TrimSpace(*cmd.Foto)
+		if trimmedFoto == "" {
+			return cmd, nil, coreerror.ErrMissingField
+		}
+		cmd.Foto = &trimmedFoto
+	}
+
+	if cmd.Nip != nil {
+		trimmedNip := strings.TrimSpace(*cmd.Nip)
+		cmd.Nip = &trimmedNip
+	}
+
+	if cmd.Jabatan != nil {
+		trimmedJabatan := strings.TrimSpace(*cmd.Jabatan)
+		cmd.Jabatan = &trimmedJabatan
+	}
+
+	if cmd.BidangStudi != nil {
+		trimmedBidangStudi := strings.TrimSpace(*cmd.BidangStudi)
+		cmd.BidangStudi = &trimmedBidangStudi
+	}
+
+	if cmd.JenisKelamin != nil {
+		trimmedJenisKelamin := strings.TrimSpace(*cmd.JenisKelamin)
+		cmd.JenisKelamin = &trimmedJenisKelamin
+	}
+
+	return cmd, emailVO, nil
+}
+
+func sanitizeAndValidateUpdateSiswaCmd(cmd UpdateSiswaCmd) (UpdateSiswaCmd, *user.Email, error) {
+	if cmd.Username != nil {
+		trimmedUsername := strings.TrimSpace(*cmd.Username)
+		if trimmedUsername == "" {
+			return cmd, nil, errors.New("username cannot be empty")
+		}
+		cmd.Username = &trimmedUsername
+	}
+
+	if cmd.NamaLengkap != nil {
+		trimmedNamaLengkap := strings.TrimSpace(*cmd.NamaLengkap)
+		if trimmedNamaLengkap == "" {
+			return cmd, nil, errors.New("nama_lengkap cannot be empty")
+		}
+		cmd.NamaLengkap = &trimmedNamaLengkap
+	}
+
+	var emailVO *user.Email
+	if cmd.Email != nil {
+		email, err := user.CheckNewEmail(*cmd.Email)
+		if err != nil {
+			return cmd, nil, err
+		}
+		emailVO = &email
+	}
+
+	if cmd.NoHp != nil {
+		trimmedNoHp := strings.TrimSpace(*cmd.NoHp)
+		cmd.NoHp = &trimmedNoHp
+	}
+
+	if cmd.Foto != nil {
+		trimmedFoto := strings.TrimSpace(*cmd.Foto)
+		if trimmedFoto == "" {
+			return cmd, nil, coreerror.ErrMissingField
+		}
+		cmd.Foto = &trimmedFoto
+	}
+
+	if cmd.Nisn != nil {
+		nisn, err := user.CheckNewNISN(*cmd.Nisn)
+		if err != nil {
+			return cmd, nil, err
+		}
+		validatedNisn := string(nisn)
+		cmd.Nisn = &validatedNisn
+	}
+
+	if cmd.NoAbsen != nil {
+		if err := user.CheckAbsen(*cmd.NoAbsen); err != nil {
+			return cmd, nil, err
+		}
+	}
+
+	if cmd.Angkatan != nil {
+		if err := user.CheckAngkatan(*cmd.Angkatan); err != nil {
+			return cmd, nil, err
+		}
+	}
+
+	if cmd.TempatLahir != nil {
+		trimmedTempatLahir := strings.TrimSpace(*cmd.TempatLahir)
+		cmd.TempatLahir = &trimmedTempatLahir
+	}
+
+	return cmd, emailVO, nil
+}
+
+func hasNoFieldToUpdateGuru(cmd UpdateGuruCmd) bool {
+	return cmd.NamaLengkap == nil &&
+		cmd.Email == nil &&
+		cmd.NoHp == nil &&
+		cmd.Foto == nil &&
+		cmd.StatusAkun == nil &&
+		cmd.Nip == nil &&
+		cmd.Jabatan == nil &&
+		cmd.BidangStudi == nil &&
+		cmd.JenisKelamin == nil
+}
+
+func hasNoFieldToUpdateSiswa(cmd UpdateSiswaCmd) bool {
+	return cmd.NamaLengkap == nil &&
+		cmd.Email == nil &&
+		cmd.NoHp == nil &&
+		cmd.Foto == nil &&
+		cmd.StatusAkun == nil &&
+		cmd.Role == nil &&
+		cmd.IdTingkatKelas == nil &&
+		cmd.IdNamaKelas == nil &&
+		cmd.Nisn == nil &&
+		cmd.NoAbsen == nil &&
+		cmd.Angkatan == nil &&
+		cmd.TempatLahir == nil &&
+		cmd.TanggalLahir == nil
 }

@@ -11,10 +11,9 @@ import { useNavigate } from "react-router";
 
 import AddButton from "@/components/common/Button/AddButton";
 import ConfirmAlert from "@/components/ui/ConfirmAlert/ConfirmAlert";
-import type { NamaKelas, TingkatKelas } from "@/types/DataMaster/Kelas";
 import {
   deleteNamaKelas,
-  GetDataKelasFull,
+  useGetDataKelasFull,
 } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { paths } from "@/routes/paths";
 import toast from "react-hot-toast";
@@ -37,11 +36,6 @@ const DataKelasTables: React.FC = () => {
   const [kataKunci, setKataKunci] = useState("");
   const [tingkatKelas, setTingkatKelas] = useState<number | null>(null);
 
-  const [daftarKelas, setDaftarKelas] = useState<NamaKelas[]>([]);
-  const [opsiTingkat, setOpsiTingkat] = useState<TingkatKelas[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
-
   const [idTerpilih, setIdTerpilih] = useState<Set<number>>(new Set());
   const [batasData, setBatasData] = useState(12);
   const [halamanSaatIni, setHalamanSaatIni] = useState(1);
@@ -54,65 +48,24 @@ const DataKelasTables: React.FC = () => {
 
   const debouncedKataKunci = useDebouncedValue(kataKunci, 300);
 
-  useEffect(() => {
-    let akitf = true;
-    const loadKelas = async () => {
-      const data = await GetDataKelasFull();
-      if (akitf) {
-        setOpsiTingkat(data.item_tingkat_kelas ?? []);
-      }
-    };
-    loadKelas();
-    return () => {
-      akitf = false;
-    };
-  }, []);
+  // Hook: fetch kelas options on mount (no filters)
+  const { data: kelasOptionsData } = useGetDataKelasFull();
+  const opsiTingkat = kelasOptionsData?.item_tingkat_kelas ?? [];
 
-  useEffect(() => {
-    let aktif = true;
-    const loadKelas = async () => {
-      try {
-        setLoading(true);
-        setErrorMsg("");
+  // Hook: fetch filtered kelas data
+  const {
+    data: kelasFilteredData,
+    loading,
+    error: errorMsg,
+    refetch: refetchKelas,
+  } = useGetDataKelasFull({
+    search: debouncedKataKunci.trim() || undefined,
+    tingkatKelas: tingkatKelas || undefined,
+    limit: batasData,
+    offset: (halamanSaatIni - 1) * batasData,
+  });
 
-        const data = await GetDataKelasFull({
-          search: debouncedKataKunci.trim() || undefined,
-          tingkatKelas: tingkatKelas || undefined,
-          limit: batasData,
-          offset: (halamanSaatIni - 1) * batasData,
-        });
-
-        if (!aktif) return;
-
-        const daftar = data.item_nama_kelas ?? [];
-        setDaftarKelas(daftar);
-        setIdTerpilih((prev) => {
-          if (prev.size === 0) return prev;
-          const ids = new Set(daftar.map((kelas) => kelas.id_nama_kelas));
-          const next = new Set<number>();
-          prev.forEach((id) => {
-            if (ids.has(id)) next.add(id);
-          });
-          return next;
-        });
-      } catch {
-        if (!aktif) return;
-        setErrorMsg("Gagal memuat data kelas.");
-        setDaftarKelas([]);
-        setOpsiTingkat([]);
-      } finally {
-        if (aktif) {
-          setLoading(false);
-        }
-      }
-    };
-
-    loadKelas();
-
-    return () => {
-      aktif = false;
-    };
-  }, [debouncedKataKunci, tingkatKelas, batasData, halamanSaatIni]);
+  const daftarKelas = kelasFilteredData?.item_nama_kelas ?? [];
 
   const tingkatById = useMemo(
     () =>
@@ -153,29 +106,15 @@ const DataKelasTables: React.FC = () => {
     });
   };
 
-  const fetchDataKelas = async () => {
-    return GetDataKelasFull({
-      search: debouncedKataKunci.trim() || undefined,
-      tingkatKelas: tingkatKelas || undefined,
-      limit: batasData,
-      offset: (halamanSaatIni - 1) * batasData,
-    });
-  };
-
   const handleDeleteKelas = async (idNamaKelas: number) => {
     try {
       await deleteNamaKelas(idNamaKelas);
-
-      const data = await fetchDataKelas();
-      const daftar = data.item_nama_kelas ?? [];
-
-      setDaftarKelas(daftar);
+      await refetchKelas();
       setIdTerpilih((prev) => {
         const next = new Set(prev);
         next.delete(idNamaKelas);
         return next;
       });
-
       toast.success("Berhasil menghapus data kelas");
     } catch (e) {
       const message =
@@ -190,16 +129,12 @@ const DataKelasTables: React.FC = () => {
 
   const handleBulkDelete = async () => {
     if (idTerpilih.size === 0) return;
-
     const ids = Array.from(idTerpilih);
     try {
       await Promise.all(ids.map((id) => deleteNamaKelas(id)));
-
-      const data = await fetchDataKelas();
-      setDaftarKelas(data.item_nama_kelas ?? []);
+      await refetchKelas();
       setIdTerpilih(new Set());
       setDropdownAksiTerbuka(false);
-
       toast.success("Berhasil menghapus data kelas terpilih");
     } catch {
       toast.error("Gagal menghapus data kelas terpilih");

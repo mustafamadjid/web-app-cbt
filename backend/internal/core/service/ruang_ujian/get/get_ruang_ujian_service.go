@@ -19,9 +19,59 @@ func NewGetRuangUjianService(ruangRepo ruangujian_repo.RuangUjianRepo) *GetRuang
 	return &GetRuangUjianRepo{ruangRepo: ruangRepo}
 }
 
-func(r *GetRuangUjianRepo)GetRuangUjian(ctx context.Context, filter query.ListRuangUjianFilter)([]ruangujian.RuangUjian, error){
+func (r *GetRuangUjianRepo) GetRuangUjian(ctx context.Context, filter query.ListRuangUjianFilter) ([]ruangujian.RuangUjian, error) {
 	logger := corelog.FromContext(ctx)
 
+	filter = sanitizeListRuangUjianFilter(filter)
+
+	items, err := r.ruangRepo.GetRuangUjian(ctx, filter)
+	if err != nil {
+		logger.Error(ctx, "failed get ruang ujian", "layer", "core.service", "op", "ruangujian.get", "err", err)
+		return nil, err
+	}
+	return items, nil
+
+}
+
+func (r *GetRuangUjianRepo) GetRuangUjianById(ctx context.Context, idRuangan int) (ruangujian.RuangUjian, error) {
+	logger := corelog.FromContext(ctx)
+
+	if err := validateRuangUjianID(idRuangan); err != nil {
+		logger.Error(ctx, "failed get ruang ujian", "layer", "core.service", "op", "ruangujian.get_by_id", "err", coreerror.ErrMissingId)
+		return ruangujian.RuangUjian{}, err
+	}
+
+	item, err := r.ruangRepo.GetRuangUjianById(ctx, idRuangan)
+	if err != nil {
+		logger.Error(ctx, "failed get ruang ujian", "layer", "core.service", "op", "ruangujian.get_by_id", "err", err)
+		return ruangujian.RuangUjian{}, err
+	}
+	return item, nil
+}
+
+func (r *GetRuangUjianRepo) GetRuangUjianByKode(ctx context.Context, kodeRuang string) (ruangujian.RuangUjian, error) {
+	logger := corelog.FromContext(ctx)
+
+	kodeRuang = sanitizeKodeRuang(kodeRuang)
+
+	if err := validateKodeRuang(kodeRuang); err != nil {
+		logger.Error(ctx, "failed get ruang ujian", "layer", "core.service", "op", "ruangujian.get_by_kode", "err", coreerror.ErrMissingField)
+		return ruangujian.RuangUjian{}, err
+	}
+
+	item, err := r.ruangRepo.GetRuangUjianByKode(ctx, kodeRuang)
+	if err != nil {
+		logger.Error(ctx, "failed get ruang ujian", "layer", "core.service", "op", "ruangujian.get_by_kode", "err", err)
+		return ruangujian.RuangUjian{}, err
+	}
+	return item, nil
+}
+
+// -----------------------
+// Sanitizer and validator
+// -----------------------
+
+func sanitizeListRuangUjianFilter(filter query.ListRuangUjianFilter) query.ListRuangUjianFilter {
 	if filter.Limit <= 0 {
 		filter.Limit = 20
 	}
@@ -35,47 +85,25 @@ func(r *GetRuangUjianRepo)GetRuangUjian(ctx context.Context, filter query.ListRu
 	}
 
 	filter.Search = strings.TrimSpace(filter.Search)
-
-	items,err := r.ruangRepo.GetRuangUjian(ctx,filter)
-	if err != nil {
-		logger.Error(ctx,"failed get ruang ujian","layer","core.service","op","ruangujian.get","err",err)
-		return nil,err
-	}
-	return items, nil
-	
+	return filter
 }
 
-func(r *GetRuangUjianRepo)GetRuangUjianById(ctx context.Context, idRuangan int)(ruangujian.RuangUjian, error){
-	logger := corelog.FromContext(ctx)
-
+func validateRuangUjianID(idRuangan int) error {
 	if idRuangan <= 0 {
-		logger.Error(ctx,"failed get ruang ujian","layer","core.service","op","ruangujian.get_by_id","err",coreerror.ErrMissingId)
-		return ruangujian.RuangUjian{},coreerror.ErrMissingId
+		return coreerror.ErrMissingId
 	}
-
-	item,err := r.ruangRepo.GetRuangUjianById(ctx,idRuangan)
-	if err != nil {
-		logger.Error(ctx,"failed get ruang ujian","layer","core.service","op","ruangujian.get_by_id","err",err)
-		return ruangujian.RuangUjian{},err
-	}
-	return item, nil
+	return nil
 }
 
-func(r *GetRuangUjianRepo)GetRuangUjianByKode(ctx context.Context, kodeRuang string)(ruangujian.RuangUjian, error){
-	logger := corelog.FromContext(ctx)
-
+func sanitizeKodeRuang(kodeRuang string) string {
 	kodeRuang = strings.TrimSpace(kodeRuang)
-	kodeRuang =strings.ToUpper(kodeRuang)
+	kodeRuang = strings.ToUpper(kodeRuang)
+	return kodeRuang
+}
 
+func validateKodeRuang(kodeRuang string) error {
 	if len(kodeRuang) == 0 || kodeRuang == "" {
-		logger.Error(ctx,"failed get ruang ujian","layer","core.service","op","ruangujian.get_by_kode","err",coreerror.ErrMissingField)
-		return ruangujian.RuangUjian{},coreerror.ErrMissingField
+		return coreerror.ErrMissingField
 	}
-
-	item,err := r.ruangRepo.GetRuangUjianByKode(ctx,kodeRuang)
-	if err != nil {
-		logger.Error(ctx,"failed get ruang ujian","layer","core.service","op","ruangujian.get_by_kode","err",err)
-		return ruangujian.RuangUjian{},err
-	}
-	return item, nil
+	return nil
 }

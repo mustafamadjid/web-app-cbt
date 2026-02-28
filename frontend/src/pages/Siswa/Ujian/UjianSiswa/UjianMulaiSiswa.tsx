@@ -1,45 +1,31 @@
 import React from "react";
 import { useNavigate, useParams } from "react-router";
 import SoalLayout from "@/layouts/BankSoalLayout/SoalLayout";
-import type { SoalUjianResponse } from "@/types/BankSoal/BankSoal";
 import { paths } from "@/routes/paths";
-import { getSoalUjian } from "@/services/Api/features-api/BankSoal/soalUjian.service";
+import { useGetSoalUjian } from "@/services/Api/features-api/BankSoal/soalUjian.service";
 
 const UjianMulaiSiswa: React.FC = () => {
   const navigate = useNavigate();
   const { id, bankSoalId } = useParams();
   const [currentIndex, setCurrentIndex] = React.useState(0);
-  const [soalData, setSoalData] = React.useState<SoalUjianResponse | null>(
-    null
-  );
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
   const [selectedOptions, setSelectedOptions] = React.useState<
     Record<number, string>
   >({});
 
-  React.useEffect(() => {
-    const loadSoal = async () => {
-      if (!bankSoalId) {
-        setError("Bank soal tidak ditemukan.");
-        setLoading(false);
-        return;
-      }
-      try {
-        setLoading(true);
-        setError(null);
-        const response = await getSoalUjian(Number(bankSoalId));
-        setSoalData(response);
-        setCurrentIndex(0);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Gagal memuat soal.");
-      } finally {
-        setLoading(false);
-      }
-    };
+  const parsedBankSoalId = Number(bankSoalId);
+  const isBankSoalIdValid = Number.isFinite(parsedBankSoalId);
+  const {
+    data: soalData,
+    loading,
+    error,
+  } = useGetSoalUjian(isBankSoalIdValid ? parsedBankSoalId : -1);
 
-    void loadSoal();
-  }, [bankSoalId]);
+  React.useEffect(() => {
+    setCurrentIndex(0);
+  }, [soalData?.id_bank_soal]);
+
+  const errorMessage =
+    !bankSoalId || !isBankSoalIdValid ? "Bank soal tidak ditemukan." : error;
 
   const totalSoal = soalData?.soal.length ?? 0;
   const currentSoal = soalData?.soal[currentIndex];
@@ -83,10 +69,10 @@ const UjianMulaiSiswa: React.FC = () => {
     );
   }
 
-  if (error || !currentSoal) {
+  if (errorMessage || !currentSoal) {
     return (
       <div className="rounded-xl border border-dashed border-red-200 bg-white p-6 text-center text-sm text-red-500">
-        {error ?? "Soal ujian tidak tersedia."}
+        {errorMessage ?? "Soal ujian tidak tersedia."}
       </div>
     );
   }

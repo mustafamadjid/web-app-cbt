@@ -1,11 +1,11 @@
 import BoxJadwalUjian from "@/components/features/Ujian/BoxJadwalUjian";
 import { useAuth } from "@/contexts/AuthContext";
 import {
-  getRuangUjianOptions,
+  useGetRuangUjianOptions,
 } from "@/services/Api/features-api/GetOptions/options.service";
 import {
   applyUjianStatus,
-  getJadwalUjian,
+  useGetJadwalUjian,
 } from "@/services/Api/features-api/Ujian/jadwalujian.service";
 
 import { tahunOption } from "@/helper/TahunOption/TahunOption";
@@ -14,9 +14,9 @@ import { paths } from "@/routes/paths";
 import type { TingkatKelas } from "@/types/DataMaster/Kelas";
 import type { RuangUjianRow } from "@/types/DataMaster/RuangUjian";
 import type { JadwalUjianItem } from "@/types/Ujian/jadwalUjian";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Search, Calendar, Layers, MapPin, CalendarRange } from "lucide-react"; // Tambahan icon untuk filter
-import { getTingkatKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
+import { useGetTingkatKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
 
 const STATUS_SECTIONS = [
   { key: "berlangsung", label: "Berlangsung", color: "bg-emerald-500" },
@@ -38,17 +38,7 @@ function useDebouncedValue<T>(value: T, delayMs: number) {
 
 const JadwalUjian = () => {
   const { user } = useAuth();
-  const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
   const [activeTab, setActiveTab] = useState<StatusKey>("berlangsung"); // Default ke 'berlangsung'
-
-  const [daftarJadwalUjian, setDaftarJadwalUjian] = useState<JadwalUjianItem[]>(
-    [],
-  );
-  const [TingkatKelass, setTingkatKelass] = useState<TingkatKelas[]>([]);
-  const [ruangOptions, setRuangOptions] = useState<RuangUjianRow[]>([]);
-
-  const [tahunOptions, setTahunOptions] = useState<string[]>([]);
 
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebouncedValue(searchTerm, 300);
@@ -61,58 +51,48 @@ const JadwalUjian = () => {
 
   const [selectedTahun, setSelectedTahun] = useState<string | null>(null);
 
-  const requestSeq = useRef(0);
+  const [startedOverrides, setStartedOverrides] = useState<Record<number, 0 | 1>>(
+    {},
+  );
 
-  // Load options
+  const { data: tingkatKelasData } = useGetTingkatKelas();
+  const { data: ruangOptionsData } = useGetRuangUjianOptions();
+
+  const TingkatKelass: TingkatKelas[] = tingkatKelasData ?? [];
+  const ruangOptions: RuangUjianRow[] = ruangOptionsData ?? [];
+  const tahunOptions = useMemo(
+    () => tahunOption().map((year) => String(year)),
+    [],
+  );
+
+  const {
+    data: jadwalDataRaw,
+    loading,
+    error,
+  } = useGetJadwalUjian({
+    search: debouncedSearchTerm.trim() || undefined,
+    tanggal: selectedDate || undefined,
+    ruangUjianId: selectedRuang ?? undefined,
+    tingkatKelasId: selectedTingkatId ?? undefined,
+    tahun: selectedTahun || undefined,
+  });
+
+  const errorMsg = error ?? "";
+  const jadwalData = jadwalDataRaw ?? [];
+
+  const daftarJadwalUjian: JadwalUjianItem[] = useMemo(
+    () =>
+      applyUjianStatus(
+        jadwalData.map((ujian) => ({
+          ...ujian,
+          started: startedOverrides[ujian.id] ?? ujian.started,
+        })),
+      ),
+    [jadwalData, startedOverrides],
+  );
+
   useEffect(() => {
-    (async () => {
-      try {
-        const [tingkatOptions, ruangUjianOptions, tahunOptions] =
-          await Promise.all([
-            getTingkatKelas(),
-            getRuangUjianOptions(),
-            tahunOption(),
-          ]);
-        setTingkatKelass(tingkatOptions);
-        setRuangOptions(ruangUjianOptions);
-        setTahunOptions(tahunOptions);
-      } catch {
-        setTingkatKelass([]);
-        setRuangOptions([]);
-        setTahunOptions([]);
-      }
-    })();
-  }, []);
-
-  // Fetch data
-  useEffect(() => {
-    const seq = ++requestSeq.current;
-    const tingkatKelas =
-      selectedTingkatId != null ? selectedTingkatId : undefined;
-    const ruangUjianId = selectedRuang != null ? selectedRuang : undefined;
-
-    (async () => {
-      try {
-        setLoading(true);
-        setErrorMsg("");
-        const data = await getJadwalUjian({
-          search: debouncedSearchTerm.trim() || undefined,
-          tanggal: selectedDate || undefined,
-          ruangUjianId,
-          tingkatKelasId: tingkatKelas,
-          tahun: selectedTahun || undefined,
-        });
-        if (seq !== requestSeq.current) return;
-        setDaftarJadwalUjian(data);
-      } catch {
-        if (seq !== requestSeq.current) return;
-        setErrorMsg("Gagal memuat data jadwal ujian.");
-        setDaftarJadwalUjian([]);
-      } finally {
-        if (seq !== requestSeq.current) return;
-        setLoading(false);
-      }
-    })();
+    setStartedOverrides({});
   }, [
     debouncedSearchTerm,
     selectedDate,
@@ -146,23 +126,11 @@ const JadwalUjian = () => {
   };
 
   const handleStartUjian = (id: number) => {
-    setDaftarJadwalUjian((prev) =>
-      applyUjianStatus(
-        prev.map((ujian) =>
-          ujian.id === id ? { ...ujian, started: 1 } : ujian,
-        ),
-      ),
-    );
+    setStartedOverrides((prev) => ({ ...prev, [id]: 1 }));
   };
 
   const handleCancelUjian = (id: number) => {
-    setDaftarJadwalUjian((prev) =>
-      applyUjianStatus(
-        prev.map((ujian) =>
-          ujian.id === id ? { ...ujian, started: 0 } : ujian,
-        ),
-      ),
-    );
+    setStartedOverrides((prev) => ({ ...prev, [id]: 0 }));
   };
 
   return (

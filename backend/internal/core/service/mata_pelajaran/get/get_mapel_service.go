@@ -22,11 +22,65 @@ func NewGetMapelService(mapelRepo matapelajaran_repo.MataPelajaranRepository) *G
 	}
 }
 
-func(r *GetMapelRepo)GetMapelService(ctx context.Context,filter query.ListMapelFilter)([]matapelajaran.MataPelajaran,error){
+func (r *GetMapelRepo) GetMapelService(ctx context.Context, filter query.ListMapelFilter) ([]matapelajaran.MataPelajaran, error) {
 	logger := corelog.FromContext(ctx)
 
+	var err error
+	filter, err = sanitizeAndValidateListMapelFilter(filter)
+	if err != nil {
+		switch {
+		case isNamaMapelError(err):
+			logger.Error(ctx, "failed get mapel", "layer", "core.service", "op", "matapelajaran.get.NamaMapel", "err", coreerror.ErrMissingField)
+		default:
+			logger.Error(ctx, "failed get mapel", "layer", "core.service", "op", "matapelajaran.get.TingkatKelas", "err", coreerror.ErrMissingField)
+		}
+		return nil, coreerror.ErrInvalidInput
+	}
+
+	items, err := r.mapelRepo.GetMapel(ctx, filter)
+	if err != nil {
+		logger.Error(ctx, "failed get mapel", "layer", "core.service", "op", "matapelajaran.get", "err", err)
+		return nil, err
+	}
+
+	return items, nil
+}
+
+func (r *GetMapelRepo) GetMapelById(ctx context.Context, idMapel int) (matapelajaran.MataPelajaran, error) {
+	logger := corelog.FromContext(ctx)
+
+	if err := validateMapelID(idMapel); err != nil {
+		logger.Error(ctx, "failed get mapel by id", "layer", "core.service", "op", "matapelajaran.get_by_id", "err", coreerror.ErrMissingId)
+		return matapelajaran.MataPelajaran{}, err
+	}
+
+	item, err := r.mapelRepo.GetMapelById(ctx, idMapel)
+	if err != nil {
+		logger.Error(ctx, "failed get mapel by id", "layer", "core.service", "op", "matapelajaran.get_by_id", "err", err)
+
+		switch {
+		case errors.Is(err, coreerror.ErrNotFound):
+			return matapelajaran.MataPelajaran{}, coreerror.ErrNotFound
+		default:
+			return matapelajaran.MataPelajaran{}, err
+		}
+	}
+
+	return item, nil
+}
+
+// -----------------------
+// Sanitizer and validator
+// -----------------------
+
+var (
+	errInvalidNamaMapelFilter = errors.New("invalid nama mapel")
+	errInvalidTingkatKelas    = errors.New("invalid tingkat kelas")
+)
+
+func sanitizeAndValidateListMapelFilter(filter query.ListMapelFilter) (query.ListMapelFilter, error) {
 	filter.Search = strings.TrimSpace(filter.Search)
-	
+
 	if filter.Limit <= 0 {
 		filter.Limit = 20
 	}
@@ -41,49 +95,27 @@ func(r *GetMapelRepo)GetMapelService(ctx context.Context,filter query.ListMapelF
 
 	if filter.NamaMapel != nil {
 		if *filter.NamaMapel == "" {
-			logger.Error(ctx,"failed get mapel","layer","core.service","op","matapelajaran.get.NamaMapel","err",coreerror.ErrMissingField)
-			return nil, coreerror.ErrInvalidInput
+			return filter, errInvalidNamaMapelFilter
 		}
 
-		s := strings.TrimSpace(*filter.NamaMapel)
-		filter.NamaMapel = &s
+		namaMapel := strings.TrimSpace(*filter.NamaMapel)
+		filter.NamaMapel = &namaMapel
 	}
 
-	if filter.TingkatKelas != nil {
-		if *filter.TingkatKelas <= 0 {
-			logger.Error(ctx,"failed get mapel","layer","core.service","op","matapelajaran.get.TingkatKelas","err",coreerror.ErrMissingField)
-			return nil, coreerror.ErrInvalidInput
-		}
+	if filter.TingkatKelas != nil && *filter.TingkatKelas <= 0 {
+		return filter, errInvalidTingkatKelas
 	}
 
-	items, err := r.mapelRepo.GetMapel(ctx,filter)
-	if err != nil {
-		logger.Error(ctx,"failed get mapel","layer","core.service","op","matapelajaran.get","err",err)
-		return nil,err
-	}
-
-	return items, nil
+	return filter, nil
 }
 
-func (r *GetMapelRepo)GetMapelById(ctx context.Context, idMapel int) (matapelajaran.MataPelajaran, error){
-	logger := corelog.FromContext(ctx)
-
+func validateMapelID(idMapel int) error {
 	if idMapel <= 0 {
-		logger.Error(ctx,"failed get mapel by id","layer","core.service","op","matapelajaran.get_by_id","err",coreerror.ErrMissingId)
-		return matapelajaran.MataPelajaran{}, coreerror.ErrMissingId
+		return coreerror.ErrMissingId
 	}
+	return nil
+}
 
-	item, err := r.mapelRepo.GetMapelById(ctx,idMapel)
-	if err != nil {
-		logger.Error(ctx,"failed get mapel by id","layer","core.service","op","matapelajaran.get_by_id","err",err)
-		
-		switch {
-		case errors.Is(err, coreerror.ErrNotFound):
-			return matapelajaran.MataPelajaran{}, coreerror.ErrNotFound
-		default:
-			return matapelajaran.MataPelajaran{}, err
-		}
-	}
-
-	return item, nil
+func isNamaMapelError(err error) bool {
+	return errors.Is(err, errInvalidNamaMapelFilter)
 }

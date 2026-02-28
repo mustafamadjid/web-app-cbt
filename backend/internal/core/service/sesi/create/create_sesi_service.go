@@ -19,37 +19,60 @@ func NewCreateSesiService(sesiRepo sesi_repo.SesiRepository) *CreateSesiService 
 	return &CreateSesiService{sesiRepo: sesiRepo}
 }
 
-func(r *CreateSesiService)CreateSesiService(ctx context.Context,sesi sesi.Sesi) error {
+func (r *CreateSesiService) CreateSesiService(ctx context.Context, sesi sesi.Sesi) error {
 	logger := corelog.FromContext(ctx)
 
-	sesi.NamaSesi = strings.TrimSpace(sesi.NamaSesi)
-	sesi.KodeSesi = strings.TrimSpace(sesi.KodeSesi)
-	sesi.KodeSesi = strings.ToUpper(sesi.KodeSesi)
+	sesi = sanitizeCreateSesi(sesi)
 
-	if len(sesi.NamaSesi) == 0 || sesi.NamaSesi == "" {
-		logger.Error(ctx,"failed create sesi","layer","core.service","op","sesi.create","err",coreerror.ErrMissingField)
-		return coreerror.ErrMissingField
+	if err := validateCreateNamaSesi(sesi); err != nil {
+		logger.Error(ctx, "failed create sesi", "layer", "core.service", "op", "sesi.create", "err", coreerror.ErrMissingField)
+		return err
 	}
 
-	if len(sesi.KodeSesi) == 0 || sesi.KodeSesi == "" {
-		logger.Error(ctx,"failed create sesi","layer","core.service","op","sesi.create","err",coreerror.ErrMissingField)
-		return coreerror.ErrMissingField
+	if err := validateCreateKodeSesi(sesi); err != nil {
+		logger.Error(ctx, "failed create sesi", "layer", "core.service", "op", "sesi.create", "err", coreerror.ErrMissingField)
+		return err
 	}
 
-	exist, err := r.sesiRepo.ExistByKodeSesi(ctx,sesi.KodeSesi)
+	exist, err := r.sesiRepo.ExistByKodeSesi(ctx, sesi.KodeSesi)
 	if err != nil {
-		logger.Error(ctx,"failed check exist sesi","layer","core.service","op","sesi.create","err",err)
+		logger.Error(ctx, "failed check exist sesi", "layer", "core.service", "op", "sesi.create", "err", err)
 		return err
 	}
 
 	if exist {
-		logger.Error(ctx,"failed create sesi","layer","core.service","op","sesi.create","err",err)
+		logger.Error(ctx, "failed create sesi", "layer", "core.service", "op", "sesi.create", "err", err)
 		return coreerror.ErrSesiUjianExist
 	}
 
-	if err := r.sesiRepo.CreateSesi(ctx,sesi); err != nil {
-		logger.Error(ctx,"failed create sesi","layer","core.service","op","sesi.create","err",err)
+	if err := r.sesiRepo.CreateSesi(ctx, sesi); err != nil {
+		logger.Error(ctx, "failed create sesi", "layer", "core.service", "op", "sesi.create", "err", err)
 		return err
+	}
+	return nil
+}
+
+// -----------------------
+// Sanitizer and validator
+// -----------------------
+
+func sanitizeCreateSesi(data sesi.Sesi) sesi.Sesi {
+	data.NamaSesi = strings.TrimSpace(data.NamaSesi)
+	data.KodeSesi = strings.TrimSpace(data.KodeSesi)
+	data.KodeSesi = strings.ToUpper(data.KodeSesi)
+	return data
+}
+
+func validateCreateNamaSesi(data sesi.Sesi) error {
+	if data.NamaSesi == "" {
+		return coreerror.ErrMissingField
+	}
+	return nil
+}
+
+func validateCreateKodeSesi(data sesi.Sesi) error {
+	if data.KodeSesi == "" {
+		return coreerror.ErrMissingField
 	}
 	return nil
 }

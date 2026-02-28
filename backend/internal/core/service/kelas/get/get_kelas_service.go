@@ -24,6 +24,25 @@ func NewGetKelasService(kelasSvc kelas_repo.KelasRepository) *GetKelasService {
 func (s *GetKelasService) GetFullKelas(ctx context.Context, filter query.ListKelasFilter) ([]kelas.FullKelasData, error) {
 	logger := corelog.FromContext(ctx)
 
+	filter = sanitizeListKelasFilter(filter)
+
+	items, err := s.kelasSvc.GetKelas(ctx, filter)
+	if err != nil {
+		logger.Error(ctx, "failed get kelas", "layer", "core.service", "op", "kelas.get", "err", err)
+		return nil, err
+	}
+	return items, nil
+}
+
+func (s *GetKelasService) GetKelasById(ctx context.Context, idTingkatKelas int, idNamaKelas int) (kelas.KelasData, error) {
+	return s.kelasSvc.GetKelasById(ctx, idTingkatKelas, idNamaKelas)
+}
+
+// -----------------------
+// Sanitizer and validator
+// -----------------------
+
+func sanitizeListKelasFilter(filter query.ListKelasFilter) query.ListKelasFilter {
 	filter.Search = strings.TrimSpace(filter.Search)
 
 	if filter.Limit <= 0 {
@@ -38,14 +57,5 @@ func (s *GetKelasService) GetFullKelas(ctx context.Context, filter query.ListKel
 		filter.Offset = 0
 	}
 
-	items, err := s.kelasSvc.GetKelas(ctx, filter)
-	if err != nil {
-		logger.Error(ctx, "failed get kelas", "layer", "core.service", "op", "kelas.get", "err", err)
-		return nil, err
-	}
-	return items, nil
-}
-
-func (s *GetKelasService) GetKelasById(ctx context.Context, idTingkatKelas int, idNamaKelas int) (kelas.KelasData, error) {
-	return s.kelasSvc.GetKelasById(ctx, idTingkatKelas, idNamaKelas)
+	return filter
 }

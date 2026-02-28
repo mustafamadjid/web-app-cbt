@@ -9,6 +9,7 @@ import type {
   StudentUpdatePayload,
 } from "@/types/KelolaAkun/AkunSiswa";
 import { api } from "../../api";
+import { useFetch, usePost, usePut } from "@/hooks/fetch";
 
 export type BarisSiswa = DataAkunSiswa & {
   kelas: string;
@@ -133,4 +134,30 @@ export async function GetListSiswa(
   });
 
  
+}
+
+// =====================
+// Hook Wrappers
+// =====================
+
+export function useGetListSiswa(params: SiswaFilterParams = {}) {
+  return useFetch(
+    () => GetListSiswa(params),
+    [params.q, params.status, params.limit, params.offset, params.angkatan, params.tingkatKelas, params.jenisKelamin],
+  );
+}
+
+export function useGetSiswaById(id: number) {
+  return useFetch(() => getSiswaById(id), [id]);
+}
+
+export function useSubmitStudentRegister() {
+  return usePost((values: StudentRegisterFormValues) => submitStudentRegister(values));
+}
+
+export function useUpdateSiswa() {
+  return usePut(
+    (payload: { id: number; values: StudentUpdatePayload }) =>
+      updateSiswa(payload.id, payload.values),
+  );
 }

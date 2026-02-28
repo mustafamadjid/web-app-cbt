@@ -5,6 +5,7 @@ import type {
 } from "@/types/BankSoal/BankSoal";
 import { getTingkatKelasById } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { api } from "../../api";
+import { useFetch, usePost } from "@/hooks/fetch";
 
 
 type BankSoalItemLocal = BankSoalItem & {
@@ -249,4 +250,37 @@ export async function createBankSoal(
   });
 
   return res;
+}
+
+// =====================
+// Hook Wrappers
+// =====================
+
+export function useGetBankSoalByKelas(params: {
+  tingkatKelasId?: number;
+  kelasId?: number;
+  mapelId?: number;
+  q?: string;
+}) {
+  return useFetch(
+    () => getBankSoalByKelas(params),
+    [params.tingkatKelasId, params.kelasId, params.mapelId, params.q],
+  );
+}
+
+export function useGetBankSoalByGuru(params: {
+  idGuru?: number;
+  tingkatKelasId?: number;
+  kelasId?: number;
+  mapelId?: number;
+  q?: string;
+}) {
+  return useFetch(
+    () => getBankSoalByGuru(params),
+    [params.idGuru, params.tingkatKelasId, params.kelasId, params.mapelId, params.q],
+  );
+}
+
+export function useCreateBankSoal() {
+  return usePost((values: CreateBankSoalPayload) => createBankSoal(values));
 }

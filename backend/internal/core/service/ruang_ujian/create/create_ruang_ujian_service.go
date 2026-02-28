@@ -20,15 +20,12 @@ func NewRuangUjianService(ruangRepo ruangujian_repo.RuangUjianRepo) *CreateRuang
 	}
 }
 
-func(r *CreateRuangUjianService)CreateRuangUjianService(ctx context.Context, ruangUjian ruangujian.RuangUjian)error{
+func (r *CreateRuangUjianService) CreateRuangUjianService(ctx context.Context, ruangUjian ruangujian.RuangUjian) error {
 	logger := corelog.FromContext(ctx)
 
-	ruangUjian.KodeRuang = strings.TrimSpace(ruangUjian.KodeRuang)
-	ruangUjian.KodeRuang = strings.ToUpper(ruangUjian.KodeRuang)
+	ruangUjian = sanitizeCreateRuangUjian(ruangUjian)
 
-	ruangUjian.NamaRuangan = strings.TrimSpace(ruangUjian.NamaRuangan)
-
-	exist, err := r.ruangRepo.ExistByKodeRuang(ctx,ruangUjian.KodeRuang)
+	exist, err := r.ruangRepo.ExistByKodeRuang(ctx, ruangUjian.KodeRuang)
 	if err != nil {
 		logger.Error(ctx, "failed creating ruang ujian", "layer", "core.service", "op", "ruangujian.create_ruangujian.existByKodeRuang", "err", err)
 		return err
@@ -38,10 +35,21 @@ func(r *CreateRuangUjianService)CreateRuangUjianService(ctx context.Context, rua
 		return coreerror.ErrKodeRuangUjianExist
 	}
 
-	if err := r.ruangRepo.CreateRuangUjian(ctx,ruangUjian); err != nil {
+	if err := r.ruangRepo.CreateRuangUjian(ctx, ruangUjian); err != nil {
 		logger.Error(ctx, "failed creating ruang ujian", "layer", "core.service", "op", "ruangujian.create_ruangujian", "err", err)
 		return err
 	}
 
 	return nil
+}
+
+// -----------------------
+// Sanitizer and validator
+// -----------------------
+
+func sanitizeCreateRuangUjian(data ruangujian.RuangUjian) ruangujian.RuangUjian {
+	data.KodeRuang = strings.TrimSpace(data.KodeRuang)
+	data.KodeRuang = strings.ToUpper(data.KodeRuang)
+	data.NamaRuangan = strings.TrimSpace(data.NamaRuangan)
+	return data
 }

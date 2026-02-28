@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Building2, Edit3, Search, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router";
 
@@ -8,9 +8,8 @@ import { paths } from "@/routes/paths";
 import { ApiError } from "@/services/Api/api";
 import {
   deleteRuangUjian,
-  getRuangUjian,
+  useGetRuangUjian,
 } from "@/services/Api/features-api/DataMaster/ruang-ujian.service";
-import type { RuangUjianRow } from "@/types/DataMaster/RuangUjian";
 
 function useDebouncedValue<T>(value: T, delayMs = 300) {
   const [debounced, setDebounced] = useState(value);
@@ -25,53 +24,29 @@ const RuangUjianTables: React.FC = () => {
   const navigate = useNavigate();
 
   const [kataKunci, setKataKunci] = useState("");
-  const [daftarRuangUjian, setDaftarRuangUjian] = useState<RuangUjianRow[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
   const [batasData, setBatasData] = useState(12);
   const [halamanSaatIni, setHalamanSaatIni] = useState(1);
 
   const [modalKonfirmasiTerbuka, setModalKonfirmasiTerbuka] = useState(false);
-  const [idRuangAkanDihapus, setIdRuangAkanDihapus] = useState<number | null>(
-    null,
-  );
+  const [idRuangAkanDihapus, setIdRuangAkanDihapus] = useState<number | null>(null);
   const [sedangHapus, setSedangHapus] = useState(false);
+  const [deleteErrorMsg, setDeleteErrorMsg] = useState("");
 
   const debouncedKataKunci = useDebouncedValue(kataKunci, 300);
-  const requestSeq = useRef(0);
 
-  const fetchRuangUjian = async () => {
-    return getRuangUjian({
-      q: debouncedKataKunci.trim() || undefined,
-      limit: batasData,
-      offset: (halamanSaatIni - 1) * batasData,
-    });
-  };
+  // Hook: fetch ruang ujian with filters
+  const {
+    data: rawData,
+    loading,
+    error: errorMsg,
+    refetch: refetchRuangUjian,
+  } = useGetRuangUjian({
+    q: debouncedKataKunci.trim() || undefined,
+    limit: batasData,
+    offset: (halamanSaatIni - 1) * batasData,
+  });
 
-  useEffect(() => {
-    const seq = ++requestSeq.current;
-
-    (async () => {
-      try {
-        setLoading(true);
-        setErrorMsg("");
-
-        const data = await fetchRuangUjian();
-
-        if (seq !== requestSeq.current) return;
-
-        setDaftarRuangUjian(data);
-      } catch {
-        if (seq !== requestSeq.current) return;
-        setErrorMsg("Gagal memuat data ruang ujian.");
-        setDaftarRuangUjian([]);
-      } finally {
-        if (seq === requestSeq.current) {
-          setLoading(false);
-        }
-      }
-    })();
-  }, [debouncedKataKunci, batasData, halamanSaatIni]);
+  const daftarRuangUjian = rawData ?? [];
 
   useEffect(() => {
     setHalamanSaatIni(1);
@@ -91,14 +66,13 @@ const RuangUjianTables: React.FC = () => {
     if (!idRuangAkanDihapus) return;
 
     setSedangHapus(true);
-    setErrorMsg("");
+    setDeleteErrorMsg("");
 
     try {
       await deleteRuangUjian(idRuangAkanDihapus);
       setModalKonfirmasiTerbuka(false);
       setIdRuangAkanDihapus(null);
-      const data = await fetchRuangUjian();
-      setDaftarRuangUjian(data);
+      await refetchRuangUjian();
     } catch (e) {
       const message =
         e instanceof ApiError
@@ -108,7 +82,7 @@ const RuangUjianTables: React.FC = () => {
               ? "Ruang ujian tidak bisa dihapus karena masih dipakai."
               : "Ruang ujian gagal dihapus."
           : "Ruang ujian gagal dihapus.";
-      setErrorMsg(message);
+      setDeleteErrorMsg(message);
     } finally {
       setSedangHapus(false);
     }
@@ -168,9 +142,9 @@ const RuangUjianTables: React.FC = () => {
           </button>
         </div>
 
-        {errorMsg && (
+        {(errorMsg || deleteErrorMsg) && (
           <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600">
-            {errorMsg}
+            {errorMsg || deleteErrorMsg}
           </div>
         )}
 

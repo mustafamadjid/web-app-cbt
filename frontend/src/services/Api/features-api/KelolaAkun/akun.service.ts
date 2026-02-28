@@ -1,28 +1,7 @@
 import { buildJsonData } from "@/helper/FormData/BuildJsonData";
 import type { ResetPasswordRequest } from "@/types/KelolaAkun/ResetPassword";
-// export async function GetAllGuru(
-//   params: GuruFilterParams = {}
-// ): Promise<DataGuru[]> {
-//   // if (USE_DUMMY) {
-//   //   await sleep(250);
-//   //   const filtered = applyGuruFilters(indexDummy(daftarPengguna), params);
-//   //   return stripInternal(filtered);
-//   // }
-
+import { useDelete, usePut } from "@/hooks/fetch";
 import { api } from "../../api";
-
-//   const queryParams: Record<string, string | undefined> = {
-//     q: params.q || undefined,
-//   };
-
-  
-//     const result = await api<DataGuru[]>("/admin/guru", {
-//       params: queryParams,
-//     });
-
- 
-//     return result;
-// }
 
 export async function DeletePengguna(id: number) {
     return api<any>(`/admin/pengguna/${id}`, {
@@ -37,10 +16,28 @@ export async function DeletePenggunaBulk(ids: number[]) {
   });
 }
 
-
 export function resetPasswordPengguna(idPengguna: number, payload: ResetPasswordRequest) {
   return api<ResetPasswordRequest>(`/admin/pengguna/${idPengguna}/reset-password`, {
     method: "PUT",
     data: buildJsonData(payload),
   });
+}
+
+// =====================
+// Hook Wrappers
+// =====================
+
+export function useDeletePengguna() {
+  return useDelete((id: number) => DeletePengguna(id));
+}
+
+export function useDeletePenggunaBulk() {
+  return useDelete((ids: number[]) => DeletePenggunaBulk(ids));
+}
+
+export function useResetPasswordPengguna() {
+  return usePut(
+    (payload: { id: number; values: ResetPasswordRequest }) =>
+      resetPasswordPengguna(payload.id, payload.values),
+  );
 }

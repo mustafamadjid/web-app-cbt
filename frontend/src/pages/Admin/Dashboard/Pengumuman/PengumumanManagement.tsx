@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { CalendarRange, Edit3, Megaphone, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router";
 
@@ -10,9 +10,9 @@ import { paths } from "@/routes/paths";
 import { ApiError } from "@/services/Api/api";
 import {
   deletePengumuman,
-  getPengumumanActive,
-  getPengumumanIncoming,
-  getPengumumanNonActive,
+  useGetPengumumanActive,
+  useGetPengumumanIncoming,
+  useGetPengumumanNonActive,
 } from "@/services/Api/features-api/pengumuman/pengumuman.service";
 import type {
   PengumumanGetResponse,
@@ -45,16 +45,12 @@ const PengumumanManagement = () => {
   const { user } = useAuth();
 
   const [statusKey, setStatusKey] = useState<PengumumanStatusKey>("incoming");
-  const [items, setItems] = useState<PengumumanGetResponse[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
+  const [actionErrorMsg, setActionErrorMsg] = useState("");
 
   const [deleteTarget, setDeleteTarget] = useState<PengumumanGetResponse | null>(
     null,
   );
   const [deleting, setDeleting] = useState(false);
-
-  const requestSeq = useRef(0);
 
   const isGuru = user?.role === "GURU";
   const createPath = isGuru
@@ -67,44 +63,27 @@ const PengumumanManagement = () => {
       String(id),
     );
 
-  const fetchByStatus = useCallback(async (key: PengumumanStatusKey) => {
-    switch (key) {
+  const incomingState = useGetPengumumanIncoming();
+  const activeState = useGetPengumumanActive();
+  const nonActiveState = useGetPengumumanNonActive();
+
+  const activeStatusState = useMemo(() => {
+    switch (statusKey) {
       case "incoming":
-        return await getPengumumanIncoming();
+        return incomingState;
       case "active":
-        return await getPengumumanActive();
+        return activeState;
       case "non-active":
-        return await getPengumumanNonActive();
+        return nonActiveState;
       default:
-        return [];
+        return incomingState;
     }
-  }, []);
+  }, [activeState, incomingState, nonActiveState, statusKey]);
 
-  useEffect(() => {
-    const seq = ++requestSeq.current;
-
-    (async () => {
-      setLoading(true);
-      setErrorMsg("");
-      try {
-        const data = await fetchByStatus(statusKey);
-        if (seq !== requestSeq.current) return;
-        setItems(data);
-      } catch (e) {
-        if (seq !== requestSeq.current) return;
-        const message =
-          e instanceof ApiError
-            ? "Gagal memuat data pengumuman."
-            : "Gagal memuat data pengumuman.";
-        setErrorMsg(message);
-        setItems([]);
-      } finally {
-        if (seq === requestSeq.current) {
-          setLoading(false);
-        }
-      }
-    })();
-  }, [fetchByStatus, statusKey]);
+  const items = activeStatusState.data ?? [];
+  const loading = activeStatusState.loading;
+  const fetchErrorMsg = activeStatusState.error ?? "";
+  const errorMsg = actionErrorMsg || fetchErrorMsg;
 
   const canEdit = statusKey !== "non-active";
 
@@ -112,12 +91,11 @@ const PengumumanManagement = () => {
     if (!deleteTarget) return;
 
     setDeleting(true);
-    setErrorMsg("");
+    setActionErrorMsg("");
     try {
       await deletePengumuman(deleteTarget.id_pengumuman);
       setDeleteTarget(null);
-      const data = await fetchByStatus(statusKey);
-      setItems(data);
+      await activeStatusState.refetch();
     } catch (e) {
       const message =
         e instanceof ApiError
@@ -127,7 +105,7 @@ const PengumumanManagement = () => {
               ? "Pengumuman tidak bisa dihapus karena masih dipakai."
               : "Pengumuman gagal dihapus."
           : "Pengumuman gagal dihapus.";
-      setErrorMsg(message);
+      setActionErrorMsg(message);
     } finally {
       setDeleting(false);
     }
@@ -153,7 +131,10 @@ const PengumumanManagement = () => {
             <button
               key={status.key}
               type="button"
-              onClick={() => setStatusKey(status.key)}
+              onClick={() => {
+                setStatusKey(status.key);
+                setActionErrorMsg("");
+              }}
               className={`cursor-pointer rounded-lg px-4 py-2 text-sm font-medium transition ${
                 statusKey === status.key
                   ? "bg-[#397e50] text-white"

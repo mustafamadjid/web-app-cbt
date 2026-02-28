@@ -1,4 +1,5 @@
 import { api, type ApiEnvelope } from "@/services/Api/api";
+import { useFetch } from "@/hooks/fetch";
 import { formatTanggalToIso } from "@/helper/dateFormatting/formatToIso";
 import { normalize } from "@/helper/normalizeString/normalizeString";
 import type {
@@ -294,4 +295,22 @@ export async function getUjianSiswaResultDetail(
     `/ujian-siswa/hasil/${id}`,
   );
   return res.data;
+}
+
+// =====================
+// Hook Wrappers
+// =====================
+
+export function useGetUjianBySiswa(params: {
+  siswaId: number;
+  filter?: UjianSiswaFilterParams;
+}) {
+  return useFetch(
+    () => getUjianBySiswa(params),
+    [params.siswaId, params.filter?.search, params.filter?.bulan, params.filter?.tahun, params.filter?.mapel],
+  );
+}
+
+export function useGetUjianSiswaResultDetail(id: number) {
+  return useFetch(() => getUjianSiswaResultDetail(id), [id]);
 }

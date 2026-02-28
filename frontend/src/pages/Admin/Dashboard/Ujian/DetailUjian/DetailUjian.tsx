@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Link, useParams } from "react-router";
 import {
   Calendar,
@@ -16,12 +16,12 @@ import {
 import PrintButton from "@/components/common/Input/PrintButton";
 import { paths } from "@/routes/paths";
 import {
-  getRuangUjianOptions,
-  getUjianBankSoalOptions,
-  getUjianGuruPengawasOptions,
-  getUjianSesiOptions,
+  useGetRuangUjianOptions,
+  useGetUjianBankSoalOptions,
+  useGetUjianGuruPengawasOptions,
+  useGetUjianSesiOptions,
 } from "@/services/Api/features-api/GetOptions/options.service";
-import { getJadwalUjianDetail } from "@/services/Api/features-api/Ujian/jadwalujian.service";
+import { useGetJadwalUjianDetail } from "@/services/Api/features-api/Ujian/jadwalujian.service";
 
 import type { TingkatKelas } from "@/types/DataMaster/Kelas";
 import type { RuangUjianRow } from "@/types/DataMaster/RuangUjian";
@@ -31,8 +31,7 @@ import type {
   SesiUjianOption,
   TipeUjian,
 } from "@/types/Ujian/BuatUjian";
-import type { DetailUjianItem, PrintJenis } from "@/types/Ujian/DetailUjian";
-import { getTingkatKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
+import { useGetTingkatKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
 
 const tipeUjianLabel: Record<TipeUjian, string> = {
   PILIHAN_GANDA: "Pilihan Ganda",
@@ -58,95 +57,29 @@ const DetailUjian = () => {
 
   const params = useParams();
   const ujianId = Number(params.id);
+  const isUjianIdValid = Number.isFinite(ujianId);
 
-  const [detail, setDetail] = useState<DetailUjianItem | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [errorMsg, setErrorMsg] = useState("");
+  const {
+    data: detail,
+    loading,
+    error,
+  } = useGetJadwalUjianDetail(isUjianIdValid ? ujianId : -1);
 
-  const [kelasOptions, setKelasOptions] = useState<TingkatKelas[]>([]);
-  const [ruangOptions, setRuangOptions] = useState<RuangUjianRow[]>([]);
-  const [guruOptions, setGuruOptions] = useState<GuruPengawasOption[]>([]);
-  const [sesiOptions, setSesiOptions] = useState<SesiUjianOption[]>([]);
-  const [bankSoalOptions, setBankSoalOptions] = useState<BankSoalOption[]>([]);
+  const { data: kelasOptionsData } = useGetTingkatKelas();
+  const { data: ruangOptionsData } = useGetRuangUjianOptions();
+  const { data: guruOptionsData } = useGetUjianGuruPengawasOptions();
+  const { data: sesiOptionsData } = useGetUjianSesiOptions();
+  const { data: bankSoalOptionsData } = useGetUjianBankSoalOptions({
+    tingkatKelasId: detail?.kelas_id,
+  });
 
-  useEffect(() => {
-    let active = true;
-    const loadOptions = async () => {
-      try {
-        const [kelas, ruang, guru, sesi] = await Promise.all([
-          getTingkatKelas(),
-          getRuangUjianOptions(),
-          getUjianGuruPengawasOptions(),
-          getUjianSesiOptions(),
-        ]);
-        if (!active) return;
-        setKelasOptions(kelas);
-        setRuangOptions(ruang);
-        setGuruOptions(guru);
-        setSesiOptions(sesi);
-      } catch {
-        if (!active) return;
-        setKelasOptions([]);
-        setRuangOptions([]);
-        setGuruOptions([]);
-        setSesiOptions([]);
-      }
-    };
-    loadOptions();
-    return () => {
-      active = false;
-    };
-  }, []);
+  const kelasOptions: TingkatKelas[] = kelasOptionsData ?? [];
+  const ruangOptions: RuangUjianRow[] = ruangOptionsData ?? [];
+  const guruOptions: GuruPengawasOption[] = guruOptionsData ?? [];
+  const sesiOptions: SesiUjianOption[] = sesiOptionsData ?? [];
+  const bankSoalOptions: BankSoalOption[] = bankSoalOptionsData ?? [];
 
-  useEffect(() => {
-    let active = true;
-    const loadDetail = async () => {
-      if (!Number.isFinite(ujianId)) {
-        setErrorMsg("ID ujian tidak valid.");
-        setLoading(false);
-        return;
-      }
-      try {
-        setLoading(true);
-        setErrorMsg("");
-        const data = await getJadwalUjianDetail(ujianId);
-        if (!active) return;
-        setDetail(data);
-      } catch {
-        if (!active) return;
-        setErrorMsg("Detail ujian tidak ditemukan.");
-        setDetail(null);
-      } finally {
-        if (active) setLoading(false);
-      }
-    };
-    loadDetail();
-    return () => {
-      active = false;
-    };
-  }, [ujianId]);
-
-  useEffect(() => {
-    let active = true;
-    const loadBankSoal = async () => {
-      if (!detail || !detail.kelas_id) {
-        setBankSoalOptions([]);
-        return;
-      }
-      try {
-        const data = await getUjianBankSoalOptions({
-          tingkatKelasId: detail.kelas_id,
-        });
-        if (active) setBankSoalOptions(data);
-      } catch {
-        if (active) setBankSoalOptions([]);
-      }
-    };
-    loadBankSoal();
-    return () => {
-      active = false;
-    };
-  }, [detail]);
+  const errorMsg = !isUjianIdValid ? "ID ujian tidak valid." : (error ?? "");
 
   const kelasLabel = useMemo(() => {
     if (!detail?.kelas_id) return "-";

@@ -21,17 +21,16 @@ func NewAktivitasUserService(aktivitasUserRepo aktivitas_user_repo.AktivitasUser
 func (svc *AktivitasUserService) CreateAktivitasUserService(ctx context.Context, aktivitasUser AktivitasUserCmd) error {
 	logger := corelog.FromContext(ctx)
 
-	aktivitasUser.Description = strings.TrimSpace(aktivitasUser.Description)
-	aktivitasUser.IpAddress = strings.TrimSpace(aktivitasUser.IpAddress)
+	aktivitasUser = sanitizeAktivitasUserCmd(aktivitasUser)
 
-	if !aktivitasUser.Action.ValidAction() {
+	if err := validateAktivitasAction(aktivitasUser); err != nil {
 		logger.Error(ctx, "Invalid action activity", "layer", "core.service", "op", "aktivitas_user_service.CreateAktivitasUserService", "err", coreerror.ErrInvalidActionActivity)
-		return coreerror.ErrInvalidActionActivity
+		return err
 	}
 
-	if !aktivitas_user.ValidIpAddress(aktivitasUser.IpAddress) {
+	if err := validateAktivitasIPAddress(aktivitasUser); err != nil {
 		logger.Error(ctx, "Invalid ip address", "layer", "core.service", "op", "aktivitas_user_service.CreateAktivitasUserService", "err", coreerror.ErrInvalidIpAddress)
-		return coreerror.ErrInvalidIpAddress
+		return err
 	}
 
 	aktivitasData := aktivitas_user.AktivitasUser{
@@ -55,4 +54,28 @@ func (svc *AktivitasUserService) GetAktivitasUserService(ctx context.Context) ([
 	}
 
 	return getAktivitas, nil
+}
+
+// -----------------------
+// Sanitizer and validator
+// -----------------------
+
+func sanitizeAktivitasUserCmd(cmd AktivitasUserCmd) AktivitasUserCmd {
+	cmd.Description = strings.TrimSpace(cmd.Description)
+	cmd.IpAddress = strings.TrimSpace(cmd.IpAddress)
+	return cmd
+}
+
+func validateAktivitasAction(cmd AktivitasUserCmd) error {
+	if !cmd.Action.ValidAction() {
+		return coreerror.ErrInvalidActionActivity
+	}
+	return nil
+}
+
+func validateAktivitasIPAddress(cmd AktivitasUserCmd) error {
+	if !aktivitas_user.ValidIpAddress(cmd.IpAddress) {
+		return coreerror.ErrInvalidIpAddress
+	}
+	return nil
 }

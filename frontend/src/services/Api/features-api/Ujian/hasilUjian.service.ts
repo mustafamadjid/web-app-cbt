@@ -1,4 +1,5 @@
 import { api, type ApiEnvelope } from "@/services/Api/api";
+import { useFetch } from "@/hooks/fetch";
 import type { JadwalUjianItem } from "@/types/Ujian/jadwalUjian";
 import type {
   HasilUjianSiswa,
@@ -321,4 +322,19 @@ export async function getHasilUjianDetail(
     }
   );
   return res.data;
+}
+
+// =====================
+// Hook Wrappers
+// =====================
+
+export function useGetHasilUjianList(params: HasilUjianFilterParams = {}) {
+  return useFetch(
+    () => getHasilUjianList(params),
+    [params.tingkatKelasId, params.tahun],
+  );
+}
+
+export function useGetHasilUjianDetail(ujianId: number) {
+  return useFetch(() => getHasilUjianDetail(ujianId), [ujianId]);
 }

@@ -3,10 +3,9 @@ package kelas_service
 import (
 	"context"
 	"strings"
-	
-	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/kelas"
 
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
+	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/kelas"
 	kelas_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/kelas"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 )
@@ -21,10 +20,10 @@ func NewCreateKelasService(kelasRepo kelas_repo.KelasRepository) *CreateKelasSer
 	}
 }
 
-func (r *CreateKelasService)CreateTingkatKelas(ctx context.Context, cmd CreateTingkatKelasCmd)error {
+func (r *CreateKelasService) CreateTingkatKelas(ctx context.Context, cmd CreateTingkatKelasCmd) error {
 	logger := corelog.FromContext(ctx)
-	
-	exist, err := r.kelasRepo.ExistTingkatKelas(ctx,cmd.TingkatKelas)
+
+	exist, err := r.kelasRepo.ExistTingkatKelas(ctx, cmd.TingkatKelas)
 	if err != nil {
 		logger.Error(ctx, "failed creating tingkat kelas", "layer", "core.service", "op", "kelas.create_tingkat_kelas.existTingkatKelas", "err", err)
 		return err
@@ -34,7 +33,7 @@ func (r *CreateKelasService)CreateTingkatKelas(ctx context.Context, cmd CreateTi
 		return coreerror.ErrTingkatKelasExist
 	}
 
-	if err := r.kelasRepo.CreateTingkatKelas(ctx,cmd.TingkatKelas); err != nil {
+	if err := r.kelasRepo.CreateTingkatKelas(ctx, cmd.TingkatKelas); err != nil {
 		logger.Error(ctx, "failed creating tingkat kelas", "layer", "core.service", "op", "kelas.create_tingkat_kela.CreateTingkatKelas", "err", err)
 		return err
 	}
@@ -42,12 +41,12 @@ func (r *CreateKelasService)CreateTingkatKelas(ctx context.Context, cmd CreateTi
 	return nil
 }
 
-func (r *CreateKelasService) CreateNamaKelas(ctx context.Context, cmd CreateNamaKelasCmd)error{
+func (r *CreateKelasService) CreateNamaKelas(ctx context.Context, cmd CreateNamaKelasCmd) error {
 	logger := corelog.FromContext(ctx)
 
-	cmd.NamaKelas = strings.TrimSpace(cmd.NamaKelas)
-	
-	exist, err := r.kelasRepo.ExistNamaKelas(ctx,cmd.NamaKelas)
+	cmd = sanitizeCreateNamaKelasCmd(cmd)
+
+	exist, err := r.kelasRepo.ExistNamaKelas(ctx, cmd.NamaKelas)
 	if err != nil {
 		logger.Error(ctx, "failed creating nama kelas", "layer", "core.service", "op", "kelas.create_nama_kelas.existNamaKelas", "err", err)
 		return err
@@ -57,15 +56,24 @@ func (r *CreateKelasService) CreateNamaKelas(ctx context.Context, cmd CreateNama
 		return coreerror.ErrNamaKelasExist
 	}
 
-	cmdData := kelas.NamaKelas {
+	cmdData := kelas.NamaKelas{
 		IdTingkatKelas: cmd.IdTingkatKelas,
-		NamaKelas: cmd.NamaKelas,
+		NamaKelas:      cmd.NamaKelas,
 	}
 
-	if err := r.kelasRepo.CreateNamaKelas(ctx,cmdData); err != nil {
+	if err := r.kelasRepo.CreateNamaKelas(ctx, cmdData); err != nil {
 		logger.Error(ctx, "failed creating nama kelas", "layer", "core.service", "op", "kelas.create_nama_kela.CreateNamaKelas", "err", err)
 		return err
 	}
 
 	return nil
+}
+
+// -----------------------
+// Sanitizer and validator
+// -----------------------
+
+func sanitizeCreateNamaKelasCmd(cmd CreateNamaKelasCmd) CreateNamaKelasCmd {
+	cmd.NamaKelas = strings.TrimSpace(cmd.NamaKelas)
+	return cmd
 }
