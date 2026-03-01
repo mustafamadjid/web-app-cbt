@@ -5,7 +5,6 @@ type BankSoalFilter struct {
 	Limit  int
 	Offset int
 
-	IdPengguna *int
 	TingkatKelas *int
 	Mapel *int
 }

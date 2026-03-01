@@ -67,7 +67,7 @@ func (r *MapelRepo)GetMapel(ctx context.Context, filter query.ListMapelFilter) (
 		limitIndex := len(args)
 		args = append(args, filter.Offset)
 		offsetIndex := len(args)
-		query = fmt.Sprintf("%s LIMIT $%d OFFSET $%d", query, limitIndex, offsetIndex)
+		query = fmt.Sprintf("%s LIMIT $%d OFFSET $%d ORDER BY created_at ASC", query, limitIndex, offsetIndex)
 	}
 
 	rows, err := r.q.Query(ctx, query, args...)
