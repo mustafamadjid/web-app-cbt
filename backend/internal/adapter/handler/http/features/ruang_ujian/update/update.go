@@ -4,7 +4,6 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/julienschmidt/httprouter"
 	httphelper "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper"
@@ -38,13 +37,10 @@ func (h *UpdateRuangUjianHandler) UpdateRuangUjian(w http.ResponseWriter, r *htt
 		return
 	}
 
-	ct := r.Header.Get("Content-Type")
-	if !strings.HasPrefix(ct, "application/json") {
+	if err := httphelper.JsonHeaderBodyValidator(w, r); err != nil {
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request : content type must be application/json")
 		return
 	}
-
-	r.Body = http.MaxBytesReader(w, r.Body, 10<<20)
 
 	var dataRequest UpdateRuangUjianRequest
 
@@ -58,41 +54,23 @@ func (h *UpdateRuangUjianHandler) UpdateRuangUjian(w http.ResponseWriter, r *htt
 		return
 	}
 
-	if dataRequest.KodeRuang == nil && dataRequest.NamaRuangan == nil {
-		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: invalid request body")
-		return
-	}
-
-	patch := updatepatch.UpdateRuangUjianPatch{}
-
 	if dataRequest.NamaRuangan != nil {
-		namaRuangan := strings.TrimSpace(*dataRequest.NamaRuangan)
-		if namaRuangan == "" {
-			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: missing fields")
-			return
-		}
-
-		if err := validator.ValidateInputSafe(namaRuangan, "nama_ruang"); err != nil {
+		if err := validator.ValidateInputSafe(*dataRequest.NamaRuangan, "nama_ruang"); err != nil {
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "invalid input")
 			return
 		}
-
-		patch.NamaRuang = &namaRuangan
 	}
 
 	if dataRequest.KodeRuang != nil {
-		kodeRuang := strings.TrimSpace(*dataRequest.KodeRuang)
-		if kodeRuang == "" {
-			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: missing fields")
-			return
-		}
-
-		if err := validator.ValidateInputSafe(kodeRuang, "kode_ruang"); err != nil {
+		if err := validator.ValidateInputSafe(*dataRequest.KodeRuang, "kode_ruang"); err != nil {
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "invalid input")
 			return
 		}
+	}
 
-		patch.KodeRuang = &kodeRuang
+	patch := updatepatch.UpdateRuangUjianPatch{
+		NamaRuang: dataRequest.NamaRuangan,
+		KodeRuang: dataRequest.KodeRuang,
 	}
 
 	if err := h.svc.UpdateRuangUjian(r.Context(), idRuangan, patch); err != nil {
@@ -101,7 +79,7 @@ func (h *UpdateRuangUjianHandler) UpdateRuangUjian(w http.ResponseWriter, r *htt
 		case errors.Is(err, coreerror.ErrKodeRuangUjianExist):
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: kode ruang ujian already exist")
 			return
-		case errors.Is(err, coreerror.ErrMissingId):
+		case errors.Is(err, coreerror.ErrMissingId), errors.Is(err, coreerror.ErrMissingField), errors.Is(err, coreerror.ErrNoFieldToUpdate):
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: missing id")
 			return
 		default:

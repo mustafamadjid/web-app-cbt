@@ -46,7 +46,7 @@ func (h *UpdateHandler) UpdateGuru(w http.ResponseWriter, r *http.Request, ps ht
 		return
 	}
 
-	cmd, err := h.parseUpdateGuruMultipart(r, ps)
+	cmd, err := h.parseUpdateGuruMultipart(w, r, ps)
 	if err != nil {
 		logger.Error(r.Context(), "failed parsing update guru request", "layer", "adapter.http.handler", "op", "user.update_guru", "err", err)
 		h.writeRequestError(w, err)
@@ -88,7 +88,7 @@ func (h *UpdateHandler) UpdateSiswa(w http.ResponseWriter, r *http.Request, ps h
 		return
 	}
 
-	cmd, err := h.parseUpdateSiswaMultipart(r, ps)
+	cmd, err := h.parseUpdateSiswaMultipart(w, r, ps)
 	if err != nil {
 		logger.Error(r.Context(), "failed parsing update siswa request", "layer", "adapter.http.handler", "op", "user.update_siswa", "err", err)
 		h.writeRequestError(w, err)
@@ -123,26 +123,24 @@ func (h *UpdateHandler) UpdateSiswa(w http.ResponseWriter, r *http.Request, ps h
 	httpResponse.WriteOKNoData(w, http.StatusOK, "Success")
 }
 
-func (h *UpdateHandler) parseUpdateGuruMultipart(r *http.Request, ps httprouter.Params) (user_service.UpdateGuruCmd, error) {
-	ct := r.Header.Get("Content-Type")
-	if !strings.HasPrefix(ct, "multipart/form-data") {
-		return user_service.UpdateGuruCmd{}, requestError{
-			status:  http.StatusBadRequest,
-			code:    "BAD_REQUEST",
-			message: "Bad request : content type must be multipart/form-data",
-		}
-	}
-
+func (h *UpdateHandler) parseUpdateGuruMultipart(w http.ResponseWriter, r *http.Request, ps httprouter.Params) (user_service.UpdateGuruCmd, error) {
 	idPengguna, err := parseIDFromURLParam(ps, "id")
 	if err != nil {
 		return user_service.UpdateGuruCmd{}, err
 	}
 
-	if err := r.ParseMultipartForm(10 << 20); err != nil {
+	if err := httphelper.MultipartHeaderBodyValidator(w, r, 10<<20); err != nil {
+		if errors.Is(err, coreerror.ErrContentTypeMustMultipart) {
+			return user_service.UpdateGuruCmd{}, requestError{
+				status:  http.StatusBadRequest,
+				code:    "BAD_REQUEST",
+				message: "bad request: content type must be multipart/form-data",
+			}
+		}
 		return user_service.UpdateGuruCmd{}, requestError{
 			status:  http.StatusBadRequest,
 			code:    "BAD_REQUEST",
-			message: "Bad request : invalid multipart form",
+			message: "bad request: invalid multipart form",
 		}
 	}
 
@@ -174,33 +172,31 @@ func (h *UpdateHandler) parseUpdateGuruMultipart(r *http.Request, ps httprouter.
 
 	if relPath, err := h.parseOptionalFoto(r); err != nil {
 		return user_service.UpdateGuruCmd{}, err
-	} else if relPath != nil {
+	} else {
 		cmd.Foto = relPath
 	}
 
 	return cmd, nil
 }
 
-func (h *UpdateHandler) parseUpdateSiswaMultipart(r *http.Request, ps httprouter.Params) (user_service.UpdateSiswaCmd, error) {
-	ct := r.Header.Get("Content-Type")
-	if !strings.HasPrefix(ct, "multipart/form-data") {
-		return user_service.UpdateSiswaCmd{}, requestError{
-			status:  http.StatusBadRequest,
-			code:    "BAD_REQUEST",
-			message: "Bad request : content type must be multipart/form-data",
-		}
-	}
-
+func (h *UpdateHandler) parseUpdateSiswaMultipart(w http.ResponseWriter, r *http.Request, ps httprouter.Params) (user_service.UpdateSiswaCmd, error) {
 	idPengguna, err := parseIDFromURLParam(ps, "id")
 	if err != nil {
 		return user_service.UpdateSiswaCmd{}, err
 	}
 
-	if err := r.ParseMultipartForm(10 << 20); err != nil {
+	if err := httphelper.MultipartHeaderBodyValidator(w, r, 10<<20); err != nil {
+		if errors.Is(err, coreerror.ErrContentTypeMustMultipart) {
+			return user_service.UpdateSiswaCmd{}, requestError{
+				status:  http.StatusBadRequest,
+				code:    "BAD_REQUEST",
+				message: "bad request: content type must be multipart/form-data",
+			}
+		}
 		return user_service.UpdateSiswaCmd{}, requestError{
 			status:  http.StatusBadRequest,
 			code:    "BAD_REQUEST",
-			message: "Bad request : invalid multipart form",
+			message: "bad request: invalid multipart form",
 		}
 	}
 
@@ -231,37 +227,37 @@ func (h *UpdateHandler) parseUpdateSiswaMultipart(r *http.Request, ps httprouter
 
 	if idTingkat, err := parseOptionalID(r.MultipartForm.Value, "id_tingkat_kelas"); err != nil {
 		return user_service.UpdateSiswaCmd{}, err
-	} else if idTingkat != nil {
+	} else {
 		cmd.IdTingkatKelas = idTingkat
 	}
 
 	if idNama, err := parseOptionalID(r.MultipartForm.Value, "id_nama_kelas"); err != nil {
 		return user_service.UpdateSiswaCmd{}, err
-	} else if idNama != nil {
+	} else {
 		cmd.IdNamaKelas = idNama
 	}
 
 	if noAbsen, err := parseOptionalInt(r.MultipartForm.Value, "no_absen"); err != nil {
 		return user_service.UpdateSiswaCmd{}, err
-	} else if noAbsen != nil {
+	} else {
 		cmd.NoAbsen = noAbsen
 	}
 
 	if angkatan, err := parseOptionalInt(r.MultipartForm.Value, "angkatan"); err != nil {
 		return user_service.UpdateSiswaCmd{}, err
-	} else if angkatan != nil {
+	} else {
 		cmd.Angkatan = angkatan
 	}
 
 	if tanggal, err := parseOptionalDate(r.MultipartForm.Value, "tanggal_lahir"); err != nil {
 		return user_service.UpdateSiswaCmd{}, err
-	} else if tanggal != nil {
+	} else {
 		cmd.TanggalLahir = tanggal
 	}
 
 	if relPath, err := h.parseOptionalFoto(r); err != nil {
 		return user_service.UpdateSiswaCmd{}, err
-	} else if relPath != nil {
+	} else {
 		cmd.Foto = relPath
 	}
 
@@ -296,20 +292,7 @@ func parseIDFromURLParam(ps httprouter.Params, key string) (user.ID, error) {
 }
 
 func (h *UpdateHandler) parseOptionalFoto(r *http.Request) (*string, error) {
-	file, fh, err := r.FormFile("foto")
-	if err != nil {
-		if errors.Is(err, http.ErrMissingFile) {
-			return nil, nil
-		}
-		return nil, requestError{
-			status:  http.StatusBadRequest,
-			code:    "BAD_REQUEST",
-			message: "Bad request : failed reading foto",
-		}
-	}
-	defer file.Close()
-
-	relPath, err := h.storeImage.SavePhotoRelative(file, fh)
+	relPath, err := httphelper.StoreFileToDisk(r, "foto", false, h.storeImage.SavePhotoRelative)
 	if err != nil {
 		if errors.Is(err, coreerror.ErrFileTooLarge) {
 			return nil, requestError{
@@ -318,14 +301,15 @@ func (h *UpdateHandler) parseOptionalFoto(r *http.Request) (*string, error) {
 				message: "file too large",
 			}
 		}
+
 		return nil, requestError{
-			status:  http.StatusInternalServerError,
-			code:    "INTERNAL_SERVER_ERROR",
-			message: "internal server error : failed save photo",
+			status:  http.StatusBadRequest,
+			code:    "BAD_REQUEST",
+			message: "Bad request : failed reading foto",
 		}
 	}
 
-	return &relPath, nil
+	return relPath, nil
 }
 
 func (h *UpdateHandler) writeRequestError(w http.ResponseWriter, err error) {
@@ -441,7 +425,7 @@ func applyOptionalStrings(values map[string][]string, fields map[string]**string
 		if !ok || len(raw) == 0 {
 			continue
 		}
-		val := strings.TrimSpace(raw[0])
+		val := raw[0]
 		if err := validator.ValidateInputSafe(val, key); err != nil {
 			return requestError{
 				status:  http.StatusBadRequest,
@@ -449,6 +433,17 @@ func applyOptionalStrings(values map[string][]string, fields map[string]**string
 				message: err.Error(),
 			}
 		}
+
+		if key == "email" {
+			if err := validator.ValidateEmail(val); err != nil {
+				return requestError{
+					status:  http.StatusBadRequest,
+					code:    "INVALID_INPUT",
+					message: err.Error(),
+				}
+			}
+		}
+
 		*target = &val
 	}
 	return nil
@@ -459,7 +454,7 @@ func parseOptionalStatus(values map[string][]string, key string) (*user.StatusAk
 	if !ok || len(raw) == 0 {
 		return nil, nil
 	}
-	val := strings.TrimSpace(raw[0])
+	val := raw[0]
 	if val == "" {
 		return nil, requestError{
 			status:  http.StatusBadRequest,
@@ -485,7 +480,7 @@ func parseOptionalRole(values map[string][]string, key string) (*user.Role, erro
 	if !ok || len(raw) == 0 {
 		return nil, nil
 	}
-	val := strings.TrimSpace(raw[0])
+	val := raw[0]
 	if val == "" {
 		return nil, requestError{
 			status:  http.StatusBadRequest,

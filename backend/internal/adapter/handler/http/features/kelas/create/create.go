@@ -3,7 +3,6 @@ package httpx
 import (
 	"errors"
 	"net/http"
-	"strings"
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/middleware"
@@ -35,13 +34,10 @@ func (h *CreateKelasHandler) CreateTingkatKelas(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	ct := r.Header.Get("Content-Type")
-	if !strings.HasPrefix(ct, "application/json") {
+	if err := httpx.JsonHeaderBodyValidator(w, r); err != nil {
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request : content type must be application/json")
 		return
 	}
-
-	r.Body = http.MaxBytesReader(w, r.Body, 10<<20)
 
 	var dataRequest CreateTingkatKelasReq
 
@@ -108,13 +104,10 @@ func (h *CreateKelasHandler) CreateNamaKelas(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	ct := r.Header.Get("Content-Type")
-	if !strings.HasPrefix(ct, "application/json") {
+	if err := httpx.JsonHeaderBodyValidator(w, r); err != nil {
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request : content type must be application/json")
 		return
 	}
-
-	r.Body = http.MaxBytesReader(w, r.Body, 10<<20)
 
 	var dataRequest CreateNamaKelasReq
 	if err := httpx.JSONDecoder(r, &dataRequest); err != nil {
@@ -132,7 +125,7 @@ func (h *CreateKelasHandler) CreateNamaKelas(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	if strings.TrimSpace(dataRequest.NamaKelas) == "" {
+	if dataRequest.NamaKelas == "" {
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: nama kelas is required")
 		return
 	}

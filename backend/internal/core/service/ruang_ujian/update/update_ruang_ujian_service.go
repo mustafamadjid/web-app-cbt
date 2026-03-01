@@ -26,6 +26,11 @@ func (r *UpdateRuangUjianService) UpdateRuangUjian(ctx context.Context, idRuanga
 		return err
 	}
 
+	if err := validateUpdateRuangUjianPatch(ruangUjian); err != nil {
+		logger.Error(ctx, "failed update ruang ujian", "layer", "core.service", "op", "ruangujian.update", "err", err)
+		return err
+	}
+
 	sanitizeKodeRuangPatch(&ruangUjian)
 	if isEmptyKodeRuangPatch(ruangUjian) {
 		logger.Error(ctx, "failed updating ruangujian", "layer", "core.service", "op", "ruangujian.update_ruang_ujian.KodeRuang", "err", coreerror.ErrMissingField)
@@ -62,6 +67,13 @@ func (r *UpdateRuangUjianService) UpdateRuangUjian(ctx context.Context, idRuanga
 func validateUpdateRuangUjianID(idRuangan int) error {
 	if idRuangan <= 0 {
 		return coreerror.ErrMissingId
+	}
+	return nil
+}
+
+func validateUpdateRuangUjianPatch(ruangUjian updatepatch.UpdateRuangUjianPatch) error {
+	if ruangUjian.KodeRuang == nil && ruangUjian.NamaRuang == nil {
+		return coreerror.ErrNoFieldToUpdate
 	}
 	return nil
 }

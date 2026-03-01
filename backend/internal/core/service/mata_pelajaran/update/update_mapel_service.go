@@ -28,6 +28,10 @@ func (r *UpdateMapelRepo) UpdateMapelService(ctx context.Context, idMapel int, m
 		return err
 	}
 
+	if err := validateMapelPatch(mapel); err != nil {
+		return err
+	}
+
 	if err := validateMapelIdKelasPatch(mapel); err != nil {
 		logger.Error(ctx, "failed updating mapel", "layer", "core.service", "op", "matapelajaran.update_mapel.IdKelas", "err", err)
 		return err
@@ -77,6 +81,16 @@ func (r *UpdateMapelRepo) UpdateMapelService(ctx context.Context, idMapel int, m
 func validateUpdateMapelID(idMapel int) error {
 	if idMapel <= 0 {
 		return coreerror.ErrMissingId
+	}
+	return nil
+}
+
+func validateMapelPatch(mapel updatepatch.UpdateMapelPatch) error {
+	if mapel.IdKelas == nil &&
+		mapel.KodeMapel == nil &&
+		mapel.NamaMapel == nil &&
+		mapel.Deskripsi == nil {
+		return coreerror.ErrNoFieldToUpdate
 	}
 	return nil
 }

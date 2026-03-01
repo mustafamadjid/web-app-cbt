@@ -1,6 +1,7 @@
 package importhandler
 
 import (
+	"errors"
 	"io"
 	"net/http"
 	"os"
@@ -9,8 +10,10 @@ import (
 	"strings"
 
 	"github.com/julienschmidt/httprouter"
+	httphelper "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper"
 	httpResponse "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper/response_envelope"
 	"github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/middleware"
+	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/service/import_soal/create_job"
 )
@@ -50,11 +53,13 @@ func (h *ImportHandler) ImportSoal(w http.ResponseWriter, r *http.Request, ps ht
 		return
 	}
 
-	// Limit request body to 25MB
-	r.Body = http.MaxBytesReader(w, r.Body, 25<<20)
-
-	if err := r.ParseMultipartForm(25 << 20); err != nil {
-		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "file terlalu besar atau request tidak valid")
+	if err := httphelper.MultipartHeaderBodyValidator(w, r, 25<<20); err != nil {
+		switch {
+		case errors.Is(err, coreerror.ErrContentTypeMustMultipart):
+			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "content type must be multipart/form-data")
+		default:
+			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "file terlalu besar atau request tidak valid")
+		}
 		return
 	}
 

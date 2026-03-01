@@ -4,7 +4,6 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/julienschmidt/httprouter"
 	httphelper "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper"
@@ -37,13 +36,11 @@ func (h *UpdateSesiHandler) UpdateSesi(w http.ResponseWriter, r *http.Request, p
 		return
 	}
 
-	ct := r.Header.Get("Content-Type")
-	if !strings.HasPrefix(ct, "application/json") {
+	if err := httphelper.JsonHeaderBodyValidator(w, r); err != nil {
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request : content type must be application/json")
 		return
 	}
 
-	r.Body = http.MaxBytesReader(w, r.Body, 10<<20)
 	var dataRequest UpdateSesiRequest
 	if err := httphelper.JSONDecoder(r, &dataRequest); err != nil {
 		switch {
@@ -55,36 +52,23 @@ func (h *UpdateSesiHandler) UpdateSesi(w http.ResponseWriter, r *http.Request, p
 		return
 	}
 
-	if dataRequest.KodeSesi == nil && dataRequest.NamaSesi == nil {
-		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: no fields to update")
-		return
-	}
-
-	patch := updatepatch.UpdateSesiPatch{}
 	if dataRequest.KodeSesi != nil {
-		kodeSesi := strings.TrimSpace(*dataRequest.KodeSesi)
-		if kodeSesi == "" {
-			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: kode sesi is required")
-			return
-		}
-		if err := validator.ValidateInputSafe(kodeSesi, "kode_sesi"); err != nil {
+		if err := validator.ValidateInputSafe(*dataRequest.KodeSesi, "kode_sesi"); err != nil {
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", err.Error())
 			return
 		}
-		patch.KodeSesi = &kodeSesi
 	}
 
 	if dataRequest.NamaSesi != nil {
-		namaSesi := strings.TrimSpace(*dataRequest.NamaSesi)
-		if namaSesi == "" {
-			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: nama sesi is required")
-			return
-		}
-		if err := validator.ValidateInputSafe(namaSesi, "nama_sesi"); err != nil {
+		if err := validator.ValidateInputSafe(*dataRequest.NamaSesi, "nama_sesi"); err != nil {
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", err.Error())
 			return
 		}
-		patch.NamaSesi = &namaSesi
+	}
+
+	patch := updatepatch.UpdateSesiPatch{
+		KodeSesi: dataRequest.KodeSesi,
+		NamaSesi: dataRequest.NamaSesi,
 	}
 
 	if err := h.svc.UpdateSesiService(r.Context(), idSesi, patch); err != nil {
@@ -92,7 +76,7 @@ func (h *UpdateSesiHandler) UpdateSesi(w http.ResponseWriter, r *http.Request, p
 		switch {
 		case errors.Is(err, coreerror.ErrNotFound):
 			httpResponse.WriteErr(w, http.StatusNotFound, "NOT_FOUND", "data not found")
-		case errors.Is(err, coreerror.ErrMissingId), errors.Is(err, coreerror.ErrMissingField):
+		case errors.Is(err, coreerror.ErrMissingId), errors.Is(err, coreerror.ErrMissingField), errors.Is(err, coreerror.ErrNoFieldToUpdate):
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: invalid field")
 		default:
 			httpResponse.WriteErr(w, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error: failed update sesi")

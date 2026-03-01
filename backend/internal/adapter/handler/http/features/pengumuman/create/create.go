@@ -3,7 +3,6 @@ package httpx
 import (
 	"errors"
 	"net/http"
-	"strings"
 
 	"github.com/julienschmidt/httprouter"
 	httphelper "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper"
@@ -33,15 +32,14 @@ func (h *CreatePengumumanHandler) CreatePengumuman(w http.ResponseWriter, r *htt
 		return
 	}
 
-	ct := r.Header.Get("Content-Type")
-	if !strings.HasPrefix(ct, "multipart/form-data") {
-		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: content type must be multipart/form-data")
-		return
-	}
-
-	if err := r.ParseMultipartForm(10 << 20); err != nil {
+	if err := httphelper.MultipartHeaderBodyValidator(w, r, 10<<20); err != nil {
 		logger.Error(r.Context(), "failed parsing multipart form", "layer", "adapter.http.handler", "op", "pengumuman.create", "err", err)
-		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: invalid multipart form")
+		switch {
+		case errors.Is(err, coreerror.ErrContentTypeMustMultipart):
+			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: content type must be multipart/form-data")
+		default:
+			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: invalid multipart form")
+		}
 		return
 	}
 
@@ -53,10 +51,10 @@ func (h *CreatePengumumanHandler) CreatePengumuman(w http.ResponseWriter, r *htt
 	}
 
 	req := CreatePengumumanRequest{
-		JudulPengumuman:          strings.TrimSpace(r.FormValue("judul_pengumuman")),
-		IsiPengumuman:            strings.TrimSpace(r.FormValue("isi_pengumuman")),
-		TanggalRilisPengumuman:   strings.TrimSpace(r.FormValue("tanggal_rilis_pengumuman")),
-		TanggalSelesaiPengumuman: strings.TrimSpace(r.FormValue("tanggal_selesai_pengumuman")),
+		JudulPengumuman:          r.FormValue("judul_pengumuman"),
+		IsiPengumuman:            r.FormValue("isi_pengumuman"),
+		TanggalRilisPengumuman:   r.FormValue("tanggal_rilis_pengumuman"),
+		TanggalSelesaiPengumuman: r.FormValue("tanggal_selesai_pengumuman"),
 	}
 
 	if req.JudulPengumuman == "" || req.IsiPengumuman == "" || req.TanggalRilisPengumuman == "" || req.TanggalSelesaiPengumuman == "" {
@@ -70,29 +68,19 @@ func (h *CreatePengumumanHandler) CreatePengumuman(w http.ResponseWriter, r *htt
 	}
 
 	dokumenPath := ""
-	file, fh, err := r.FormFile("dokumen_pengumuman")
-	if err != nil && !errors.Is(err, http.ErrMissingFile) {
-		logger.Error(r.Context(), "failed reading dokumen pengumuman", "layer", "adapter.http.handler", "op", "pengumuman.create", "err", err)
-		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: failed reading dokumen_pengumuman")
-		return
-	}
-
-	if err == nil {
-		defer file.Close()
-
-		relativePath, err := h.storeDocument.SaveDocumentRelative(file, fh)
-		if err != nil {
-			if errors.Is(err, coreerror.ErrFileTooLarge) {
-				httpResponse.WriteErr(w, http.StatusBadRequest, "FILE_TOO_LARGE", "file too large")
-				return
-			}
-
-			logger.Error(r.Context(), "failed saving dokumen pengumuman", "layer", "adapter.http.handler", "op", "pengumuman.create", "err", err)
-			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: invalid dokumen_pengumuman")
+	relativePathPtr, err := httphelper.StoreFileToDisk(r, "dokumen_pengumuman", false, h.storeDocument.SaveDocumentRelative)
+	if err != nil {
+		if errors.Is(err, coreerror.ErrFileTooLarge) {
+			httpResponse.WriteErr(w, http.StatusBadRequest, "FILE_TOO_LARGE", "file too large")
 			return
 		}
 
-		dokumenPath = relativePath
+		logger.Error(r.Context(), "failed saving dokumen pengumuman", "layer", "adapter.http.handler", "op", "pengumuman.create", "err", err)
+		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: invalid dokumen_pengumuman")
+		return
+	}
+	if relativePathPtr != nil {
+		dokumenPath = *relativePathPtr
 	}
 
 	payload := pengumuman.Pengumuman{

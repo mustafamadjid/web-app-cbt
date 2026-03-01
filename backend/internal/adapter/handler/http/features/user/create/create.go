@@ -38,55 +38,49 @@ func (h *UserHandler) CreateGuru(write http.ResponseWriter, req *http.Request, _
 		return
 	}
 
-	ct := req.Header.Get("Content-Type")
-	if !strings.HasPrefix(ct, "multipart/form-data") {
-		httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request : invalid content type")
-		return
-	}
-
-	if err := req.ParseMultipartForm(10 << 20); err != nil {
+	if err := httpx.MultipartHeaderBodyValidator(write, req, 10<<20); err != nil {
 		logger.Error(req.Context(), "failed parsing multipart form", "layer", "adapter.http.handler", "op", "user.create_guru", "err", err)
-		httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request : invalid content type")
+		switch {
+		case errors.Is(err, coreerror.ErrContentTypeMustMultipart):
+			httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "bad request: content type must be multipart/form-data")
+		default:
+			httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "bad request: invalid multipart form")
+		}
 		return
 	}
 
-	file, fh, err := req.FormFile("foto_profil")
+	relPathPtr, err := httpx.StoreFileToDisk(req, "foto_profil", true, h.storeImage.SavePhotoRelative)
 	if err != nil {
-		if errors.Is(err, http.ErrMissingFile) {
+		switch {
+		case errors.Is(err, coreerror.ErrMissingField):
 			logger.Info(req.Context(), "missing foto file", "layer", "adapter.http.handler", "op", "user.create_guru", "err", err)
 			httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request : foto is required")
 			return
-		}
-
-		logger.Error(req.Context(), "failed reading foto file", "layer", "adapter.http.handler", "op", "user.create_guru", "err", err)
-		httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request : failed reading foto")
-		return
-	}
-	defer file.Close()
-
-	relPath, err := h.storeImage.SavePhotoRelative(file, fh)
-	if err != nil {
-		if errors.Is(err, coreerror.ErrFileTooLarge) {
+		case errors.Is(err, coreerror.ErrFileTooLarge):
 			logger.Info(req.Context(), "file too large", "layer", "adapter.http.handler", "op", "user.create_guru", "err", err)
 			httpResponse.WriteErr(write, http.StatusBadRequest, "FILE_TOO_LARGE", "file too large")
 			return
+		default:
+			logger.Error(req.Context(), "failed saving photo", "layer", "adapter.http.handler", "op", "user.create_guru", "err", err)
+			httpResponse.WriteErr(write, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error : failed save photo")
+			return
 		}
-
-		logger.Error(req.Context(), "failed saving photo", "layer", "adapter.http.handler", "op", "user.create_guru", "err", err)
-		httpResponse.WriteErr(write, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error : failed save photo")
-		return
+	}
+	relPath := ""
+	if relPathPtr != nil {
+		relPath = *relPathPtr
 	}
 
 	cmd := user_service.CreateGuruCmd{
-		Username:     strings.TrimSpace(req.FormValue("username")),
-		Email:        strings.TrimSpace(req.FormValue("email")),
+		Username:     req.FormValue("username"),
+		Email:        req.FormValue("email"),
 		Password:     req.FormValue("password"),
-		NamaLengkap:  strings.TrimSpace(req.FormValue("nama_lengkap")),
-		JenisKelamin: strings.TrimSpace(req.FormValue("jenis_kelamin")),
-		NoHp:         strings.TrimSpace(req.FormValue("no_hp")),
-		Nip:          strings.TrimSpace(req.FormValue("nip")),
-		Jabatan:      strings.TrimSpace(req.FormValue("jabatan")),
-		BidangStudi:  strings.TrimSpace(req.FormValue("bidang_studi")),
+		NamaLengkap:  req.FormValue("nama_lengkap"),
+		JenisKelamin: req.FormValue("jenis_kelamin"),
+		NoHp:         req.FormValue("no_hp"),
+		Nip:          req.FormValue("nip"),
+		Jabatan:      req.FormValue("jabatan"),
+		BidangStudi:  req.FormValue("bidang_studi"),
 		Foto:         relPath,
 	}
 
@@ -189,43 +183,37 @@ func (h *UserHandler) CreateSiswa(write http.ResponseWriter, req *http.Request, 
 		return
 	}
 
-	ct := req.Header.Get("Content-Type")
-	if !strings.HasPrefix(ct, "multipart/form-data") {
-		httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request : invalid content type")
-		return
-	}
-
-	if err := req.ParseMultipartForm(10 << 20); err != nil {
+	if err := httpx.MultipartHeaderBodyValidator(write, req, 10<<20); err != nil {
 		logger.Error(req.Context(), "failed parsing multipart form", "layer", "adapter.http.handler", "op", "user.create_siswa", "err", err)
-		httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request : invalid content type")
+		switch {
+		case errors.Is(err, coreerror.ErrContentTypeMustMultipart):
+			httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "bad request: content type must be multipart/form-data")
+		default:
+			httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "bad request: invalid multipart form")
+		}
 		return
 	}
 
-	file, fh, err := req.FormFile("foto_profil")
+	relPathPtr, err := httpx.StoreFileToDisk(req, "foto_profil", true, h.storeImage.SavePhotoRelative)
 	if err != nil {
-		if errors.Is(err, http.ErrMissingFile) {
+		switch {
+		case errors.Is(err, coreerror.ErrMissingField):
 			logger.Info(req.Context(), "missing foto file", "layer", "adapter.http.handler", "op", "user.create_siswa", "err", err)
 			httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request : foto is required")
 			return
-		}
-
-		logger.Error(req.Context(), "failed reading foto file", "layer", "adapter.http.handler", "op", "user.create_siswa", "err", err)
-		httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request : failed reading foto")
-		return
-	}
-	defer file.Close()
-
-	relPath, err := h.storeImage.SavePhotoRelative(file, fh)
-	if err != nil {
-		if errors.Is(err, coreerror.ErrFileTooLarge) {
+		case errors.Is(err, coreerror.ErrFileTooLarge):
 			logger.Info(req.Context(), "file too large", "layer", "adapter.http.handler", "op", "user.create_siswa", "err", err)
 			httpResponse.WriteErr(write, http.StatusBadRequest, "FILE_TOO_LARGE", "file too large")
 			return
+		default:
+			logger.Error(req.Context(), "failed saving photo", "layer", "adapter.http.handler", "op", "user.create_siswa", "err", err)
+			httpResponse.WriteErr(write, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error : failed save photo")
+			return
 		}
-
-		logger.Error(req.Context(), "failed saving photo", "layer", "adapter.http.handler", "op", "user.create_siswa", "err", err)
-		httpResponse.WriteErr(write, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error : failed save photo")
-		return
+	}
+	relPath := ""
+	if relPathPtr != nil {
+		relPath = *relPathPtr
 	}
 
 	// parse int fields
@@ -261,19 +249,19 @@ func (h *UserHandler) CreateSiswa(write http.ResponseWriter, req *http.Request, 
 	}
 
 	cmd := user_service.CreateSiswaCmd{
-		Username:     strings.TrimSpace(req.FormValue("username")),
-		Email:        strings.TrimSpace(req.FormValue("email")),
+		Username:     req.FormValue("username"),
+		Email:        req.FormValue("email"),
 		Password:     req.FormValue("password"),
-		NamaLengkap:  strings.TrimSpace(req.FormValue("nama_lengkap")),
-		JenisKelamin: strings.TrimSpace(req.FormValue("jenis_kelamin")),
-		NoHp:         strings.TrimSpace(req.FormValue("no_hp")),
+		NamaLengkap:  req.FormValue("nama_lengkap"),
+		JenisKelamin: req.FormValue("jenis_kelamin"),
+		NoHp:         req.FormValue("no_hp"),
 		Foto:         relPath,
 
 		IdNamaKelas:  user.ID(idNamaKelasInt),
-		Nisn:         strings.TrimSpace(req.FormValue("nisn")),
+		Nisn:         req.FormValue("nisn"),
 		NoAbsen:      noAbsen,
 		Angkatan:     angkatan,
-		TempatLahir:  strings.TrimSpace(req.FormValue("tempat_lahir")),
+		TempatLahir:  req.FormValue("tempat_lahir"),
 		TanggalLahir: tanggalLahir,
 	}
 

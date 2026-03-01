@@ -3,7 +3,6 @@ package httpx
 import (
 	"errors"
 	"net/http"
-	"strings"
 
 	"github.com/julienschmidt/httprouter"
 	httphelper "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper"
@@ -30,13 +29,10 @@ func (h *CreateSesiHandler) CreateSesiHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	ct := r.Header.Get("Content-Type")
-	if !strings.HasPrefix(ct, "application/json") {
+	if err := httphelper.JsonHeaderBodyValidator(w, r); err != nil {
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request : content type must be application/json")
 		return
 	}
-
-	r.Body = http.MaxBytesReader(w, r.Body, 10<<20)
 
 	var dataRequest CreateSesiRequest
 	if err := httphelper.JSONDecoder(r, &dataRequest); err != nil {
@@ -49,7 +45,7 @@ func (h *CreateSesiHandler) CreateSesiHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	if strings.TrimSpace(dataRequest.NamaSesi) == "" {
+	if dataRequest.NamaSesi == "" {
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: nama sesi is required")
 		return
 	}
@@ -58,7 +54,7 @@ func (h *CreateSesiHandler) CreateSesiHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	if strings.TrimSpace(dataRequest.KodeSesi) == "" {
+	if dataRequest.KodeSesi == "" {
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: kode sesi is required")
 		return
 	}

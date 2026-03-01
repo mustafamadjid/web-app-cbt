@@ -4,11 +4,11 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/julienschmidt/httprouter"
 	httphelper "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper"
 	httpResponse "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper/response_envelope"
+	validator "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/validation"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
@@ -39,13 +39,10 @@ func (h *ResetPasswordHandler) ResetPasswordHandler(w http.ResponseWriter, r *ht
 
 	userID := user.ID(idPengguna)
 
-	ct := r.Header.Get("Content-Type")
-	if !strings.HasPrefix(ct, "application/json") {
+	if err := httphelper.JsonHeaderBodyValidator(w, r); err != nil {
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request : content type must be application/json")
 		return
 	}
-
-	r.Body = http.MaxBytesReader(w, r.Body, 10<<20)
 
 	var dataRequest ResetPasswordRequest
 	if err := httphelper.JSONDecoder(r, &dataRequest); err != nil {
@@ -55,6 +52,11 @@ func (h *ResetPasswordHandler) ResetPasswordHandler(w http.ResponseWriter, r *ht
 		default:
 			httpResponse.WriteErr(w, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error")
 		}
+		return
+	}
+
+	if err := validator.ValidatePassword(dataRequest.Password); err != nil {
+		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", err.Error())
 		return
 	}
 

@@ -89,6 +89,11 @@ func (h *DeleteHandler) DeleteUsers(write http.ResponseWriter, req *http.Request
 		return
 	}
 
+	if err := httphelper.JsonHeaderBodyValidator(write, req); err != nil {
+		httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "bad request : content type must be application/json")
+		return
+	}
+
 	var reqBody DeleteUsersRequest
 	if err := httphelper.JSONDecoder(req, &reqBody); err != nil {
 		logger.Error(req.Context(), "failed decoding delete users request", "layer", "adapter.http.handler", "op", "user.delete_many", "err", err)

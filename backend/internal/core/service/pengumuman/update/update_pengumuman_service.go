@@ -38,6 +38,11 @@ func (r *UpdatePengumumanService) UpdatePengumumanService(ctx context.Context, i
 		return err
 	}
 
+	if err := validatePengumumanUpdatePatch(pengumuman); err != nil {
+		logger.Error(ctx, "failed updating pengumuman", "layer", "core.service", "op", "pengumuman.update_pengumuman.UpdatePengumumanService", "err", err)
+		return err
+	}
+
 	if err := sanitizeJudulPengumumanPatch(&pengumuman); err != nil {
 		logger.Error(ctx, "failed updating pengumuman", "layer", "core.service", "op", "pengumuman.update_pengumuman.UpdatePengumumanService", "err", err)
 		return err
@@ -90,6 +95,18 @@ func validateUpdatePengumumanID(idPengumuman pengumuman.ID) error {
 func validatePengumumanUpdateUserID(payload updatepatch.PengumumanUpdatePatch) error {
 	if payload.IdPengguna != nil && *payload.IdPengguna <= 0 {
 		return coreerror.ErrMissingId
+	}
+
+	return nil
+}
+
+func validatePengumumanUpdatePatch(payload updatepatch.PengumumanUpdatePatch) error {
+	if payload.JudulPengumuman == nil &&
+		payload.IsiPengumuman == nil &&
+		payload.TanggalRilisPengumuman == nil &&
+		payload.TanggalSelesaiPengumuman == nil &&
+		payload.DokumenPengumuman == nil {
+		return coreerror.ErrNoFieldToUpdate
 	}
 
 	return nil

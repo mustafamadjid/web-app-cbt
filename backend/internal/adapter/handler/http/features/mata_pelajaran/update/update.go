@@ -4,7 +4,6 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/julienschmidt/httprouter"
 	httphelper "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper"
@@ -38,13 +37,11 @@ func (h *UpdateMapelHandler) UpdateMapel(w http.ResponseWriter, r *http.Request,
 		return
 	}
 
-	ct := r.Header.Get("Content-Type")
-	if !strings.HasPrefix(ct, "application/json") {
+	if err := httphelper.JsonHeaderBodyValidator(w, r); err != nil {
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request : content type must be application/json")
 		return
 	}
 
-	r.Body = http.MaxBytesReader(w, r.Body, 10<<20)
 	var dataRequest UpdateMapelRequest
 	if err := httphelper.JSONDecoder(r, &dataRequest); err != nil {
 		switch {
@@ -56,58 +53,32 @@ func (h *UpdateMapelHandler) UpdateMapel(w http.ResponseWriter, r *http.Request,
 		return
 	}
 
-	if dataRequest.IdKelas == nil && dataRequest.KodeMapel == nil && dataRequest.NamaMapel == nil && dataRequest.Deskripsi == nil {
-		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: no fields to update")
-		return
-	}
-
-	patch := updatepatch.UpdateMapelPatch{}
-	if dataRequest.IdKelas != nil {
-		if *dataRequest.IdKelas <= 0 {
-			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: id kelas is required")
-			return
-		}
-		idKelas := matapelajaran.ID(*dataRequest.IdKelas)
-		patch.IdKelas = &idKelas
-	}
-
 	if dataRequest.KodeMapel != nil {
-		kodeMapel := strings.TrimSpace(*dataRequest.KodeMapel)
-		if kodeMapel == "" {
-			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: kode mapel is required")
-			return
-		}
-		if err := validator.ValidateInputSafe(kodeMapel, "kode_mapel"); err != nil {
+		if err := validator.ValidateInputSafe(*dataRequest.KodeMapel, "kode_mapel"); err != nil {
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "invalid input")
 			return
 		}
-		patch.KodeMapel = &kodeMapel
 	}
 
 	if dataRequest.NamaMapel != nil {
-		namaMapel := strings.TrimSpace(*dataRequest.NamaMapel)
-		if namaMapel == "" {
-			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: nama mapel is required")
-			return
-		}
-		if err := validator.ValidateInputSafe(namaMapel, "nama_mapel"); err != nil {
+		if err := validator.ValidateInputSafe(*dataRequest.NamaMapel, "nama_mapel"); err != nil {
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "invalid input")
 			return
 		}
-		patch.NamaMapel = &namaMapel
 	}
 
 	if dataRequest.Deskripsi != nil {
-		deskripsi := strings.TrimSpace(*dataRequest.Deskripsi)
-		if deskripsi == "" {
-			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: deskripsi is required")
-			return
-		}
-		if err := validator.ValidateInputSafe(deskripsi, "deskripsi"); err != nil {
+		if err := validator.ValidateInputSafe(*dataRequest.Deskripsi, "deskripsi"); err != nil {
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "invalid input")
 			return
 		}
-		patch.Deskripsi = &deskripsi
+	}
+
+	patch := updatepatch.UpdateMapelPatch{
+		IdKelas:   toMapelIDPointer(dataRequest.IdKelas),
+		KodeMapel: dataRequest.KodeMapel,
+		NamaMapel: dataRequest.NamaMapel,
+		Deskripsi: dataRequest.Deskripsi,
 	}
 
 	if err := h.svc.UpdateMapelService(r.Context(), idMapel, patch); err != nil {
@@ -116,7 +87,7 @@ func (h *UpdateMapelHandler) UpdateMapel(w http.ResponseWriter, r *http.Request,
 		case errors.Is(err, coreerror.ErrNotFound):
 			httpResponse.WriteErr(w, http.StatusNotFound, "NOT_FOUND", "data mata pelajaran tidak ditemukan")
 			return
-		case errors.Is(err, coreerror.ErrMissingId), errors.Is(err, coreerror.ErrMissingField), errors.Is(err, coreerror.ErrKodeMapelExist):
+		case errors.Is(err, coreerror.ErrMissingId), errors.Is(err, coreerror.ErrMissingField), errors.Is(err, coreerror.ErrKodeMapelExist), errors.Is(err, coreerror.ErrNoFieldToUpdate):
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: invalid field")
 			return
 		default:
@@ -126,4 +97,12 @@ func (h *UpdateMapelHandler) UpdateMapel(w http.ResponseWriter, r *http.Request,
 	}
 
 	httpResponse.WriteOK(w, http.StatusOK, UpdateMapelResponse{Success: true}, "success update mata pelajaran")
+}
+
+func toMapelIDPointer(v *int) *matapelajaran.ID {
+	if v == nil {
+		return nil
+	}
+	id := matapelajaran.ID(*v)
+	return &id
 }

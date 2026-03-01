@@ -3,7 +3,6 @@ package httpx
 import (
 	"errors"
 	"net/http"
-	"strings"
 
 	"github.com/julienschmidt/httprouter"
 	httphelper "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper"
@@ -30,13 +29,10 @@ func (h *CreateMapelHandler) CreateMapel(w http.ResponseWriter, r *http.Request,
 		return
 	}
 
-	ct := r.Header.Get("Content-Type")
-	if !strings.HasPrefix(ct, "application/json") {
+	if err := httphelper.JsonHeaderBodyValidator(w, r); err != nil {
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request : content type must be application/json")
 		return
 	}
-
-	r.Body = http.MaxBytesReader(w, r.Body, 10<<20)
 
 	var dataRequest CreateMapelRequest
 	if err := httphelper.JSONDecoder(r, &dataRequest); err != nil {
@@ -54,7 +50,7 @@ func (h *CreateMapelHandler) CreateMapel(w http.ResponseWriter, r *http.Request,
 		return
 	}
 
-	if strings.TrimSpace(dataRequest.KodeMapel) == "" {
+	if dataRequest.KodeMapel == "" {
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: kode mapel is required")
 		return
 	}
@@ -63,7 +59,7 @@ func (h *CreateMapelHandler) CreateMapel(w http.ResponseWriter, r *http.Request,
 		return
 	}
 
-	if strings.TrimSpace(dataRequest.NamaMapel) == "" {
+	if dataRequest.NamaMapel == "" {
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: nama mapel is required")
 		return
 	}
@@ -72,7 +68,7 @@ func (h *CreateMapelHandler) CreateMapel(w http.ResponseWriter, r *http.Request,
 		return
 	}
 
-	if strings.TrimSpace(dataRequest.Deskripsi) == "" {
+	if dataRequest.Deskripsi == "" {
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: deskripsi is required")
 		return
 	}

@@ -26,6 +26,10 @@ func (s *UpdateKelasService) UpdateNamaKelas(ctx context.Context, idNamaKelas in
 		return err
 	}
 
+	if err := validateNamaKelasPatch(dataUpdate); err != nil {
+		return err
+	}
+
 	if err := sanitizeNamaKelasPatch(&dataUpdate); err != nil {
 		logger.Error(ctx, "failed updating nama kelas", "layer", "core.service", "op", "kelas.update_nama_kelas.NamaKelas", "err", err)
 		return err
@@ -57,6 +61,14 @@ func (s *UpdateKelasService) UpdateNamaKelas(ctx context.Context, idNamaKelas in
 func validateUpdateNamaKelasID(idNamaKelas int) error {
 	if idNamaKelas <= 0 {
 		return coreerror.ErrMissingId
+	}
+
+	return nil
+}
+
+func validateNamaKelasPatch(dataUpdate updatepatch.NamaKelasPatch) error {
+	if dataUpdate.IdTingkatKelas == nil && dataUpdate.NamaKelas == nil {
+		return coreerror.ErrNoFieldToUpdate
 	}
 
 	return nil

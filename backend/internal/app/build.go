@@ -20,6 +20,7 @@ type App struct {
 	RuangUjian    *RuangUjianModule
 	Sesi          *SesiModule
 	Pengumuman    *PengumumanModule
+	BankSoal      *BankSoalModule
 	ResetPassword *ResetPasswordModule
 	ImportSoal    *ImportSoalModule
 	HTTP          *HTTPModule
@@ -42,9 +43,10 @@ func Build(ctx context.Context, cfg Config, dbURL string, hasher out.PasswordHas
 	ruangUjian := BuildRuangUjianModule(infra)
 	sesi := BuildSesiModule(infra)
 	pengumuman := BuildPengumumanModule(cfg, infra, deleteFile)
+	bankSoal := BuildBankSoalModule(infra)
 	resetPassword := BuildResetPasswordModule(infra, hasher)
 	importSoal := BuildImportSoalModule(infra, cfg, logger)
-	httpm := BuildHTTPModule(cfg, auth, users, profilSekolah, aktivitasUser, kelas, mapel, ruangUjian, sesi, pengumuman, resetPassword, importSoal, tokens, infra, logger)
+	httpm := BuildHTTPModule(cfg, auth, users, profilSekolah, aktivitasUser, kelas, mapel, ruangUjian, sesi, pengumuman, bankSoal, resetPassword, importSoal, tokens, infra, logger)
 
 	return &App{
 		Infra:         infra,
@@ -58,6 +60,7 @@ func Build(ctx context.Context, cfg Config, dbURL string, hasher out.PasswordHas
 		RuangUjian:    ruangUjian,
 		Sesi:          sesi,
 		Pengumuman:    pengumuman,
+		BankSoal:      bankSoal,
 		ResetPassword: resetPassword,
 		ImportSoal:    importSoal,
 		HTTP:          httpm,

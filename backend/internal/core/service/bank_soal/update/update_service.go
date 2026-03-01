@@ -26,7 +26,12 @@ func (r *UpdateBankSoalService) UpdateBankSoalService(ctx context.Context, idBan
 
 	if err := validateUpdateBankSoalID(idBankSoal); err != nil {
 		logger.Error(ctx, "failed update bank soal", "layer", "core.service", "op", "bank_soal.update", "err", coreerror.ErrMissingId)
-		return nil
+		return err
+	}
+
+	if err := validateUpdateBankSoalPatch(payload); err != nil {
+		logger.Error(ctx, "failed update bank soal", "layer", "core.service", "op", "bank_soal.update", "err", err)
+		return err
 	}
 
 	if err := validateUpdateBankSoalPatchID(payload); err != nil {
@@ -40,6 +45,11 @@ func (r *UpdateBankSoalService) UpdateBankSoalService(ctx context.Context, idBan
 	}
 
 	if err := sanitizeDeskripsiBankSoalPatch(&payload); err != nil {
+		logger.Error(ctx, "failed update bank soal", "layer", "core.service", "op", "bank_soal.update", "err", err)
+		return err
+	}
+
+	if err := sanitizeMateriBankSoalPatch(&payload); err != nil {
 		logger.Error(ctx, "failed update bank soal", "layer", "core.service", "op", "bank_soal.update", "err", err)
 		return err
 	}
@@ -59,6 +69,19 @@ func validateUpdateBankSoalID(idBankSoal bank_soal.ID) error {
 	if idBankSoal <= 0 {
 		return coreerror.ErrMissingId
 	}
+	return nil
+}
+
+func validateUpdateBankSoalPatch(payload updatepatch.UpdateBankSoalPatch) error {
+	if payload.IdMapel == nil &&
+		payload.IdKelas == nil &&
+		payload.IdPengguna == nil &&
+		payload.NamaBankSoal == nil &&
+		payload.Deskripsi == nil &&
+		payload.Materi == nil {
+		return coreerror.ErrNoFieldToUpdate
+	}
+
 	return nil
 }
 
@@ -103,5 +126,19 @@ func sanitizeDeskripsiBankSoalPatch(payload *updatepatch.UpdateBankSoalPatch) er
 	}
 
 	payload.Deskripsi = &deskripsi
+	return nil
+}
+
+func sanitizeMateriBankSoalPatch(payload *updatepatch.UpdateBankSoalPatch) error {
+	if payload.Materi == nil {
+		return nil
+	}
+
+	materi := strings.TrimSpace(*payload.Materi)
+	if materi == "" {
+		return coreerror.ErrMissingField
+	}
+
+	payload.Materi = &materi
 	return nil
 }

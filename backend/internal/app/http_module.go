@@ -23,7 +23,7 @@ type HTTPModule struct {
 	Server  *http.Server
 }
 
-func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSekolah *ProfilSekolahModule, aktivitasUser *AktivitasUserModule, kelas *KelasModule, mapel *MataPelajaranModule, ruangUjian *RuangUjianModule, sesi *SesiModule, pengumuman *PengumumanModule, resetPassword *ResetPasswordModule, importSoal *ImportSoalModule, tokens *TokenModule, infra *InfraModule, logger corelog.Logger) *HTTPModule {
+func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSekolah *ProfilSekolahModule, aktivitasUser *AktivitasUserModule, kelas *KelasModule, mapel *MataPelajaranModule, ruangUjian *RuangUjianModule, sesi *SesiModule, pengumuman *PengumumanModule, bankSoal *BankSoalModule, resetPassword *ResetPasswordModule, importSoal *ImportSoalModule, tokens *TokenModule, infra *InfraModule, logger corelog.Logger) *HTTPModule {
 	cookies := cookie.CookieConfig{
 		AccessName:  cfg.Cookie.AccessName,
 		RefreshName: cfg.Cookie.RefreshName,
@@ -174,6 +174,14 @@ func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSeko
 	router.POST("/admin/bank-soal/import/:idBankSoal", requireAdminGuru(rateLimitStandard(importSoal.ImportHandler.ImportSoal)))
 	router.GET("/admin/bank-soal/import-job/:idJob", requireAdminGuru(rateLimitStandard(importSoal.GetJobHandler.GetJobByID)))
 	router.GET("/admin/bank-soal/import-jobs/:idBankSoal", requireAdminGuru(rateLimitStandard(importSoal.GetJobHandler.GetJobsByBankSoal)))
+
+	// BANK SOAL CRUD
+	router.GET("/admin-guru/bank-soal", requireAdminGuru(rateLimitStandard(bankSoal.GetHandler.GetBankSoal)))
+	router.POST("/admin-guru/bank-soal", requireAdminGuru(rateLimitStandard(bankSoal.CreateHandler.CreateBankSoal)))
+	router.GET("/admin-guru/bank-soal/guru/:idPengguna", requireAdminGuru(rateLimitStandard(bankSoal.GetHandler.GetBankSoalByGuru)))
+	router.GET("/admin-guru/bank-soal/:idBankSoal", requireAdminGuru(rateLimitStandard(bankSoal.GetHandler.GetBankSoalByID)))
+	router.PATCH("/admin-guru/bank-soal/:idBankSoal", requireAdminGuru(rateLimitStandard(bankSoal.UpdateHandler.UpdateBankSoal)))
+	router.DELETE("/admin-guru/bank-soal/:idBankSoal", requireAdminGuru(rateLimitStandard(bankSoal.DeleteHandler.DeleteBankSoal)))
 
 	// Siswa
 

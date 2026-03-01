@@ -39,7 +39,7 @@ func (r *GetBankSoalService) GetBankSoalByIdService(ctx context.Context, idBankS
 
 	if err := validateBankSoalID(idBankSoal); err != nil {
 		logger.Error(ctx, "failed get bank soal by id", "layer", "core.service", "op", "bank_soal.get_by_id", "err", coreerror.ErrMissingId)
-		return bank_soal.BankSoal{}, nil
+		return bank_soal.BankSoal{}, err
 	}
 
 	item, err := r.repo.GetBankSoalById(ctx, idBankSoal)

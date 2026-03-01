@@ -25,6 +25,10 @@ func (r *UpdateSesiService) UpdateSesiService(ctx context.Context, idSesi int, s
 		return err
 	}
 
+	if err := validateUpdateSesiPatch(sesi); err != nil {
+		return err
+	}
+
 	if err := sanitizeNamaSesiPatch(&sesi); err != nil {
 		return err
 	}
@@ -47,6 +51,13 @@ func (r *UpdateSesiService) UpdateSesiService(ctx context.Context, idSesi int, s
 func validateUpdateSesiID(idSesi int) error {
 	if idSesi == 0 {
 		return coreerror.ErrMissingId
+	}
+	return nil
+}
+
+func validateUpdateSesiPatch(sesi updatepatch.UpdateSesiPatch) error {
+	if sesi.KodeSesi == nil && sesi.NamaSesi == nil {
+		return coreerror.ErrNoFieldToUpdate
 	}
 	return nil
 }

@@ -4,7 +4,6 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/middleware"
@@ -37,8 +36,7 @@ func (h *UpdateKelasHandler) UpdateNamaKelas(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	ct := r.Header.Get("Content-Type")
-	if !strings.HasPrefix(ct, "application/json") {
+	if err := httphelper.JsonHeaderBodyValidator(w, r); err != nil {
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request : content type must be application/json")
 		return
 	}
@@ -48,8 +46,6 @@ func (h *UpdateKelasHandler) UpdateNamaKelas(w http.ResponseWriter, r *http.Requ
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: invalid id nama kelas")
 		return
 	}
-
-	r.Body = http.MaxBytesReader(w, r.Body, 10<<20)
 
 	var dataRequest UpdateKelasRequest
 	if err := httphelper.JSONDecoder(r, &dataRequest); err != nil {
@@ -62,33 +58,16 @@ func (h *UpdateKelasHandler) UpdateNamaKelas(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	if dataRequest.IdTingkatKelas == nil && dataRequest.NamaKelas == nil {
-		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: no fields to update")
-		return
-	}
-
-	patch := updatepatch.NamaKelasPatch{}
-	if dataRequest.IdTingkatKelas != nil {
-		if *dataRequest.IdTingkatKelas <= 0 {
-			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: id tingkat kelas is required")
-			return
-		}
-		idTingkatKelas := kelas.ID(*dataRequest.IdTingkatKelas)
-		patch.IdTingkatKelas = &idTingkatKelas
-	}
-
 	if dataRequest.NamaKelas != nil {
-		namaKelas := strings.TrimSpace(*dataRequest.NamaKelas)
-		if namaKelas == "" {
-			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: nama kelas is required")
-			return
-		}
-
-		if err := validator.ValidateInputSafe(namaKelas, "nama_kelas"); err != nil {
+		if err := validator.ValidateInputSafe(*dataRequest.NamaKelas, "nama_kelas"); err != nil {
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", err.Error())
 			return
 		}
-		patch.NamaKelas = &namaKelas
+	}
+
+	patch := updatepatch.NamaKelasPatch{
+		IdTingkatKelas: toKelasIDPointer(dataRequest.IdTingkatKelas),
+		NamaKelas:      dataRequest.NamaKelas,
 	}
 
 	if err := h.svc.UpdateNamaKelas(r.Context(), idNamaKelas, patch); err != nil {
@@ -97,7 +76,7 @@ func (h *UpdateKelasHandler) UpdateNamaKelas(w http.ResponseWriter, r *http.Requ
 		case errors.Is(err, coreerror.ErrNotFound):
 			httpResponse.WriteErr(w, http.StatusNotFound, "NOT_FOUND", "data kelas tidak ditemukan")
 			return
-		case errors.Is(err, coreerror.ErrMissingId), errors.Is(err, coreerror.ErrMissingField):
+		case errors.Is(err, coreerror.ErrMissingId), errors.Is(err, coreerror.ErrMissingField), errors.Is(err, coreerror.ErrNoFieldToUpdate):
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: invalid field")
 			return
 		default:
@@ -127,4 +106,12 @@ func (h *UpdateKelasHandler) UpdateNamaKelas(w http.ResponseWriter, r *http.Requ
 	}
 
 	httpResponse.WriteOKNoData(w, http.StatusOK, "success update nama kelas")
+}
+
+func toKelasIDPointer(v *int) *kelas.ID {
+	if v == nil {
+		return nil
+	}
+	id := kelas.ID(*v)
+	return &id
 }

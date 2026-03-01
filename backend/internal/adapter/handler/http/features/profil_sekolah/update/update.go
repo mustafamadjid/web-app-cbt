@@ -3,16 +3,15 @@ package httpx
 import (
 	"errors"
 	"net/http"
-	"strings"
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/profil_sekolah"
-	
-	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
+
 	httphelper "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper"
 	httpResponse "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper/response_envelope"
 	validator "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/validation"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
+	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 	profil_sekolah_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/profil_sekolah/update"
 )
 
@@ -32,15 +31,14 @@ func (h *UpdateProfilSekolahHandler) UpdateProfilSekolah(w http.ResponseWriter, 
 		return
 	}
 
-	ct := r.Header.Get("Content-Type")
-	if !strings.HasPrefix(ct, "multipart/form-data") {
-		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: content type must be multipart/form-data")
-		return
-	}
-
-	if err := r.ParseMultipartForm(10 << 20); err != nil {
+	if err := httphelper.MultipartHeaderBodyValidator(w, r, 10<<20); err != nil {
 		logger.Error(r.Context(), "failed parsing multipart form", "layer", "adapter.http.handler", "op", "profil_sekolah.update", "err", err)
-		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: invalid multipart form")
+		switch {
+		case errors.Is(err, coreerror.ErrContentTypeMustMultipart):
+			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: content type must be multipart/form-data")
+		default:
+			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: invalid multipart form")
+		}
 		return
 	}
 
@@ -53,7 +51,7 @@ func (h *UpdateProfilSekolahHandler) UpdateProfilSekolah(w http.ResponseWriter, 
 		if !ok || len(vals) == 0 {
 			return "", false
 		}
-		return strings.TrimSpace(vals[0]), true
+		return vals[0], true
 	}
 
 	var updateRequest updateProfilSekolahRequest
@@ -64,6 +62,10 @@ func (h *UpdateProfilSekolahHandler) UpdateProfilSekolah(w http.ResponseWriter, 
 			return
 		}
 		if err := validator.ValidateInputSafe(email, "email_sekolah"); err != nil {
+			httpResponse.WriteErr(w, http.StatusBadRequest, "INVALID_INPUT", err.Error())
+			return
+		}
+		if err := validator.ValidateEmail(email); err != nil {
 			httpResponse.WriteErr(w, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 			return
 		}
@@ -125,31 +127,15 @@ func (h *UpdateProfilSekolahHandler) UpdateProfilSekolah(w http.ResponseWriter, 
 		updateRequest.AlamatSekolah = &alamat
 	}
 
-	var logoPtr *string
-	file, fh, err := r.FormFile("logo_sekolah")
-	if err != nil && !errors.Is(err, http.ErrMissingFile) {
-		logger.Error(r.Context(), "failed reading logo", "layer", "adapter.http.handler", "op", "profil_sekolah.update", "err", err)
-		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: failed reading logo_sekolah")
-		return
-	}
-	if err == nil {
-		defer file.Close()
-		relPath, err := h.storeImage.SavePhotoRelative(file, fh)
-		if err != nil {
-			if errors.Is(err, coreerror.ErrFileTooLarge) {
-				logger.Info(r.Context(), "logo too large", "layer", "adapter.http.handler", "op", "profil_sekolah.update", "err", err)
-				httpResponse.WriteErr(w, http.StatusBadRequest, "FILE_TOO_LARGE", "file too large")
-				return
-			}
-			logger.Error(r.Context(), "failed saving logo", "layer", "adapter.http.handler", "op", "profil_sekolah.update", "err", err)
-			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: invalid logo_sekolah")
+	logoPtr, err := httphelper.StoreFileToDisk(r, "logo_sekolah", false, h.storeImage.SavePhotoRelative)
+	if err != nil {
+		if errors.Is(err, coreerror.ErrFileTooLarge) {
+			logger.Info(r.Context(), "logo too large", "layer", "adapter.http.handler", "op", "profil_sekolah.update", "err", err)
+			httpResponse.WriteErr(w, http.StatusBadRequest, "FILE_TOO_LARGE", "file too large")
 			return
 		}
-		logoPtr = &relPath
-	}
-
-	if updateRequest.IsEmpty() && logoPtr == nil {
-		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "no fields to update")
+		logger.Error(r.Context(), "failed saving logo", "layer", "adapter.http.handler", "op", "profil_sekolah.update", "err", err)
+		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: invalid logo_sekolah")
 		return
 	}
 
@@ -169,7 +155,7 @@ func (h *UpdateProfilSekolahHandler) UpdateProfilSekolah(w http.ResponseWriter, 
 		switch {
 		case errors.Is(err, coreerror.ErrNoFieldToUpdate):
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "no fields to update")
-		case errors.Is(err, coreerror.ErrInvalidInput):
+		case errors.Is(err, coreerror.ErrInvalidInput), errors.Is(err, coreerror.ErrMissingField):
 			httpResponse.WriteErr(w, http.StatusBadRequest, "INVALID_INPUT", "invalid input")
 		default:
 			httpResponse.WriteErr(w, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error: failed update profil sekolah")

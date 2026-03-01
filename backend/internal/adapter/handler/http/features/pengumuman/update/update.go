@@ -4,7 +4,6 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/julienschmidt/httprouter"
 	httphelper "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper"
@@ -35,21 +34,20 @@ func (h *UpdatePengumumanHandler) UpdatePengumuman(w http.ResponseWriter, r *htt
 		return
 	}
 
-	idPengumuman, err := strconv.Atoi(strings.TrimSpace(ps.ByName("idPengumuman")))
+	idPengumuman, err := strconv.Atoi(ps.ByName("idPengumuman"))
 	if err != nil || idPengumuman <= 0 {
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: invalid id pengumuman")
 		return
 	}
 
-	ct := r.Header.Get("Content-Type")
-	if !strings.HasPrefix(ct, "multipart/form-data") {
-		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: content type must be multipart/form-data")
-		return
-	}
-
-	if err := r.ParseMultipartForm(10 << 20); err != nil {
+	if err := httphelper.MultipartHeaderBodyValidator(w, r, 10<<20); err != nil {
 		logger.Error(r.Context(), "failed parsing multipart form", "layer", "adapter.http.handler", "op", "pengumuman.update", "err", err)
-		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: invalid multipart form")
+		switch {
+		case errors.Is(err, coreerror.ErrContentTypeMustMultipart):
+			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: content type must be multipart/form-data")
+		default:
+			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: invalid multipart form")
+		}
 		return
 	}
 
@@ -64,7 +62,7 @@ func (h *UpdatePengumumanHandler) UpdatePengumuman(w http.ResponseWriter, r *htt
 			return "", false
 		}
 
-		return strings.TrimSpace(vals[0]), true
+		return vals[0], true
 	}
 
 	req := UpdatePengumumanRequest{}
@@ -110,34 +108,15 @@ func (h *UpdatePengumumanHandler) UpdatePengumuman(w http.ResponseWriter, r *htt
 		req.TanggalSelesaiPengumuman = &tanggalSelesai
 	}
 
-	var dokumenPath *string
-	file, fh, err := r.FormFile("dokumen_pengumuman")
-	if err != nil && !errors.Is(err, http.ErrMissingFile) {
-		logger.Error(r.Context(), "failed reading dokumen pengumuman", "layer", "adapter.http.handler", "op", "pengumuman.update", "err", err)
-		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: failed reading dokumen_pengumuman")
-		return
-	}
-
-	if err == nil {
-		defer file.Close()
-
-		relativePath, err := h.storeDocument.SaveDocumentRelative(file, fh)
-		if err != nil {
-			if errors.Is(err, coreerror.ErrFileTooLarge) {
-				httpResponse.WriteErr(w, http.StatusBadRequest, "FILE_TOO_LARGE", "file too large")
-				return
-			}
-
-			logger.Error(r.Context(), "failed saving dokumen pengumuman", "layer", "adapter.http.handler", "op", "pengumuman.update", "err", err)
-			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: invalid dokumen_pengumuman")
+	dokumenPath, err := httphelper.StoreFileToDisk(r, "dokumen_pengumuman", false, h.storeDocument.SaveDocumentRelative)
+	if err != nil {
+		if errors.Is(err, coreerror.ErrFileTooLarge) {
+			httpResponse.WriteErr(w, http.StatusBadRequest, "FILE_TOO_LARGE", "file too large")
 			return
 		}
 
-		dokumenPath = &relativePath
-	}
-
-	if req.IsEmpty() && dokumenPath == nil {
-		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "no fields to update")
+		logger.Error(r.Context(), "failed saving dokumen pengumuman", "layer", "adapter.http.handler", "op", "pengumuman.update", "err", err)
+		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: invalid dokumen_pengumuman")
 		return
 	}
 
@@ -149,23 +128,12 @@ func (h *UpdatePengumumanHandler) UpdatePengumuman(w http.ResponseWriter, r *htt
 	}
 
 	patch := updatepatch.PengumumanUpdatePatch{
-		IdPengguna: ptrPengumumanID(pengumuman.ID(actor.IdPengguna)),
-	}
-
-	if req.JudulPengumuman != nil {
-		patch.JudulPengumuman = req.JudulPengumuman
-	}
-	if req.IsiPengumuman != nil {
-		patch.IsiPengumuman = req.IsiPengumuman
-	}
-	if req.TanggalRilisPengumuman != nil {
-		patch.TanggalRilisPengumuman = req.TanggalRilisPengumuman
-	}
-	if req.TanggalSelesaiPengumuman != nil {
-		patch.TanggalSelesaiPengumuman = req.TanggalSelesaiPengumuman
-	}
-	if dokumenPath != nil {
-		patch.DokumenPengumuman = dokumenPath
+		IdPengguna:               ptrPengumumanID(pengumuman.ID(actor.IdPengguna)),
+		JudulPengumuman:          req.JudulPengumuman,
+		IsiPengumuman:            req.IsiPengumuman,
+		TanggalRilisPengumuman:   req.TanggalRilisPengumuman,
+		TanggalSelesaiPengumuman: req.TanggalSelesaiPengumuman,
+		DokumenPengumuman:        dokumenPath,
 	}
 
 	if err := h.svc.UpdatePengumumanService(r.Context(), pengumuman.ID(idPengumuman), patch); err != nil {
@@ -173,7 +141,7 @@ func (h *UpdatePengumumanHandler) UpdatePengumuman(w http.ResponseWriter, r *htt
 		switch {
 		case errors.Is(err, coreerror.ErrMissingId):
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: missing id")
-		case errors.Is(err, coreerror.ErrMissingField):
+		case errors.Is(err, coreerror.ErrMissingField), errors.Is(err, coreerror.ErrNoFieldToUpdate):
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: missing fields")
 		case errors.Is(err, coreerror.ErrInvalidDateFormat):
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: invalid date format")

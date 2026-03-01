@@ -18,11 +18,6 @@ import (
 
 func main() {
 	ctx := context.Background()
-	// env, ok := os.LookupEnv("POSTGRES_DBURL")
-	// if !ok {
-	// 	log.Fatal("POSTGRES_DBURL tidak ada")
-	// }
-	// fmt.Println(env)
 
 	logger := logging.NewLogger(os.Getenv("ENV"))
 
@@ -107,10 +102,11 @@ func main() {
 	ruangUjianMod := app.BuildRuangUjianModule(infra)
 	sesiMod := app.BuildSesiModule(infra)
 	pengumumanMod := app.BuildPengumumanModule(cfg, infra, deleteFileSystem)
+	bankSoalMod := app.BuildBankSoalModule(infra)
 	resetPasswordMod := app.BuildResetPasswordModule(infra, hasher)
 	importSoalMod := app.BuildImportSoalModule(infra, cfg, logger)
 
-	httpMod := app.BuildHTTPModule(cfg, authMod, userMod, profilSekolahMod, aktivitasUserMod, kelasMod, mapelMod, ruangUjianMod, sesiMod, pengumumanMod, resetPasswordMod, importSoalMod, tokens, infra, logger)
+	httpMod := app.BuildHTTPModule(cfg, authMod, userMod, profilSekolahMod, aktivitasUserMod, kelasMod, mapelMod, ruangUjianMod, sesiMod, pengumumanMod, bankSoalMod, resetPasswordMod, importSoalMod, tokens, infra, logger)
 
 	// Start background import soal worker
 	workerCtx, workerCancel := context.WithCancel(ctx)
@@ -123,4 +119,3 @@ func main() {
 	}
 
 }
-
