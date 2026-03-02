@@ -1,18 +1,23 @@
 import type { TipeUjian } from "../Ujian/BuatUjian";
 
-export type BankSoalItem = {
-  id: number;
-  id_guru: number;
-  guru?: string;
-  nama_banksoal?: string;
-  mata_pelajaran?: string;
-  materi?: string;
-  kelas?: number;
-  deskripsi?: string;
-  tgl_buat?: string;
-  jumlah_soal_pg?: number;
-  jumlah_soal_essay?: number;
-  total_soal?: number;
+export type BankSoalApiItem = {
+  id_bank_soal: number;
+  id_mapel: number;
+  id_kelas: number;
+  id_pengguna: number;
+  nama_bank_soal: string;
+  deskripsi: string;
+  materi: string;
+};
+
+export type BankSoalItem = BankSoalApiItem;
+
+export type GetBankSoalParams = {
+  search?: string;
+  id_kelas?: number;
+  id_mapel?: number;
+  limit?: number;
+  offset?: number;
 };
 
 export type SoalUjianItem = {
@@ -38,14 +43,15 @@ export type BankSoalFormValues = {
 };
 
 export type CreateBankSoalPayload = {
-  id_guru?: number;
-  nama_banksoal: string;
-  kelas: number;
-  mapel_id: number;
-  mata_pelajaran: string;
+  id_pengguna?: number;
+  id_mapel: number;
+  id_kelas: number;
+  nama_bank_soal: string;
   deskripsi: string;
-  materi?: string;
+  materi: string;
 };
+
+export type UpdateBankSoalPayload = Partial<CreateBankSoalPayload>;
 
 export type SoalUjianResponse = {
   id_bank_soal: number;

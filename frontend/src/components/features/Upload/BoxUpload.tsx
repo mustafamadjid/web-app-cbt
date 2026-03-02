@@ -15,7 +15,7 @@ type BoxUploadProps = {
 const BoxUpload = forwardRef<HTMLInputElement, BoxUploadProps>(
   (
     {
-      helperText = "Unggah File (maks. 10MB).",
+      helperText = "Unggah File (maks. 20MB).",
       formatText = "Format: .DOCX",
       type = "file",
       accept = "application/vnd.openxmlformats-officedocument.wordprocessingml.document",

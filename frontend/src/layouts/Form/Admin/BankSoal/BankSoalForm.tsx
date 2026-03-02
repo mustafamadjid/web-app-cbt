@@ -52,8 +52,14 @@ const BankSoalForm = () => {
     error: mapelOptionsError,
   } = useGetMataPelajaranOptions({ source: "dataMaster" });
 
-  const kelasOptions: TingkatKelas[] = kelasData?.item_tingkat_kelas ?? [];
-  const mapelOptions: MataPelajaranOption[] = mapelData ?? [];
+  const kelasOptions: TingkatKelas[] = useMemo(
+    () => kelasData?.item_tingkat_kelas ?? [],
+    [kelasData],
+  );
+  const mapelOptions: MataPelajaranOption[] = useMemo(
+    () => mapelData ?? [],
+    [mapelData],
+  );
   const loadingOptions = loadingKelasOptions || loadingMapelOptions;
   const optionsErrorMsg = kelasOptionsError || mapelOptionsError;
 
@@ -109,19 +115,20 @@ const BankSoalForm = () => {
     setSubmitting(true);
     try {
       await createBankSoal({
-        id_guru: user?.id_pengguna,
-        nama_banksoal: values.namaBankSoal.trim(),
-        kelas: selectedKelas.tingkat_kelas,
-        mapel_id: selectedMapel.id,
-        mata_pelajaran: selectedMapel.label,
+        id_pengguna: user?.id_pengguna,
+        nama_bank_soal: values.namaBankSoal.trim(),
+        id_kelas: selectedKelas.id_tingkat_kelas,
+        id_mapel: selectedMapel.id,
         deskripsi: values.deskripsi.trim(),
         materi: `Kelas ${selectedKelas.tingkat_kelas}`,
       });
 
-      toast.success(
-        "Bank soal berhasil dibuat. Lanjutkan upload dokumen bank soal.",
-      );
-      navigate(paths.dashboard.tambah_bank_soal);
+      toast.success("Bank soal berhasil dibuat.");
+      if (user?.role === "GURU") {
+        navigate(paths.dashboard.bank_soal_guru);
+      } else {
+        navigate(paths.dashboard.bank_soal);
+      }
     } catch (error) {
       if (error instanceof ApiError) {
         setSubmitError(error.message);

@@ -7,8 +7,8 @@ import {
 } from "@/helper/validate/validateForm";
 import { uploadImportSoal } from "@/services/Api/features-api/BankSoal/importSoal.service";
 import { ApiError } from "@/services/Api/api";
-import { useEffect, useRef, useState, type FormEvent } from "react";
-import { useSearchParams } from "react-router";
+import { useRef, useState, type FormEvent } from "react";
+import { useParams } from "react-router";
 
 type FileValues = {
   file: File | null;
@@ -19,28 +19,15 @@ const initialValues: FileValues = {
 };
 
 const TambahBankSoal = () => {
-  const [searchParams] = useSearchParams();
-  const idBankSoal = Number(searchParams.get("idBankSoal")) || 0;
+  const { idBankSoal: idBankSoalParam } = useParams();
+  const idBankSoal = Number(idBankSoalParam) || 0;
 
   const [values, setValues] = useState<FileValues>(initialValues);
-  const [fileUrl, setFileUrl] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [isUploading, setIsUploading] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!values.file) {
-      setFileUrl("");
-      return;
-    }
-
-    const url = URL.createObjectURL(values.file);
-    setFileUrl(url);
-
-    return () => URL.revokeObjectURL(url);
-  }, [values.file]);
 
   const setField = createSetField(setValues);
 

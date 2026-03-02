@@ -99,7 +99,7 @@ func (w *Worker) processOneJob(ctx context.Context, job importsoal.ImportSoalJob
 	}
 
 	// 4. Parse markers
-	soalList, err := parser.ParseMarkers(paragraphs)
+	soalList, err := parser.ParseMarkers(paragraphs, data)
 	if err != nil {
 		errMsg := fmt.Sprintf("gagal parsing marker: %v", err)
 		logger.Error(ctx, errMsg)

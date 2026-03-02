@@ -246,6 +246,14 @@ export const router = createBrowserRouter([
             path: paths.dashboard.edit_pengumuman_guru,
             element: <EditPengumuman />,
           },
+          {
+            path: paths.dashboard.tambah_bank_soal_guru,
+            element: <TambahBankSoal />,
+          },
+          {
+            path: paths.dashboard.buat_bank_soal_guru,
+            element: <BuatBankSoal />,
+          },
         ],
       },
     ],

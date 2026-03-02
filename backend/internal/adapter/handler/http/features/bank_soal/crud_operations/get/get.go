@@ -20,15 +20,6 @@ type GetBankSoalHandler struct {
 	svc *bank_soal_service.GetBankSoalService
 }
 
-type bankSoalResponse struct {
-	IDBankSoal   int    `json:"id_bank_soal"`
-	IDMapel      int    `json:"id_mapel"`
-	IDKelas      int    `json:"id_kelas"`
-	IDPengguna   int    `json:"id_pengguna"`
-	NamaBankSoal string `json:"nama_bank_soal"`
-	Deskripsi    string `json:"deskripsi"`
-	Materi       string `json:"materi"`
-}
 
 func NewGetBankSoalHandler(svc *bank_soal_service.GetBankSoalService) *GetBankSoalHandler {
 	return &GetBankSoalHandler{svc: svc}
@@ -60,7 +51,7 @@ func (h *GetBankSoalHandler) GetBankSoal(w http.ResponseWriter, r *http.Request,
 		return
 	}
 
-	response := make([]bankSoalResponse, 0, len(items))
+	response := make([]BankSoalResponse, 0, len(items))
 	for _, item := range items {
 		response = append(response, toBankSoalResponse(item))
 	}
@@ -123,7 +114,7 @@ func (h *GetBankSoalHandler) GetBankSoalByGuru(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	response := make([]bankSoalResponse, 0, len(items))
+	response := make([]BankSoalResponse, 0, len(items))
 	for _, item := range items {
 		response = append(response, toBankSoalResponse(item))
 	}
@@ -187,8 +178,8 @@ func parseListBankSoalRequest(r *http.Request) (ListBankSoalRequest, error) {
 	return req, nil
 }
 
-func toBankSoalResponse(item bank_soal.BankSoal) bankSoalResponse {
-	return bankSoalResponse{
+func toBankSoalResponse(item bank_soal.BankSoal) BankSoalResponse {
+	return BankSoalResponse{
 		IDBankSoal:   int(item.IdBankSoal),
 		IDMapel:      int(item.IdMapel),
 		IDKelas:      int(item.IdKelas),

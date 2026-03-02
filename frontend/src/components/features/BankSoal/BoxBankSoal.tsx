@@ -1,13 +1,16 @@
 import React from "react";
-import { useNavigate } from "react-router";
 
 import SvgIcons from "@/assets/SvgIcons/svgIcons";
-import { paths } from "@/routes/paths";
-
-import type { BankSoalItem } from "@/types/BankSoal/BankSoal";
-
-type BoxBankSoalProps = Omit<BankSoalItem, "id"> & {
+type BoxBankSoalProps = {
+  idBankSoal: number;
+  namaBankSoal?: string;
+  guruLabel?: string;
+  mapelLabel?: string;
+  materi?: string;
+  kelasLabel?: string;
+  tglBuat?: string;
   onPreview?: () => void;
+  onUpload?: () => void;
   onKelola?: () => void;
   onHapus?: () => void;
   className?: string;
@@ -24,35 +27,32 @@ const formatTanggal = (iso?: string) => {
   });
 };
 
-const kelasLabelClass = (k?: number | string) => {
-  const kk = String(k ?? "");
+const kelasLabelClass = (kelasLabel?: string) => {
+  const kk = String(kelasLabel ?? "");
   const base = "rounded-md px-2 py-1 text-sm font-bold text-white shadow-sm";
 
   const map: Record<string, string> = {
-    "10": "bg-green-700",
-    "11": "bg-green-800",
-    "12": "bg-green-900",
+    "Kelas 10": "bg-green-700",
+    "Kelas 11": "bg-green-800",
+    "Kelas 12": "bg-green-900",
   };
 
   return [base, map[kk] ?? "bg-gray-400"].join(" ");
 };
 
 const BoxBankSoal: React.FC<BoxBankSoalProps> = ({
-  nama_banksoal = "Bank Soal",
-  guru = "-",
-  mata_pelajaran = "-",
+  namaBankSoal = "Bank Soal",
+  guruLabel = "-",
+  mapelLabel = "-",
   materi = "-",
-  kelas,
-  tgl_buat,
-  jumlah_soal_pg = 0,
-  jumlah_soal_essay = 0,
+  kelasLabel = "-",
+  tglBuat,
+  onUpload,
   onKelola,
   onPreview,
   onHapus,
   className = "",
 }) => {
-  const navigate = useNavigate();
-
   return (
     <div
       className={[
@@ -70,20 +70,20 @@ const BoxBankSoal: React.FC<BoxBankSoalProps> = ({
         <div className="mb-3 flex items-center justify-between text-xs font-medium text-gray-500">
           <span className="flex items-center gap-1.5">
             {SvgIcons.calendar("h-4 w-4 text-gray-400")}
-            {formatTanggal(tgl_buat)}
+            {formatTanggal(tglBuat)}
           </span>
 
-          <span className={kelasLabelClass(kelas)}>Kelas {kelas ?? "-"}</span>
+          <span className={kelasLabelClass(kelasLabel)}>{kelasLabel}</span>
         </div>
 
         {/* Title (Lebih Besar) */}
         <h3 className="mb-2 line-clamp-2 text-lg font-bold leading-snug text-[#37513d] transition-colors group-hover:text-[#397e50]">
-          {nama_banksoal}
+          {namaBankSoal}
         </h3>
 
         {/* Guru pembuat soal */}
         <h4 className="mb-7 truncate  text-gray-700 text-sm flex items-center gap-2">
-          <span className="font-semibold">Dibuat Oleh :</span> {guru}
+          <span className="font-semibold">Dibuat Oleh :</span> {guruLabel}
         </h4>
 
         {/* Info Content (Text SM agar terbaca jelas) */}
@@ -91,7 +91,7 @@ const BoxBankSoal: React.FC<BoxBankSoalProps> = ({
           <div className="flex gap-3">
             <span className="min-w-20 font-medium text-gray-500">Mapel:</span>
             <span className="truncate font-semibold text-gray-700">
-              {mata_pelajaran}
+              {mapelLabel}
             </span>
           </div>
 
@@ -101,19 +101,6 @@ const BoxBankSoal: React.FC<BoxBankSoalProps> = ({
               {materi}
             </span>
           </div>
-        </div>
-
-        {/* Stats Pills */}
-        <div className="mb-5 flex items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-800">
-            <span className="h-2 w-2 rounded-full bg-emerald-600" />
-            PG: {jumlah_soal_pg}
-          </span>
-
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-100 bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-800">
-            <span className="h-2 w-2 rounded-full bg-amber-500" />
-            Essay: {jumlah_soal_essay}
-          </span>
         </div>
 
         {/* Divider & Actions */}
@@ -137,7 +124,8 @@ const BoxBankSoal: React.FC<BoxBankSoalProps> = ({
 
               <button
                 type="button"
-                onClick={() => navigate(paths.dashboard.tambah_bank_soal)}
+                onClick={onUpload}
+                disabled={!onUpload}
                 className="inline-flex cursor-pointer items-center rounded-full border border-[#397e50]/30 px-4 py-2 text-sm font-semibold text-[#397e50] transition-colors hover:bg-[#397e50]/10"
               >
                 Upload bank soal

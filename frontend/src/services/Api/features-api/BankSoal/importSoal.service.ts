@@ -1,4 +1,5 @@
 import { api } from "../../api";
+import { buildFormData } from "@/helper/FormData/BuildFormData";
 import { usePost } from "@/hooks/fetch";
 
 export type ImportSoalResponse = {
@@ -10,15 +11,13 @@ export async function uploadImportSoal(
   idBankSoal: number,
   file: File,
 ): Promise<ImportSoalResponse> {
-  const formData = new FormData();
-  formData.append("file", file);
+  const data = buildFormData({ file });
 
   return api<ImportSoalResponse>(
     `/admin/bank-soal/import/${idBankSoal}`,
     {
       method: "POST",
-      data: formData,
-      headers: { "Content-Type": "multipart/form-data" },
+      data,
     },
   );
 }

@@ -1,5 +1,3 @@
-import type { BankSoalItem } from "@/types/BankSoal/BankSoal";
-
 import type { MataPelajaranOption } from "@/types/DataMaster/MataPelajaran";
 import type { RuangUjianRow } from "@/types/DataMaster/RuangUjian";
 import type { JenisKelamin } from "@/types/OpsiTypes/Option";
@@ -8,19 +6,10 @@ import type {
   GuruPengawasOption,
   SesiUjianOption,
 } from "@/types/Ujian/BuatUjian";
-import { getBankSoalByKelas } from "@/services/Api/features-api/BankSoal/banksoal.service";
-import { getTingkatKelasById } from "@/services/Api/features-api/DataMaster/kelas.service";
+import { getBankSoal } from "@/services/Api/features-api/BankSoal/banksoal.service";
 import { getMapel } from "@/services/Api/features-api/DataMaster/mapel.service";
 import { getRuangUjian } from "@/services/Api/features-api/DataMaster/ruang-ujian.service";
 import { useFetch } from "@/hooks/fetch";
-
-const DUMMY_BANKSOAL_MAPEL: MataPelajaranOption[] = [
-  { id: 101, label: "Bahasa Indonesia (Kelas 10)" },
-  { id: 102, label: "Fisika (Kelas 10)" },
-  { id: 103, label: "Matematika (Kelas 11)" },
-  { id: 104, label: "Bahasa Indonesia (Kelas 11)" },
-  { id: 105, label: "Ekonomi (Kelas 12)" },
-];
 
 const DUMMY_GURU_PENGAWAS: GuruPengawasOption[] = [
   {
@@ -56,13 +45,6 @@ const DUMMY_ANGKATAN: number[] = [2023, 2024, 2025];
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const getTotalSoal = (item: BankSoalItem) => {
-  if (typeof item.total_soal === "number") return item.total_soal;
-  const pg = item.jumlah_soal_pg ?? 0;
-  const essay = item.jumlah_soal_essay ?? 0;
-  return pg + essay;
-};
-
 type MataPelajaranOptionsParams = {
   source?: "bankSoal" | "dataMaster";
   tingkatKelasId?: number;
@@ -74,19 +56,15 @@ export async function getMataPelajaranOptions(
   const { source = "dataMaster", tingkatKelasId } = params;
 
   if (source === "bankSoal") {
-    const tingkatKelas = getTingkatKelasById(tingkatKelasId);
-    const kelasId = tingkatKelas ?? undefined;
-    const filtered = !kelasId
-      ? DUMMY_BANKSOAL_MAPEL
-      : DUMMY_BANKSOAL_MAPEL.filter((mapel) => {
-          if (kelasId === 10) return mapel.label.includes("(Kelas 10)");
-          if (kelasId === 11) return mapel.label.includes("(Kelas 11)");
-          if (kelasId === 12) return mapel.label.includes("(Kelas 12)");
-          return true;
-        });
-
-    await sleep(250);
-    return filtered;
+    const data = await getMapel({
+      tingkatKelas: tingkatKelasId,
+      limit: 50,
+      offset: 0,
+    });
+    return data.map((mapel) => ({
+      id: mapel.id,
+      label: mapel.namaMapel,
+    }));
   }
 
   const data = await getMapel();
@@ -128,22 +106,29 @@ export async function getUjianSesiOptions(): Promise<SesiUjianOption[]> {
 export async function getUjianBankSoalOptions(params: {
   tingkatKelasId?: number;
 }): Promise<BankSoalOption[]> {
-  const tingkatKelas = getTingkatKelasById(params.tingkatKelasId);
-  const kelasId = tingkatKelas ?? undefined;
-  const data = await getBankSoalByKelas({
-    tingkatKelasId: params.tingkatKelasId,
-    kelasId,
-  });
+  const [bankSoalData, mapelData] = await Promise.all([
+    getBankSoal({
+      id_kelas: params.tingkatKelasId,
+      limit: 50,
+      offset: 0,
+    }),
+    getMapel({
+      limit: 50,
+      offset: 0,
+    }),
+  ]);
 
-  return data.map((item) => ({
-    id: item.id,
-    nama: item.nama_banksoal ?? "-",
-    mata_pelajaran: item.mata_pelajaran,
+  const mapelById = new Map<number, string>(
+    mapelData.map((mapel) => [mapel.id, mapel.namaMapel]),
+  );
+
+  return bankSoalData.map((item) => ({
+    id: item.id_bank_soal,
+    nama: item.nama_bank_soal || "-",
+    mata_pelajaran: mapelById.get(item.id_mapel),
     materi: item.materi,
-    kelas: item.kelas,
-    jumlah_soal_pg: item.jumlah_soal_pg,
-    jumlah_soal_essay: item.jumlah_soal_essay,
-    total_soal: getTotalSoal(item),
+    kelas: item.id_kelas,
+    total_soal: 0,
   }));
 }
 

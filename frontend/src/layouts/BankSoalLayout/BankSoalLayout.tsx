@@ -5,8 +5,12 @@ import type { BankSoalItem } from "@/types/BankSoal/BankSoal";
 type BankSoalLayoutProps = {
   items: BankSoalItem[];
   onPreview?: (item: BankSoalItem) => void;
+  onUpload?: (item: BankSoalItem) => void;
   onKelola?: (item: BankSoalItem) => void;
   onHapus?: (item: BankSoalItem) => void;
+  resolveGuruLabel?: (item: BankSoalItem) => string;
+  resolveMapelLabel?: (item: BankSoalItem) => string;
+  resolveKelasLabel?: (item: BankSoalItem) => string;
 
   /** kalau mau mulai angka dari selain 1 */
   startIndex?: number;
@@ -17,8 +21,12 @@ type BankSoalLayoutProps = {
 const BankSoalLayout: React.FC<BankSoalLayoutProps> = ({
   items,
   onPreview,
+  onUpload,
   onKelola,
   onHapus,
+  resolveGuruLabel,
+  resolveMapelLabel,
+  resolveKelasLabel,
   startIndex = 1,
   className = "",
 }) => {
@@ -30,7 +38,7 @@ const BankSoalLayout: React.FC<BankSoalLayoutProps> = ({
           const isLast = idx === items.length - 1;
 
           return (
-            <li key={item.id} className="relative ">
+            <li key={item.id_bank_soal} className="relative ">
               {/* Timeline rail (kiri) */}
               <div className="absolute left-0 top-0 flex h-full w-12 justify-center">
                 <div className="relative h-full w-1">
@@ -61,16 +69,15 @@ const BankSoalLayout: React.FC<BankSoalLayoutProps> = ({
               {/* Content card (geser kanan, sejajar node) */}
               <div className="pl-16">
                 <BoxBankSoal
-                  guru={item.guru}
-                  nama_banksoal={item.nama_banksoal}
-                  kelas={item.kelas}
-                  mata_pelajaran={item.mata_pelajaran}
+                  idBankSoal={item.id_bank_soal}
+                  guruLabel={resolveGuruLabel ? resolveGuruLabel(item) : "-"}
+                  namaBankSoal={item.nama_bank_soal}
+                  kelasLabel={resolveKelasLabel ? resolveKelasLabel(item) : "-"}
+                  mapelLabel={resolveMapelLabel ? resolveMapelLabel(item) : "-"}
                   materi={item.materi}
-                  jumlah_soal_pg={item.jumlah_soal_pg}
-                  jumlah_soal_essay={item.jumlah_soal_essay}
-                  deskripsi={item.deskripsi}
-                  tgl_buat={item.tgl_buat}
+                  tglBuat={undefined}
                   onPreview={onPreview ? () => onPreview(item) : undefined}
+                  onUpload={onUpload ? () => onUpload(item) : undefined}
                   onKelola={onKelola ? () => onKelola(item) : undefined}
                   onHapus={onHapus ? () => onHapus(item) : undefined}
                 />

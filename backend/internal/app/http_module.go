@@ -178,7 +178,7 @@ func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSeko
 	// BANK SOAL CRUD
 	router.GET("/admin-guru/bank-soal", requireAdminGuru(rateLimitStandard(bankSoal.GetHandler.GetBankSoal)))
 	router.POST("/admin-guru/bank-soal", requireAdminGuru(rateLimitStandard(bankSoal.CreateHandler.CreateBankSoal)))
-	router.GET("/admin-guru/bank-soal/guru/:idPengguna", requireAdminGuru(rateLimitStandard(bankSoal.GetHandler.GetBankSoalByGuru)))
+	router.GET("/admin-guru/guru/bank-soal/:idPengguna", requireAdminGuru(rateLimitStandard(bankSoal.GetHandler.GetBankSoalByGuru)))
 	router.GET("/admin-guru/bank-soal/:idBankSoal", requireAdminGuru(rateLimitStandard(bankSoal.GetHandler.GetBankSoalByID)))
 	router.PATCH("/admin-guru/bank-soal/:idBankSoal", requireAdminGuru(rateLimitStandard(bankSoal.UpdateHandler.UpdateBankSoal)))
 	router.DELETE("/admin-guru/bank-soal/:idBankSoal", requireAdminGuru(rateLimitStandard(bankSoal.DeleteHandler.DeleteBankSoal)))

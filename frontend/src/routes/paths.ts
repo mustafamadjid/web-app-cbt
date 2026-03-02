@@ -45,7 +45,7 @@ export const paths = {
 
     bank_soal: djoinAdmin("bank-soal"),
     buat_bank_soal: djoinAdmin(join("bank-soal", "/buat")),
-    tambah_bank_soal: djoinAdmin(join("bank-soal", "/tambah")),
+    tambah_bank_soal: djoinAdmin(join("bank-soal", "/tambah/:idBankSoal")),
     preview_bank_soal: djoinAdmin(join("bank-soal", "/:id")),
 
 
@@ -63,7 +63,8 @@ export const paths = {
     edit_pengumuman_admin: djoinAdmin(join("pengumuman", "/:id/edit")),
 
     bank_soal_guru: djoinGuru("bank-soal"),
-    tambah_bank_soal_guru: djoinGuru(join("bank-soal", "/tambah")),
+    buat_bank_soal_guru: djoinGuru(join("bank-soal", "/buat")),
+    tambah_bank_soal_guru: djoinGuru(join("bank-soal", "/tambah/:idBankSoal")),
     preview_bank_soal_guru: djoinGuru(join("bank-soal", "/:id")),
 
     jadwal_ujian_guru: djoinGuru(join("ujian", "/jadwal")),

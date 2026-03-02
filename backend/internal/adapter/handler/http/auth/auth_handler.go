@@ -84,7 +84,6 @@ func (h *AuthHandler) Login(write http.ResponseWriter, req *http.Request, _ http
 	}
 
 	responseData := LoginResponse{
-		IdPengguna: res.IdPengguna,
 		Username:   res.Username,
 	}
 
