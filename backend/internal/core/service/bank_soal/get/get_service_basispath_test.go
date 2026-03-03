@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/bank_soal"
@@ -31,7 +32,7 @@ func TestGetBankSoalService_BasisPath(t *testing.T) {
 	t.Run("list -> success", func(t *testing.T) {
 		repo := &fake_test.FakeBankSoalRepo{
 			GetBankSoalData: []bank_soal.BankSoal{
-				{IdBankSoal: 1, NamaBankSoal: "UTS"},
+				{IdBankSoal: 1, NamaBankSoal: "UTS", CreatedAt: time.Date(2026, time.March, 2, 10, 0, 0, 0, time.UTC)},
 			},
 		}
 		svc := bank_soal_service.NewGetBankSoalService(repo)
@@ -46,6 +47,38 @@ func TestGetBankSoalService_BasisPath(t *testing.T) {
 		assert.Equal(t, "uts", repo.GotFilter.Search)
 		assert.Equal(t, 20, repo.GotFilter.Limit)
 		assert.Equal(t, 0, repo.GotFilter.Offset)
+		assert.Equal(t, "02 Mar 2026", items[0].TanggalDibuat)
+	})
+
+	t.Run("list uploaded -> repo error", func(t *testing.T) {
+		repo := &fake_test.FakeBankSoalRepo{GetBankSoalUploadedErr: repoErr}
+		svc := bank_soal_service.NewGetBankSoalService(repo)
+
+		_, err := svc.GetBankSoalUploadedService(ctx, query.BankSoalFilter{Search: "kimia"})
+		assert.ErrorIs(t, err, repoErr)
+		assert.True(t, repo.GetUploadedCalled)
+	})
+
+	t.Run("list uploaded -> success", func(t *testing.T) {
+		repo := &fake_test.FakeBankSoalRepo{
+			GetBankSoalUploadedData: []bank_soal.BankSoal{
+				{IdBankSoal: 7, NamaBankSoal: "Uploaded", CreatedAt: time.Date(2026, time.March, 2, 10, 0, 0, 0, time.UTC)},
+			},
+		}
+		svc := bank_soal_service.NewGetBankSoalService(repo)
+
+		items, err := svc.GetBankSoalUploadedService(ctx, query.BankSoalFilter{
+			Search: "  uploaded  ",
+			Limit:  0,
+			Offset: -1,
+		})
+		assert.NoError(t, err)
+		assert.True(t, repo.GetUploadedCalled)
+		assert.Equal(t, "uploaded", repo.GotUploadedFilter.Search)
+		assert.Equal(t, 20, repo.GotUploadedFilter.Limit)
+		assert.Equal(t, 0, repo.GotUploadedFilter.Offset)
+		assert.Len(t, items, 1)
+		assert.Equal(t, "02 Mar 2026", items[0].TanggalDibuat)
 	})
 
 	t.Run("get by id -> invalid id", func(t *testing.T) {
@@ -78,7 +111,11 @@ func TestGetBankSoalService_BasisPath(t *testing.T) {
 
 	t.Run("get by id -> success", func(t *testing.T) {
 		repo := &fake_test.FakeBankSoalRepo{
-			GetByIDData: bank_soal.BankSoal{IdBankSoal: 2, NamaBankSoal: "UAS"},
+			GetByIDData: bank_soal.BankSoal{
+				IdBankSoal:   2,
+				NamaBankSoal: "UAS",
+				CreatedAt:    time.Date(2026, time.March, 2, 10, 0, 0, 0, time.UTC),
+			},
 		}
 		svc := bank_soal_service.NewGetBankSoalService(repo)
 
@@ -86,6 +123,7 @@ func TestGetBankSoalService_BasisPath(t *testing.T) {
 		assert.NoError(t, err)
 		assert.True(t, repo.GetByIDCalled)
 		assert.Equal(t, "UAS", item.NamaBankSoal)
+		assert.Equal(t, "02 Mar 2026", item.TanggalDibuat)
 	})
 
 	t.Run("get by guru -> invalid id", func(t *testing.T) {
@@ -109,7 +147,11 @@ func TestGetBankSoalService_BasisPath(t *testing.T) {
 
 	t.Run("get by guru -> success", func(t *testing.T) {
 		repo := &fake_test.FakeBankSoalRepo{
-			GetByGuruData: []bank_soal.BankSoal{{IdBankSoal: 3, NamaBankSoal: "Tryout"}},
+			GetByGuruData: []bank_soal.BankSoal{{
+				IdBankSoal:   3,
+				NamaBankSoal: "Tryout",
+				CreatedAt:    time.Date(2026, time.March, 2, 10, 0, 0, 0, time.UTC),
+			}},
 		}
 		svc := bank_soal_service.NewGetBankSoalService(repo)
 
@@ -117,5 +159,6 @@ func TestGetBankSoalService_BasisPath(t *testing.T) {
 		assert.NoError(t, err)
 		assert.True(t, repo.GetByGuruCalled)
 		assert.Len(t, items, 1)
+		assert.Equal(t, "02 Mar 2026", items[0].TanggalDibuat)
 	})
 }

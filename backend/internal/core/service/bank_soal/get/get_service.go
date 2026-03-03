@@ -31,7 +31,21 @@ func (r *GetBankSoalService) GetBankSoalService(ctx context.Context, filter quer
 		logger.Error(ctx, "failed get bank soal", "layer", "core.service", "op", "bank_soal.get", "err", err)
 		return nil, err
 	}
-	return items, nil
+	return formatBankSoalDates(items), nil
+}
+
+func (r *GetBankSoalService) GetBankSoalUploadedService(ctx context.Context, filter query.BankSoalFilter) ([]bank_soal.BankSoal, error) {
+	logger := corelog.FromContext(ctx)
+
+	filter = sanitizeGetBankSoalFilter(filter)
+
+	items, err := r.repo.GetBankSoalUploaded(ctx, filter)
+	if err != nil {
+		logger.Error(ctx, "failed get uploaded bank soal", "layer", "core.service", "op", "bank_soal.get_uploaded", "err", err)
+		return nil, err
+	}
+
+	return formatBankSoalDates(items), nil
 }
 
 func (r *GetBankSoalService) GetBankSoalByIdService(ctx context.Context, idBankSoal bank_soal.ID) (bank_soal.BankSoal, error) {
@@ -47,7 +61,7 @@ func (r *GetBankSoalService) GetBankSoalByIdService(ctx context.Context, idBankS
 		logger.Error(ctx, "failed get bank soal by id", "layer", "core.service", "op", "bank_soal.get_by_id", "err", err)
 		return bank_soal.BankSoal{}, err
 	}
-	return item, nil
+	return formatSingleBankSoalDate(item), nil
 }
 
 func (r *GetBankSoalService) GetBankSoalByGuruService(ctx context.Context, idGuru bank_soal.ID) ([]bank_soal.BankSoal, error) {
@@ -63,7 +77,7 @@ func (r *GetBankSoalService) GetBankSoalByGuruService(ctx context.Context, idGur
 		logger.Error(ctx, "failed get bank soal by guru", "layer", "core.service", "op", "bank_soal.get_by_guru", "err", err)
 		return nil, err
 	}
-	return items, nil
+	return formatBankSoalDates(items), nil
 }
 
 // -----------------------
@@ -93,4 +107,21 @@ func validateBankSoalID(id bank_soal.ID) error {
 		return coreerror.ErrMissingId
 	}
 	return nil
+}
+
+func formatBankSoalDates(items []bank_soal.BankSoal) []bank_soal.BankSoal {
+	for i := range items {
+		items[i] = formatSingleBankSoalDate(items[i])
+	}
+	return items
+}
+
+func formatSingleBankSoalDate(item bank_soal.BankSoal) bank_soal.BankSoal {
+	if item.CreatedAt.IsZero() {
+		item.TanggalDibuat = "-"
+		return item
+	}
+
+	item.TanggalDibuat = item.CreatedAt.Format("02 Jan 2006")
+	return item
 }

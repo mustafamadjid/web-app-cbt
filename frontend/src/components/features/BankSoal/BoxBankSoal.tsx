@@ -9,22 +9,12 @@ type BoxBankSoalProps = {
   materi?: string;
   kelasLabel?: string;
   tglBuat?: string;
+  soalUploaded?: boolean;
   onPreview?: () => void;
   onUpload?: () => void;
   onKelola?: () => void;
   onHapus?: () => void;
   className?: string;
-};
-
-const formatTanggal = (iso?: string) => {
-  if (!iso) return "-";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString("id-ID", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
 };
 
 const kelasLabelClass = (kelasLabel?: string) => {
@@ -47,6 +37,7 @@ const BoxBankSoal: React.FC<BoxBankSoalProps> = ({
   materi = "-",
   kelasLabel = "-",
   tglBuat,
+  soalUploaded = false,
   onUpload,
   onKelola,
   onPreview,
@@ -70,7 +61,7 @@ const BoxBankSoal: React.FC<BoxBankSoalProps> = ({
         <div className="mb-3 flex items-center justify-between text-xs font-medium text-gray-500">
           <span className="flex items-center gap-1.5">
             {SvgIcons.calendar("h-4 w-4 text-gray-400")}
-            {formatTanggal(tglBuat)}
+            {tglBuat || "-"}
           </span>
 
           <span className={kelasLabelClass(kelasLabel)}>{kelasLabel}</span>
@@ -111,7 +102,7 @@ const BoxBankSoal: React.FC<BoxBankSoalProps> = ({
               <button
                 type="button"
                 onClick={onPreview}
-                disabled={!onPreview}
+                disabled={!onPreview || !soalUploaded}
                 className={[
                   "inline-flex cursor-pointer items-center gap-2 rounded-full px-5 py-2 text-sm font-bold text-white shadow-md transition-all",
                   "bg-[#397e50] hover:bg-[#2f5c3f] hover:shadow-lg active:scale-95",
@@ -128,7 +119,7 @@ const BoxBankSoal: React.FC<BoxBankSoalProps> = ({
                 disabled={!onUpload}
                 className="inline-flex cursor-pointer items-center rounded-full border border-[#397e50]/30 px-4 py-2 text-sm font-semibold text-[#397e50] transition-colors hover:bg-[#397e50]/10"
               >
-                Upload bank soal
+                {soalUploaded ? "Perbarui soal" : "Upload bank soal"}
               </button>
             </div>
 

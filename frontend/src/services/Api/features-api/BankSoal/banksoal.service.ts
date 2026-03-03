@@ -9,19 +9,35 @@ import type {
 import { api } from "../../api";
 
 const BANK_SOAL_ENDPOINT = "/admin-guru/bank-soal";
+const BANK_SOAL_UPLOADED_ENDPOINT = "/admin-guru/bank-soal-uploaded";
+
+const buildBankSoalQueryParams = (
+  params: GetBankSoalParams = {},
+): Record<string, string | undefined> => ({
+  search: params.search?.trim() || undefined,
+  id_kelas: params.id_kelas != null ? String(params.id_kelas) : undefined,
+  id_mapel: params.id_mapel != null ? String(params.id_mapel) : undefined,
+  limit: params.limit != null ? String(params.limit) : undefined,
+  offset: params.offset != null ? String(params.offset) : undefined,
+});
 
 export async function getBankSoal(
   params: GetBankSoalParams = {},
 ): Promise<BankSoalItem[]> {
-  const queryParams: Record<string, string | undefined> = {
-    search: params.search?.trim() || undefined,
-    id_kelas: params.id_kelas != null ? String(params.id_kelas) : undefined,
-    id_mapel: params.id_mapel != null ? String(params.id_mapel) : undefined,
-    limit: params.limit != null ? String(params.limit) : undefined,
-    offset: params.offset != null ? String(params.offset) : undefined,
-  };
+  const queryParams = buildBankSoalQueryParams(params);
 
   return api<BankSoalItem[]>(BANK_SOAL_ENDPOINT, {
+    method: "GET",
+    params: queryParams,
+  });
+}
+
+export async function getBankSoalUploaded(
+  params: GetBankSoalParams = {},
+): Promise<BankSoalItem[]> {
+  const queryParams = buildBankSoalQueryParams(params);
+
+  return api<BankSoalItem[]>(BANK_SOAL_UPLOADED_ENDPOINT, {
     method: "GET",
     params: queryParams,
   });
@@ -76,10 +92,20 @@ export async function deleteBankSoal(idBankSoal: number): Promise<boolean> {
 // Hook Wrappers
 // =====================
 
-export function useGetBankSoal(params: GetBankSoalParams = {}) {
+export function useGetBankSoal(params: GetBankSoalParams = {}, enabled = true) {
   return useFetch(
-    () => getBankSoal(params),
-    [params.search, params.id_kelas, params.id_mapel, params.limit, params.offset],
+    () => (enabled ? getBankSoal(params) : Promise.resolve([])),
+    [params.search, params.id_kelas, params.id_mapel, params.limit, params.offset, enabled],
+  );
+}
+
+export function useGetBankSoalUploaded(
+  params: GetBankSoalParams = {},
+  enabled = true,
+) {
+  return useFetch(
+    () => (enabled ? getBankSoalUploaded(params) : Promise.resolve([])),
+    [params.search, params.id_kelas, params.id_mapel, params.limit, params.offset, enabled],
   );
 }
 

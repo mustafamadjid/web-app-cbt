@@ -8,6 +8,8 @@ export type BankSoalApiItem = {
   nama_bank_soal: string;
   deskripsi: string;
   materi: string;
+  tanggal_dibuat: string;
+  soal_uploaded: boolean;
 };
 
 export type BankSoalItem = BankSoalApiItem;

@@ -20,7 +20,6 @@ type GetBankSoalHandler struct {
 	svc *bank_soal_service.GetBankSoalService
 }
 
-
 func NewGetBankSoalHandler(svc *bank_soal_service.GetBankSoalService) *GetBankSoalHandler {
 	return &GetBankSoalHandler{svc: svc}
 }
@@ -47,6 +46,40 @@ func (h *GetBankSoalHandler) GetBankSoal(w http.ResponseWriter, r *http.Request,
 	})
 	if err != nil {
 		logger.Error(r.Context(), "failed getting bank soal", "layer", "adapter.http.handler", "op", "bank_soal.get", "err", err)
+		httpResponse.WriteErr(w, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error")
+		return
+	}
+
+	response := make([]BankSoalResponse, 0, len(items))
+	for _, item := range items {
+		response = append(response, toBankSoalResponse(item))
+	}
+
+	httpResponse.WriteOK(w, http.StatusOK, response, "Success")
+}
+
+func (h *GetBankSoalHandler) GetBankSoalUploaded(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	logger := corelog.FromContext(r.Context())
+	if r.Method != http.MethodGet {
+		httpResponse.WriteErr(w, http.StatusMethodNotAllowed, "METHOD_NOT_ALLOWED", "method not allowed")
+		return
+	}
+
+	filter, err := parseListBankSoalRequest(r)
+	if err != nil {
+		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", err.Error())
+		return
+	}
+
+	items, err := h.svc.GetBankSoalUploadedService(r.Context(), query.BankSoalFilter{
+		Search:       filter.Search,
+		Limit:        filter.Limit,
+		Offset:       filter.Offset,
+		TingkatKelas: filter.TingkatKelas,
+		Mapel:        filter.Mapel,
+	})
+	if err != nil {
+		logger.Error(r.Context(), "failed getting uploaded bank soal", "layer", "adapter.http.handler", "op", "bank_soal.get_uploaded", "err", err)
 		httpResponse.WriteErr(w, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error")
 		return
 	}
@@ -180,12 +213,14 @@ func parseListBankSoalRequest(r *http.Request) (ListBankSoalRequest, error) {
 
 func toBankSoalResponse(item bank_soal.BankSoal) BankSoalResponse {
 	return BankSoalResponse{
-		IDBankSoal:   int(item.IdBankSoal),
-		IDMapel:      int(item.IdMapel),
-		IDKelas:      int(item.IdKelas),
-		IDPengguna:   int(item.IdPengguna),
-		NamaBankSoal: item.NamaBankSoal,
-		Deskripsi:    item.Deskripsi,
-		Materi:       item.Materi,
+		IDBankSoal:    int(item.IdBankSoal),
+		IDMapel:       int(item.IdMapel),
+		IDKelas:       int(item.IdKelas),
+		IDPengguna:    int(item.IdPengguna),
+		NamaBankSoal:  item.NamaBankSoal,
+		Deskripsi:     item.Deskripsi,
+		Materi:        item.Materi,
+		TanggalDibuat: item.TanggalDibuat,
+		SoalUploaded:  item.SoalUploaded,
 	}
 }

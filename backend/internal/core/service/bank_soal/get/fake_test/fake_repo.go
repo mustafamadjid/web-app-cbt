@@ -14,6 +14,11 @@ type FakeBankSoalRepo struct {
 	GetCalled       bool
 	GotFilter       query.BankSoalFilter
 
+	GetBankSoalUploadedData []bank_soal.BankSoal
+	GetBankSoalUploadedErr  error
+	GetUploadedCalled       bool
+	GotUploadedFilter       query.BankSoalFilter
+
 	GetByIDData   bank_soal.BankSoal
 	GetByIDErr    error
 	GetByIDCalled bool
@@ -29,6 +34,12 @@ func (f *FakeBankSoalRepo) GetBankSoal(_ context.Context, filter query.BankSoalF
 	f.GetCalled = true
 	f.GotFilter = filter
 	return f.GetBankSoalData, f.GetBankSoalErr
+}
+
+func (f *FakeBankSoalRepo) GetBankSoalUploaded(_ context.Context, filter query.BankSoalFilter) ([]bank_soal.BankSoal, error) {
+	f.GetUploadedCalled = true
+	f.GotUploadedFilter = filter
+	return f.GetBankSoalUploadedData, f.GetBankSoalUploadedErr
 }
 
 func (f *FakeBankSoalRepo) GetBankSoalByGuru(_ context.Context, idPengguna bank_soal.ID) ([]bank_soal.BankSoal, error) {

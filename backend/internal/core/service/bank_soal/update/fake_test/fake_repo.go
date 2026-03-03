@@ -19,6 +19,10 @@ func (f *FakeBankSoalRepo) GetBankSoal(_ context.Context, _ query.BankSoalFilter
 	panic("not used in this test")
 }
 
+func (f *FakeBankSoalRepo) GetBankSoalUploaded(_ context.Context, _ query.BankSoalFilter) ([]bank_soal.BankSoal, error) {
+	panic("not used in this test")
+}
+
 func (f *FakeBankSoalRepo) GetBankSoalByGuru(_ context.Context, _ bank_soal.ID) ([]bank_soal.BankSoal, error) {
 	panic("not used in this test")
 }

@@ -14,6 +14,7 @@ import {
   useDeleteBankSoal,
   useGetBankSoal,
   useGetBankSoalByGuru,
+  useGetBankSoalUploaded,
 } from "@/services/Api/features-api/BankSoal/banksoal.service";
 import { useGetDataKelasFull } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { useGetMapel } from "@/services/Api/features-api/DataMaster/mapel.service";
@@ -30,6 +31,7 @@ function useDebouncedValue<T>(value: T, delayMs = 300) {
 }
 
 type ActiveSection = "ALL" | "MY";
+type UploadStatusFilter = "ALL" | "UPLOADED";
 
 const BankSoal = () => {
   const navigate = useNavigate();
@@ -37,6 +39,8 @@ const BankSoal = () => {
   const isGuru = user?.role === "GURU";
 
   const [activeSection, setActiveSection] = useState<ActiveSection>("ALL");
+  const [uploadStatusFilter, setUploadStatusFilter] =
+    useState<UploadStatusFilter>("ALL");
   const [selectedKelasId, setSelectedKelasId] = useState<number | null>(null);
   const [selectedMapelId, setSelectedMapelId] = useState<number | null>(null);
   const [search, setSearch] = useState("");
@@ -85,18 +89,39 @@ const BankSoal = () => {
     }, {});
   }, [mapelRows]);
 
+  const isUploadedOnly = uploadStatusFilter === "UPLOADED";
+
   const {
     data: itemsData,
-    loading,
-    error,
-    refetch: refetchAll,
-  } = useGetBankSoal({
-    search: debouncedSearch.trim() || undefined,
-    id_kelas: selectedKelasId ?? undefined,
-    id_mapel: selectedMapelId ?? undefined,
-    limit: batasData,
-    offset: (halamanSemua - 1) * batasData,
-  });
+    loading: loadingItemsData,
+    error: errorItemsData,
+    refetch: refetchAllRaw,
+  } = useGetBankSoal(
+    {
+      search: debouncedSearch.trim() || undefined,
+      id_kelas: selectedKelasId ?? undefined,
+      id_mapel: selectedMapelId ?? undefined,
+      limit: batasData,
+      offset: (halamanSemua - 1) * batasData,
+    },
+    !isUploadedOnly,
+  );
+
+  const {
+    data: uploadedItemsData,
+    loading: loadingUploadedItemsData,
+    error: errorUploadedItemsData,
+    refetch: refetchUploadedItems,
+  } = useGetBankSoalUploaded(
+    {
+      search: debouncedSearch.trim() || undefined,
+      id_kelas: selectedKelasId ?? undefined,
+      id_mapel: selectedMapelId ?? undefined,
+      limit: batasData,
+      offset: (halamanSemua - 1) * batasData,
+    },
+    isUploadedOnly,
+  );
 
   const idPengguna = user?.id_pengguna ?? 0;
   const {
@@ -111,6 +136,9 @@ const BankSoal = () => {
     if (idPengguna <= 0) return [];
 
     let rows = [...myRawItems];
+    if (uploadStatusFilter === "UPLOADED") {
+      rows = rows.filter((item) => item.soal_uploaded);
+    }
     if (selectedKelasId != null) {
       rows = rows.filter((item) => item.id_kelas === selectedKelasId);
     }
@@ -143,6 +171,7 @@ const BankSoal = () => {
     kelasLabelById,
     mapelLabelById,
     myRawItems,
+    uploadStatusFilter,
     selectedKelasId,
     selectedMapelId,
   ]);
@@ -150,8 +179,14 @@ const BankSoal = () => {
   const myOffset = (halamanSaya - 1) * batasData;
   const myItems = myFilteredItems.slice(myOffset, myOffset + batasData);
 
-  const items: BankSoalItem[] = itemsData ?? [];
-  const errorMsg = error ?? "";
+  const items: BankSoalItem[] = isUploadedOnly
+    ? uploadedItemsData ?? []
+    : itemsData ?? [];
+  const loading = isUploadedOnly ? loadingUploadedItemsData : loadingItemsData;
+  const errorMsg = isUploadedOnly
+    ? errorUploadedItemsData ?? ""
+    : errorItemsData ?? "";
+  const refetchAll = isUploadedOnly ? refetchUploadedItems : refetchAllRaw;
 
   useEffect(() => {
     if (
@@ -165,10 +200,13 @@ const BankSoal = () => {
   useEffect(() => {
     setHalamanSemua(1);
     setHalamanSaya(1);
-  }, [debouncedSearch, selectedKelasId, selectedMapelId, batasData]);
+  }, [debouncedSearch, selectedKelasId, selectedMapelId, uploadStatusFilter, batasData]);
 
   const isFiltering =
-    search.trim() !== "" || selectedMapelId !== null || selectedKelasId !== null;
+    search.trim() !== "" ||
+    selectedMapelId !== null ||
+    selectedKelasId !== null ||
+    uploadStatusFilter !== "ALL";
 
   const createPath = isGuru
     ? paths.dashboard.buat_bank_soal_guru
@@ -192,6 +230,7 @@ const BankSoal = () => {
     setSearch("");
     setSelectedKelasId(null);
     setSelectedMapelId(null);
+    setUploadStatusFilter("ALL");
   };
 
   const resolveGuruLabel = (item: BankSoalItem) => {
@@ -364,6 +403,25 @@ const BankSoal = () => {
               </select>
               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400">
                 <Filter className="h-3 w-3" />
+              </div>
+            </div>
+
+            <div className="relative min-w-[220px]">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+                <Filter className="h-4 w-4" />
+              </div>
+              <select
+                value={uploadStatusFilter}
+                onChange={(e) =>
+                  setUploadStatusFilter(e.target.value as UploadStatusFilter)
+                }
+                className="block w-full cursor-pointer appearance-none rounded-xl border-none bg-gray-50 py-2.5 pl-9 pr-8 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:ring-2 focus:ring-[#397e50]/20 transition-all"
+              >
+                <option value="ALL">Semua Status Upload</option>
+                <option value="UPLOADED">Sudah Terupload</option>
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400">
+                <ChevronDown className="h-3.5 w-3.5" />
               </div>
             </div>
           </div>

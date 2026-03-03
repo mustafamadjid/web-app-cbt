@@ -10,11 +10,11 @@ import (
 
 type BankSoalRepository interface {
 	GetBankSoal(ctx context.Context, filter query.BankSoalFilter) ([]bank_soal.BankSoal, error)
+	GetBankSoalUploaded(ctx context.Context, filter query.BankSoalFilter) ([]bank_soal.BankSoal, error)
 	GetBankSoalByGuru(ctx context.Context, idPengguna bank_soal.ID) ([]bank_soal.BankSoal, error)
 	GetBankSoalById(ctx context.Context, idBankSoal bank_soal.ID) (bank_soal.BankSoal, error)
-	
-	
+
 	CreateBankSoal(ctx context.Context, bankSoal bank_soal.BankSoal) error
-	UpdateBankSoal(ctx context.Context,idBankSoal bank_soal.ID,bankSoal updatepatch.UpdateBankSoalPatch) error
+	UpdateBankSoal(ctx context.Context, idBankSoal bank_soal.ID, bankSoal updatepatch.UpdateBankSoalPatch) error
 	DeleteBankSoal(ctx context.Context, idBankSoal bank_soal.ID) error
 }

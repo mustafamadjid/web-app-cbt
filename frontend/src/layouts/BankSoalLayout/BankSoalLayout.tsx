@@ -75,7 +75,8 @@ const BankSoalLayout: React.FC<BankSoalLayoutProps> = ({
                   kelasLabel={resolveKelasLabel ? resolveKelasLabel(item) : "-"}
                   mapelLabel={resolveMapelLabel ? resolveMapelLabel(item) : "-"}
                   materi={item.materi}
-                  tglBuat={undefined}
+                  tglBuat={item.tanggal_dibuat}
+                  soalUploaded={item.soal_uploaded}
                   onPreview={onPreview ? () => onPreview(item) : undefined}
                   onUpload={onUpload ? () => onUpload(item) : undefined}
                   onKelola={onKelola ? () => onKelola(item) : undefined}

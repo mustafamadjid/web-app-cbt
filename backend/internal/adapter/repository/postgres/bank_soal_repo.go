@@ -28,14 +28,19 @@ func (r *BankSoalRepo) loggerFor(ctx context.Context) corelog.Logger {
 	return corelog.FromContextOr(ctx, r.logger)
 }
 
-func (r *BankSoalRepo) GetBankSoal(ctx context.Context, filter query.BankSoalFilter) ([]bank_soal.BankSoal, error) {
-	baseQuery := `
-		SELECT id_bank_soal,id_mapel,id_kelas,id_pengguna,nama_bank_soal,deskripsi,materi
-		FROM bank_soal
-	`
+const bankSoalSelectColumns = `
+	SELECT id_bank_soal,id_mapel,id_kelas,id_pengguna,nama_bank_soal,deskripsi,materi,created_at,(id_bank_soal_version_aktif IS NOT NULL) AS soal_uploaded
+	FROM bank_soal
+`
 
-	where := make([]string, 0, 2)
+func (r *BankSoalRepo) buildListBankSoalQuery(filter query.BankSoalFilter, uploadedOnly bool) (string, []any) {
+	baseQuery := bankSoalSelectColumns
+	where := make([]string, 0, 4)
 	args := make([]any, 0, 4)
+
+	if uploadedOnly {
+		where = append(where, "id_bank_soal_version_aktif IS NOT NULL")
+	}
 
 	if filter.Search != "" {
 		args = append(args, "%"+filter.Search+"%")
@@ -67,13 +72,10 @@ func (r *BankSoalRepo) GetBankSoal(ctx context.Context, filter query.BankSoalFil
 		baseQuery = fmt.Sprintf("%s LIMIT $%d OFFSET $%d", baseQuery, limitIndex, offsetIndex)
 	}
 
-	rows, err := r.q.Query(ctx, baseQuery, args...)
-	if err != nil {
-		r.loggerFor(ctx).Error(ctx, "failed get bank soal", "layer", "repo.db", "op", "bank_soal.get", "err", err)
-		return nil, err
-	}
-	defer rows.Close()
+	return baseQuery, args
+}
 
+func (r *BankSoalRepo) scanBankSoalRows(ctx context.Context, op string, rows pgx.Rows) ([]bank_soal.BankSoal, error) {
 	var results []bank_soal.BankSoal
 	for rows.Next() {
 		var item bank_soal.BankSoal
@@ -85,15 +87,53 @@ func (r *BankSoalRepo) GetBankSoal(ctx context.Context, filter query.BankSoalFil
 			&item.NamaBankSoal,
 			&item.Deskripsi,
 			&item.Materi,
+			&item.CreatedAt,
+			&item.SoalUploaded,
 		); err != nil {
-			r.loggerFor(ctx).Error(ctx, "failed get bank soal", "layer", "repo.db", "op", "bank_soal.get", "err", err)
+			r.loggerFor(ctx).Error(ctx, "failed scan bank soal", "layer", "repo.db", "op", op, "err", err)
 			return nil, err
 		}
 		results = append(results, item)
 	}
 
 	if err := rows.Err(); err != nil {
+		r.loggerFor(ctx).Error(ctx, "failed iterating bank soal rows", "layer", "repo.db", "op", op, "err", err)
+		return nil, err
+	}
+
+	return results, nil
+}
+
+func (r *BankSoalRepo) GetBankSoal(ctx context.Context, filter query.BankSoalFilter) ([]bank_soal.BankSoal, error) {
+	queryText, args := r.buildListBankSoalQuery(filter, false)
+
+	rows, err := r.q.Query(ctx, queryText, args...)
+	if err != nil {
 		r.loggerFor(ctx).Error(ctx, "failed get bank soal", "layer", "repo.db", "op", "bank_soal.get", "err", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	results, err := r.scanBankSoalRows(ctx, "bank_soal.get", rows)
+	if err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
+
+func (r *BankSoalRepo) GetBankSoalUploaded(ctx context.Context, filter query.BankSoalFilter) ([]bank_soal.BankSoal, error) {
+	queryText, args := r.buildListBankSoalQuery(filter, true)
+
+	rows, err := r.q.Query(ctx, queryText, args...)
+	if err != nil {
+		r.loggerFor(ctx).Error(ctx, "failed get uploaded bank soal", "layer", "repo.db", "op", "bank_soal.get_uploaded", "err", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	results, err := r.scanBankSoalRows(ctx, "bank_soal.get_uploaded", rows)
+	if err != nil {
 		return nil, err
 	}
 
@@ -101,40 +141,22 @@ func (r *BankSoalRepo) GetBankSoal(ctx context.Context, filter query.BankSoalFil
 }
 
 func (r *BankSoalRepo) GetBankSoalByGuru(ctx context.Context, idPengguna bank_soal.ID) ([]bank_soal.BankSoal, error) {
-	const query = `
-		SELECT id_bank_soal,id_mapel,id_kelas,id_pengguna,nama_bank_soal,deskripsi,materi
+	const queryText = `
+		SELECT id_bank_soal,id_mapel,id_kelas,id_pengguna,nama_bank_soal,deskripsi,materi,created_at,(id_bank_soal_version_aktif IS NOT NULL) AS soal_uploaded
 		FROM bank_soal
 		WHERE id_pengguna = $1
 		ORDER BY created_at ASC
 	`
 
-	rows, err := r.q.Query(ctx, query, idPengguna)
+	rows, err := r.q.Query(ctx, queryText, idPengguna)
 	if err != nil {
 		r.loggerFor(ctx).Error(ctx, "failed get bank soal by guru", "layer", "repo.db", "op", "bank_soal.get_by_guru", "err", err)
 		return nil, err
 	}
 	defer rows.Close()
 
-	var results []bank_soal.BankSoal
-	for rows.Next() {
-		var item bank_soal.BankSoal
-		if err := rows.Scan(
-			&item.IdBankSoal,
-			&item.IdMapel,
-			&item.IdKelas,
-			&item.IdPengguna,
-			&item.NamaBankSoal,
-			&item.Deskripsi,
-			&item.Materi,
-		); err != nil {
-			r.loggerFor(ctx).Error(ctx, "failed get bank soal by guru", "layer", "repo.db", "op", "bank_soal.get_by_guru", "err", err)
-			return nil, err
-		}
-		results = append(results, item)
-	}
-
-	if err := rows.Err(); err != nil {
-		r.loggerFor(ctx).Error(ctx, "failed get bank soal by guru", "layer", "repo.db", "op", "bank_soal.get_by_guru", "err", err)
+	results, err := r.scanBankSoalRows(ctx, "bank_soal.get_by_guru", rows)
+	if err != nil {
 		return nil, err
 	}
 
@@ -142,14 +164,14 @@ func (r *BankSoalRepo) GetBankSoalByGuru(ctx context.Context, idPengguna bank_so
 }
 
 func (r *BankSoalRepo) GetBankSoalById(ctx context.Context, idBankSoal bank_soal.ID) (bank_soal.BankSoal, error) {
-	const query = `
-		SELECT id_bank_soal,id_mapel,id_kelas,id_pengguna,nama_bank_soal,deskripsi,materi
+	const queryText = `
+		SELECT id_bank_soal,id_mapel,id_kelas,id_pengguna,nama_bank_soal,deskripsi,materi,created_at,(id_bank_soal_version_aktif IS NOT NULL) AS soal_uploaded
 		FROM bank_soal
 		WHERE id_bank_soal = $1
 	`
 
 	var item bank_soal.BankSoal
-	if err := r.q.QueryRow(ctx, query, idBankSoal).Scan(
+	if err := r.q.QueryRow(ctx, queryText, idBankSoal).Scan(
 		&item.IdBankSoal,
 		&item.IdMapel,
 		&item.IdKelas,
@@ -157,6 +179,8 @@ func (r *BankSoalRepo) GetBankSoalById(ctx context.Context, idBankSoal bank_soal
 		&item.NamaBankSoal,
 		&item.Deskripsi,
 		&item.Materi,
+		&item.CreatedAt,
+		&item.SoalUploaded,
 	); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return bank_soal.BankSoal{}, coreerror.ErrNotFound
