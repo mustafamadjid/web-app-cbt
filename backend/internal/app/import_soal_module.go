@@ -8,12 +8,14 @@ import (
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/service/import_soal/create_job"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/service/import_soal/get_job"
+	importversion "github.com/mustafamadjid/web-app-cbt/internal/core/service/import_soal/import_version"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/service/import_soal/worker"
 )
 
 type ImportSoalModule struct {
 	CreateJobService *create_job.CreateJobService
 	GetJobService    *get_job.GetJobService
+	ImportVersionSvc *importversion.Service
 	ImportHandler    *importhandler.ImportHandler
 	GetJobHandler    *importhandler.GetJobHandler
 	Worker           *worker.Worker
@@ -22,6 +24,7 @@ type ImportSoalModule struct {
 func BuildImportSoalModule(infra *InfraModule, cfg Config, logger corelog.Logger) *ImportSoalModule {
 	createJobSvc := create_job.NewCreateJobService(infra.importSoalJobRepo)
 	getJobSvc := get_job.NewGetJobService(infra.importSoalJobRepo)
+	importVersionSvc := importversion.NewService(infra.isiSoalBatchRepo)
 
 	docxUploadDir := filepath.Join(cfg.DocumentStore.Dir, "import_soal")
 	importHandler := importhandler.NewImportHandler(createJobSvc, docxUploadDir)
@@ -32,7 +35,7 @@ func BuildImportSoalModule(infra *InfraModule, cfg Config, logger corelog.Logger
 
 	w := worker.NewWorker(
 		infra.importSoalJobRepo,
-		infra.isiSoalBatchRepo,
+		importVersionSvc,
 		imageDir,
 		imageRoute,
 		5*time.Second,
@@ -42,6 +45,7 @@ func BuildImportSoalModule(infra *InfraModule, cfg Config, logger corelog.Logger
 	return &ImportSoalModule{
 		CreateJobService: createJobSvc,
 		GetJobService:    getJobSvc,
+		ImportVersionSvc: importVersionSvc,
 		ImportHandler:    importHandler,
 		GetJobHandler:    getJobHandler,
 		Worker:           w,

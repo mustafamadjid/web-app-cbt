@@ -109,6 +109,14 @@ func (h *ImportHandler) ImportSoal(w http.ResponseWriter, r *http.Request, ps ht
 	})
 	if err != nil {
 		logger.Error(r.Context(), "failed creating import job", "layer", "adapter.http.handler", "op", "import_soal.import", "err", err)
+		if errors.Is(err, coreerror.ErrBankSoalNotFound) {
+			httpResponse.WriteErr(w, http.StatusNotFound, "NOT_FOUND", "bank soal tidak ditemukan")
+			return
+		}
+		if errors.Is(err, coreerror.ErrConflict) {
+			httpResponse.WriteErr(w, http.StatusConflict, "CONFLICT", "konflik import bank soal")
+			return
+		}
 		httpResponse.WriteErr(w, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error")
 		return
 	}

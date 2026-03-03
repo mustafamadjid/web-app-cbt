@@ -14,6 +14,10 @@ type ImportSoalJobRepo interface {
 	GetJobsByBankSoal(ctx context.Context, bankSoalID int64) ([]importsoal.ImportSoalJob, error)
 }
 
+type ImportBankSoalVersionPayload struct {
+	SoalList []importsoal.ParsedSoal
+}
+
 type IsiSoalBatchRepo interface {
-	InsertSoalBatch(ctx context.Context, bankSoalID int64, soalList []importsoal.ParsedSoal) error
+	ImportBankSoalVersion(ctx context.Context, bankID, userID int64, payload ImportBankSoalVersionPayload) (int64, error)
 }

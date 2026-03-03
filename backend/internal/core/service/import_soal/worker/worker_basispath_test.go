@@ -12,6 +12,7 @@ import (
 	importsoal "github.com/mustafamadjid/web-app-cbt/internal/core/domain/import_soal"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 	faketest "github.com/mustafamadjid/web-app-cbt/internal/core/service/import_soal/fake_test"
+	importversion "github.com/mustafamadjid/web-app-cbt/internal/core/service/import_soal/import_version"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/service/import_soal/worker"
 	"github.com/stretchr/testify/assert"
 )
@@ -22,6 +23,11 @@ type testLogger struct{}
 func (l testLogger) With(_ ...any) corelog.Logger                { return l }
 func (l testLogger) Info(_ context.Context, _ string, _ ...any)  {}
 func (l testLogger) Error(_ context.Context, _ string, _ ...any) {}
+
+func newWorkerForTest(jobRepo *faketest.FakeImportSoalJobRepo, batchRepo *faketest.FakeIsiSoalBatchRepo, imageDir string, interval time.Duration) *worker.Worker {
+	importSvc := importversion.NewService(batchRepo)
+	return worker.NewWorker(jobRepo, importSvc, imageDir, "/uploads/image", interval, testLogger{})
+}
 
 func TestWorkerProcessJobs_BasisPath(t *testing.T) {
 	t.Parallel()
@@ -37,7 +43,7 @@ func TestWorkerProcessJobs_BasisPath(t *testing.T) {
 		batchRepo := &faketest.FakeIsiSoalBatchRepo{}
 
 		tmpDir := t.TempDir()
-		w := worker.NewWorker(jobRepo, batchRepo, tmpDir, "/uploads/image", 1*time.Second, testLogger{})
+		w := newWorkerForTest(jobRepo, batchRepo, tmpDir, 1*time.Second)
 
 		cancelCtx, cancel := context.WithCancel(context.Background())
 		cancel()
@@ -56,7 +62,7 @@ func TestWorkerProcessJobs_BasisPath(t *testing.T) {
 		batchRepo := &faketest.FakeIsiSoalBatchRepo{}
 
 		tmpDir := t.TempDir()
-		w := worker.NewWorker(jobRepo, batchRepo, tmpDir, "/uploads/image", 1*time.Second, testLogger{})
+		w := newWorkerForTest(jobRepo, batchRepo, tmpDir, 1*time.Second)
 
 		cancelCtx, cancel := context.WithCancel(context.Background())
 		cancel()
@@ -92,7 +98,7 @@ func TestWorkerProcessJobs_BasisPath(t *testing.T) {
 
 		tmpDir := t.TempDir()
 		// Use very short poll interval so ticker fires before timeout
-		w := worker.NewWorker(jobRepo, batchRepo, tmpDir, "/uploads/image", 10*time.Millisecond, testLogger{})
+		w := newWorkerForTest(jobRepo, batchRepo, tmpDir, 10*time.Millisecond)
 
 		cancelCtx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
 		defer cancel()
@@ -128,7 +134,7 @@ func TestWorkerProcessJobs_BasisPath(t *testing.T) {
 		batchRepo := &faketest.FakeIsiSoalBatchRepo{}
 
 		tmpDir := t.TempDir()
-		w := worker.NewWorker(jobRepo, batchRepo, tmpDir, "/uploads/image", 10*time.Millisecond, testLogger{})
+		w := newWorkerForTest(jobRepo, batchRepo, tmpDir, 10*time.Millisecond)
 
 		cancelCtx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
 		defer cancel()
@@ -173,7 +179,7 @@ func TestWorkerProcessJobs_BasisPath(t *testing.T) {
 		}
 		batchRepo := &faketest.FakeIsiSoalBatchRepo{}
 
-		w := worker.NewWorker(jobRepo, batchRepo, tmpDir, "/uploads/image", 10*time.Millisecond, testLogger{})
+		w := newWorkerForTest(jobRepo, batchRepo, tmpDir, 10*time.Millisecond)
 
 		cancelCtx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
 		defer cancel()

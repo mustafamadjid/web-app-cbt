@@ -2,42 +2,46 @@ package worker
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime/debug"
 	"strings"
 	"time"
 
+	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	importsoal "github.com/mustafamadjid/web-app-cbt/internal/core/domain/import_soal"
 	importsoal_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/import_soal"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
+	importversion "github.com/mustafamadjid/web-app-cbt/internal/core/service/import_soal/import_version"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/service/import_soal/parser"
 )
 
 type Worker struct {
-	jobRepo       importsoal_repo.ImportSoalJobRepo
-	soalBatchRepo importsoal_repo.IsiSoalBatchRepo
-	imageDir      string // directory to store extracted images (e.g. uploads/image/bank_soal)
-	imageRoute    string // route prefix for serving images (e.g. /uploads/image/bank_soal)
-	pollInterval  time.Duration
-	logger        corelog.Logger
+	jobRepo      importsoal_repo.ImportSoalJobRepo
+	importSvc    *importversion.Service
+	imageDir     string // directory to store extracted images (e.g. uploads/image/bank_soal)
+	imageRoute   string // route prefix for serving images (e.g. /uploads/image/bank_soal)
+	pollInterval time.Duration
+	logger       corelog.Logger
 }
 
 func NewWorker(
 	jobRepo importsoal_repo.ImportSoalJobRepo,
-	soalBatchRepo importsoal_repo.IsiSoalBatchRepo,
+	importSvc *importversion.Service,
 	imageDir string,
 	imageRoute string,
 	pollInterval time.Duration,
 	logger corelog.Logger,
 ) *Worker {
 	return &Worker{
-		jobRepo:       jobRepo,
-		soalBatchRepo: soalBatchRepo,
-		imageDir:      imageDir,
-		imageRoute:    imageRoute,
-		pollInterval:  pollInterval,
-		logger:        logger,
+		jobRepo:      jobRepo,
+		importSvc:    importSvc,
+		imageDir:     imageDir,
+		imageRoute:   imageRoute,
+		pollInterval: pollInterval,
+		logger:       logger,
 	}
 }
 
@@ -51,10 +55,23 @@ func (w *Worker) Start(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
-			w.logger.Info(ctx, "import soal worker stopped")
+			w.logger.Info(ctx, "import soal worker stopped", "err", ctx.Err())
 			return
+
 		case <-ticker.C:
-			w.processJobs(ctx)
+			tickCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+			func() {
+				defer cancel()
+				defer func() {
+					if r := recover(); r != nil {
+						w.logger.Error(tickCtx, "panic in processJobs",
+							"panic", r,
+							"stack", string(debug.Stack()),
+						)
+					}
+				}()
+				w.processJobs(tickCtx)
+			}()
 		}
 	}
 }
@@ -123,9 +140,24 @@ func (w *Worker) processOneJob(ctx context.Context, job importsoal.ImportSoalJob
 		return
 	}
 
-	// 7. Insert batch into DB
-	if err := w.soalBatchRepo.InsertSoalBatch(ctx, job.IDBankSoal, soalList); err != nil {
+	if w.importSvc == nil {
+		errMsg := "service import versi bank soal belum terpasang"
+		logger.Error(ctx, errMsg)
+		_ = w.jobRepo.UpdateJobStatus(ctx, job.IDJob, importsoal.StatusFailed, errMsg, 0)
+		return
+	}
+
+	// 7. Persist parsed questions as a new bank_soal version.
+	importResult, err := w.importSvc.Execute(ctx, importversion.Cmd{
+		BankID:  job.IDBankSoal,
+		UserID:  job.IDPengguna,
+		Payload: soalList,
+	})
+	if err != nil {
 		errMsg := fmt.Sprintf("gagal insert soal ke database: %v", err)
+		if errors.Is(err, coreerror.ErrConflict) {
+			errMsg = "konflik publish versi bank soal, silakan ulangi import"
+		}
 		logger.Error(ctx, errMsg)
 		_ = w.jobRepo.UpdateJobStatus(ctx, job.IDJob, importsoal.StatusFailed, errMsg, 0)
 		return
@@ -137,7 +169,7 @@ func (w *Worker) processOneJob(ctx context.Context, job importsoal.ImportSoalJob
 		return
 	}
 
-	logger.Info(ctx, "import job completed", "total_soal", len(soalList))
+	logger.Info(ctx, "import job completed", "total_soal", len(soalList), "new_version_id", importResult.VersionID)
 }
 
 // saveImages extracts images referenced by [IMG] markers from the DOCX and

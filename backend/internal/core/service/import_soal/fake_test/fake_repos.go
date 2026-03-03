@@ -4,6 +4,7 @@ import (
 	"context"
 
 	importsoal "github.com/mustafamadjid/web-app-cbt/internal/core/domain/import_soal"
+	importsoalrepo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/import_soal"
 )
 
 // FakeImportSoalJobRepo is a fake implementation of importsoal_repo.ImportSoalJobRepo
@@ -52,12 +53,12 @@ func (f *FakeImportSoalJobRepo) GetJobsByBankSoal(ctx context.Context, bankSoalI
 
 // FakeIsiSoalBatchRepo is a fake implementation of importsoal_repo.IsiSoalBatchRepo
 type FakeIsiSoalBatchRepo struct {
-	InsertSoalBatchFn func(ctx context.Context, bankSoalID int64, soalList []importsoal.ParsedSoal) error
+	ImportBankSoalVersionFn func(ctx context.Context, bankID, userID int64, payload importsoalrepo.ImportBankSoalVersionPayload) (int64, error)
 }
 
-func (f *FakeIsiSoalBatchRepo) InsertSoalBatch(ctx context.Context, bankSoalID int64, soalList []importsoal.ParsedSoal) error {
-	if f.InsertSoalBatchFn != nil {
-		return f.InsertSoalBatchFn(ctx, bankSoalID, soalList)
+func (f *FakeIsiSoalBatchRepo) ImportBankSoalVersion(ctx context.Context, bankID, userID int64, payload importsoalrepo.ImportBankSoalVersionPayload) (int64, error) {
+	if f.ImportBankSoalVersionFn != nil {
+		return f.ImportBankSoalVersionFn(ctx, bankID, userID, payload)
 	}
-	return nil
+	return 1, nil
 }

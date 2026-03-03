@@ -19,6 +19,10 @@ func buildDocx(xmlContent string) []byte {
 	fw, _ := zw.Create("word/document.xml")
 	fw.Write([]byte(xmlContent))
 
+	rels, _ := zw.Create("word/_rels/document.xml.rels")
+	rels.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"></Relationships>`))
+
 	zw.Close()
 	return buf.Bytes()
 }
@@ -220,7 +224,7 @@ func TestParseMarkers(t *testing.T) {
 	for _, tc := range tests {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			result, err := parser.ParseMarkers(tc.paragraphs)
+			result, err := parser.ParseMarkers(tc.paragraphs, buildDocx(wrapXML()))
 			if tc.expectErr {
 				assert.Error(t, err)
 			} else {
