@@ -217,9 +217,11 @@ func (r *ListUjianRepo) GetJadwalUjianById(ctx context.Context, id ujian.ID) (uj
 			id_ujian,
 			id_sesi,
 			id_ruangan,
+			id_pengawas,
 			tanggal_ujian,
 			waktu_mulai,
 			waktu_selesai,
+			token,
 			status_ujian,
 			created_at,
 			updated_at
@@ -228,8 +230,9 @@ func (r *ListUjianRepo) GetJadwalUjianById(ctx context.Context, id ujian.ID) (uj
 	`
 
 	var (
-		item      ujian.JadwalUjian
-		updatedAt sql.NullTime
+		item       ujian.JadwalUjian
+		idPengawas sql.NullInt64
+		updatedAt  sql.NullTime
 	)
 
 	if err := r.q.QueryRow(ctx, queryText, id).Scan(
@@ -237,9 +240,11 @@ func (r *ListUjianRepo) GetJadwalUjianById(ctx context.Context, id ujian.ID) (uj
 		&item.IdUjian,
 		&item.IdSesi,
 		&item.IdRuangan,
+		&idPengawas,
 		&item.TanggalUjian,
 		&item.WaktuMulai,
 		&item.WaktuSelesai,
+		&item.Token,
 		&item.StatusUjian,
 		&item.CreatedAt,
 		&updatedAt,
@@ -251,6 +256,9 @@ func (r *ListUjianRepo) GetJadwalUjianById(ctx context.Context, id ujian.ID) (uj
 		return ujian.JadwalUjian{}, err
 	}
 
+	if idPengawas.Valid {
+		item.IdPengawas = ujian.ID(idPengawas.Int64)
+	}
 	item.UpdatedAt = nullTimeToPtr(updatedAt)
 
 	return item, nil

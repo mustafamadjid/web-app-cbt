@@ -79,8 +79,16 @@ func (r *UpdateUjianService) UpdateJadwalUjianService(ctx context.Context, id uj
 		logger.Error(ctx, "failed update jadwal ujian", "layer", "core.service", "op", "ujian.update_jadwal", "err", err)
 		return err
 	}
+	if err := sanitizeTokenJadwalUjianPatch(&payload); err != nil {
+		logger.Error(ctx, "failed update jadwal ujian", "layer", "core.service", "op", "ujian.update_jadwal", "err", err)
+		return err
+	}
 
 	if err := validateUpdateJadwalUjianStatus(payload); err != nil {
+		logger.Error(ctx, "failed update jadwal ujian", "layer", "core.service", "op", "ujian.update_jadwal", "err", err)
+		return err
+	}
+	if err := validateUpdateJadwalUjianToken(payload); err != nil {
 		logger.Error(ctx, "failed update jadwal ujian", "layer", "core.service", "op", "ujian.update_jadwal", "err", err)
 		return err
 	}

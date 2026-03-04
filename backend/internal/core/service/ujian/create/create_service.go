@@ -17,42 +17,22 @@ func NewCreateUjianService(repo ujian_repo.UjianRepository) *CreateUjianService 
 	}
 }
 
-func (r *CreateUjianService) CreateUjianService(ctx context.Context, data ujian.Ujian) (ujian.ID, error) {
+func (r *CreateUjianService) CreateUjianService(ctx context.Context, data ujian.PenjadwalanUjian) error {
 	logger := corelog.FromContext(ctx)
 
 	data = sanitizeCreateUjian(data)
 
 	if err := validateCreateUjian(data); err != nil {
 		logger.Error(ctx, "failed create ujian", "layer", "core.service", "op", "ujian.create", "err", err)
-		return 0, err
+		return err
 	}
 
-	id, err := r.repo.CreateUjian(ctx, data)
-	if err != nil {
+	if err := r.repo.CreateUjian(ctx, data); err != nil {
 		logger.Error(ctx, "failed create ujian", "layer", "core.service", "op", "ujian.create", "err", err)
-		return 0, err
+		return err
 	}
 
-	return id, nil
-}
-
-func (r *CreateUjianService) CreateJadwalUjianService(ctx context.Context, data ujian.JadwalUjian) (ujian.ID, error) {
-	logger := corelog.FromContext(ctx)
-
-	data = sanitizeCreateJadwalUjian(data)
-
-	if err := validateCreateJadwalUjian(data); err != nil {
-		logger.Error(ctx, "failed create jadwal ujian", "layer", "core.service", "op", "ujian.create_jadwal", "err", err)
-		return 0, err
-	}
-
-	id, err := r.repo.CreateJadwalUjian(ctx, data)
-	if err != nil {
-		logger.Error(ctx, "failed create jadwal ujian", "layer", "core.service", "op", "ujian.create_jadwal", "err", err)
-		return 0, err
-	}
-
-	return id, nil
+	return nil
 }
 
 func (r *CreateUjianService) CreatePesertaUjianService(ctx context.Context, data ujian.PesertaUjian) (ujian.ID, error) {

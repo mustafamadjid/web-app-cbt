@@ -45,6 +45,17 @@ func sanitizeStatusUjianPatch(payload *updatepatch.UpdateJadwalUjianPatch) error
 	payload.StatusUjian = &status
 	return nil
 }
+func sanitizeTokenJadwalUjianPatch(payload *updatepatch.UpdateJadwalUjianPatch) error {
+	if payload.Token == nil {
+		return nil
+	}
+	token := strings.ToUpper(strings.TrimSpace(*payload.Token))
+	if token == "" {
+		return coreerror.ErrMissingField
+	}
+	payload.Token = &token
+	return nil
+}
 func sanitizeJawabanEssayPatch(payload *updatepatch.UpdateJawabanUjianSiswaPatch) error {
 	if payload.JawabanEssay == nil {
 		return nil

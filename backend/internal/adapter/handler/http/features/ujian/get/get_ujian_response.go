@@ -18,6 +18,8 @@ type JadwalUjianResponse struct {
 	IDUjian       int     `json:"id_ujian"`
 	IDSesi        int     `json:"id_sesi"`
 	IDRuangan     int     `json:"id_ruangan"`
+	IDPengawas    int     `json:"id_pengawas"`
+	Token         string  `json:"token"`
 	TanggalUjian  string  `json:"tanggal_ujian"`
 	WaktuMulai    string  `json:"waktu_mulai"`
 	WaktuSelesai  string  `json:"waktu_selesai"`

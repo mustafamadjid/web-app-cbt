@@ -22,8 +22,8 @@ type ListUjianRepository interface {
 }
 
 type UjianRepository interface {
-	CreateUjian(ctx context.Context, ujian ujian.Ujian) (ujian.ID, error)
-	CreateJadwalUjian(ctx context.Context, jadwal ujian.JadwalUjian) (ujian.ID, error)
+	CreateUjian(ctx context.Context, ujian ujian.PenjadwalanUjian) error
+	
 	CreatePesertaUjian(ctx context.Context, peserta ujian.PesertaUjian) (ujian.ID, error)
 	CreateJawabanUjianSiswa(ctx context.Context, jawaban ujian.JawabanUjianSiswa) (ujian.ID, error)
 

@@ -34,7 +34,15 @@ func validateUpdateUjianPatchID(payload updatepatch.UpdateUjianPatch) error {
 	return nil
 }
 func validateUpdateJadwalUjianPatch(payload updatepatch.UpdateJadwalUjianPatch) error {
-	if payload.IdUjian == nil && payload.IdSesi == nil && payload.IdRuangan == nil && payload.TanggalUjian == nil && payload.WaktuMulai == nil && payload.WaktuSelesai == nil && payload.StatusUjian == nil {
+	if payload.IdUjian == nil &&
+		payload.IdSesi == nil &&
+		payload.IdRuangan == nil &&
+		payload.IdPengawas == nil &&
+		payload.TanggalUjian == nil &&
+		payload.Token == nil &&
+		payload.WaktuMulai == nil &&
+		payload.WaktuSelesai == nil &&
+		payload.StatusUjian == nil {
 		return coreerror.ErrNoFieldToUpdate
 	}
 	return nil
@@ -47,6 +55,9 @@ func validateUpdateJadwalUjianPatchID(payload updatepatch.UpdateJadwalUjianPatch
 		return coreerror.ErrMissingId
 	}
 	if payload.IdRuangan != nil && *payload.IdRuangan <= 0 {
+		return coreerror.ErrMissingId
+	}
+	if payload.IdPengawas != nil && *payload.IdPengawas <= 0 {
 		return coreerror.ErrMissingId
 	}
 	return nil
@@ -71,6 +82,15 @@ func validateUpdateJadwalUjianTime(payload updatepatch.UpdateJadwalUjianPatch) e
 		return coreerror.ErrInvalidInput
 	}
 	if payload.WaktuMulai != nil && payload.WaktuSelesai != nil && !payload.WaktuMulai.Before(*payload.WaktuSelesai) {
+		return coreerror.ErrInvalidInput
+	}
+	return nil
+}
+func validateUpdateJadwalUjianToken(payload updatepatch.UpdateJadwalUjianPatch) error {
+	if payload.Token == nil {
+		return nil
+	}
+	if len(*payload.Token) > 100 {
 		return coreerror.ErrInvalidInput
 	}
 	return nil

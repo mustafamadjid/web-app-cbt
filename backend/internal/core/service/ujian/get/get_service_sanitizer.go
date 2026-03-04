@@ -66,6 +66,12 @@ func sanitizeAndValidateListUjianItems(items []ujian.ListUjian) ([]ujian.ListUji
 	return sanitized, nil
 }
 
+func sanitizeJadwalUjian(item ujian.JadwalUjian) ujian.JadwalUjian {
+	item.Token = strings.ToUpper(strings.TrimSpace(item.Token))
+	item.StatusUjian = ujian.StatusUjian(strings.ToUpper(strings.TrimSpace(string(item.StatusUjian))))
+	return item
+}
+
 func sanitizeListUjianItem(item ujian.ListUjian) ujian.ListUjian {
 	item.NamaUjian = strings.TrimSpace(item.NamaUjian)
 	item.NamaPengawas = strings.TrimSpace(item.NamaPengawas)

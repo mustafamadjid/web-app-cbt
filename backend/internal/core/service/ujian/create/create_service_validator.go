@@ -5,36 +5,43 @@ import (
 	ujian "github.com/mustafamadjid/web-app-cbt/internal/core/domain/ujian_siswa"
 )
 
-func validateCreateUjian(data ujian.Ujian) error {
-	if data.IdBankSoal <= 0 || data.IdKelas <= 0 || data.IdGuru <= 0 {
+func validateCreateUjian(data ujian.PenjadwalanUjian) error {
+	if data.Ujian.IdBankSoal <= 0 || data.Ujian.IdKelas <= 0 || data.Ujian.IdGuru <= 0 {
 		return coreerror.ErrMissingId
 	}
-	if data.IdNamaKelas != nil && *data.IdNamaKelas <= 0 {
+	if data.Ujian.IdNamaKelas != nil && *data.Ujian.IdNamaKelas <= 0 {
 		return coreerror.ErrMissingId
 	}
-	if data.NamaUjian == "" {
+	if data.Ujian.NamaUjian == "" {
 		return coreerror.ErrMissingField
 	}
-	if len(data.NamaUjian) > 100 {
+	if len(data.Ujian.NamaUjian) > 100 {
+		return coreerror.ErrInvalidInput
+	}
+	if data.JadwalUjian.IdSesi <= 0 || data.JadwalUjian.IdRuangan <= 0 || data.JadwalUjian.IdPengawas <= 0 {
+		return coreerror.ErrMissingId
+	}
+	if data.JadwalUjian.TanggalUjian.IsZero() || data.JadwalUjian.WaktuMulai.IsZero() || data.JadwalUjian.WaktuSelesai.IsZero() {
+		return coreerror.ErrInvalidInput
+	}
+	if !data.JadwalUjian.WaktuMulai.Before(data.JadwalUjian.WaktuSelesai) {
+		return coreerror.ErrInvalidInput
+	}
+	if data.JadwalUjian.Token == "" {
+		return coreerror.ErrMissingField
+	}
+	if len(data.JadwalUjian.Token) > 100 {
+		return coreerror.ErrInvalidInput
+	}
+	if data.JadwalUjian.StatusUjian == "" {
+		return coreerror.ErrMissingField
+	}
+	if !data.JadwalUjian.StatusUjian.ValidStatus() {
 		return coreerror.ErrInvalidInput
 	}
 	return nil
 }
-func validateCreateJadwalUjian(data ujian.JadwalUjian) error {
-	if data.IdUjian <= 0 || data.IdSesi <= 0 || data.IdRuangan <= 0 {
-		return coreerror.ErrMissingId
-	}
-	if data.TanggalUjian.IsZero() || data.WaktuMulai.IsZero() || data.WaktuSelesai.IsZero() {
-		return coreerror.ErrMissingField
-	}
-	if !data.WaktuMulai.Before(data.WaktuSelesai) {
-		return coreerror.ErrInvalidInput
-	}
-	if !data.StatusUjian.ValidStatus() {
-		return coreerror.ErrInvalidInput
-	}
-	return nil
-}
+
 func validateCreatePesertaUjian(data ujian.PesertaUjian) error {
 	if data.IdJadwalUjian <= 0 || data.IdSiswa <= 0 {
 		return coreerror.ErrMissingId

@@ -5,22 +5,18 @@ import (
 	"strings"
 )
 
-func sanitizeCreateUjian(data ujian.Ujian) ujian.Ujian {
-	data.NamaUjian = strings.TrimSpace(data.NamaUjian)
-	if data.DeskripsiUjian != nil {
-		deskripsi := strings.TrimSpace(*data.DeskripsiUjian)
+func sanitizeCreateUjian(data ujian.PenjadwalanUjian) ujian.PenjadwalanUjian {
+	data.Ujian.NamaUjian = strings.TrimSpace(data.Ujian.NamaUjian)
+	if data.Ujian.DeskripsiUjian != nil {
+		deskripsi := strings.TrimSpace(*data.Ujian.DeskripsiUjian)
 		if deskripsi == "" {
-			data.DeskripsiUjian = nil
+			data.Ujian.DeskripsiUjian = nil
 		} else {
-			data.DeskripsiUjian = &deskripsi
+			data.Ujian.DeskripsiUjian = &deskripsi
 		}
 	}
-	return data
-}
-func sanitizeCreateJadwalUjian(data ujian.JadwalUjian) ujian.JadwalUjian {
-	if data.StatusUjian == "" {
-		data.StatusUjian = ujian.BELUM_MULAI
-	}
+	data.JadwalUjian.Token = strings.ToUpper(strings.TrimSpace(data.JadwalUjian.Token))
+	data.JadwalUjian.StatusUjian = ujian.StatusUjian(strings.ToUpper(strings.TrimSpace(string(data.JadwalUjian.StatusUjian))))
 	return data
 }
 func sanitizeCreateJawabanUjianSiswa(data ujian.JawabanUjianSiswa) ujian.JawabanUjianSiswa {

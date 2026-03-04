@@ -74,6 +74,11 @@ func (r *GetUjianService) GetJadwalUjianByIdService(ctx context.Context, id ujia
 		logger.Error(ctx, "failed get jadwal ujian by id", "layer", "core.service", "op", "ujian.get_jadwal_by_id", "err", err)
 		return ujian.JadwalUjian{}, err
 	}
+	item = sanitizeJadwalUjian(item)
+	if err := validateJadwalUjian(item); err != nil {
+		logger.Error(ctx, "failed get jadwal ujian by id", "layer", "core.service", "op", "ujian.get_jadwal_by_id.validate", "err", err)
+		return ujian.JadwalUjian{}, coreerror.ErrInvalidInput
+	}
 	return item, nil
 }
 
@@ -165,4 +170,6 @@ var (
 	errInvalidRuangUjian   = errors.New("invalid ruang ujian")
 	errInvalidPeserta      = errors.New("invalid peserta ujian filter")
 	errInvalidJawaban      = errors.New("invalid jawaban ujian filter")
+	errInvalidJadwalUjian  = errors.New("invalid jadwal ujian")
+	errInvalidTokenUjian   = errors.New("invalid token ujian")
 )

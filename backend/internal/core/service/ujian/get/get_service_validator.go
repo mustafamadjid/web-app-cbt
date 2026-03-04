@@ -19,6 +19,32 @@ func validatePesertaFilter(filter ujian.PesertaUjian) error {
 	return nil
 }
 
+func validateJadwalUjian(item ujian.JadwalUjian) error {
+	if item.IdJadwalUjian <= 0 ||
+		item.IdUjian <= 0 ||
+		item.IdSesi <= 0 ||
+		item.IdRuangan <= 0 ||
+		item.IdPengawas <= 0 {
+		return errInvalidJadwalUjian
+	}
+	if strings.TrimSpace(item.Token) == "" {
+		return errInvalidTokenUjian
+	}
+	if len(item.Token) > 100 {
+		return errInvalidTokenUjian
+	}
+	if item.TanggalUjian.IsZero() || item.WaktuMulai.IsZero() || item.WaktuSelesai.IsZero() {
+		return errInvalidTanggalUjian
+	}
+	if !item.WaktuMulai.Before(item.WaktuSelesai) {
+		return errInvalidWaktuUjian
+	}
+	if !item.StatusUjian.ValidStatus() {
+		return errInvalidStatusUjian
+	}
+	return nil
+}
+
 func validateListUjian(item ujian.ListUjian) error {
 	if item.IdUjian <= 0 ||
 		item.IdBankSoal <= 0 ||

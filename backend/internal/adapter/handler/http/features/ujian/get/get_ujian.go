@@ -422,6 +422,8 @@ func toJadwalUjianResponse(item ujian.JadwalUjian) JadwalUjianResponse {
 		IDUjian:       int(item.IdUjian),
 		IDSesi:        int(item.IdSesi),
 		IDRuangan:     int(item.IdRuangan),
+		IDPengawas:    int(item.IdPengawas),
+		Token:         item.Token,
 		TanggalUjian:  item.TanggalUjian.Format("2006-01-02"),
 		WaktuMulai:    item.WaktuMulai.Format("15:04"),
 		WaktuSelesai:  item.WaktuSelesai.Format("15:04"),

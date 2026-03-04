@@ -34,8 +34,15 @@ type JadwalUjian struct {
 	WaktuMulai    time.Time
 	WaktuSelesai  time.Time
 	StatusUjian   StatusUjian
+	Token         string
+	IdPengawas    ID
 	CreatedAt     time.Time
 	UpdatedAt     *time.Time
+}
+
+type PenjadwalanUjian struct {
+	Ujian 	Ujian
+	JadwalUjian JadwalUjian
 }
 
 type ListUjian struct {
