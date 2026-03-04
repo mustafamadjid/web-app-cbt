@@ -3,8 +3,6 @@ package matapelajaran_service
 import (
 	"context"
 	"errors"
-	"strings"
-
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	matapelajaran "github.com/mustafamadjid/web-app-cbt/internal/core/domain/mata_pelajaran"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
@@ -69,52 +67,10 @@ func (r *GetMapelRepo) GetMapelById(ctx context.Context, idMapel int) (matapelaj
 	return item, nil
 }
 
-// -----------------------
-// Sanitizer and validator
-// -----------------------
-
 var (
 	errInvalidNamaMapelFilter = errors.New("invalid nama mapel")
 	errInvalidTingkatKelas    = errors.New("invalid tingkat kelas")
 )
-
-func sanitizeAndValidateListMapelFilter(filter query.ListMapelFilter) (query.ListMapelFilter, error) {
-	filter.Search = strings.TrimSpace(filter.Search)
-
-	if filter.Limit <= 0 {
-		filter.Limit = 20
-	}
-
-	if filter.Limit > 50 {
-		filter.Limit = 50
-	}
-
-	if filter.Offset < 0 {
-		filter.Offset = 0
-	}
-
-	if filter.NamaMapel != nil {
-		if *filter.NamaMapel == "" {
-			return filter, errInvalidNamaMapelFilter
-		}
-
-		namaMapel := strings.TrimSpace(*filter.NamaMapel)
-		filter.NamaMapel = &namaMapel
-	}
-
-	if filter.TingkatKelas != nil && *filter.TingkatKelas <= 0 {
-		return filter, errInvalidTingkatKelas
-	}
-
-	return filter, nil
-}
-
-func validateMapelID(idMapel int) error {
-	if idMapel <= 0 {
-		return coreerror.ErrMissingId
-	}
-	return nil
-}
 
 func isNamaMapelError(err error) bool {
 	return errors.Is(err, errInvalidNamaMapelFilter)

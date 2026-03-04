@@ -2,13 +2,10 @@ package pengumuman_service
 
 import (
 	"context"
-	"strings"
-
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/pengumuman"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 	pengumuman_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/pengumuman"
-	pengumuman_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/pengumuman/date_validation"
 )
 
 type CreatePengumumanService struct {
@@ -48,32 +45,4 @@ func (r *CreatePengumumanService) CreatePengumuman(ctx context.Context, pengumum
 
 	return nil
 
-}
-
-// -----------------------
-// Sanitizer and validator
-// -----------------------
-
-func sanitizeCreatePengumuman(data pengumuman.Pengumuman) pengumuman.Pengumuman {
-	data.IsiPengumuman = strings.TrimSpace(data.IsiPengumuman)
-	data.JudulPengumuman = strings.TrimSpace(data.JudulPengumuman)
-	data.TanggalRilisPengumuman = strings.TrimSpace(data.TanggalRilisPengumuman)
-	data.TanggalSelesaiPengumuman = strings.TrimSpace(data.TanggalSelesaiPengumuman)
-	data.DokumenPengumuman = strings.TrimSpace(data.DokumenPengumuman)
-	return data
-}
-
-func validateCreatePengumumanID(data pengumuman.Pengumuman) error {
-	if data.IdPengguna <= 0 {
-		return coreerror.ErrMissingId
-	}
-	return nil
-}
-
-func validateTanggalRilisPengumuman(data pengumuman.Pengumuman) error {
-	return pengumuman_service.ValidateDate(data.TanggalRilisPengumuman)
-}
-
-func validateTanggalSelesaiPengumuman(data pengumuman.Pengumuman) error {
-	return pengumuman_service.ValidateDate(data.TanggalSelesaiPengumuman)
 }

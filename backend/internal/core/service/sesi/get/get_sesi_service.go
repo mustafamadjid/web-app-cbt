@@ -2,8 +2,6 @@ package sesi_service
 
 import (
 	"context"
-	"strings"
-
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/sesi"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
@@ -63,44 +61,4 @@ func (r *GetSesiService) GetSesiByKodeService(ctx context.Context, kodeSesi stri
 		return sesi.Sesi{}, err
 	}
 	return item, nil
-}
-
-// -----------------------
-// Sanitizer and validator
-// -----------------------
-
-func sanitizeListSesiFilter(filter query.ListSesiFilter) query.ListSesiFilter {
-	if filter.Limit <= 0 {
-		filter.Limit = 10
-	}
-
-	if filter.Limit > 50 {
-		filter.Limit = 50
-	}
-
-	if filter.Offset < 0 {
-		filter.Offset = 0
-	}
-
-	return filter
-}
-
-func validateSesiID(idSesi int) error {
-	if idSesi <= 0 {
-		return coreerror.ErrMissingId
-	}
-	return nil
-}
-
-func sanitizeKodeSesi(kodeSesi string) string {
-	kodeSesi = strings.TrimSpace(kodeSesi)
-	kodeSesi = strings.ToUpper(kodeSesi)
-	return kodeSesi
-}
-
-func validateKodeSesi(kodeSesi string) error {
-	if len(kodeSesi) == 0 || kodeSesi == "" {
-		return coreerror.ErrMissingField
-	}
-	return nil
 }

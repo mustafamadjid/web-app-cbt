@@ -2,8 +2,6 @@ package ruangujian_service
 
 import (
 	"context"
-	"strings"
-
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	ruangujian "github.com/mustafamadjid/web-app-cbt/internal/core/domain/ruang_ujian"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
@@ -65,45 +63,4 @@ func (r *GetRuangUjianRepo) GetRuangUjianByKode(ctx context.Context, kodeRuang s
 		return ruangujian.RuangUjian{}, err
 	}
 	return item, nil
-}
-
-// -----------------------
-// Sanitizer and validator
-// -----------------------
-
-func sanitizeListRuangUjianFilter(filter query.ListRuangUjianFilter) query.ListRuangUjianFilter {
-	if filter.Limit <= 0 {
-		filter.Limit = 20
-	}
-
-	if filter.Limit > 50 {
-		filter.Limit = 50
-	}
-
-	if filter.Offset < 0 {
-		filter.Offset = 0
-	}
-
-	filter.Search = strings.TrimSpace(filter.Search)
-	return filter
-}
-
-func validateRuangUjianID(idRuangan int) error {
-	if idRuangan <= 0 {
-		return coreerror.ErrMissingId
-	}
-	return nil
-}
-
-func sanitizeKodeRuang(kodeRuang string) string {
-	kodeRuang = strings.TrimSpace(kodeRuang)
-	kodeRuang = strings.ToUpper(kodeRuang)
-	return kodeRuang
-}
-
-func validateKodeRuang(kodeRuang string) error {
-	if len(kodeRuang) == 0 || kodeRuang == "" {
-		return coreerror.ErrMissingField
-	}
-	return nil
 }

@@ -1,0 +1,69 @@
+package ujian_service
+
+import (
+	ujian "github.com/mustafamadjid/web-app-cbt/internal/core/domain/ujian_siswa"
+	query "github.com/mustafamadjid/web-app-cbt/internal/core/query/ujian"
+	"strconv"
+	"strings"
+	"time"
+)
+
+func sanitizeAndValidateListUjianFilter(filter query.ListUjianFilter) (query.ListUjianFilter, error) {
+	filter.Search = strings.TrimSpace(filter.Search)
+	if filter.Limit <= 0 {
+		filter.Limit = 20
+	}
+	if filter.Limit > 50 {
+		filter.Limit = 50
+	}
+	if filter.Offset < 0 {
+		filter.Offset = 0
+	}
+	if filter.TanggalUjian != nil {
+		tanggalUjian := strings.TrimSpace(*filter.TanggalUjian)
+		if tanggalUjian == "" {
+			return filter, errInvalidTanggalUjian
+		}
+		if _, err := time.Parse("2006-01-02", tanggalUjian); err != nil {
+			return filter, errInvalidTanggalUjian
+		}
+		filter.TanggalUjian = &tanggalUjian
+	}
+	if filter.Tahun != nil {
+		tahun := strings.TrimSpace(*filter.Tahun)
+		if tahun == "" {
+			return filter, errInvalidTahun
+		}
+		if len(tahun) != 4 {
+			return filter, errInvalidTahun
+		}
+		tahunInt, err := strconv.Atoi(tahun)
+		if err != nil || tahunInt <= 0 {
+			return filter, errInvalidTahun
+		}
+		filter.Tahun = &tahun
+	}
+	if filter.TingkatKelas != nil && *filter.TingkatKelas <= 0 {
+		return filter, errInvalidTingkatKelas
+	}
+	if filter.RuangUjian != nil && *filter.RuangUjian <= 0 {
+		return filter, errInvalidRuangUjian
+	}
+	return filter, nil
+}
+func sanitizeAndValidateJawabanFilter(filter ujian.JawabanUjianSiswa) (ujian.JawabanUjianSiswa, error) {
+	if filter.IdJawaban < 0 || filter.IdPesertaUjian < 0 || filter.IdSoal < 0 {
+		return filter, errInvalidJawaban
+	}
+	if filter.IdPilihan != nil && *filter.IdPilihan <= 0 {
+		return filter, errInvalidJawaban
+	}
+	if filter.JawabanEssay != nil {
+		jawabanEssay := strings.TrimSpace(*filter.JawabanEssay)
+		if jawabanEssay == "" {
+			return filter, errInvalidJawaban
+		}
+		filter.JawabanEssay = &jawabanEssay
+	}
+	return filter, nil
+}

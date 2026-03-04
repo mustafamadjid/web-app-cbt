@@ -2,11 +2,8 @@ package sesi_service
 
 import (
 	"context"
-	"strings"
-
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/sesi"
-
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 	sesi_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/sesi"
 )
@@ -48,31 +45,6 @@ func (r *CreateSesiService) CreateSesiService(ctx context.Context, sesi sesi.Ses
 	if err := r.sesiRepo.CreateSesi(ctx, sesi); err != nil {
 		logger.Error(ctx, "failed create sesi", "layer", "core.service", "op", "sesi.create", "err", err)
 		return err
-	}
-	return nil
-}
-
-// -----------------------
-// Sanitizer and validator
-// -----------------------
-
-func sanitizeCreateSesi(data sesi.Sesi) sesi.Sesi {
-	data.NamaSesi = strings.TrimSpace(data.NamaSesi)
-	data.KodeSesi = strings.TrimSpace(data.KodeSesi)
-	data.KodeSesi = strings.ToUpper(data.KodeSesi)
-	return data
-}
-
-func validateCreateNamaSesi(data sesi.Sesi) error {
-	if data.NamaSesi == "" {
-		return coreerror.ErrMissingField
-	}
-	return nil
-}
-
-func validateCreateKodeSesi(data sesi.Sesi) error {
-	if data.KodeSesi == "" {
-		return coreerror.ErrMissingField
 	}
 	return nil
 }

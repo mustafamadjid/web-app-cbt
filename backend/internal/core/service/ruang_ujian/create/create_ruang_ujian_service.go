@@ -2,8 +2,6 @@ package ruangujian_service
 
 import (
 	"context"
-	"strings"
-
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	ruangujian "github.com/mustafamadjid/web-app-cbt/internal/core/domain/ruang_ujian"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
@@ -41,15 +39,4 @@ func (r *CreateRuangUjianService) CreateRuangUjianService(ctx context.Context, r
 	}
 
 	return nil
-}
-
-// -----------------------
-// Sanitizer and validator
-// -----------------------
-
-func sanitizeCreateRuangUjian(data ruangujian.RuangUjian) ruangujian.RuangUjian {
-	data.KodeRuang = strings.TrimSpace(data.KodeRuang)
-	data.KodeRuang = strings.ToUpper(data.KodeRuang)
-	data.NamaRuangan = strings.TrimSpace(data.NamaRuangan)
-	return data
 }

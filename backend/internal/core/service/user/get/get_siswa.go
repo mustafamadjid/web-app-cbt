@@ -2,16 +2,11 @@ package user_service
 
 import (
 	"context"
-
-	"strings"
-	"time"
-
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
-	"github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
-
-	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
+	"github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
 	query "github.com/mustafamadjid/web-app-cbt/internal/core/query/user"
+	"time"
 )
 
 type GetSiswaService struct {
@@ -52,57 +47,4 @@ func (s *GetSiswaService) ListSiswa(ctx context.Context, filter query.ListSiswaF
 
 func (s *GetSiswaService) FindProfilSiswaByID(ctx context.Context, id user.ID) (user.DataSiswa, error) {
 	return s.profilSiswaSv.FindProfilSiswaByID(ctx, id)
-}
-
-// -----------------------
-// Sanitizer and validator
-// -----------------------
-
-func sanitizeListSiswaFilter(filter query.ListSiswaFilter) query.ListSiswaFilter {
-	filter.Search = strings.TrimSpace(filter.Search)
-
-	if filter.Limit <= 0 {
-		filter.Limit = 20
-	}
-
-	if filter.Limit > 50 {
-		filter.Limit = 50
-	}
-
-	if filter.Offset < 0 {
-		filter.Offset = 0
-	}
-
-	if filter.SortBy == "" {
-		filter.SortBy = "created_at"
-	}
-
-	return filter
-}
-
-func validateListSiswaFilter(filter query.ListSiswaFilter, nowYear int) (query.ListSiswaFilter, error) {
-	if _, ok := allowedSort[filter.SortBy]; !ok {
-		return filter, coreerror.ErrInvalidInput
-	}
-
-	if filter.Status == nil {
-		defaultStatus := user.AKTIF
-		filter.Status = &defaultStatus
-	} else if *filter.Status != user.AKTIF && *filter.Status != user.NONAKTIF {
-		return filter, coreerror.ErrInvalidInput
-	}
-
-	if filter.Angkatan != nil && (*filter.Angkatan > nowYear || *filter.Angkatan < 2019) {
-		return filter, coreerror.ErrInvalidInput
-	}
-
-	if filter.TingkatKelas != nil && *filter.TingkatKelas < 0 {
-		return filter, coreerror.ErrInvalidInput
-	}
-
-	if filter.JenisKelamin != nil && (*filter.JenisKelamin <= 0 || *filter.JenisKelamin > 2) {
-		return filter, coreerror.ErrInvalidInput
-	}
-
-	return filter, nil
 }

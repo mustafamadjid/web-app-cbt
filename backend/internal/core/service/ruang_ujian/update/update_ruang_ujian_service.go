@@ -2,8 +2,6 @@ package ruangujian_service
 
 import (
 	"context"
-	"strings"
-
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 	ruangujian_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/ruang_ujian"
@@ -58,43 +56,6 @@ func (r *UpdateRuangUjianService) UpdateRuangUjian(ctx context.Context, idRuanga
 		return err
 	}
 	return nil
-}
-
-// -----------------------
-// Sanitizer and validator
-// -----------------------
-
-func validateUpdateRuangUjianID(idRuangan int) error {
-	if idRuangan <= 0 {
-		return coreerror.ErrMissingId
-	}
-	return nil
-}
-
-func validateUpdateRuangUjianPatch(ruangUjian updatepatch.UpdateRuangUjianPatch) error {
-	if ruangUjian.KodeRuang == nil && ruangUjian.NamaRuang == nil {
-		return coreerror.ErrNoFieldToUpdate
-	}
-	return nil
-}
-
-func sanitizeKodeRuangPatch(ruangUjian *updatepatch.UpdateRuangUjianPatch) {
-	if ruangUjian.KodeRuang == nil {
-		return
-	}
-
-	kodeRuang := strings.TrimSpace(*ruangUjian.KodeRuang)
-	kodeRuang = strings.ToUpper(kodeRuang)
-	ruangUjian.KodeRuang = &kodeRuang
-}
-
-func sanitizeNamaRuangPatch(ruangUjian *updatepatch.UpdateRuangUjianPatch) {
-	if ruangUjian.NamaRuang == nil {
-		return
-	}
-
-	namaRuang := strings.TrimSpace(*ruangUjian.NamaRuang)
-	ruangUjian.NamaRuang = &namaRuang
 }
 
 func isEmptyKodeRuangPatch(ruangUjian updatepatch.UpdateRuangUjianPatch) bool {

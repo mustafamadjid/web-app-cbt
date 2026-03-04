@@ -3,7 +3,6 @@ package import_version
 import (
 	"context"
 	"fmt"
-
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	importsoal "github.com/mustafamadjid/web-app-cbt/internal/core/domain/import_soal"
 	importsoalrepo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/import_soal"
@@ -55,24 +54,4 @@ func (s *Service) Execute(ctx context.Context, cmd Cmd) (Result, error) {
 	return Result{
 		VersionID: versionID,
 	}, nil
-}
-
-func validateExactlyOneCorrectOption(soalList []importsoal.ParsedSoal) error {
-	for i, soal := range soalList {
-		if soal.TipeSoal != "pilihan_ganda" {
-			continue
-		}
-
-		correctCount := 0
-		for _, opsi := range soal.Opsi {
-			if opsi.IsBenar {
-				correctCount++
-			}
-		}
-
-		if correctCount != 1 {
-			return fmt.Errorf("%w: soal ke-%d harus memiliki tepat satu opsi benar", coreerror.ErrInvalidInput, i+1)
-		}
-	}
-	return nil
 }

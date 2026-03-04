@@ -2,13 +2,8 @@ package user_service
 
 import (
 	"context"
-	"strings"
-
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 	out "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
-
-	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
-
 	query "github.com/mustafamadjid/web-app-cbt/internal/core/query/user"
 )
 
@@ -47,54 +42,4 @@ func (s *GetGuruService) ListGuru(ctx context.Context, filter query.ListGuruFilt
 
 func (s *GetGuruService) FindProfilGuruByID(ctx context.Context, id user.ID) (user.DataGuru, error) {
 	return s.profilGuruSv.FindProfilGuruByID(ctx, id)
-}
-
-// -----------------------
-// Sanitizer and validator
-// -----------------------
-
-func sanitizeListGuruFilter(filter query.ListGuruFilter) query.ListGuruFilter {
-	filter.Search = strings.TrimSpace(filter.Search)
-
-	if filter.Limit <= 0 {
-		filter.Limit = 20
-	}
-
-	if filter.Limit > 50 {
-		filter.Limit = 50
-	}
-
-	if filter.Offset < 0 {
-		filter.Offset = 0
-	}
-
-	if filter.SortBy == "" {
-		filter.SortBy = "created_at"
-	}
-
-	if filter.Bidang != nil {
-		trimmedBidang := strings.TrimSpace(*filter.Bidang)
-		filter.Bidang = &trimmedBidang
-	}
-
-	return filter
-}
-
-func validateListGuruFilter(filter query.ListGuruFilter) (query.ListGuruFilter, error) {
-	if _, ok := allowedSortGuru[filter.SortBy]; !ok {
-		return filter, coreerror.ErrInvalidInput
-	}
-
-	if filter.Status == nil {
-		defaultStatus := user.AKTIF
-		filter.Status = &defaultStatus
-	} else if *filter.Status != user.AKTIF && *filter.Status != user.NONAKTIF {
-		return filter, coreerror.ErrInvalidInput
-	}
-
-	if filter.Bidang != nil && *filter.Bidang == "" {
-		return filter, coreerror.ErrInvalidInput
-	}
-
-	return filter, nil
 }

@@ -2,11 +2,9 @@ package user_service
 
 import (
 	"context"
+	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/port/out"
-	"strings"
-
-	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 	txout "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/tx"
 )
@@ -249,49 +247,4 @@ func (uc *CreateTx) CreateSiswa(ctx context.Context, cmd CreateSiswaCmd, actor u
 		IdPengguna:    idPengguna,
 		IdProfilSiswa: idProfilSiswa,
 	}, nil
-}
-
-// -----------------------
-// Sanitizer and validator
-// -----------------------
-
-func validateCreateGuruActor(actor user.Actor) error {
-	if actor.Role != user.ADMIN {
-		return coreerror.ErrForbidden
-	}
-	return nil
-}
-
-func validateCreateSiswaActor(actor user.Actor) error {
-	if actor.Role != user.ADMIN {
-		return coreerror.ErrForbidden
-	}
-	return nil
-}
-
-func sanitizeCreateGuruCmd(cmd CreateGuruCmd) CreateGuruCmd {
-	cmd.Username = strings.TrimSpace(cmd.Username)
-	cmd.Email = strings.TrimSpace(cmd.Email)
-	cmd.Password = strings.TrimSpace(cmd.Password)
-	cmd.NamaLengkap = strings.TrimSpace(cmd.NamaLengkap)
-	cmd.JenisKelamin = strings.TrimSpace(cmd.JenisKelamin)
-	cmd.NoHp = strings.TrimSpace(cmd.NoHp)
-	cmd.Nip = strings.TrimSpace(cmd.Nip)
-	cmd.Foto = strings.TrimSpace(cmd.Foto)
-	cmd.Jabatan = strings.TrimSpace(cmd.Jabatan)
-	cmd.BidangStudi = strings.TrimSpace(cmd.BidangStudi)
-	return cmd
-}
-
-func sanitizeCreateSiswaCmd(cmd CreateSiswaCmd) CreateSiswaCmd {
-	cmd.Username = strings.TrimSpace(cmd.Username)
-	cmd.Email = strings.TrimSpace(cmd.Email)
-	cmd.Password = strings.TrimSpace(cmd.Password)
-	cmd.NamaLengkap = strings.TrimSpace(cmd.NamaLengkap)
-	cmd.JenisKelamin = strings.TrimSpace(cmd.JenisKelamin)
-	cmd.NoHp = strings.TrimSpace(cmd.NoHp)
-	cmd.Foto = strings.TrimSpace(cmd.Foto)
-	cmd.Nisn = strings.TrimSpace(cmd.Nisn)
-	cmd.TempatLahir = strings.TrimSpace(cmd.TempatLahir)
-	return cmd
 }

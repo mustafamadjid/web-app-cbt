@@ -2,10 +2,8 @@ package aktivitas_user_service
 
 import (
 	"context"
-	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/aktivitas_user"
-	"strings"
-
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
+	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/aktivitas_user"
 	aktivitas_user_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/aktivitas_user"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 )
@@ -54,28 +52,4 @@ func (svc *AktivitasUserService) GetAktivitasUserService(ctx context.Context) ([
 	}
 
 	return getAktivitas, nil
-}
-
-// -----------------------
-// Sanitizer and validator
-// -----------------------
-
-func sanitizeAktivitasUserCmd(cmd AktivitasUserCmd) AktivitasUserCmd {
-	cmd.Description = strings.TrimSpace(cmd.Description)
-	cmd.IpAddress = strings.TrimSpace(cmd.IpAddress)
-	return cmd
-}
-
-func validateAktivitasAction(cmd AktivitasUserCmd) error {
-	if !cmd.Action.ValidAction() {
-		return coreerror.ErrInvalidActionActivity
-	}
-	return nil
-}
-
-func validateAktivitasIPAddress(cmd AktivitasUserCmd) error {
-	if !aktivitas_user.ValidIpAddress(cmd.IpAddress) {
-		return coreerror.ErrInvalidIpAddress
-	}
-	return nil
 }

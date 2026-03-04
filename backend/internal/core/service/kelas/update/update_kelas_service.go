@@ -3,8 +3,6 @@ package kelas_service
 import (
 	"context"
 	"errors"
-	"strings"
-
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	kelas_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/kelas"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
@@ -49,46 +47,6 @@ func (s *UpdateKelasService) UpdateNamaKelas(ctx context.Context, idNamaKelas in
 		default:
 			return err
 		}
-	}
-
-	return nil
-}
-
-// -----------------------
-// Sanitizer and validator
-// -----------------------
-
-func validateUpdateNamaKelasID(idNamaKelas int) error {
-	if idNamaKelas <= 0 {
-		return coreerror.ErrMissingId
-	}
-
-	return nil
-}
-
-func validateNamaKelasPatch(dataUpdate updatepatch.NamaKelasPatch) error {
-	if dataUpdate.IdTingkatKelas == nil && dataUpdate.NamaKelas == nil {
-		return coreerror.ErrNoFieldToUpdate
-	}
-
-	return nil
-}
-
-func sanitizeNamaKelasPatch(dataUpdate *updatepatch.NamaKelasPatch) error {
-	if dataUpdate.NamaKelas != nil {
-		trimmedNamaKelas := strings.TrimSpace(*dataUpdate.NamaKelas)
-		if trimmedNamaKelas == "" {
-			return coreerror.ErrMissingField
-		}
-		dataUpdate.NamaKelas = &trimmedNamaKelas
-	}
-
-	return nil
-}
-
-func validateIdTingkatKelasPatch(dataUpdate updatepatch.NamaKelasPatch) error {
-	if dataUpdate.IdTingkatKelas != nil && *dataUpdate.IdTingkatKelas == 0 {
-		return coreerror.ErrMissingField
 	}
 
 	return nil

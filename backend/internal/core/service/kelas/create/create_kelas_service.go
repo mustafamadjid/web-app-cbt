@@ -2,8 +2,6 @@ package kelas_service
 
 import (
 	"context"
-	"strings"
-
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/kelas"
 	kelas_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/kelas"
@@ -67,13 +65,4 @@ func (r *CreateKelasService) CreateNamaKelas(ctx context.Context, cmd CreateNama
 	}
 
 	return nil
-}
-
-// -----------------------
-// Sanitizer and validator
-// -----------------------
-
-func sanitizeCreateNamaKelasCmd(cmd CreateNamaKelasCmd) CreateNamaKelasCmd {
-	cmd.NamaKelas = strings.TrimSpace(cmd.NamaKelas)
-	return cmd
 }

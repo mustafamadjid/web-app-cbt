@@ -3,8 +3,6 @@ package matapelajaran_service
 import (
 	"context"
 	"errors"
-	"strings"
-
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 	matapelajaran_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/mata_pelajaran"
@@ -69,94 +67,6 @@ func (r *UpdateMapelRepo) UpdateMapelService(ctx context.Context, idMapel int, m
 		default:
 			return err
 		}
-	}
-
-	return nil
-}
-
-// -----------------------
-// Sanitizer and validator
-// -----------------------
-
-func validateUpdateMapelID(idMapel int) error {
-	if idMapel <= 0 {
-		return coreerror.ErrMissingId
-	}
-	return nil
-}
-
-func validateMapelPatch(mapel updatepatch.UpdateMapelPatch) error {
-	if mapel.IdKelas == nil &&
-		mapel.KodeMapel == nil &&
-		mapel.NamaMapel == nil &&
-		mapel.Deskripsi == nil {
-		return coreerror.ErrNoFieldToUpdate
-	}
-	return nil
-}
-
-func validateMapelIdKelasPatch(mapel updatepatch.UpdateMapelPatch) error {
-	if mapel.IdKelas != nil && *mapel.IdKelas <= 0 {
-		return coreerror.ErrMissingId
-	}
-	return nil
-}
-
-func sanitizeKodeMapelPatch(mapel *updatepatch.UpdateMapelPatch) error {
-	if mapel.KodeMapel == nil {
-		return nil
-	}
-
-	kodeMapel := strings.TrimSpace(*mapel.KodeMapel)
-	if kodeMapel == "" {
-		return coreerror.ErrMissingField
-	}
-
-	kodeMapel = strings.ToUpper(kodeMapel)
-	mapel.KodeMapel = &kodeMapel
-	return nil
-}
-
-func sanitizeNamaMapelPatch(mapel *updatepatch.UpdateMapelPatch) error {
-	if mapel.NamaMapel == nil {
-		return nil
-	}
-
-	namaMapel := strings.TrimSpace(*mapel.NamaMapel)
-	if namaMapel == "" {
-		return coreerror.ErrMissingField
-	}
-
-	mapel.NamaMapel = &namaMapel
-	return nil
-}
-
-func sanitizeDeskripsiMapelPatch(mapel *updatepatch.UpdateMapelPatch) error {
-	if mapel.Deskripsi == nil {
-		return nil
-	}
-
-	deskripsi := strings.TrimSpace(*mapel.Deskripsi)
-	if deskripsi == "" {
-		return coreerror.ErrMissingField
-	}
-
-	mapel.Deskripsi = &deskripsi
-	return nil
-}
-
-func (r *UpdateMapelRepo) validateKodeMapelUniqueness(ctx context.Context, mapel updatepatch.UpdateMapelPatch) error {
-	if mapel.KodeMapel == nil {
-		return nil
-	}
-
-	exist, err := r.mapelRepo.ExistKodeMapel(ctx, *mapel.KodeMapel)
-	if err != nil {
-		return err
-	}
-
-	if exist {
-		return coreerror.ErrKodeMapelExist
 	}
 
 	return nil

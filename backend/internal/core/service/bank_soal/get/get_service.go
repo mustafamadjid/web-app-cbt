@@ -2,8 +2,6 @@ package bank_soal_service
 
 import (
 	"context"
-	"strings"
-
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/bank_soal"
 	bank_soal_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/bank_soal"
@@ -78,35 +76,6 @@ func (r *GetBankSoalService) GetBankSoalByGuruService(ctx context.Context, idGur
 		return nil, err
 	}
 	return formatBankSoalDates(items), nil
-}
-
-// -----------------------
-// Sanitizer and validator
-// -----------------------
-
-func sanitizeGetBankSoalFilter(filter query.BankSoalFilter) query.BankSoalFilter {
-	filter.Search = strings.TrimSpace(filter.Search)
-
-	if filter.Limit <= 0 {
-		filter.Limit = 20
-	}
-
-	if filter.Limit > 50 {
-		filter.Limit = 50
-	}
-
-	if filter.Offset < 0 {
-		filter.Offset = 0
-	}
-
-	return filter
-}
-
-func validateBankSoalID(id bank_soal.ID) error {
-	if id <= 0 {
-		return coreerror.ErrMissingId
-	}
-	return nil
 }
 
 func formatBankSoalDates(items []bank_soal.BankSoal) []bank_soal.BankSoal {
