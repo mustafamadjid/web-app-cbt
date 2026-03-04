@@ -20,7 +20,7 @@ func NewGetujianService(repo ujian_repo.ListUjianRepository) *GetUjianService {
 	}
 }
 
-func (r *GetUjianService) GetAllUjianService(ctx context.Context, filter query.ListUjianFilter) ([]ujian.Ujian, error) {
+func (r *GetUjianService) GetAllUjianService(ctx context.Context, filter query.ListUjianFilter) ([]ujian.ListUjian, error) {
 	logger := corelog.FromContext(ctx)
 
 	var err error
@@ -35,6 +35,13 @@ func (r *GetUjianService) GetAllUjianService(ctx context.Context, filter query.L
 		logger.Error(ctx, "failed get ujian", "layer", "core.service", "op", "ujian.get", "err", err)
 		return nil, err
 	}
+
+	items, err = sanitizeAndValidateListUjianItems(items)
+	if err != nil {
+		logger.Error(ctx, "failed get ujian", "layer", "core.service", "op", "ujian.get.sanitize", "err", err)
+		return nil, coreerror.ErrInvalidInput
+	}
+
 	return items, nil
 }
 
@@ -147,6 +154,11 @@ func (r *GetUjianService) GetJawabanBySiswaService(ctx context.Context, idSiswa 
 }
 
 var (
+	errInvalidListUjian   = errors.New("invalid list ujian")
+	errInvalidStatusUjian = errors.New("invalid status ujian")
+	errInvalidWaktuUjian  = errors.New("invalid waktu ujian")
+	errInvalidNamaUjian   = errors.New("invalid nama ujian")
+
 	errInvalidTanggalUjian = errors.New("invalid tanggal ujian")
 	errInvalidTahun        = errors.New("invalid tahun")
 	errInvalidTingkatKelas = errors.New("invalid tingkat kelas")

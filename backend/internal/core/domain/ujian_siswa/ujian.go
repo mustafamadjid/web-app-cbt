@@ -38,6 +38,32 @@ type JadwalUjian struct {
 	UpdatedAt     *time.Time
 }
 
+type ListUjian struct {
+	IdUjian ID
+	IdBankSoal ID
+	NamaUjian string
+
+	IdKelas ID
+	IdNamaKelas *ID
+	TingkatKelas int
+	NamaKelas *string
+
+	IdJadwalUjian ID
+	TanggalUjian time.Time
+	WaktuMulai time.Time
+	WaktuSelesai time.Time
+	StatusUjian StatusUjian
+
+	IdPengawas ID
+	NamaPengawas string
+
+	IdSesi ID
+	NamaSesi string
+
+	IdRuangan ID
+	NamaRuangan string
+}
+
 type PesertaUjian struct {
 	IdPesertaUjian ID
 	IdJadwalUjian  ID

@@ -21,7 +21,9 @@ type UpdateJadwalUjianPatch struct {
 	IdUjian      *ujian.ID
 	IdSesi       *ujian.ID
 	IdRuangan    *ujian.ID
+	IdPengawas   *ujian.ID
 	TanggalUjian *time.Time
+	Token        *string
 	WaktuMulai   *time.Time
 	WaktuSelesai *time.Time
 	StatusUjian  *ujian.StatusUjian

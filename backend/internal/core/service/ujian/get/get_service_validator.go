@@ -3,6 +3,7 @@ package ujian_service
 import (
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	ujian "github.com/mustafamadjid/web-app-cbt/internal/core/domain/ujian_siswa"
+	"strings"
 )
 
 func validateUjianID(id ujian.ID) error {
@@ -15,5 +16,46 @@ func validatePesertaFilter(filter ujian.PesertaUjian) error {
 	if filter.IdPesertaUjian < 0 || filter.IdJadwalUjian < 0 || filter.IdSiswa < 0 {
 		return errInvalidPeserta
 	}
+	return nil
+}
+
+func validateListUjian(item ujian.ListUjian) error {
+	if item.IdUjian <= 0 ||
+		item.IdBankSoal <= 0 ||
+		item.IdKelas <= 0 ||
+		item.IdJadwalUjian <= 0 ||
+		item.IdPengawas <= 0 ||
+		item.IdSesi <= 0 ||
+		item.IdRuangan <= 0 {
+		return errInvalidListUjian
+	}
+
+	if item.IdNamaKelas != nil && *item.IdNamaKelas <= 0 {
+		return errInvalidListUjian
+	}
+
+	if item.TingkatKelas <= 0 {
+		return errInvalidTingkatKelas
+	}
+
+	if strings.TrimSpace(item.NamaUjian) == "" ||
+		strings.TrimSpace(item.NamaPengawas) == "" ||
+		strings.TrimSpace(item.NamaSesi) == "" ||
+		strings.TrimSpace(item.NamaRuangan) == "" {
+		return errInvalidNamaUjian
+	}
+
+	if item.TanggalUjian.IsZero() || item.WaktuMulai.IsZero() || item.WaktuSelesai.IsZero() {
+		return errInvalidTanggalUjian
+	}
+
+	if item.WaktuSelesai.Before(item.WaktuMulai) {
+		return errInvalidWaktuUjian
+	}
+
+	if !item.StatusUjian.ValidStatus() {
+		return errInvalidStatusUjian
+	}
+
 	return nil
 }

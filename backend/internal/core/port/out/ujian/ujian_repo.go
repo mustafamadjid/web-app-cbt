@@ -9,7 +9,7 @@ import (
 )
 
 type ListUjianRepository interface {
-	GetAllUjian(ctx context.Context, filter query.ListUjianFilter) ([]ujian.Ujian, error)
+	GetAllUjian(ctx context.Context, filter query.ListUjianFilter) ([]ujian.ListUjian, error)
 	GetUjianById(ctx context.Context, id ujian.ID) (ujian.Ujian, error)
 
 	GetJadwalUjianById(ctx context.Context, id ujian.ID) (ujian.JadwalUjian, error)

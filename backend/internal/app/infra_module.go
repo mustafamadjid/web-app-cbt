@@ -17,6 +17,7 @@ import (
 	ruangujian_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/ruang_ujian"
 	sesi_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/sesi"
 	txout "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/tx"
+	ujian_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/ujian"
 	outuser "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
 )
 
@@ -42,6 +43,7 @@ type InfraModule struct {
 	mapelRepo      mapel_repo.MataPelajaranRepository
 	pengumumanRepo pengumuman_repo.PengumumanRepo
 	ruangUjianRepo ruangujian_repo.RuangUjianRepo
+	listUjianRepo  ujian_repo.ListUjianRepository
 	sesiRepo       sesi_repo.SesiRepository
 
 	importSoalJobRepo importsoal_repo.ImportSoalJobRepo
@@ -72,6 +74,7 @@ func BuildInfraModule(pool *pgxpool.Pool, logger corelog.Logger) *InfraModule {
 		mapelRepo:             pg.NewMapelRepo(pool, logger),
 		pengumumanRepo:        pg.NewPengumumanRepo(pool, logger),
 		ruangUjianRepo:        pg.NewRuangUjianRepo(pool, logger),
+		listUjianRepo:         pg.NewListUjianRepo(pool, logger),
 		sesiRepo:              pg.NewSesirepo(pool, logger),
 		importSoalJobRepo:     pg.NewImportSoalJobRepo(pool, logger),
 		isiSoalBatchRepo:      pg.NewIsiSoalBatchRepo(pool, logger),

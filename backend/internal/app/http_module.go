@@ -23,7 +23,7 @@ type HTTPModule struct {
 	Server  *http.Server
 }
 
-func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSekolah *ProfilSekolahModule, aktivitasUser *AktivitasUserModule, kelas *KelasModule, mapel *MataPelajaranModule, ruangUjian *RuangUjianModule, sesi *SesiModule, pengumuman *PengumumanModule, bankSoal *BankSoalModule, resetPassword *ResetPasswordModule, importSoal *ImportSoalModule, tokens *TokenModule, infra *InfraModule, logger corelog.Logger) *HTTPModule {
+func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSekolah *ProfilSekolahModule, aktivitasUser *AktivitasUserModule, kelas *KelasModule, mapel *MataPelajaranModule, ruangUjian *RuangUjianModule, ujian *UjianModule, sesi *SesiModule, pengumuman *PengumumanModule, bankSoal *BankSoalModule, resetPassword *ResetPasswordModule, importSoal *ImportSoalModule, tokens *TokenModule, infra *InfraModule, logger corelog.Logger) *HTTPModule {
 	cookies := cookie.CookieConfig{
 		AccessName:  cfg.Cookie.AccessName,
 		RefreshName: cfg.Cookie.RefreshName,
@@ -152,6 +152,15 @@ func BuildHTTPModule(cfg Config, auth *AuthModule, users *UserModule, profilSeko
 	router.POST("/admin/ruang-ujian", requireAdmin(rateLimitStandard(ruangUjian.CreateHandler.CreateRuangUian)))
 	router.PATCH("/admin/ruang-ujian/:idRuangan", requireAdmin(rateLimitStandard(ruangUjian.UpdateHandler.UpdateRuangUjian)))
 	router.DELETE("/admin/ruang-ujian/:idRuangan", requireAdmin(rateLimitStandard(ruangUjian.DeleteHandler.DeleteRuangUjian)))
+
+	// UJIAN
+	router.GET("/jadwal-ujian", requireAdminGuru(rateLimitStandard(ujian.ListHandler.ListUjian)))
+	router.GET("/ujian/:idUjian", requireAdminGuru(rateLimitStandard(ujian.GetHandler.GetUjianByID)))
+	router.GET("/jadwal-ujian/:idJadwalUjian", requireAdminGuru(rateLimitStandard(ujian.GetHandler.GetJadwalUjianByID)))
+	router.GET("/peserta-ujian", requireAdminGuru(rateLimitStandard(ujian.GetHandler.GetAllPesertaUjian)))
+	router.GET("/peserta-ujian/siswa/:idSiswa", requireAdminGuru(rateLimitStandard(ujian.GetHandler.GetPesertaUjianBySiswa)))
+	router.GET("/jawaban-ujian-siswa", requireAdminGuru(rateLimitStandard(ujian.GetHandler.GetAllJawabanUjianSiswa)))
+	router.GET("/jawaban-ujian-siswa/siswa/:idSiswa", requireAdminGuru(rateLimitStandard(ujian.GetHandler.GetJawabanBySiswa)))
 
 	// SESI
 	router.GET("/admin/sesi", requireAdmin(rateLimitStandard(sesi.GetHandler.ListSesi)))

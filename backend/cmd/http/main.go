@@ -97,6 +97,7 @@ func main() {
 	kelasMod := app.BuildKelasModule(infra, aktivitasUserMod)
 	mapelMod := app.BuildMataPelajaranModule(infra)
 	ruangUjianMod := app.BuildRuangUjianModule(infra)
+	ujianMod := app.BuildUjianModule(infra)
 	sesiMod := app.BuildSesiModule(infra)
 	pengumumanMod := app.BuildPengumumanModule(cfg, infra, deleteFileSystem)
 	bankSoalMod := app.BuildBankSoalModule(infra)
@@ -105,7 +106,7 @@ func main() {
 
 	httpMod := app.BuildHTTPModule(
 		cfg, authMod, userMod, profilSekolahMod, aktivitasUserMod,
-		kelasMod, mapelMod, ruangUjianMod, sesiMod, pengumumanMod,
+		kelasMod, mapelMod, ruangUjianMod, ujianMod, sesiMod, pengumumanMod,
 		bankSoalMod, resetPasswordMod, importSoalMod, tokens, infra, logger,
 	)
 

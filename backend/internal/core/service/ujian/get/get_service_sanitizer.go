@@ -51,6 +51,39 @@ func sanitizeAndValidateListUjianFilter(filter query.ListUjianFilter) (query.Lis
 	}
 	return filter, nil
 }
+
+func sanitizeAndValidateListUjianItems(items []ujian.ListUjian) ([]ujian.ListUjian, error) {
+	sanitized := make([]ujian.ListUjian, 0, len(items))
+
+	for _, item := range items {
+		item = sanitizeListUjianItem(item)
+		if err := validateListUjian(item); err != nil {
+			return nil, err
+		}
+		sanitized = append(sanitized, item)
+	}
+
+	return sanitized, nil
+}
+
+func sanitizeListUjianItem(item ujian.ListUjian) ujian.ListUjian {
+	item.NamaUjian = strings.TrimSpace(item.NamaUjian)
+	item.NamaPengawas = strings.TrimSpace(item.NamaPengawas)
+	item.NamaSesi = strings.TrimSpace(item.NamaSesi)
+	item.NamaRuangan = strings.TrimSpace(item.NamaRuangan)
+
+	if item.NamaKelas != nil {
+		namaKelas := strings.TrimSpace(*item.NamaKelas)
+		if namaKelas == "" {
+			item.NamaKelas = nil
+		} else {
+			item.NamaKelas = &namaKelas
+		}
+	}
+
+	return item
+}
+
 func sanitizeAndValidateJawabanFilter(filter ujian.JawabanUjianSiswa) (ujian.JawabanUjianSiswa, error) {
 	if filter.IdJawaban < 0 || filter.IdPesertaUjian < 0 || filter.IdSoal < 0 {
 		return filter, errInvalidJawaban
