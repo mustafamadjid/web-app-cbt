@@ -104,11 +104,25 @@ func main() {
 	resetPasswordMod := app.BuildResetPasswordModule(infra, hasher)
 	importSoalMod := app.BuildImportSoalModule(infra, cfg, logger)
 
-	httpMod := app.BuildHTTPModule(
-		cfg, authMod, userMod, profilSekolahMod, aktivitasUserMod,
-		kelasMod, mapelMod, ruangUjianMod, ujianMod, sesiMod, pengumumanMod,
-		bankSoalMod, resetPasswordMod, importSoalMod, tokens, infra, logger,
-	)
+	httpMod := app.BuildHTTPModule(app.HTTPDeps{
+		Config:        cfg,
+		Logger:        logger,
+		Auth:          authMod,
+		Users:         userMod,
+		ProfilSekolah: profilSekolahMod,
+		AktivitasUser: aktivitasUserMod,
+		Kelas:         kelasMod,
+		MataPelajaran: mapelMod,
+		RuangUjian:    ruangUjianMod,
+		Ujian:         ujianMod,
+		Sesi:          sesiMod,
+		Pengumuman:    pengumumanMod,
+		BankSoal:      bankSoalMod,
+		ResetPassword: resetPasswordMod,
+		ImportSoal:    importSoalMod,
+		Tokens:        tokens,
+		Infra:         infra,
+	})
 
 	// 3) Start worker
 	var wg sync.WaitGroup

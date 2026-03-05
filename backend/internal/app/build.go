@@ -48,7 +48,25 @@ func Build(ctx context.Context, cfg Config, dbURL string, hasher out.PasswordHas
 	bankSoal := BuildBankSoalModule(infra)
 	resetPassword := BuildResetPasswordModule(infra, hasher)
 	importSoal := BuildImportSoalModule(infra, cfg, logger)
-	httpm := BuildHTTPModule(cfg, auth, users, profilSekolah, aktivitasUser, kelas, mapel, ruangUjian, ujian, sesi, pengumuman, bankSoal, resetPassword, importSoal, tokens, infra, logger)
+	httpm := BuildHTTPModule(HTTPDeps{
+		Config:        cfg,
+		Logger:        logger,
+		Auth:          auth,
+		Users:         users,
+		ProfilSekolah: profilSekolah,
+		AktivitasUser: aktivitasUser,
+		Kelas:         kelas,
+		MataPelajaran: mapel,
+		RuangUjian:    ruangUjian,
+		Ujian:         ujian,
+		Sesi:          sesi,
+		Pengumuman:    pengumuman,
+		BankSoal:      bankSoal,
+		ResetPassword: resetPassword,
+		ImportSoal:    importSoal,
+		Tokens:        tokens,
+		Infra:         infra,
+	})
 
 	return &App{
 		Infra:         infra,
