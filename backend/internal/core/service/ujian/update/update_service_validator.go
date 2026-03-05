@@ -12,6 +12,15 @@ func validateUpdateUjianID(id ujian.ID) error {
 	}
 	return nil
 }
+func validateUpdatePenjadwalanUjianPatch(payload updatepatch.UpdatePenjadwalanUjian) error {
+	if err := validateUpdateUjianPatch(payload.Ujian); err == nil {
+		return nil
+	}
+	if err := validateUpdateJadwalUjianPatch(payload.JadwalUjian); err == nil {
+		return nil
+	}
+	return coreerror.ErrNoFieldToUpdate
+}
 func validateUpdateUjianPatch(payload updatepatch.UpdateUjianPatch) error {
 	if payload.IdBankSoal == nil && payload.IdKelas == nil && payload.IdNamaKelas == nil && payload.IdGuru == nil && payload.NamaUjian == nil && payload.DeskripsiUjian == nil && payload.AcakSoal == nil {
 		return coreerror.ErrNoFieldToUpdate

@@ -4,6 +4,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	pg "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres"
+	pgujian "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/ujian"
 	out "github.com/mustafamadjid/web-app-cbt/internal/core/port/out"
 	outaktivitas "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/aktivitas_user"
 	outauth "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/auth_port_out"
@@ -44,6 +45,9 @@ type InfraModule struct {
 	pengumumanRepo pengumuman_repo.PengumumanRepo
 	ruangUjianRepo ruangujian_repo.RuangUjianRepo
 	listUjianRepo  ujian_repo.ListUjianRepository
+	ujianRepo      ujian_repo.UjianRepository
+	pesertaRepo    ujian_repo.PesertaUjianRepository
+	jawabanRepo    ujian_repo.JawabanUjianRepository
 	sesiRepo       sesi_repo.SesiRepository
 
 	importSoalJobRepo importsoal_repo.ImportSoalJobRepo
@@ -74,7 +78,10 @@ func BuildInfraModule(pool *pgxpool.Pool, logger corelog.Logger) *InfraModule {
 		mapelRepo:             pg.NewMapelRepo(pool, logger),
 		pengumumanRepo:        pg.NewPengumumanRepo(pool, logger),
 		ruangUjianRepo:        pg.NewRuangUjianRepo(pool, logger),
-		listUjianRepo:         pg.NewListUjianRepo(pool, logger),
+		listUjianRepo:         pgujian.NewListUjianRepo(pool, logger),
+		ujianRepo:             pgujian.NewUjianRepo(pool, logger, pool),
+		pesertaRepo:           pgujian.NewPesertaUjianRepo(pool, logger),
+		jawabanRepo:           pgujian.NewJawabanUjianRepo(pool, logger),
 		sesiRepo:              pg.NewSesirepo(pool, logger),
 		importSoalJobRepo:     pg.NewImportSoalJobRepo(pool, logger),
 		isiSoalBatchRepo:      pg.NewIsiSoalBatchRepo(pool, logger),

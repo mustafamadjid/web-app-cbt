@@ -30,6 +30,11 @@ type UpdateJadwalUjianPatch struct {
 	UpdatedAt    *time.Time
 }
 
+type UpdatePenjadwalanUjian struct {
+	Ujian UpdateUjianPatch
+	JadwalUjian UpdateJadwalUjianPatch
+}
+
 type UpdatePesertaUjianPatch struct {
 	IdJadwalUjian *ujian.ID
 	IdSiswa       *ujian.ID

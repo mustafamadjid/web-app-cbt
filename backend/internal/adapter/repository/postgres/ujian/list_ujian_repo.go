@@ -1,4 +1,4 @@
-package postgres
+package ujianrepo
 
 import (
 	"context"
@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
+	pg "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	ujian "github.com/mustafamadjid/web-app-cbt/internal/core/domain/ujian_siswa"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
@@ -16,11 +17,11 @@ import (
 )
 
 type ListUjianRepo struct {
-	q      Executor
+	q      pg.Executor
 	logger corelog.Logger
 }
 
-func NewListUjianRepo(q Executor, logger corelog.Logger) *ListUjianRepo {
+func NewListUjianRepo(q pg.Executor, logger corelog.Logger) *ListUjianRepo {
 	return &ListUjianRepo{q: q, logger: logger}
 }
 

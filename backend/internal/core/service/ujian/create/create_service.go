@@ -2,18 +2,18 @@ package ujian_service
 
 import (
 	"context"
+
 	ujian "github.com/mustafamadjid/web-app-cbt/internal/core/domain/ujian_siswa"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
-	ujian_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/ujian"
 )
 
 type CreateUjianService struct {
-	repo ujian_repo.UjianRepository
+	ujianRepo UjianRepository
 }
 
-func NewCreateUjianService(repo ujian_repo.UjianRepository) *CreateUjianService {
+func NewCreateUjianService(ujianRepo UjianRepository) *CreateUjianService {
 	return &CreateUjianService{
-		repo: repo,
+		ujianRepo: ujianRepo,
 	}
 }
 
@@ -27,7 +27,7 @@ func (r *CreateUjianService) CreateUjianService(ctx context.Context, data ujian.
 		return err
 	}
 
-	if err := r.repo.CreateUjian(ctx, data); err != nil {
+	if err := r.ujianRepo.CreateUjian(ctx, data); err != nil {
 		logger.Error(ctx, "failed create ujian", "layer", "core.service", "op", "ujian.create", "err", err)
 		return err
 	}
@@ -35,7 +35,17 @@ func (r *CreateUjianService) CreateUjianService(ctx context.Context, data ujian.
 	return nil
 }
 
-func (r *CreateUjianService) CreatePesertaUjianService(ctx context.Context, data ujian.PesertaUjian) (ujian.ID, error) {
+type CreatePesertaUjianService struct {
+	pesertaRepo PesertaUjianRepository
+}
+
+func NewCreatePesertaUjianService(pesertaRepo PesertaUjianRepository) *CreatePesertaUjianService {
+	return &CreatePesertaUjianService{
+		pesertaRepo: pesertaRepo,
+	}
+}
+
+func (r *CreatePesertaUjianService) CreatePesertaUjianService(ctx context.Context, data ujian.PesertaUjian) (ujian.ID, error) {
 	logger := corelog.FromContext(ctx)
 
 	if err := validateCreatePesertaUjian(data); err != nil {
@@ -43,7 +53,7 @@ func (r *CreateUjianService) CreatePesertaUjianService(ctx context.Context, data
 		return 0, err
 	}
 
-	id, err := r.repo.CreatePesertaUjian(ctx, data)
+	id, err := r.pesertaRepo.CreatePesertaUjian(ctx, data)
 	if err != nil {
 		logger.Error(ctx, "failed create peserta ujian", "layer", "core.service", "op", "ujian.create_peserta", "err", err)
 		return 0, err
@@ -52,7 +62,17 @@ func (r *CreateUjianService) CreatePesertaUjianService(ctx context.Context, data
 	return id, nil
 }
 
-func (r *CreateUjianService) CreateJawabanUjianSiswaService(ctx context.Context, data ujian.JawabanUjianSiswa) (ujian.ID, error) {
+type CreateJawabanUjianSiswaService struct {
+	jawabanRepo JawabanUjianRepository
+}
+
+func NewCreateJawabanUjianSiswaService(jawabanRepo JawabanUjianRepository) *CreateJawabanUjianSiswaService {
+	return &CreateJawabanUjianSiswaService{
+		jawabanRepo: jawabanRepo,
+	}
+}
+
+func (r *CreateJawabanUjianSiswaService) CreateJawabanUjianSiswaService(ctx context.Context, data ujian.JawabanUjianSiswa) (ujian.ID, error) {
 	logger := corelog.FromContext(ctx)
 
 	data = sanitizeCreateJawabanUjianSiswa(data)
@@ -62,7 +82,7 @@ func (r *CreateUjianService) CreateJawabanUjianSiswaService(ctx context.Context,
 		return 0, err
 	}
 
-	id, err := r.repo.CreateJawabanUjianSiswa(ctx, data)
+	id, err := r.jawabanRepo.CreateJawabanUjianSiswa(ctx, data)
 	if err != nil {
 		logger.Error(ctx, "failed create jawaban ujian siswa", "layer", "core.service", "op", "ujian.create_jawaban", "err", err)
 		return 0, err

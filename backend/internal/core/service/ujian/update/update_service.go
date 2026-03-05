@@ -2,28 +2,27 @@ package ujian_service
 
 import (
 	"context"
+
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	ujian "github.com/mustafamadjid/web-app-cbt/internal/core/domain/ujian_siswa"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
-	ujian_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/ujian"
 	updatepatch "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/update_patch"
 )
 
 type UpdateUjianService struct {
-	repo ujian_repo.UjianRepository
+	ujianRepo UjianRepository
 }
 
-func NewUpdateUjianService(repo ujian_repo.UjianRepository) *UpdateUjianService {
+func NewUpdateUjianService(ujianRepo UjianRepository) *UpdateUjianService {
 	return &UpdateUjianService{
-		repo: repo,
+		ujianRepo: ujianRepo,
 	}
 }
 
-func (r *UpdateUjianService) UpdateUjianService(ctx context.Context, id ujian.ID, payload updatepatch.UpdateUjianPatch) error {
+func (r *UpdateUjianService) UpdateUjianService(ctx context.Context, id ujian.ID, payload updatepatch.UpdatePenjadwalanUjian) error {
 	logger := corelog.FromContext(ctx)
 
-	// Nil check dulu
-	if err := validateUpdateUjianPatch(payload); err != nil {
+	if err := validateUpdatePenjadwalanUjianPatch(payload); err != nil {
 		logger.Error(ctx, "failed update ujian", "layer", "core.service", "op", "ujian.update", "err", err)
 		return err
 	}
@@ -33,22 +32,52 @@ func (r *UpdateUjianService) UpdateUjianService(ctx context.Context, id ujian.ID
 		return err
 	}
 
-	if err := validateUpdateUjianPatchID(payload); err != nil {
+	if err := validateUpdateUjianPatchID(payload.Ujian); err != nil {
 		logger.Error(ctx, "failed update ujian", "layer", "core.service", "op", "ujian.update", "err", coreerror.ErrMissingId)
 		return err
 	}
 
-	if err := sanitizeNamaUjianPatch(&payload); err != nil {
+	if err := validateUpdateJadwalUjianPatchID(payload.JadwalUjian); err != nil {
+		logger.Error(ctx, "failed update ujian", "layer", "core.service", "op", "ujian.update", "err", coreerror.ErrMissingId)
+		return err
+	}
+
+	if err := sanitizeNamaUjianPatch(&payload.Ujian); err != nil {
 		logger.Error(ctx, "failed update ujian", "layer", "core.service", "op", "ujian.update", "err", err)
 		return err
 	}
 
-	if err := sanitizeDeskripsiUjianPatch(&payload); err != nil {
+	if err := sanitizeDeskripsiUjianPatch(&payload.Ujian); err != nil {
 		logger.Error(ctx, "failed update ujian", "layer", "core.service", "op", "ujian.update", "err", err)
 		return err
 	}
 
-	if err := r.repo.UpdateUjian(ctx, id, payload); err != nil {
+	if err := sanitizeStatusUjianPatch(&payload.JadwalUjian); err != nil {
+		logger.Error(ctx, "failed update ujian", "layer", "core.service", "op", "ujian.update", "err", err)
+		return err
+	}
+
+	if err := sanitizeTokenJadwalUjianPatch(&payload.JadwalUjian); err != nil {
+		logger.Error(ctx, "failed update ujian", "layer", "core.service", "op", "ujian.update", "err", err)
+		return err
+	}
+
+	if err := validateUpdateJadwalUjianStatus(payload.JadwalUjian); err != nil {
+		logger.Error(ctx, "failed update ujian", "layer", "core.service", "op", "ujian.update", "err", err)
+		return err
+	}
+
+	if err := validateUpdateJadwalUjianToken(payload.JadwalUjian); err != nil {
+		logger.Error(ctx, "failed update ujian", "layer", "core.service", "op", "ujian.update", "err", err)
+		return err
+	}
+
+	if err := validateUpdateJadwalUjianTime(payload.JadwalUjian); err != nil {
+		logger.Error(ctx, "failed update ujian", "layer", "core.service", "op", "ujian.update", "err", err)
+		return err
+	}
+
+	if err := r.ujianRepo.UpdateUjian(ctx, id, payload); err != nil {
 		logger.Error(ctx, "failed update ujian", "layer", "core.service", "op", "ujian.update", "err", err)
 		return err
 	}
@@ -56,60 +85,19 @@ func (r *UpdateUjianService) UpdateUjianService(ctx context.Context, id ujian.ID
 	return nil
 }
 
-func (r *UpdateUjianService) UpdateJadwalUjianService(ctx context.Context, id ujian.ID, payload updatepatch.UpdateJadwalUjianPatch) error {
-	logger := corelog.FromContext(ctx)
-
-	// Nil check dulu
-	if err := validateUpdateJadwalUjianPatch(payload); err != nil {
-		logger.Error(ctx, "failed update jadwal ujian", "layer", "core.service", "op", "ujian.update_jadwal", "err", err)
-		return err
-	}
-
-	if err := validateUpdateUjianID(id); err != nil {
-		logger.Error(ctx, "failed update jadwal ujian", "layer", "core.service", "op", "ujian.update_jadwal", "err", coreerror.ErrMissingId)
-		return err
-	}
-
-	if err := validateUpdateJadwalUjianPatchID(payload); err != nil {
-		logger.Error(ctx, "failed update jadwal ujian", "layer", "core.service", "op", "ujian.update_jadwal", "err", coreerror.ErrMissingId)
-		return err
-	}
-
-	if err := sanitizeStatusUjianPatch(&payload); err != nil {
-		logger.Error(ctx, "failed update jadwal ujian", "layer", "core.service", "op", "ujian.update_jadwal", "err", err)
-		return err
-	}
-	if err := sanitizeTokenJadwalUjianPatch(&payload); err != nil {
-		logger.Error(ctx, "failed update jadwal ujian", "layer", "core.service", "op", "ujian.update_jadwal", "err", err)
-		return err
-	}
-
-	if err := validateUpdateJadwalUjianStatus(payload); err != nil {
-		logger.Error(ctx, "failed update jadwal ujian", "layer", "core.service", "op", "ujian.update_jadwal", "err", err)
-		return err
-	}
-	if err := validateUpdateJadwalUjianToken(payload); err != nil {
-		logger.Error(ctx, "failed update jadwal ujian", "layer", "core.service", "op", "ujian.update_jadwal", "err", err)
-		return err
-	}
-
-	if err := validateUpdateJadwalUjianTime(payload); err != nil {
-		logger.Error(ctx, "failed update jadwal ujian", "layer", "core.service", "op", "ujian.update_jadwal", "err", err)
-		return err
-	}
-
-	if err := r.repo.UpdateJadwalUjian(ctx, id, payload); err != nil {
-		logger.Error(ctx, "failed update jadwal ujian", "layer", "core.service", "op", "ujian.update_jadwal", "err", err)
-		return err
-	}
-
-	return nil
+type UpdatePesertaUjianService struct {
+	pesertaRepo PesertaUjianRepository
 }
 
-func (r *UpdateUjianService) UpdatePesertaUjianService(ctx context.Context, id ujian.ID, payload updatepatch.UpdatePesertaUjianPatch) error {
+func NewUpdatePesertaUjianService(pesertaRepo PesertaUjianRepository) *UpdatePesertaUjianService {
+	return &UpdatePesertaUjianService{
+		pesertaRepo: pesertaRepo,
+	}
+}
+
+func (r *UpdatePesertaUjianService) UpdatePesertaUjianService(ctx context.Context, id ujian.ID, payload updatepatch.UpdatePesertaUjianPatch) error {
 	logger := corelog.FromContext(ctx)
 
-	// Nil check dulu
 	if err := validateUpdatePesertaUjianPatch(payload); err != nil {
 		logger.Error(ctx, "failed update peserta ujian", "layer", "core.service", "op", "ujian.update_peserta", "err", err)
 		return err
@@ -135,7 +123,7 @@ func (r *UpdateUjianService) UpdatePesertaUjianService(ctx context.Context, id u
 		return err
 	}
 
-	if err := r.repo.UpdatePesertaUjian(ctx, id, payload); err != nil {
+	if err := r.pesertaRepo.UpdatePesertaUjian(ctx, id, payload); err != nil {
 		logger.Error(ctx, "failed update peserta ujian", "layer", "core.service", "op", "ujian.update_peserta", "err", err)
 		return err
 	}
@@ -143,10 +131,19 @@ func (r *UpdateUjianService) UpdatePesertaUjianService(ctx context.Context, id u
 	return nil
 }
 
-func (r *UpdateUjianService) UpdateJawabanUjianSiswaService(ctx context.Context, id ujian.ID, payload updatepatch.UpdateJawabanUjianSiswaPatch) error {
+type UpdateJawabanUjianSiswaService struct {
+	jawabanRepo JawabanUjianRepository
+}
+
+func NewUpdateJawabanUjianSiswaService(jawabanRepo JawabanUjianRepository) *UpdateJawabanUjianSiswaService {
+	return &UpdateJawabanUjianSiswaService{
+		jawabanRepo: jawabanRepo,
+	}
+}
+
+func (r *UpdateJawabanUjianSiswaService) UpdateJawabanUjianSiswaService(ctx context.Context, id ujian.ID, payload updatepatch.UpdateJawabanUjianSiswaPatch) error {
 	logger := corelog.FromContext(ctx)
 
-	// Nil check dulu
 	if err := validateUpdateJawabanUjianPatch(payload); err != nil {
 		logger.Error(ctx, "failed update jawaban ujian siswa", "layer", "core.service", "op", "ujian.update_jawaban", "err", err)
 		return err
@@ -177,7 +174,7 @@ func (r *UpdateUjianService) UpdateJawabanUjianSiswaService(ctx context.Context,
 		return err
 	}
 
-	if err := r.repo.UpdateJawabanUjianSiswa(ctx, id, payload); err != nil {
+	if err := r.jawabanRepo.UpdateJawabanUjianSiswa(ctx, id, payload); err != nil {
 		logger.Error(ctx, "failed update jawaban ujian siswa", "layer", "core.service", "op", "ujian.update_jawaban", "err", err)
 		return err
 	}
