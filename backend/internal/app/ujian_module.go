@@ -1,25 +1,75 @@
 package app
 
 import (
+	httpcreateujian "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/create/ujian"
+	httpdeletepeserta "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/delete/peserta_ujian"
+	httpdeleteujian "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/delete/ujian"
 	httpget "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/get"
 	httplist "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/list"
+	httpupdatepeserta "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/update/peserta_ujian"
+	httpupdateujian "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/update/ujian"
+	ujian_create_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/create"
+	ujian_delete_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/delete"
 	ujian_get_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/get"
+	ujian_update_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/update"
 )
 
 type UjianModule struct {
-	GetService  *ujian_get_service.GetUjianService
-	ListHandler *httplist.ListUjianHandler
-	GetHandler  *httpget.GetUjianHandler
+	CreateUjianService   *ujian_create_service.CreateUjianService
+	GetService           *ujian_get_service.GetUjianService
+	UpdateUjianService   *ujian_update_service.UpdateUjianService
+	UpdatePesertaService *ujian_update_service.UpdatePesertaUjianService
+	DeleteUjianService   *ujian_delete_service.DeleteUjianService
+	DeletePesertaService *ujian_delete_service.DeletePesertaUjianService
+
+	CreateUjianHandler        *httpcreateujian.CreateRuangUjianHandler
+	ListHandler               *httplist.ListUjianHandler
+	GetHandler                *httpget.GetUjianHandler
+	UpdateUjianHandler        *httpupdateujian.UpdateUjianHandler
+	UpdatePesertaUjianHandler *httpupdatepeserta.UpdatePesertaUjianHandler
+	DeleteUjianHandler        *httpdeleteujian.DeleteUjianHandler
+	DeletePesertaUjianHandler *httpdeletepeserta.DeletePesertaUjianHandler
 }
 
 func BuildUjianModule(infra *InfraModule) *UjianModule {
+	createUjianSvc := ujian_create_service.NewCreateUjianService(
+		ujian_create_service.NewUjianRepository(infra.ujianRepo),
+	)
 	getSvc := ujian_get_service.NewGetujianService(infra.listUjianRepo)
+	updateUjianSvc := ujian_update_service.NewUpdateUjianService(
+		ujian_update_service.NewUjianRepository(infra.ujianRepo),
+	)
+	updatePesertaSvc := ujian_update_service.NewUpdatePesertaUjianService(
+		ujian_update_service.NewPesertaUjianRepository(infra.pesertaRepo),
+	)
+	deleteUjianSvc := ujian_delete_service.NewDeleteUjianService(
+		ujian_delete_service.NewUjianRepository(infra.ujianRepo),
+	)
+	deletePesertaSvc := ujian_delete_service.NewDeletePesertaUjianService(
+		ujian_delete_service.NewPesertaUjianRepository(infra.pesertaRepo),
+	)
+
+	createUjianHandler := httpcreateujian.NewCreateUjianHandler(createUjianSvc)
 	listHandler := httplist.NewListUjianHandler(getSvc)
 	getHandler := httpget.NewGetUjianHandler(getSvc)
+	updateUjianHandler := httpupdateujian.NewUpdateUjianHandler(updateUjianSvc)
+	updatePesertaHandler := httpupdatepeserta.NewUpdatePesertaUjianHandler(updatePesertaSvc)
+	deleteUjianHandler := httpdeleteujian.NewDeleteUjianHandler(deleteUjianSvc)
+	deletePesertaHandler := httpdeletepeserta.NewDeletePesertaUjianHandler(deletePesertaSvc)
 
 	return &UjianModule{
-		GetService:  getSvc,
-		ListHandler: listHandler,
-		GetHandler:  getHandler,
+		CreateUjianService:        createUjianSvc,
+		GetService:                getSvc,
+		UpdateUjianService:        updateUjianSvc,
+		UpdatePesertaService:      updatePesertaSvc,
+		DeleteUjianService:        deleteUjianSvc,
+		DeletePesertaService:      deletePesertaSvc,
+		CreateUjianHandler:        createUjianHandler,
+		ListHandler:               listHandler,
+		GetHandler:                getHandler,
+		UpdateUjianHandler:        updateUjianHandler,
+		UpdatePesertaUjianHandler: updatePesertaHandler,
+		DeleteUjianHandler:        deleteUjianHandler,
+		DeletePesertaUjianHandler: deletePesertaHandler,
 	}
 }

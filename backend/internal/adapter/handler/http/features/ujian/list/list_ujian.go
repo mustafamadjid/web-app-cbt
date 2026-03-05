@@ -40,13 +40,14 @@ func (h *ListUjianHandler) ListUjian(w http.ResponseWriter, r *http.Request, _ h
 	}
 
 	filter := query.ListUjianFilter{
-		Search:       req.Search,
-		Limit:        req.Limit,
-		Offset:       req.Offset,
-		TanggalUjian: req.Tanggal,
-		Tahun:        req.Tahun,
-		TingkatKelas: req.TingkatKelasID,
-		RuangUjian:   req.RuangUjianID,
+		Search:         req.Search,
+		Limit:          req.Limit,
+		Offset:         req.Offset,
+		TanggalUjian:   req.Tanggal,
+		Tahun:          req.Tahun,
+		TingkatKelasID: req.TingkatKelasID,
+		TingkatKelas:   req.TingkatKelas,
+		RuangUjian:     req.RuangUjianID,
 	}
 
 	items, err := h.svc.GetAllUjianService(r.Context(), filter)
@@ -108,16 +109,21 @@ func parseListUjianRequest(r *http.Request) (ListUjianRequest, error) {
 		req.Offset = parsed
 	}
 
-	tingkatKelasRaw := strings.TrimSpace(values.Get("tingkat_kelas_id"))
-	if tingkatKelasRaw == "" {
-		tingkatKelasRaw = strings.TrimSpace(values.Get("tingkat_kelas"))
-	}
-	if tingkatKelasRaw != "" {
-		parsed, err := strconv.Atoi(tingkatKelasRaw)
+	tingkatKelasIDRaw := strings.TrimSpace(values.Get("tingkat_kelas_id"))
+	if tingkatKelasIDRaw != "" {
+		parsed, err := strconv.Atoi(tingkatKelasIDRaw)
 		if err != nil {
 			return ListUjianRequest{}, errors.New("tingkat_kelas_id must be a number")
 		}
 		req.TingkatKelasID = &parsed
+	}
+	tingkatKelasRaw := strings.TrimSpace(values.Get("tingkat_kelas"))
+	if tingkatKelasRaw != "" {
+		parsed, err := strconv.Atoi(tingkatKelasRaw)
+		if err != nil {
+			return ListUjianRequest{}, errors.New("tingkat_kelas must be a number")
+		}
+		req.TingkatKelas = &parsed
 	}
 
 	ruangUjianRaw := strings.TrimSpace(values.Get("ruang_ujian_id"))
@@ -144,21 +150,26 @@ func toListUjianResponse(item ujian.ListUjian) ListUjianResponse {
 	status, started := mapStatusUjian(item.StatusUjian)
 
 	return ListUjianResponse{
-		ID:             int(item.IdJadwalUjian),
-		NamaUjian:      item.NamaUjian,
-		PengawasUjian:  item.NamaPengawas,
-		TglUjian:       formatTanggalIndonesia(item.TanggalUjian),
-		TanggalUjian:   item.TanggalUjian.Format("2006-01-02"),
-		WaktuMulai:     item.WaktuMulai.Format("15:04"),
-		WaktuSelesai:   item.WaktuSelesai.Format("15:04"),
-		SesiUjian:      int(item.IdSesi),
-		RuangUjian:     item.NamaRuangan,
-		IDRuang:        int(item.IdRuangan),
-		StatusUjian:    status,
-		Started:        started,
-		TingkatKelas:   item.TingkatKelas,
-		TingkatKelasID: int(item.IdKelas),
-		NamaKelas:      namaKelas,
+		ID:               int(item.IdJadwalUjian),
+		IDUjian:          int(item.IdUjian),
+		IDGuru:           int(item.IdGuru),
+		IDPengawas:       int(item.IdPengawas),
+		NamaUjian:        item.NamaUjian,
+		PengawasUjian:    item.NamaPengawas,
+		TglUjian:         formatTanggalIndonesia(item.TanggalUjian),
+		TanggalUjian:     item.TanggalUjian.Format("2006-01-02"),
+		WaktuMulai:       item.WaktuMulai.Format("15:04"),
+		WaktuSelesai:     item.WaktuSelesai.Format("15:04"),
+		SesiUjian:        int(item.IdSesi),
+		RuangUjian:       item.NamaRuangan,
+		IDRuang:          int(item.IdRuangan),
+		StatusUjian:      status,
+		Started:          started,
+		TingkatKelas:     item.TingkatKelas,
+		TingkatKelasID:   int(item.IdKelas),
+		NamaKelas:        namaKelas,
+		PembuatUsername:  item.PembuatUsername,
+		PengawasUsername: item.PengawasUsername,
 	}
 }
 

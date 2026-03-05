@@ -34,7 +34,9 @@ func (r *ListUjianRepo) GetAllUjian(ctx context.Context, filter query.ListUjianF
 		SELECT
 			u.id_ujian,
 			u.id_bank_soal,
+			u.id_guru,
 			u.nama_ujian,
+			pg.username AS pembuat_username,
 			u.id_kelas,
 			u.id_nama_kelas,
 			k.tingkat_kelas,
@@ -46,6 +48,7 @@ func (r *ListUjianRepo) GetAllUjian(ctx context.Context, filter query.ListUjianF
 			ju.status_ujian,
 			ju.id_pengawas,
 			p.nama_lengkap,
+			p.username AS pengawas_username,
 			ju.id_sesi,
 			s.nama_sesi,
 			ju.id_ruangan,
@@ -57,6 +60,8 @@ func (r *ListUjianRepo) GetAllUjian(ctx context.Context, filter query.ListUjianF
 			ON k.id_kelas = u.id_kelas
 		LEFT JOIN nama_kelas nk
 			ON nk.id_nama_kelas = u.id_nama_kelas
+		JOIN pengguna pg
+			ON pg.id_pengguna = u.id_guru
 		JOIN pengguna p
 			ON p.id_pengguna = ju.id_pengawas
 		JOIN sesi_ujian s
@@ -84,7 +89,10 @@ func (r *ListUjianRepo) GetAllUjian(ctx context.Context, filter query.ListUjianF
 		where = append(where, fmt.Sprintf("EXTRACT(YEAR FROM ju.tanggal_ujian)::text = $%d", len(args)))
 	}
 
-	if filter.TingkatKelas != nil {
+	if filter.TingkatKelasID != nil {
+		args = append(args, *filter.TingkatKelasID)
+		where = append(where, fmt.Sprintf("u.id_kelas = $%d", len(args)))
+	} else if filter.TingkatKelas != nil {
 		args = append(args, *filter.TingkatKelas)
 		where = append(where, fmt.Sprintf("k.tingkat_kelas = $%d", len(args)))
 	}
@@ -126,7 +134,9 @@ func (r *ListUjianRepo) GetAllUjian(ctx context.Context, filter query.ListUjianF
 		if err := rows.Scan(
 			&item.IdUjian,
 			&item.IdBankSoal,
+			&item.IdGuru,
 			&item.NamaUjian,
+			&item.PembuatUsername,
 			&item.IdKelas,
 			&idNamaKls,
 			&item.TingkatKelas,
@@ -138,6 +148,7 @@ func (r *ListUjianRepo) GetAllUjian(ctx context.Context, filter query.ListUjianF
 			&item.StatusUjian,
 			&item.IdPengawas,
 			&item.NamaPengawas,
+			&item.PengawasUsername,
 			&item.IdSesi,
 			&item.NamaSesi,
 			&item.IdRuangan,

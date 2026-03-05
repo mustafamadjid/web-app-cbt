@@ -25,5 +25,13 @@ func validateListSiswaFilter(filter query.ListSiswaFilter, nowYear int) (query.L
 	if filter.JenisKelamin != nil && (*filter.JenisKelamin <= 0 || *filter.JenisKelamin > 2) {
 		return filter, coreerror.ErrInvalidInput
 	}
+
+	if filter.IdTingkatKelas != nil && *filter.IdTingkatKelas <= 0 {
+		return filter, coreerror.ErrInvalidInput
+	}
+
+	if filter.IdNamaKelas != nil && *filter.IdNamaKelas <= 0 {
+		return filter, coreerror.ErrInvalidInput
+	}
 	return filter, nil
 }

@@ -68,7 +68,7 @@ const ProfilePage = () => {
       return [
         { label: "NIP", value: formatLabel(profile.nip) },
         { label: "Jabatan", value: formatLabel(profile.jabatan) },
-        { label: "Bidang Studi", value: formatLabel(profile.bidangStudi) },
+        { label: "Bidang Studi", value: formatLabel(profile.bidang_studi) },
       ];
     }
 

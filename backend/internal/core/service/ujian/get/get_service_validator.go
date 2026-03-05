@@ -48,6 +48,7 @@ func validateJadwalUjian(item ujian.JadwalUjian) error {
 func validateListUjian(item ujian.ListUjian) error {
 	if item.IdUjian <= 0 ||
 		item.IdBankSoal <= 0 ||
+		item.IdGuru <= 0 ||
 		item.IdKelas <= 0 ||
 		item.IdJadwalUjian <= 0 ||
 		item.IdPengawas <= 0 ||
@@ -65,7 +66,9 @@ func validateListUjian(item ujian.ListUjian) error {
 	}
 
 	if strings.TrimSpace(item.NamaUjian) == "" ||
+		strings.TrimSpace(item.PembuatUsername) == "" ||
 		strings.TrimSpace(item.NamaPengawas) == "" ||
+		strings.TrimSpace(item.PengawasUsername) == "" ||
 		strings.TrimSpace(item.NamaSesi) == "" ||
 		strings.TrimSpace(item.NamaRuangan) == "" {
 		return errInvalidNamaUjian

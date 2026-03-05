@@ -327,11 +327,17 @@ func (h *UpdateHandler) writeUpdateError(w http.ResponseWriter, err error, role 
 	case errors.Is(err, coreerror.ErrNoFieldToUpdate):
 		httpResponse.WriteErr(w, http.StatusBadRequest, "NO_FIELD_TO_UPDATE", "no field to update")
 	case errors.Is(err, coreerror.ErrUsernameTaken):
-		httpResponse.WriteErr(w, http.StatusConflict, "USERNAME_TAKEN", "username already taken")
+		httpResponse.WriteErr(w, http.StatusConflict, "USERNAME_TAKEN", "username sudah terdaftar. data yang diinputkan harus unik")
+	case errors.Is(err, coreerror.ErrEmailTaken):
+		httpResponse.WriteErr(w, http.StatusConflict, "EMAIL_TAKEN", "email sudah terdaftar. data yang diinputkan harus unik")
+	case errors.Is(err, coreerror.ErrNoHpTaken):
+		httpResponse.WriteErr(w, http.StatusConflict, "NO_HP_TAKEN", "nomor HP sudah terdaftar. data yang diinputkan harus unik")
 	case errors.Is(err, coreerror.ErrNipTaken):
-		httpResponse.WriteErr(w, http.StatusConflict, "NIP_TAKEN", "nip already taken")
+		httpResponse.WriteErr(w, http.StatusConflict, "NIP_TAKEN", "NIP sudah terdaftar. data yang diinputkan harus unik")
 	case errors.Is(err, coreerror.ErrNisnTaken):
-		httpResponse.WriteErr(w, http.StatusConflict, "NISN_TAKEN", "nisn already taken")
+		httpResponse.WriteErr(w, http.StatusConflict, "NISN_TAKEN", "NISN sudah terdaftar. data yang diinputkan harus unik")
+	case errors.Is(err, coreerror.ErrConflict):
+		httpResponse.WriteErr(w, http.StatusConflict, "CONFLICT", "data yang diinputkan sudah ada sebelumnya, harus unik")
 	case errors.Is(err, coreerror.ErrInvalidInput),
 		errors.Is(err, coreerror.ErrInvalidStatusAkun),
 		errors.Is(err, user.ErrInvalidEmail),

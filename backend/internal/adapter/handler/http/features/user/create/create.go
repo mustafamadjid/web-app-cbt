@@ -149,10 +149,19 @@ func (h *UserHandler) CreateGuru(write http.ResponseWriter, req *http.Request, _
 			return
 
 		case errors.Is(err, coreerror.ErrUsernameTaken):
-			httpResponse.WriteErr(write, http.StatusConflict, "USERNAME_TAKEN", "username already taken")
+			httpResponse.WriteErr(write, http.StatusConflict, "USERNAME_TAKEN", "username sudah terdaftar. data yang diinputkan harus unik")
+			return
+		case errors.Is(err, coreerror.ErrEmailTaken):
+			httpResponse.WriteErr(write, http.StatusConflict, "EMAIL_TAKEN", "email sudah terdaftar. data yang diinputkan harus unik")
+			return
+		case errors.Is(err, coreerror.ErrNoHpTaken):
+			httpResponse.WriteErr(write, http.StatusConflict, "NO_HP_TAKEN", "nomor HP sudah terdaftar. data yang diinputkan harus unik")
 			return
 		case errors.Is(err, coreerror.ErrNipTaken):
-			httpResponse.WriteErr(write, http.StatusConflict, "NIP_TAKEN", "nip already taken")
+			httpResponse.WriteErr(write, http.StatusConflict, "NIP_TAKEN", "NIP sudah terdaftar. data yang diinputkan harus unik")
+			return
+		case errors.Is(err, coreerror.ErrConflict):
+			httpResponse.WriteErr(write, http.StatusConflict, "CONFLICT", "data yang diinputkan sudah ada sebelumnya, harus unik")
 			return
 
 		default:
@@ -338,10 +347,19 @@ func (h *UserHandler) CreateSiswa(write http.ResponseWriter, req *http.Request, 
 			return
 
 		case errors.Is(err, coreerror.ErrUsernameTaken):
-			httpResponse.WriteErr(write, http.StatusConflict, "USERNAME_TAKEN", "username already taken")
+			httpResponse.WriteErr(write, http.StatusConflict, "USERNAME_TAKEN", "username sudah terdaftar. data yang diinputkan harus unik")
+			return
+		case errors.Is(err, coreerror.ErrEmailTaken):
+			httpResponse.WriteErr(write, http.StatusConflict, "EMAIL_TAKEN", "email sudah terdaftar. data yang diinputkan harus unik")
+			return
+		case errors.Is(err, coreerror.ErrNoHpTaken):
+			httpResponse.WriteErr(write, http.StatusConflict, "NO_HP_TAKEN", "nomor HP sudah terdaftar. data yang diinputkan harus unik")
 			return
 		case errors.Is(err, coreerror.ErrNisnTaken):
-			httpResponse.WriteErr(write, http.StatusConflict, "NISN_TAKEN", "NISN already taken")
+			httpResponse.WriteErr(write, http.StatusConflict, "NISN_TAKEN", "NISN sudah terdaftar. data yang diinputkan harus unik")
+			return
+		case errors.Is(err, coreerror.ErrConflict):
+			httpResponse.WriteErr(write, http.StatusConflict, "CONFLICT", "data yang diinputkan sudah ada sebelumnya, harus unik")
 			return
 
 		default:

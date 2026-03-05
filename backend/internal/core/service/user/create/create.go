@@ -2,6 +2,7 @@ package user_service
 
 import (
 	"context"
+	"errors"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/port/out"
@@ -104,6 +105,12 @@ func (uc *CreateTx) CreateGuru(ctx context.Context, cmd CreateGuruCmd, actor use
 
 	idPengguna, error := tx.Pengguna().CreateUser(ctx, userData)
 	if error != nil {
+		if errors.Is(error, coreerror.ErrUsernameTaken) ||
+			errors.Is(error, coreerror.ErrEmailTaken) ||
+			errors.Is(error, coreerror.ErrNoHpTaken) {
+			return CreateGuruRes{}, error
+		}
+
 		logger.Error(ctx, "failed creating user", "layer", "core.service", "op", "user.create_guru", "err", error)
 		return CreateGuruRes{}, error
 	}
@@ -216,6 +223,12 @@ func (uc *CreateTx) CreateSiswa(ctx context.Context, cmd CreateSiswaCmd, actor u
 
 	idPengguna, err := tx.Pengguna().CreateUser(ctx, userData)
 	if err != nil {
+		if errors.Is(err, coreerror.ErrUsernameTaken) ||
+			errors.Is(err, coreerror.ErrEmailTaken) ||
+			errors.Is(err, coreerror.ErrNoHpTaken) {
+			return CreateSiswaRes{}, err
+		}
+
 		logger.Error(ctx, "failed creating user", "layer", "core.service", "op", "user.create_siswa", "err", err)
 		return CreateSiswaRes{}, err
 	}

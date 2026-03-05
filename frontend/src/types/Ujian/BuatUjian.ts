@@ -1,28 +1,49 @@
 import type { StatusAkun } from "../OpsiTypes/Option";
 
 export type TipeUjian = "PILIHAN_GANDA" | "ESSAY" | "CAMPURAN";
+export type KelasScope = "SEMUA" | "SPESIFIK";
+export type StatusUjianServer =
+  | "BELUM_MULAI"
+  | "MULAI"
+  | "SELESAI"
+  | "DIBATALKAN";
 
 export type BuatUjianFormValues = {
   nama_ujian: string;
   deskripsi_ujian: string;
-  tipe_ujian: TipeUjian;
-  kelas_id: number;
-  kelas_scope?: "SEMUA" | "SPESIFIK";
-  kelas_detail_id: number;
-  bank_soal_id: number ;
-  jumlah_soal: number;
+  id_kelas: number;
+  kelas_scope: KelasScope;
+  id_nama_kelas: number;
+  id_bank_soal: number;
   tanggal_ujian: string;
   waktu_mulai: string;
   waktu_selesai: string;
-  durasi_menit: number;
-  ruang_ujian_id: number;
+  id_ruangan: number;
   acak_soal: boolean;
-  guru_pengawas_id: number;
-  sesi_id: number;
-  token_ujian: string;
-  // Nanti status dibuat default tergantung jam jadwal
-  // nanti started dibuat default dengan nilai 0
+  id_pengawas: number;
+  id_sesi: number;
+  token: string;
 };
+
+export type CreatePenjadwalanUjianPayload = {
+  id_bank_soal: number;
+  id_kelas: number;
+  id_nama_kelas?: number;
+  id_guru: number;
+  nama_ujian: string;
+  deskripsi_ujian?: string;
+  acak_soal: boolean;
+  id_sesi: number;
+  id_ruangan: number;
+  tanggal_ujian: string;
+  waktu_mulai: string;
+  waktu_selesai: string;
+  status_ujian: StatusUjianServer;
+  token: string;
+  id_pengawas: number;
+};
+
+export type UpdatePenjadwalanUjianPayload = Partial<CreatePenjadwalanUjianPayload>;
 
 export type BankSoalOption = {
   id: number;

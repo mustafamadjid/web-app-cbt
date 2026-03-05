@@ -1,137 +1,129 @@
 import { useMemo } from "react";
 import { Link, useParams } from "react-router";
 import {
+  AlertCircle,
+  ArrowLeft,
+  BookOpen,
   Calendar,
   GraduationCap,
-  MapPin,
-  ShieldCheck,
-  BookOpen,
-  ArrowLeft,
-  BookAIcon,
   Hash,
   Layout,
-  AlertCircle,
+  MapPin,
+  ShieldCheck,
 } from "lucide-react";
 
 import PrintButton from "@/components/common/Input/PrintButton";
 import { paths } from "@/routes/paths";
-import {
-  useGetRuangUjianOptions,
-  useGetUjianBankSoalOptions,
-  useGetUjianGuruPengawasOptions,
-  useGetUjianSesiOptions,
-} from "@/services/Api/features-api/GetOptions/options.service";
+import { useGetBankSoal } from "@/services/Api/features-api/BankSoal/banksoal.service";
+import { useGetDataKelasFull } from "@/services/Api/features-api/DataMaster/kelas.service";
+import { useGetRuangUjian } from "@/services/Api/features-api/DataMaster/ruang-ujian.service";
+import { useGetSesi } from "@/services/Api/features-api/DataMaster/sesi.service";
+import { useGetAllGuru } from "@/services/Api/features-api/KelolaAkun/akunguru.service";
 import { useGetJadwalUjianDetail } from "@/services/Api/features-api/Ujian/jadwalujian.service";
-
-import type { TingkatKelas } from "@/types/DataMaster/Kelas";
-import type { RuangUjianRow } from "@/types/DataMaster/RuangUjian";
-import type {
-  BankSoalOption,
-  GuruPengawasOption,
-  SesiUjianOption,
-  TipeUjian,
-} from "@/types/Ujian/BuatUjian";
-import { useGetTingkatKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
-
-const tipeUjianLabel: Record<TipeUjian, string> = {
-  PILIHAN_GANDA: "Pilihan Ganda",
-  ESSAY: "Essay",
-  CAMPURAN: "Pilihan Ganda & Essay",
-};
 
 const statusLabelMap: Record<string, string> = {
   belum_dimulai: "Belum Dimulai",
   berlangsung: "Berlangsung",
   selesai: "Selesai",
+  dibatalkan: "Dibatalkan",
 };
 
 const statusColorMap: Record<string, string> = {
   belum_dimulai: "bg-amber-50 text-amber-700 border-amber-200",
   berlangsung: "bg-emerald-50 text-emerald-700 border-emerald-200",
   selesai: "bg-slate-50 text-slate-600 border-slate-200",
+  dibatalkan: "bg-rose-50 text-rose-700 border-rose-200",
 };
 
 const DetailUjian = () => {
-  // TODO : Saat sudah integrasi dengan API, maka cukup panggil service detail ujian dengan param id
-  // TODO : Hanya cukup detail const [detail, setDetail] = useState<DetailUjianItem | null>(null);
-
   const params = useParams();
-  const ujianId = Number(params.id);
-  const isUjianIdValid = Number.isFinite(ujianId);
+  const jadwalId = Number(params.id);
+  const isJadwalIdValid = Number.isFinite(jadwalId) && jadwalId > 0;
 
   const {
     data: detail,
     loading,
     error,
-  } = useGetJadwalUjianDetail(isUjianIdValid ? ujianId : -1);
+  } = useGetJadwalUjianDetail(isJadwalIdValid ? jadwalId : -1);
 
-  const { data: kelasOptionsData } = useGetTingkatKelas();
-  const { data: ruangOptionsData } = useGetRuangUjianOptions();
-  const { data: guruOptionsData } = useGetUjianGuruPengawasOptions();
-  const { data: sesiOptionsData } = useGetUjianSesiOptions();
-  const { data: bankSoalOptionsData } = useGetUjianBankSoalOptions({
-    tingkatKelasId: detail?.kelas_id,
-  });
+  const { data: kelasData } = useGetDataKelasFull();
+  const { data: ruangData } = useGetRuangUjian();
+  const { data: sesiData } = useGetSesi();
+  const { data: guruData } = useGetAllGuru();
+  const { data: bankSoalData } = useGetBankSoal(
+    {
+      id_kelas: detail?.id_kelas,
+      limit: 100,
+      offset: 0,
+    },
+    Boolean(detail?.id_kelas),
+  );
 
-  const kelasOptions: TingkatKelas[] = kelasOptionsData ?? [];
-  const ruangOptions: RuangUjianRow[] = ruangOptionsData ?? [];
-  const guruOptions: GuruPengawasOption[] = guruOptionsData ?? [];
-  const sesiOptions: SesiUjianOption[] = sesiOptionsData ?? [];
-  const bankSoalOptions: BankSoalOption[] = bankSoalOptionsData ?? [];
+  const errorMsg = !isJadwalIdValid ? "ID jadwal ujian tidak valid." : (error ?? "");
 
-  const errorMsg = !isUjianIdValid ? "ID ujian tidak valid." : (error ?? "");
+  const tanggalLabel = useMemo(() => {
+    if (!detail?.tanggal_ujian) return "-";
+    const date = new Date(`${detail.tanggal_ujian}T00:00:00`);
+    return date.toLocaleDateString("id-ID", {
+      weekday: "long",
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    });
+  }, [detail?.tanggal_ujian]);
 
-  const kelasLabel = useMemo(() => {
-    if (!detail?.kelas_id) return "-";
-    const kelas = kelasOptions.find(
-      (item) => item.id_tingkat_kelas === detail.kelas_id,
+  const tingkatLabel = useMemo(() => {
+    if (!detail) return "-";
+    const item = kelasData?.item_tingkat_kelas.find(
+      (tingkat) => tingkat.id_tingkat_kelas === detail.id_kelas,
     );
-    return kelas ? `Kelas ${kelas.tingkat_kelas}` : `Kelas #${detail.kelas_id}`;
-  }, [detail, kelasOptions]);
+    return item ? `Kelas ${item.tingkat_kelas}` : `Kelas #${detail.id_kelas}`;
+  }, [detail, kelasData?.item_tingkat_kelas]);
 
-  const guruLabel = useMemo(() => {
-    if (!detail?.guru_pengawas_id) return detail?.pengawas_ujian ?? "-";
-    const guru = guruOptions.find(
-      (item) => item.id === detail.guru_pengawas_id,
+  const namaKelasLabel = useMemo(() => {
+    if (!detail) return "-";
+    if (!detail.id_nama_kelas) return "Semua kelas di tingkat ini";
+    const item = kelasData?.item_nama_kelas.find(
+      (namaKelas) => namaKelas.id_nama_kelas === detail.id_nama_kelas,
     );
-    return guru ? guru.nama : (detail.pengawas_ujian ?? "-");
-  }, [detail, guruOptions]);
+    return item ? item.nama_kelas : `Kelas #${detail.id_nama_kelas}`;
+  }, [detail, kelasData?.item_nama_kelas]);
+
+  const pengawasLabel = useMemo(() => {
+    if (!detail) return "-";
+    const item = guruData?.find((guru) => guru.id_pengguna === detail.id_pengawas);
+    return item?.nama_lengkap ?? detail.pengawas_ujian ?? "-";
+  }, [detail, guruData]);
 
   const sesiLabel = useMemo(() => {
-    if (!detail?.sesi_id)
-      return detail?.sesi_ujian ? `Sesi ${detail.sesi_ujian}` : "-";
-    const sesi = sesiOptions.find((item) => item.id === detail.sesi_id);
-    return sesi ? `${sesi.kode} - ${sesi.nama}` : `Sesi #${detail.sesi_id}`;
-  }, [detail, sesiOptions]);
+    if (!detail) return "-";
+    const item = sesiData?.find((sesi) => sesi.id_sesi === detail.id_sesi);
+    return item ? `${item.kode_sesi} - ${item.nama_sesi}` : `Sesi #${detail.id_sesi}`;
+  }, [detail, sesiData]);
 
   const ruangLabel = useMemo(() => {
-    if (!detail?.ruang_ujian_id) return detail?.ruang_ujian ?? "-";
-    const ruang = ruangOptions.find(
-      (item) => item.id_ruangan === detail.ruang_ujian_id,
-    );
-    return ruang ? ruang.nama_ruangan : (detail.ruang_ujian ?? "-");
-  }, [detail, ruangOptions]);
+    if (!detail) return "-";
+    const item = ruangData?.find((ruang) => ruang.id_ruangan === detail.id_ruangan);
+    return item?.nama_ruangan ?? detail.ruang_ujian ?? "-";
+  }, [detail, ruangData]);
 
   const bankSoalLabel = useMemo(() => {
-    if (!detail?.bank_soal_id) return "-";
-    const bank = bankSoalOptions.find(
-      (item) => item.id === detail.bank_soal_id,
-    );
-    return bank ? bank.nama : `Bank Soal #${detail.bank_soal_id}`;
-  }, [detail, bankSoalOptions]);
+    if (!detail) return "-";
+    const item = bankSoalData?.find((bank) => bank.id_bank_soal === detail.id_bank_soal);
+    return item?.nama_bank_soal ?? `Bank Soal #${detail.id_bank_soal}`;
+  }, [detail, bankSoalData]);
+
+  const statusLabel = detail?.status_ujian
+    ? statusLabelMap[detail.status_ujian] ?? "Tidak Diketahui"
+    : "Tidak Diketahui";
 
   const handlePrint = () => {
     if (typeof window !== "undefined") window.print();
   };
 
-  const statusLabel = detail?.status_ujian
-    ? statusLabelMap[detail.status_ujian]
-    : "Tidak Diketahui";
-
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-      {/* 1. Header Section */}
-      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 pb-6">
+      <div className="mb-8 flex flex-col gap-4 border-b border-slate-100 pb-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <Link
             to={paths.dashboard.jadwal_ujian}
@@ -148,12 +140,10 @@ const DetailUjian = () => {
           </h1>
           <div className="mt-1 flex items-center gap-3 text-sm text-slate-500">
             <span className="flex items-center gap-1.5 font-medium">
-              <Hash size={14} className="text-slate-400" /> ID: {ujianId}
+              <Hash size={14} className="text-slate-400" /> ID Ujian: {detail?.id_ujian ?? "-"}
             </span>
             <span className="text-slate-300">|</span>
-            <span className="font-semibold text-[#397e50]">
-              {detail ? tipeUjianLabel[detail.tipe_ujian] : "-"}
-            </span>
+            <span className="font-semibold text-[#397e50]">{tingkatLabel}</span>
           </div>
         </div>
 
@@ -194,35 +184,29 @@ const DetailUjian = () => {
       ) : (
         detail && (
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-            {/* Main Column (Left) */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Deskripsi */}
-              <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-                <div className="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center gap-2 font-bold text-slate-800 text-sm">
+            <div className="space-y-6 lg:col-span-2">
+              <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                <div className="flex items-center gap-2 border-b border-slate-100 bg-slate-50/50 px-6 py-4 text-sm font-bold text-slate-800">
                   <BookOpen size={16} className="text-[#397e50]" />
                   Deskripsi Ujian
                 </div>
                 <div className="p-6">
                   <p className="text-sm leading-relaxed text-slate-600">
-                    {detail.deskripsi_ujian ||
-                      "Tidak ada deskripsi tambahan untuk ujian ini."}
+                    {detail.deskripsi_ujian || "Tidak ada deskripsi tambahan untuk ujian ini."}
                   </p>
                 </div>
               </div>
 
-              {/* Grid Sub-Info */}
               <div className="grid gap-6 sm:grid-cols-2">
                 <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                  <div className="mb-4 flex items-center gap-2 border-b border-slate-50 pb-3 font-bold text-slate-800 text-sm uppercase tracking-wide">
+                  <div className="mb-4 flex items-center gap-2 border-b border-slate-50 pb-3 text-sm font-bold uppercase tracking-wide text-slate-800">
                     <Calendar size={16} className="text-[#397e50]" />
                     Waktu
                   </div>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-slate-500">Tanggal</span>
-                      <span className="font-bold text-slate-700">
-                        {detail.tanggal_ujian || detail.tgl_ujian}
-                      </span>
+                      <span className="font-bold text-slate-700">{tanggalLabel}</span>
                     </div>
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-slate-500">Jam</span>
@@ -232,68 +216,57 @@ const DetailUjian = () => {
                     </div>
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-slate-500">Durasi</span>
-                      <span className="font-bold text-[#397e50]">
-                        {detail.durasi_menit} Menit
-                      </span>
+                      <span className="font-bold text-[#397e50]">{detail.durasi_menit} Menit</span>
                     </div>
                   </div>
                 </div>
 
                 <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                  <div className="mb-4 flex items-center gap-2 border-b border-slate-50 pb-3 font-bold text-slate-800 text-sm uppercase tracking-wide">
+                  <div className="mb-4 flex items-center gap-2 border-b border-slate-50 pb-3 text-sm font-bold uppercase tracking-wide text-slate-800">
                     <MapPin size={16} className="text-[#397e50]" />
                     Lokasi
                   </div>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-slate-500">Ruangan</span>
-                      <span className="font-bold text-[#397e50]">
-                        {ruangLabel}
-                      </span>
+                      <span className="font-bold text-[#397e50]">{ruangLabel}</span>
                     </div>
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-slate-500">Sesi</span>
-                      <span className="font-bold text-slate-700">
-                        {sesiLabel}
-                      </span>
+                      <span className="font-bold text-slate-700">{sesiLabel}</span>
                     </div>
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-slate-500">Pengawas</span>
-                      <span className="font-bold text-slate-700">
-                        {guruLabel}
-                      </span>
+                      <span className="font-bold text-slate-700">{pengawasLabel}</span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* 4. Action Section (PRINT BUTTONS REVISED POSITION) */}
               <div className="rounded-2xl p-5">
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                   <PrintButton
                     label="Daftar Hadir"
                     className="flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-[#397e50] text-xs font-bold text-white transition hover:bg-[#2d633f]"
-                    onClick={() => handlePrint()}
+                    onClick={handlePrint}
                   />
                   <PrintButton
                     label="Berita Acara"
                     variant="outline"
                     className="flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white text-xs font-bold text-slate-600 transition hover:bg-slate-50"
-                    onClick={() => handlePrint()}
+                    onClick={handlePrint}
                   />
                   <PrintButton
                     label="Kartu Peserta"
                     variant="outline"
                     className="flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white text-xs font-bold text-slate-600 transition hover:bg-slate-50"
-                    onClick={() => handlePrint()}
+                    onClick={handlePrint}
                   />
                 </div>
               </div>
             </div>
 
-            {/* Sidebar (Right) */}
             <div className="space-y-6">
-              {/* Target Akademik */}
               <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                 <h3 className="mb-5 text-2xs font-bold uppercase tracking-[0.15em] text-slate-400">
                   Target Akademik
@@ -304,37 +277,23 @@ const DetailUjian = () => {
                       <GraduationCap size={18} />
                     </div>
                     <div>
-                      <p className="text-2xs font-bold uppercase text-slate-400">
-                        Kelas
-                      </p>
-                      <p className="text-xs font-bold text-slate-800 leading-tight">
-                        {kelasLabel}
-                      </p>
-                      <p className="text-2xs text-slate-500">
-                        {detail.nama_kelas}
-                      </p>
+                      <p className="text-2xs font-bold uppercase text-slate-400">Kelas</p>
+                      <p className="text-xs font-bold leading-tight text-slate-800">{tingkatLabel}</p>
+                      <p className="text-2xs text-slate-500">{namaKelasLabel}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
-                      <BookAIcon size={18} />
+                      <Layout size={18} />
                     </div>
                     <div>
-                      <p className="text-2xs font-bold uppercase text-slate-400">
-                        Bank Soal
-                      </p>
-                      <p className="text-xs font-bold text-slate-800 leading-tight">
-                        {bankSoalLabel}
-                      </p>
-                      <div className="mt-1 inline-flex items-center gap-1 rounded bg-blue-100/50 px-1.5 py-0.5 text-[9px] font-bold text-blue-700">
-                        <Layout size={10} /> {detail.jumlah_soal} SOAL
-                      </div>
+                      <p className="text-2xs font-bold uppercase text-slate-400">Bank Soal</p>
+                      <p className="text-xs font-bold leading-tight text-slate-800">{bankSoalLabel}</p>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Keamanan & Token */}
               <div className="rounded-2xl border border-emerald-100 bg-emerald-50/20 p-6">
                 <h3 className="mb-5 text-2xs font-bold uppercase tracking-[0.15em] text-emerald-800/60">
                   Sistem & Keamanan
@@ -349,7 +308,7 @@ const DetailUjian = () => {
                       Token Akses
                     </p>
                     <p className="text-2xl font-mono font-black tracking-[0.2em] text-[#397e50]">
-                      {detail.token_ujian || "------"}
+                      {detail.token || "------"}
                     </p>
                   </div>
                 </div>

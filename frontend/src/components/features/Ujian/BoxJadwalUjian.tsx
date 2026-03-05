@@ -32,9 +32,10 @@ const statusConfig: Record<string, { label: string; color: string }> = {
 
 type BoxJadwalUjianProps = JadwalUjianItem & {
   linkJadwal?: string;
-  onStart?: (id: number) => void;
-  onCancel?: (id: number) => void;
+  onStart?: (idUjian: number) => void;
+  onCancel?: (idUjian: number) => void;
   canControl?: boolean;
+  updating?: boolean;
 };
 
 const BoxJadwalUjian = ({
@@ -47,32 +48,36 @@ const BoxJadwalUjian = ({
   status_ujian,
   tingkat_kelas,
   nama_kelas,
-  started,
-  id,
+  id_ujian,
   linkJadwal = "",
   onStart,
   onCancel,
   canControl = false,
+  updating = false,
 }: BoxJadwalUjianProps) => {
+  const idUjian = id_ujian ?? 0;
   const status = status_ujian
     ? statusConfig[status_ujian]
     : { label: "Unknown", color: "bg-gray-100 text-gray-500" };
 
+  const disableStart =
+    updating || idUjian <= 0 || status_ujian === "berlangsung" || status_ujian === "selesai";
+  const disableCancel =
+    updating || idUjian <= 0 || status_ujian === "dibatalkan" || status_ujian === "selesai";
+
   return (
     <Link to={linkJadwal} className="block group">
       <div className="relative overflow-hidden rounded-2xl border-2 border-slate-100 bg-white transition-all duration-300 hover:border-[#397e50]/30 hover:shadow-xl hover:shadow-slate-200/50">
-        {/* Accent Bar */}
         <div className="absolute left-0 top-0 h-full w-1.5 bg-[#397e50]" />
 
         <div className="p-6">
-          {/* Header: Title & Status */}
           <div className="mb-6 flex items-start justify-between gap-4">
             <div className="space-y-2">
-              <span className="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-2.5 py-1 text-2xs font-bold uppercase tracking-wider text-slate-600 border border-slate-200">
+              <span className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-100 px-2.5 py-1 text-2xs font-bold uppercase tracking-wider text-slate-600">
                 <GraduationCap size={14} />
-                Kelas {tingkat_kelas} â€¢ {nama_kelas}
+                Kelas {tingkat_kelas ?? "-"} • {nama_kelas ?? "-"}
               </span>
-              <h3 className="text-xl font-extrabold text-slate-800 leading-tight transition-colors group-hover:text-[#397e50]">
+              <h3 className="text-xl font-extrabold leading-tight text-slate-800 transition-colors group-hover:text-[#397e50]">
                 {nama_ujian}
               </h3>
             </div>
@@ -84,7 +89,6 @@ const BoxJadwalUjian = ({
             </span>
           </div>
 
-          {/* Info Grid: Flat & Clean */}
           <div className="grid grid-cols-2 gap-4 rounded-xl border border-slate-50 bg-slate-50/50 p-4 sm:grid-cols-5">
             <div className="space-y-1">
               <p className="flex items-center gap-1.5 text-2xs font-bold uppercase tracking-wider text-slate-400">
@@ -96,9 +100,7 @@ const BoxJadwalUjian = ({
               <p className="flex items-center gap-1.5 text-2xs font-bold uppercase tracking-wider text-slate-400">
                 <User size={12} className="text-[#397e50]" /> Pengawas Ujian
               </p>
-              <p className="text-sm font-bold text-slate-700">
-                {pengawas_ujian}
-              </p>
+              <p className="text-sm font-bold text-slate-700">{pengawas_ujian}</p>
             </div>
             <div className="space-y-1">
               <p className="flex items-center gap-1.5 text-2xs font-bold uppercase tracking-wider text-slate-400">
@@ -110,21 +112,16 @@ const BoxJadwalUjian = ({
               <p className="flex items-center gap-1.5 text-2xs font-bold uppercase tracking-wider text-slate-400">
                 <Hash size={12} className="text-[#397e50]" /> Sesi
               </p>
-              <p className="text-sm font-bold text-slate-700">
-                {sesi_ujian ?? "-"}
-              </p>
+              <p className="text-sm font-bold text-slate-700">{sesi_ujian ?? "-"}</p>
             </div>
             <div className="space-y-1">
               <p className="flex items-center gap-1.5 text-2xs font-bold uppercase tracking-wider text-slate-400">
                 <MapPin size={12} className="text-[#397e50]" /> Ruangan
               </p>
-              <p className="text-sm font-bold text-slate-700">
-                {ruang_ujian ?? "-"}
-              </p>
+              <p className="text-sm font-bold text-slate-700">{ruang_ujian ?? "-"}</p>
             </div>
           </div>
 
-          {/* Action Footer: New Buttons Design */}
           {canControl && (
             <div className="mt-6 flex flex-col gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:items-center sm:justify-end">
               <button
@@ -132,10 +129,10 @@ const BoxJadwalUjian = ({
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  onCancel?.(id);
+                  if (idUjian > 0) onCancel?.(idUjian);
                 }}
-                disabled={started === 0}
-                className="cursor-pointer flex items-center justify-center gap-2 rounded-xl border-2 border-slate-200 bg-white px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-slate-500 transition-all hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:border-slate-200 disabled:hover:text-slate-500"
+                disabled={disableCancel}
+                className="cursor-pointer flex items-center justify-center gap-2 rounded-xl border-2 border-slate-200 bg-white px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-slate-500 transition-all hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600 disabled:opacity-30 disabled:hover:border-slate-200 disabled:hover:bg-transparent disabled:hover:text-slate-500"
               >
                 <XCircle size={16} />
                 Batalkan
@@ -146,9 +143,9 @@ const BoxJadwalUjian = ({
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  onStart?.(id);
+                  if (idUjian > 0) onStart?.(idUjian);
                 }}
-                disabled={started === 1}
+                disabled={disableStart}
                 className="cursor-pointer flex items-center justify-center gap-2 rounded-xl bg-[#397e50] px-6 py-2.5 text-xs font-bold uppercase tracking-widest text-white transition-all hover:bg-[#2d633f] hover:shadow-lg hover:shadow-emerald-900/20 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none"
               >
                 <Play size={16} fill="currentColor" />

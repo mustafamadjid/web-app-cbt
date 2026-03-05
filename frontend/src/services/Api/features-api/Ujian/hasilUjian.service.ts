@@ -1,4 +1,4 @@
-import { api, type ApiEnvelope } from "@/services/Api/api";
+import { api } from "@/services/Api/api";
 import { useFetch } from "@/hooks/fetch";
 import type { JadwalUjianItem } from "@/types/Ujian/jadwalUjian";
 import type {
@@ -95,6 +95,7 @@ const dummyHasilUjianDetail: Record<number, HasilUjianDetailResponse> = {
         tanggal_lahir: "2008-06-14",
         tingkat_kelas: 1,
         nama_kelas: "10-IPA-1",
+        kelas: "10-IPA-1",
         status_akun: "AKTIF",
         foto_profil: "/images/avatar/student-1.png",
         nilai: 92,
@@ -117,6 +118,7 @@ const dummyHasilUjianDetail: Record<number, HasilUjianDetailResponse> = {
         tanggal_lahir: "2008-01-22",
         tingkat_kelas: 1,
         nama_kelas: "10-IPA-1",
+        kelas: "10-IPA-1",
         status_akun: "AKTIF",
         foto_profil: "/images/avatar/student-2.png",
         nilai: 76,
@@ -139,6 +141,7 @@ const dummyHasilUjianDetail: Record<number, HasilUjianDetailResponse> = {
         tanggal_lahir: "2008-09-05",
         tingkat_kelas: 1,
         nama_kelas: "10-IPA-1",
+        kelas: "10-IPA-1",
         status_akun: "AKTIF",
         foto_profil: "/images/avatar/student-3.png",
         nilai: 68,
@@ -171,6 +174,7 @@ const dummyHasilUjianDetail: Record<number, HasilUjianDetailResponse> = {
         tanggal_lahir: "2007-11-18",
         tingkat_kelas: 3,
         nama_kelas: "12-IPS-1",
+        kelas: "12-IPS-1",
         status_akun: "AKTIF",
         foto_profil: "/images/avatar/student-4.png",
         nilai: 88,
@@ -193,6 +197,7 @@ const dummyHasilUjianDetail: Record<number, HasilUjianDetailResponse> = {
         tanggal_lahir: "2007-05-02",
         tingkat_kelas: 3,
         nama_kelas: "12-IPS-1",
+        kelas: "12-IPS-1",
         status_akun: "AKTIF",
         foto_profil: "/images/avatar/student-5.png",
         nilai: 79,
@@ -225,6 +230,7 @@ const dummyHasilUjianDetail: Record<number, HasilUjianDetailResponse> = {
         tanggal_lahir: "2008-03-21",
         tingkat_kelas: 2,
         nama_kelas: "11-IPA-2",
+        kelas: "11-IPA-2",
         status_akun: "AKTIF",
         foto_profil: "/images/avatar/student-6.png",
         nilai: 84,
@@ -247,6 +253,7 @@ const dummyHasilUjianDetail: Record<number, HasilUjianDetailResponse> = {
         tanggal_lahir: "2008-12-08",
         tingkat_kelas: 2,
         nama_kelas: "11-IPA-2",
+        kelas: "11-IPA-2",
         status_akun: "AKTIF",
         foto_profil: "/images/avatar/student-7.png",
         nilai: 69,
@@ -296,11 +303,11 @@ export async function getHasilUjianList(
     tahun: params.tahun ?? undefined,
   };
 
-  const res = await api<ApiEnvelope<JadwalUjianItem[]>>("/ujian/hasil", {
+  const res = await api<JadwalUjianItem[]>("/ujian/hasil", {
     method: "GET",
     params: queryParams,
   });
-  return res.data;
+  return res;
 }
 
 export async function getHasilUjianDetail(
@@ -315,13 +322,13 @@ export async function getHasilUjianDetail(
     return detail;
   }
 
-  const res = await api<ApiEnvelope<HasilUjianDetailResponse>>(
+  const res = await api<HasilUjianDetailResponse>(
     `/ujian/hasil/${ujianId}`,
     {
       method: "GET",
     }
   );
-  return res.data;
+  return res;
 }
 
 // =====================

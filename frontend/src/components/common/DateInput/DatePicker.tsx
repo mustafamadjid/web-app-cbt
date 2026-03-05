@@ -221,7 +221,7 @@ const DatePicker = ({
             <button
               type="button"
               onClick={() => setViewDate(new Date(year, month - 1, 1))}
-              className="rounded-full p-1 text-slate-500 transition hover:bg-slate-100"
+              className="cursor-pointer rounded-full p-1 text-slate-500 transition hover:bg-slate-100"
               aria-label="Bulan sebelumnya"
             >
               <ChevronLeft />
@@ -259,7 +259,7 @@ const DatePicker = ({
             <button
               type="button"
               onClick={() => setViewDate(new Date(year, month + 1, 1))}
-              className="rounded-full p-1 text-slate-500 transition hover:bg-slate-100"
+              className="cursor-pointer rounded-full p-1 text-slate-500 transition hover:bg-slate-100"
               aria-label="Bulan berikutnya"
             >
               <ChevronRight />
@@ -291,7 +291,7 @@ const DatePicker = ({
                   key={day}
                   type="button"
                   onClick={() => handleDateClick(day)}
-                  className={`flex h-8 w-8 items-center justify-center rounded-full text-xs transition ${
+                  className={`flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-xs transition ${
                     isSelected
                       ? "bg-[#397e50] font-semibold text-white shadow-md shadow-green-200"
                       : isToday

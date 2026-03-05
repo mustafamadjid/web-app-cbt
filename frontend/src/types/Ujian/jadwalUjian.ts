@@ -1,22 +1,31 @@
+export type JadwalUjianStatusClient =
+  | "belum_dimulai"
+  | "berlangsung"
+  | "selesai"
+  | "dibatalkan";
+
 export type JadwalUjianItem = {
-    id: number;
-    nama_ujian : string;
-    pengawas_ujian : string;
-    tgl_ujian : string; // Data tangal sudah diolah duluan di server 
-    tanggal_ujian?: string;
-    waktu_mulai: string; // Data waktu sudah diolah duluan di server
-    waktu_selesai?: string;
-    sesi_ujian?: number ;
-    ruang_ujian?: string;
-    id_ruang?: number;
-    status_ujian: string;
-    started?: 0 | 1;
-    pembuat_username?: string;
-    pengawas_username?: string;
-    tingkat_kelas?: number;
-    tingkat_kelas_id?: number;
-    nama_kelas?: string;
-}
+  id: number;
+  id_ujian?: number;
+  id_guru?: number;
+  id_pengawas?: number;
+  nama_ujian: string;
+  pengawas_ujian: string;
+  tgl_ujian: string;
+  tanggal_ujian?: string;
+  waktu_mulai: string;
+  waktu_selesai?: string;
+  sesi_ujian: number;
+  ruang_ujian: string;
+  id_ruang?: number;
+  status_ujian: JadwalUjianStatusClient;
+  started: 0 | 1;
+  pembuat_username?: string;
+  pengawas_username?: string;
+  tingkat_kelas?: number;
+  tingkat_kelas_id?: number;
+  nama_kelas?: string;
+};
 
 export type JadwalUjianFilterParams = {
   search?: string;

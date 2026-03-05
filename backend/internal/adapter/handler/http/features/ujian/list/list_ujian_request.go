@@ -7,5 +7,6 @@ type ListUjianRequest struct {
 	Tanggal        *string
 	Tahun          *string
 	TingkatKelasID *int
+	TingkatKelas   *int
 	RuangUjianID   *int
 }

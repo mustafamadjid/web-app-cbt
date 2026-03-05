@@ -212,5 +212,21 @@ func parseListSiswaFilters(req *http.Request) (query.ListSiswaFilter, error) {
 		filters.JenisKelamin = &jenisKelamin
 	}
 
+	if idTingkatKelasRaw := strings.TrimSpace(values.Get("id_tingkat_kelas")); idTingkatKelasRaw != "" {
+		idTingkatKelas, err := strconv.Atoi(idTingkatKelasRaw)
+		if err != nil {
+			return query.ListSiswaFilter{}, errors.New("id_tingkat_kelas must be a number")
+		}
+		filters.IdTingkatKelas = &idTingkatKelas
+	}
+
+	if idNamaKelasRaw := strings.TrimSpace(values.Get("id_nama_kelas")); idNamaKelasRaw != "" {
+		idNamaKelas, err := strconv.Atoi(idNamaKelasRaw)
+		if err != nil {
+			return query.ListSiswaFilter{}, errors.New("id_nama_kelas must be a number")
+		}
+		filters.IdNamaKelas = &idNamaKelas
+	}
+
 	return filters, nil
 }

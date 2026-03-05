@@ -22,7 +22,7 @@ func NewCreateRuangUjianHandler(svc *ruangujian_service.CreateRuangUjianService)
 	return &CreateRuangUjianHandler{svc: svc}
 }
 
-func (h *CreateRuangUjianHandler) CreateRuangUian(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func (h *CreateRuangUjianHandler) CreateRuangUjian(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	logger := corelog.FromContext(r.Context())
 	if r.Method != http.MethodPost {
 		httpResponse.WriteErr(w, http.StatusMethodNotAllowed, "METHOD_NOT_ALLOWED", "method not allowed")
@@ -76,10 +76,10 @@ func (h *CreateRuangUjianHandler) CreateRuangUian(w http.ResponseWriter, r *http
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: kode ruang ujian already exist")
 			return
 		case errors.Is(err, coreerror.ErrInvalidInput):
-			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", err.Error())
+			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: invalid input")
 			return
 		default:
-			httpResponse.WriteErr(w, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", err.Error())
+			httpResponse.WriteErr(w, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error")
 			return
 		}
 	}

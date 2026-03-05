@@ -5,8 +5,9 @@ type ListUjianFilter struct {
 	Limit  int
 	Offset int
 
-	TanggalUjian *string
-	Tahun        *string
-	TingkatKelas  *int
-	RuangUjian 	  *int
+	TanggalUjian   *string
+	Tahun          *string
+	TingkatKelasID *int
+	TingkatKelas   *int
+	RuangUjian     *int
 }

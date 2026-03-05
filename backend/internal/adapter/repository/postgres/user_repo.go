@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
@@ -154,6 +155,10 @@ func (r *UserRepo) CreateUser(ctx context.Context, pengguna user.Pengguna) (user
 		string(pengguna.StatusAkun),
 	).Scan(&id)
 	if err != nil {
+		if mappedErr := mapUserUniqueViolation(err); mappedErr != nil {
+			return 0, mappedErr
+		}
+
 		r.loggerFor(ctx).Error(ctx, "failed creating user", "op", "user_repo.create", "err", err)
 		return 0, err
 	}
@@ -207,6 +212,10 @@ func (r *UserRepo) UpdateUser(ctx context.Context, idPengguna user.ID, pengguna 
 
 	_, err := r.q.Exec(ctx, q, args...)
 	if err != nil {
+		if mappedErr := mapUserUniqueViolation(err); mappedErr != nil {
+			return mappedErr
+		}
+
 		r.loggerFor(ctx).Error(ctx, "failed updating user", "op", "user_repo.update", "user_id", idPengguna, "err", err)
 	}
 	return err
@@ -355,5 +364,23 @@ func formatJenisKelamin(value int16) (string, error) {
 		return "PEREMPUAN", nil
 	default:
 		return "", coreerror.ErrInvalidInput
+	}
+}
+
+func mapUserUniqueViolation(err error) error {
+	var pgErr *pgconn.PgError
+	if !errors.As(err, &pgErr) || pgErr.Code != "23505" {
+		return nil
+	}
+
+	switch pgErr.ConstraintName {
+	case "uq_pengguna_username":
+		return coreerror.ErrUsernameTaken
+	case "uq_pengguna_email":
+		return coreerror.ErrEmailTaken
+	case "uq_pengguna_no_hp":
+		return coreerror.ErrNoHpTaken
+	default:
+		return coreerror.ErrConflict
 	}
 }

@@ -2,6 +2,7 @@ package user_service
 
 import (
 	"context"
+	"errors"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/port/out"
@@ -94,6 +95,12 @@ func (u *UpdateTx) UpdateGuru(ctx context.Context, cmd UpdateGuruCmd, actor user
 
 	if hasPenggunaPatch(penggunaPatch) {
 		if error := tx.Pengguna().UpdateUser(ctx, cmd.IdPengguna, penggunaPatch); error != nil {
+			if errors.Is(error, coreerror.ErrUsernameTaken) ||
+				errors.Is(error, coreerror.ErrEmailTaken) ||
+				errors.Is(error, coreerror.ErrNoHpTaken) {
+				return error
+			}
+
 			logger.Error(ctx, "failed updating pengguna", "layer", "core.service", "op", "user.update_guru", "user_id", cmd.IdPengguna, "err", error)
 			return error
 		}
@@ -181,6 +188,12 @@ func (u *UpdateTx) UpdateSiswa(ctx context.Context, cmd UpdateSiswaCmd, actor us
 
 	if hasPenggunaPatch(penggunaPatch) {
 		if err := tx.Pengguna().UpdateUser(ctx, cmd.IdPengguna, penggunaPatch); err != nil {
+			if errors.Is(err, coreerror.ErrUsernameTaken) ||
+				errors.Is(err, coreerror.ErrEmailTaken) ||
+				errors.Is(err, coreerror.ErrNoHpTaken) {
+				return err
+			}
+
 			logger.Error(ctx, "failed updating pengguna", "layer", "core.service", "op", "user.update_siswa", "user_id", cmd.IdPengguna, "err", err)
 			return err
 		}

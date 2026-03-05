@@ -279,6 +279,16 @@ func (r *ProfilSiswaRepo) GetListSiswa(ctx context.Context, filter query.ListSis
 		where = append(where, fmt.Sprintf("k.tingkat_kelas = $%d", len(args)))
 	}
 
+	if filter.IdNamaKelas != nil {
+		args = append(args, *filter.IdNamaKelas)
+		where = append(where, fmt.Sprintf("ps.id_nama_kelas = $%d", len(args)))
+	}
+
+	if filter.IdTingkatKelas != nil {
+		args = append(args, *filter.IdTingkatKelas)
+		where = append(where, fmt.Sprintf("k.id_kelas = $%d", len(args)))
+	}
+
 	if filter.JenisKelamin != nil {
 		args = append(args, *filter.JenisKelamin)
 		where = append(where, fmt.Sprintf("p.jenis_kelamin = $%d", len(args)))

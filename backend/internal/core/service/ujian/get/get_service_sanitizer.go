@@ -43,6 +43,9 @@ func sanitizeAndValidateListUjianFilter(filter query.ListUjianFilter) (query.Lis
 		}
 		filter.Tahun = &tahun
 	}
+	if filter.TingkatKelasID != nil && *filter.TingkatKelasID <= 0 {
+		return filter, errInvalidTingkatKelas
+	}
 	if filter.TingkatKelas != nil && *filter.TingkatKelas <= 0 {
 		return filter, errInvalidTingkatKelas
 	}
@@ -74,7 +77,9 @@ func sanitizeJadwalUjian(item ujian.JadwalUjian) ujian.JadwalUjian {
 
 func sanitizeListUjianItem(item ujian.ListUjian) ujian.ListUjian {
 	item.NamaUjian = strings.TrimSpace(item.NamaUjian)
+	item.PembuatUsername = strings.TrimSpace(item.PembuatUsername)
 	item.NamaPengawas = strings.TrimSpace(item.NamaPengawas)
+	item.PengawasUsername = strings.TrimSpace(item.PengawasUsername)
 	item.NamaSesi = strings.TrimSpace(item.NamaSesi)
 	item.NamaRuangan = strings.TrimSpace(item.NamaRuangan)
 

@@ -35,4 +35,6 @@ type ListSiswaFilter struct {
 	Angkatan     *int
 	TingkatKelas *int
 	JenisKelamin *int
+	IdTingkatKelas *int
+	IdNamaKelas 	*int
 }

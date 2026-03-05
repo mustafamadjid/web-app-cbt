@@ -27,6 +27,8 @@ var (
 
 	ErrNoFieldToUpdate   = errors.New("no field to update")
 	ErrUsernameTaken     = errors.New("username taken")
+	ErrEmailTaken        = errors.New("email taken")
+	ErrNoHpTaken         = errors.New("phone number taken")
 	ErrNipTaken          = errors.New("NIP taken")
 	ErrNisnTaken         = errors.New("NISN taken")
 	ErrInvalidStatusAkun = errors.New("invalid status akun")

@@ -38,6 +38,19 @@ const initialValues: TeacherRegisterFormValues = {
 const sectionTitle = "text-sm font-semibold text-slate-800";
 const helperText = "text-xs text-slate-500";
 const NIP_LENGTH = 18;
+const DUPLICATE_ACCOUNT_MESSAGES: Record<string, string> = {
+  USERNAME_TAKEN: "Username sudah terdaftar. Gunakan username lain yang unik.",
+  EMAIL_TAKEN: "Email sudah terdaftar. Gunakan email lain yang unik.",
+  NO_HP_TAKEN: "Nomor HP sudah terdaftar. Gunakan nomor HP lain yang unik.",
+  NISN_TAKEN: "NISN sudah terdaftar. Gunakan NISN lain yang unik.",
+  NIP_TAKEN: "NIP sudah terdaftar. Gunakan NIP lain yang unik.",
+  CONFLICT: "Data yang diinputkan sudah ada sebelumnya. Pastikan data unik.",
+};
+
+const uniqueConstraintMessage = (error: ApiError) => {
+  if (!error.code) return error.message;
+  return DUPLICATE_ACCOUNT_MESSAGES[error.code] ?? error.message;
+};
 
 const normalizeNipInput = (value: string) => {
   const trimmed = value.trim();
@@ -148,7 +161,7 @@ const AkunGuruForm = () => {
       );
     } catch (error) {
       if (error instanceof ApiError) {
-        setSubmitError(error.message);
+        setSubmitError(uniqueConstraintMessage(error));
       }
     } finally {
       setSubmitting(false);
@@ -455,6 +468,7 @@ const AkunGuruForm = () => {
                     setSubmitError(null);
                     if (fileInputRef.current) fileInputRef.current.value = "";
                   }}
+                  disabled={submitting}
                 >
                   Reset
                 </button>
@@ -462,8 +476,9 @@ const AkunGuruForm = () => {
                 <button
                   type="submit"
                   className="rounded-lg bg-[#397e50] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-600 cursor-pointer"
+                  disabled={submitting}
                 >
-                  Daftarkan Guru
+                  {submitting ? "Mendaftarkan..." : "Daftarkan Guru"}
                 </button>
               </div>
             </div>

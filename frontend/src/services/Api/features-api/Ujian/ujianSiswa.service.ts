@@ -1,4 +1,4 @@
-import { api, type ApiEnvelope } from "@/services/Api/api";
+import { api } from "@/services/Api/api";
 import { useFetch } from "@/hooks/fetch";
 import { formatTanggalToIso } from "@/helper/dateFormatting/formatToIso";
 import { normalize } from "@/helper/normalizeString/normalizeString";
@@ -258,12 +258,12 @@ export async function getUjianBySiswa(params: {
     search: filter.search?.trim() || undefined,
   };
 
-  const res = await api<ApiEnvelope<UjianSiswaResponse>>(
+  const res = await api<UjianSiswaResponse>(
     `siswa/${params.siswaId}/ujian`,
     { params: queryParams },
   );
 
-  return res.data;
+  return res;
 
   /*
     Response data di  be harus sepert ini  
@@ -291,10 +291,10 @@ export async function getUjianSiswaResultDetail(
     return detail;
   }
 
-  const res = await api<ApiEnvelope<UjianSiswaResultItem>>(
+  const res = await api<UjianSiswaResultItem>(
     `/ujian-siswa/hasil/${id}`,
   );
-  return res.data;
+  return res;
 }
 
 // =====================

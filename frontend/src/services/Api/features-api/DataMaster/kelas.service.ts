@@ -15,16 +15,13 @@ import type {
 } from "@/types/DataMaster/Kelas";
 
 
-import type { ApiEnvelope } from "../../api";
-
-
 // Real Request
 
 
 
 export async function createTingkatKelas(values: CreateTingkatKelasPayload) {
   const data = buildJsonData(values);
-  const res = await api<ApiEnvelope<null>>("/admin/kelas/tingkat-kelas", {
+  const res = await api<boolean>("/admin/kelas/tingkat-kelas", {
     method: "POST",
     data,
   });
@@ -34,7 +31,7 @@ export async function createTingkatKelas(values: CreateTingkatKelasPayload) {
 
 export async function createNamaKelas(values: CreateNamaKelasPayload) {
   const data = buildJsonData(values);
-  const res = await api<ApiEnvelope<null>>("/admin/kelas/nama-kelas", {
+  const res = await api<boolean>("/admin/kelas/nama-kelas", {
     method: "POST",
     data,
   });
@@ -71,7 +68,7 @@ export async function getKelasByIdsRequest(
 
 
 export async function deleteNamaKelas(idNamaKelas: number) {
-  return api<ApiEnvelope<null>>(`/admin/kelas/nama-kelas/${idNamaKelas}`, {
+  return api<boolean>(`/admin/kelas/nama-kelas/${idNamaKelas}`, {
     method: "DELETE",
   });
 }
@@ -141,12 +138,12 @@ const DUMMY_NAMA_KELAS: NamaKelas[] = [
 // Submit Handler
 export async function submitKelasResponse(values: KelasFormValues) {
   const data = buildJsonData(values);
-  const res = await api<ApiEnvelope<KelasSubmitResponse>>("/kelas", {
+  const res = await api<KelasSubmitResponse>("/kelas", {
     method: "POST",
     data,
   });
 
-  return res.data;
+  return res;
 }
 
 type CreateTingkatKelasPayload = {
@@ -169,15 +166,15 @@ export async function getNamaKelas(
   params: KelasFilterParams = {},
 ): Promise<NamaKelas[]> {
   if (!USE_DUMMY) {
-    const res = await api<ApiEnvelope<NamaKelas[]>>("/kelas/nama", {
+    const res = await api<NamaKelas[]>("/kelas/nama", {
       method: "GET",
       params,
     });
-    return res.data;
+    return res;
   }
 
   await sleep(250);
-  const q = params.q ? normalize(params.q) : "";
+  const q = params.search ? normalize(params.search) : "";
 
   const filtered = DUMMY_NAMA_KELAS.filter((kelas) => {
     if (params.tingkatKelas && kelas.id_tingkat_kelas !== params.tingkatKelas) {
@@ -211,10 +208,10 @@ export async function getKelasById(
   id: number,
 ): Promise<KelasFormValues | null> {
   if (!USE_DUMMY) {
-    const res = await api<ApiEnvelope<KelasFormValues>>(`/kelas/${id}`, {
+    const res = await api<KelasFormValues>(`/kelas/${id}`, {
       method: "GET",
     });
-    return res.data;
+    return res;
   }
 
   await sleep(150);
@@ -236,13 +233,13 @@ export async function getTingkatKelasByIdRequest(
   id: number,
 ): Promise<TingkatKelas | null> {
   if (!USE_DUMMY) {
-    const res = await api<ApiEnvelope<TingkatKelas>>(
+    const res = await api<TingkatKelas>(
       `/admin/kelas/tingkat-kelas/${id}`,
       {
         method: "GET",
       },
     );
-    return res.data;
+    return res;
   }
 
   await sleep(150);
@@ -253,10 +250,10 @@ export async function getNamaKelasById(
   id: number,
 ): Promise<NamaKelas | null> {
   if (!USE_DUMMY) {
-    const res = await api<ApiEnvelope<NamaKelas>>(`/admin/kelas/nama-kelas/${id}`, {
+    const res = await api<NamaKelas>(`/admin/kelas/nama-kelas/${id}`, {
       method: "GET",
     });
-    return res.data;
+    return res;
   }
 
   await sleep(150);
@@ -272,11 +269,11 @@ type UpdateNamaKelasPayload = {
 
 export async function getTingkatKelas(): Promise<TingkatKelas[]> {
   if (!USE_DUMMY) {
-    const res = await api<ApiEnvelope<TingkatKelas[]>>("/kelas/tingkat", {
+    const res = await api<TingkatKelas[]>("/kelas/tingkat", {
       method: "GET",
     });
-    cachedTingkatKelas = res.data;
-    return res.data;
+    cachedTingkatKelas = res;
+    return res;
   }
 
   await sleep(150);

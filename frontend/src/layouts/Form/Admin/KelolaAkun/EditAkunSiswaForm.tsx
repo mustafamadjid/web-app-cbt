@@ -32,6 +32,19 @@ type EditAkunSiswaFormProps = {
 const sectionTitle = "text-sm font-semibold text-slate-800";
 const helperText = "text-xs text-slate-500";
 const NISN_LENGTH = 10;
+const DUPLICATE_ACCOUNT_MESSAGES: Record<string, string> = {
+  USERNAME_TAKEN: "Username sudah terdaftar. Gunakan username lain yang unik.",
+  EMAIL_TAKEN: "Email sudah terdaftar. Gunakan email lain yang unik.",
+  NO_HP_TAKEN: "Nomor HP sudah terdaftar. Gunakan nomor HP lain yang unik.",
+  NISN_TAKEN: "NISN sudah terdaftar. Gunakan NISN lain yang unik.",
+  NIP_TAKEN: "NIP sudah terdaftar. Gunakan NIP lain yang unik.",
+  CONFLICT: "Data yang diinputkan sudah ada sebelumnya. Pastikan data unik.",
+};
+
+const uniqueConstraintMessage = (error: ApiError) => {
+  if (!error.code) return error.message;
+  return DUPLICATE_ACCOUNT_MESSAGES[error.code] ?? error.message;
+};
 
 function toIntOrPrev(prev: number, raw: string): number {
   const s = String(raw ?? "").trim();
@@ -187,7 +200,7 @@ const EditAkunSiswaForm = ({
       await onSubmit(values);
     } catch (error) {
       if (error instanceof ApiError) {
-        setSubmitError(error.message);
+        setSubmitError(uniqueConstraintMessage(error));
       }
     }
   };

@@ -16,3 +16,9 @@ export type SiswaDashboardSummary = {
   total_ujian: number;
   rata_rata_semester: SiswaSemesterAverage[];
 };
+
+export type SiswaTip = {
+  id: number;
+  judul: string;
+  deskripsi: string;
+};

@@ -1,4 +1,4 @@
-import { api, type ApiEnvelope } from "@/services/Api/api";
+import { api } from "@/services/Api/api";
 import { useFetch } from "@/hooks/fetch";
 import type { SoalUjianResponse } from "@/types/BankSoal/BankSoal";
 
@@ -73,13 +73,13 @@ export async function getSoalUjian(
     return data;
   }
 
-  const res = await api<ApiEnvelope<SoalUjianResponse>>(
+  const res = await api<SoalUjianResponse>(
     `/bank-soal/${bankSoalId}/soal`,
     {
       method: "GET",
     }
   );
-  return res.data;
+  return res;
 }
 
 // =====================

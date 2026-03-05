@@ -41,33 +41,36 @@ type JadwalUjian struct {
 }
 
 type PenjadwalanUjian struct {
-	Ujian 	Ujian
+	Ujian       Ujian
 	JadwalUjian JadwalUjian
 }
 
 type ListUjian struct {
-	IdUjian ID
-	IdBankSoal ID
-	NamaUjian string
+	IdUjian         ID
+	IdBankSoal      ID
+	IdGuru          ID
+	NamaUjian       string
+	PembuatUsername string
 
-	IdKelas ID
-	IdNamaKelas *ID
+	IdKelas      ID
+	IdNamaKelas  *ID
 	TingkatKelas int
-	NamaKelas *string
+	NamaKelas    *string
 
 	IdJadwalUjian ID
-	TanggalUjian time.Time
-	WaktuMulai time.Time
-	WaktuSelesai time.Time
-	StatusUjian StatusUjian
+	TanggalUjian  time.Time
+	WaktuMulai    time.Time
+	WaktuSelesai  time.Time
+	StatusUjian   StatusUjian
 
-	IdPengawas ID
-	NamaPengawas string
+	IdPengawas       ID
+	NamaPengawas     string
+	PengawasUsername string
 
-	IdSesi ID
+	IdSesi   ID
 	NamaSesi string
 
-	IdRuangan ID
+	IdRuangan   ID
 	NamaRuangan string
 }
 
@@ -99,4 +102,10 @@ func (status StatusUjian) ValidStatus() bool {
 	default:
 		return false
 	}
+}
+
+func isValidDate(dateStr string) bool {
+	layout := "2006-01-02"
+	_, err := time.Parse(layout, dateStr)
+	return err == nil
 }

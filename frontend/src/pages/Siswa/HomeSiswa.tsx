@@ -1,4 +1,3 @@
-import React from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import UjianTerlaksanaWidget from "@/components/features/widget/Siswa/UjianTerlaksanaWidget";
 import RataRataNilaiWidget from "@/components/features/widget/Siswa/RataRataNilaiWidget";

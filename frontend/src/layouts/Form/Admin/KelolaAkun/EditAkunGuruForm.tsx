@@ -30,6 +30,19 @@ type EditAkunGuruFormProps = {
 const sectionTitle = "text-sm font-semibold text-slate-800";
 const helperText = "text-xs text-slate-500";
 const NIP_LENGTH = 18;
+const DUPLICATE_ACCOUNT_MESSAGES: Record<string, string> = {
+  USERNAME_TAKEN: "Username sudah terdaftar. Gunakan username lain yang unik.",
+  EMAIL_TAKEN: "Email sudah terdaftar. Gunakan email lain yang unik.",
+  NO_HP_TAKEN: "Nomor HP sudah terdaftar. Gunakan nomor HP lain yang unik.",
+  NISN_TAKEN: "NISN sudah terdaftar. Gunakan NISN lain yang unik.",
+  NIP_TAKEN: "NIP sudah terdaftar. Gunakan NIP lain yang unik.",
+  CONFLICT: "Data yang diinputkan sudah ada sebelumnya. Pastikan data unik.",
+};
+
+const uniqueConstraintMessage = (error: ApiError) => {
+  if (!error.code) return error.message;
+  return DUPLICATE_ACCOUNT_MESSAGES[error.code] ?? error.message;
+};
 
 const normalizeNipInput = (value: string) => {
   const trimmed = value.trim();
@@ -143,7 +156,7 @@ const EditAkunGuruForm = ({
       await onSubmit(values);
     } catch (error) {
       if (error instanceof ApiError) {
-        setSubmitError(error.message);
+        setSubmitError(uniqueConstraintMessage(error));
       }
     }
   };

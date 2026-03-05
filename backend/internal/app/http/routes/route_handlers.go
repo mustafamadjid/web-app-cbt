@@ -30,8 +30,13 @@ import (
 	sesidelete "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/sesi/delete"
 	sesiget "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/sesi/get"
 	sesiupdate "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/sesi/update"
+	ujiancreate "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/create/ujian"
+	ujiandeletepeserta "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/delete/peserta_ujian"
+	ujiandeleteujian "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/delete/ujian"
 	ujianget "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/get"
 	ujianlist "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/list"
+	ujianupdatepeserta "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/update/peserta_ujian"
+	ujianupdateujian "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/update/ujian"
 	usercreate "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/user/create"
 	userdelete "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/user/delete"
 	userget "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/user/get"
@@ -86,8 +91,13 @@ type RuangUjianHandlers struct {
 }
 
 type UjianHandlers struct {
-	ListHandler *ujianlist.ListUjianHandler
-	GetHandler  *ujianget.GetUjianHandler
+	CreateUjianHandler        *ujiancreate.CreateRuangUjianHandler
+	ListHandler               *ujianlist.ListUjianHandler
+	GetHandler                *ujianget.GetUjianHandler
+	UpdateUjianHandler        *ujianupdateujian.UpdateUjianHandler
+	UpdatePesertaUjianHandler *ujianupdatepeserta.UpdatePesertaUjianHandler
+	DeleteUjianHandler        *ujiandeleteujian.DeleteUjianHandler
+	DeletePesertaUjianHandler *ujiandeletepeserta.DeletePesertaUjianHandler
 }
 
 type SesiHandlers struct {

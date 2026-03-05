@@ -23,6 +23,8 @@ export type SiswaFilterParams = {
   angkatan?: number;
   tingkatKelas?: number;
   jenisKelamin?: JenisKelamin;
+  idKelas?: number;
+  idNamaKelas?: number;
 };
 
 const mapJenisKelaminFilter = (jenisKelamin?: JenisKelamin) => {
@@ -47,6 +49,7 @@ export const DUMMY_SISWA: DataAkunSiswa[] = [
     tanggal_lahir: "2008-01-31",
     tingkat_kelas: 10,
     nama_kelas: "X IPA 1",
+    kelas: "X IPA 1",
     foto_profil: "https://i.pravatar.cc/150?u=s-0001",
   },
   {
@@ -65,6 +68,7 @@ export const DUMMY_SISWA: DataAkunSiswa[] = [
     tanggal_lahir: "2009-08-12",
     tingkat_kelas: 10,
     nama_kelas: "X IPS 1",
+    kelas: "X IPS 1",
     foto_profil: "https://i.pravatar.cc/150?u=s-0002",
   },
 ];
@@ -126,6 +130,8 @@ export async function GetListSiswa(
     offset: params.offset ? String(params.offset) : undefined,
     angkatan: params.angkatan ? String(params.angkatan) : undefined,
     tingkat_kelas: params.tingkatKelas ? String(params.tingkatKelas) : undefined,
+    id_tingkat_kelas: params.idKelas ? String(params.idKelas) : undefined,
+    id_nama_kelas: params.idNamaKelas ? String(params.idNamaKelas) : undefined,
     jenis_kelamin: mapJenisKelaminFilter(params.jenisKelamin),
   };
 
@@ -140,10 +146,10 @@ export async function GetListSiswa(
 // Hook Wrappers
 // =====================
 
-export function useGetListSiswa(params: SiswaFilterParams = {}) {
+export function useGetListSiswa(params: SiswaFilterParams = {}, enabled = true) {
   return useFetch(
-    () => GetListSiswa(params),
-    [params.q, params.status, params.limit, params.offset, params.angkatan, params.tingkatKelas, params.jenisKelamin],
+    () => (enabled ? GetListSiswa(params) : Promise.resolve([])),
+    [params.q, params.status, params.limit, params.offset, params.angkatan, params.tingkatKelas, params.jenisKelamin, params.idKelas, params.idNamaKelas, enabled],
   );
 }
 
