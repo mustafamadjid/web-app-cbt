@@ -24,7 +24,7 @@ func sanitizeAndValidateUpdateGuruCmd(cmd UpdateGuruCmd) (UpdateGuruCmd, *user.E
 	}
 	var emailVO *user.Email
 	if cmd.Email != nil {
-		email, err := user.CheckNewEmail(*cmd.Email)
+		email, err := user.CheckNewEmail(cmd.Email)
 		if err != nil {
 			return cmd, nil, err
 		}
@@ -76,7 +76,7 @@ func sanitizeAndValidateUpdateSiswaCmd(cmd UpdateSiswaCmd) (UpdateSiswaCmd, *use
 	}
 	var emailVO *user.Email
 	if cmd.Email != nil {
-		email, err := user.CheckNewEmail(*cmd.Email)
+		email, err := user.CheckNewEmail(cmd.Email)
 		if err != nil {
 			return cmd, nil, err
 		}

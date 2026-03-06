@@ -80,15 +80,11 @@ func (r *UserRepo) FindUserByID(ctx context.Context, id user.ID) (user.Pengguna,
 		return user.Pengguna{}, err
 	}
 
-	if email.Valid {
-		result.Email = user.Email(email.String)
-	}
+	result.Email = nullStringToUserEmailPtr(email)
 	result.JenisKelamin = jenisKelaminValue
 	result.Role = user.Role(roleName)
 	result.StatusAkun = user.StatusAkun(status)
-	if noHp.Valid {
-		result.NoHp = noHp.String
-	}
+	result.NoHp = nullStringToPtr(noHp)
 	if foto.Valid {
 		result.Foto = foto.String
 	}
@@ -149,8 +145,8 @@ func (r *UserRepo) CreateUser(ctx context.Context, pengguna user.Pengguna) (user
 		jenisKelamin,
 		pengguna.Username,
 		pengguna.PasswordHashed,
-		string(pengguna.Email),
-		pengguna.NoHp,
+		userEmailPtrToDB(pengguna.Email),
+		stringPtrToDB(pengguna.NoHp),
 		string(pengguna.Role),
 		string(pengguna.StatusAkun),
 	).Scan(&id)
@@ -310,15 +306,11 @@ func (r *UserRepo) ListUser(ctx context.Context) ([]user.Pengguna, error) {
 			return nil, err
 		}
 
-		if email.Valid {
-			item.Email = user.Email(email.String)
-		}
+		item.Email = nullStringToUserEmailPtr(email)
 		item.JenisKelamin = jenisKelaminValue
 		item.Role = user.Role(roleName)
 		item.StatusAkun = user.StatusAkun(status)
-		if noHp.Valid {
-			item.NoHp = noHp.String
-		}
+		item.NoHp = nullStringToPtr(noHp)
 		if foto.Valid {
 			item.Foto = foto.String
 		}
@@ -383,4 +375,34 @@ func mapUserUniqueViolation(err error) error {
 	default:
 		return coreerror.ErrConflict
 	}
+}
+
+func userEmailPtrToDB(email *user.Email) any {
+	if email == nil {
+		return nil
+	}
+	return string(*email)
+}
+
+func stringPtrToDB(value *string) any {
+	if value == nil {
+		return nil
+	}
+	return *value
+}
+
+func nullStringToPtr(value sql.NullString) *string {
+	if !value.Valid {
+		return nil
+	}
+	v := value.String
+	return &v
+}
+
+func nullStringToUserEmailPtr(value sql.NullString) *user.Email {
+	if !value.Valid {
+		return nil
+	}
+	email := user.Email(value.String)
+	return &email
 }

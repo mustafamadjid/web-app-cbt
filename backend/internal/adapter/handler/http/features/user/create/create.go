@@ -73,18 +73,18 @@ func (h *UserHandler) CreateGuru(write http.ResponseWriter, req *http.Request, _
 
 	cmd := user_service.CreateGuruCmd{
 		Username:     req.FormValue("username"),
-		Email:        req.FormValue("email"),
+		Email:        parseNullableMultipartString(req, "email"),
 		Password:     req.FormValue("password"),
 		NamaLengkap:  req.FormValue("nama_lengkap"),
 		JenisKelamin: req.FormValue("jenis_kelamin"),
-		NoHp:         req.FormValue("no_hp"),
+		NoHp:         parseNullableMultipartString(req, "no_hp"),
 		Nip:          req.FormValue("nip"),
 		Jabatan:      req.FormValue("jabatan"),
 		BidangStudi:  req.FormValue("bidang_studi"),
 		Foto:         relPath,
 	}
 
-	if cmd.Username == "" || cmd.Email == "" || cmd.Password == "" || cmd.NamaLengkap == "" || cmd.JenisKelamin == "" || cmd.NoHp == "" || cmd.Nip == "" || cmd.Jabatan == "" || cmd.BidangStudi == "" {
+	if cmd.Username == "" || cmd.Password == "" || cmd.NamaLengkap == "" || cmd.JenisKelamin == "" || cmd.Nip == "" || cmd.Jabatan == "" || cmd.BidangStudi == "" {
 		httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request : invalid request body")
 		return
 	}
@@ -92,13 +92,15 @@ func (h *UserHandler) CreateGuru(write http.ResponseWriter, req *http.Request, _
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
-	if err := validator.ValidateInputSafe(cmd.Email, "email"); err != nil {
-		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
-		return
-	}
-	if err := validator.ValidateEmail(cmd.Email); err != nil {
-		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
-		return
+	if cmd.Email != nil {
+		if err := validator.ValidateInputSafe(*cmd.Email, "email"); err != nil {
+			httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
+			return
+		}
+		if err := validator.ValidateEmail(*cmd.Email); err != nil {
+			httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
+			return
+		}
 	}
 	if err := validator.ValidatePassword(cmd.Password); err != nil {
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
@@ -112,9 +114,11 @@ func (h *UserHandler) CreateGuru(write http.ResponseWriter, req *http.Request, _
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
-	if err := validator.ValidateInputSafe(cmd.NoHp, "no_hp"); err != nil {
-		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
-		return
+	if cmd.NoHp != nil {
+		if err := validator.ValidateInputSafe(*cmd.NoHp, "no_hp"); err != nil {
+			httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
+			return
+		}
 	}
 	if err := validator.ValidateInputSafe(cmd.Nip, "nip"); err != nil {
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
@@ -259,11 +263,11 @@ func (h *UserHandler) CreateSiswa(write http.ResponseWriter, req *http.Request, 
 
 	cmd := user_service.CreateSiswaCmd{
 		Username:     req.FormValue("username"),
-		Email:        req.FormValue("email"),
+		Email:        parseNullableMultipartString(req, "email"),
 		Password:     req.FormValue("password"),
 		NamaLengkap:  req.FormValue("nama_lengkap"),
 		JenisKelamin: req.FormValue("jenis_kelamin"),
-		NoHp:         req.FormValue("no_hp"),
+		NoHp:         parseNullableMultipartString(req, "no_hp"),
 		Foto:         relPath,
 
 		IdNamaKelas:  user.ID(idNamaKelasInt),
@@ -281,11 +285,9 @@ func (h *UserHandler) CreateSiswa(write http.ResponseWriter, req *http.Request, 
 		return
 	}
 	if cmd.Username == "" ||
-		cmd.Email == "" ||
 		cmd.Password == "" ||
 		cmd.NamaLengkap == "" ||
 		cmd.JenisKelamin == "" ||
-		cmd.NoHp == "" ||
 		cmd.Foto == "" ||
 		cmd.IdNamaKelas == 0 ||
 		cmd.Nisn == "" ||
@@ -300,13 +302,15 @@ func (h *UserHandler) CreateSiswa(write http.ResponseWriter, req *http.Request, 
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
-	if err := validator.ValidateInputSafe(cmd.Email, "email"); err != nil {
-		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
-		return
-	}
-	if err := validator.ValidateEmail(cmd.Email); err != nil {
-		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
-		return
+	if cmd.Email != nil {
+		if err := validator.ValidateInputSafe(*cmd.Email, "email"); err != nil {
+			httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
+			return
+		}
+		if err := validator.ValidateEmail(*cmd.Email); err != nil {
+			httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
+			return
+		}
 	}
 	if err := validator.ValidatePassword(cmd.Password); err != nil {
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
@@ -320,9 +324,11 @@ func (h *UserHandler) CreateSiswa(write http.ResponseWriter, req *http.Request, 
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
-	if err := validator.ValidateInputSafe(cmd.NoHp, "no_hp"); err != nil {
-		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
-		return
+	if cmd.NoHp != nil {
+		if err := validator.ValidateInputSafe(*cmd.NoHp, "no_hp"); err != nil {
+			httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
+			return
+		}
 	}
 	if err := validator.ValidateInputSafe(cmd.Nisn, "nisn"); err != nil {
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
@@ -381,4 +387,22 @@ func (h *UserHandler) CreateSiswa(write http.ResponseWriter, req *http.Request, 
 	}
 
 	httpResponse.WriteOK(write, http.StatusOK, res, "Success")
+}
+
+func parseNullableMultipartString(req *http.Request, field string) *string {
+	if req.MultipartForm == nil || req.MultipartForm.Value == nil {
+		return nil
+	}
+
+	raw, ok := req.MultipartForm.Value[field]
+	if !ok || len(raw) == 0 {
+		return nil
+	}
+
+	val := strings.TrimSpace(raw[0])
+	if val == "" || strings.EqualFold(val, "null") || strings.EqualFold(val, "nil") {
+		return nil
+	}
+
+	return &val
 }

@@ -14,15 +14,17 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func strPtr(v string) *string { return &v }
+
 func TestCreateGuruBranchCoverage(t *testing.T) {
 	validCmd := func() user_service.CreateGuruCmd {
 		return user_service.CreateGuruCmd{
 			Username:     "guruuser",
-			Email:        "guru@example.com",
+			Email:        strPtr("guru@example.com"),
 			Password:     "password",
 			NamaLengkap:  "Guru Test",
 			JenisKelamin: "L",
-			NoHp:         "08123456789",
+			NoHp:         strPtr("08123456789"),
 			Foto:         "foto.png",
 			Nip:          "123456789012345678",
 			Jabatan:      "Kepala",
@@ -155,7 +157,7 @@ func TestCreateGuruBranchCoverage(t *testing.T) {
 		},
 		{
 			name:  "Branch 7 -> invalid email",
-			cmd:   func() user_service.CreateGuruCmd { c := validCmd(); c.Email = "not-an-email"; return c }(),
+			cmd:   func() user_service.CreateGuruCmd { c := validCmd(); c.Email = strPtr("not-an-email"); return c }(),
 			actor: adminActor,
 			txm: &faketest.FakeTxManager{Tx: &faketest.FakeTx{
 				UserRepo:       &faketest.FakeUserRepo{},
@@ -318,19 +320,19 @@ func TestCreateGuruBranchCoverage(t *testing.T) {
 func TestCreateSiswaBranchCoverage(t *testing.T) {
 	validCmd := func() user_service.CreateSiswaCmd {
 		return user_service.CreateSiswaCmd{
-			Username:       "siswauser",
-			Email:          "siswa@example.com",
-			Password:       "password",
-			NamaLengkap:    "Siswa Test",
-			JenisKelamin:   "L",
-			NoHp:           "08123456789",
-			Foto:           "foto.png",
-			IdNamaKelas:    2,
-			Nisn:           "1234567890",
-			NoAbsen:        1,
-			Angkatan:       2021,
-			TempatLahir:    "Bandung",
-			TanggalLahir:   time.Date(2005, time.January, 1, 0, 0, 0, 0, time.UTC),
+			Username:     "siswauser",
+			Email:        strPtr("siswa@example.com"),
+			Password:     "password",
+			NamaLengkap:  "Siswa Test",
+			JenisKelamin: "L",
+			NoHp:         strPtr("08123456789"),
+			Foto:         "foto.png",
+			IdNamaKelas:  2,
+			Nisn:         "1234567890",
+			NoAbsen:      1,
+			Angkatan:     2021,
+			TempatLahir:  "Bandung",
+			TanggalLahir: time.Date(2005, time.January, 1, 0, 0, 0, 0, time.UTC),
 		}
 	}
 
@@ -459,7 +461,7 @@ func TestCreateSiswaBranchCoverage(t *testing.T) {
 		},
 		{
 			name:  "Branch 7 -> invalid email",
-			cmd:   func() user_service.CreateSiswaCmd { c := validCmd(); c.Email = "not-an-email"; return c }(),
+			cmd:   func() user_service.CreateSiswaCmd { c := validCmd(); c.Email = strPtr("not-an-email"); return c }(),
 			actor: adminActor,
 			txm: &faketest.FakeTxManager{Tx: &faketest.FakeTx{
 				UserRepo:        &faketest.FakeUserRepo{},
