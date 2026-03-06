@@ -29,8 +29,23 @@ func (r *BankSoalRepo) loggerFor(ctx context.Context) corelog.Logger {
 }
 
 const bankSoalSelectColumns = `
-	SELECT id_bank_soal,id_mapel,id_kelas,id_pengguna,nama_bank_soal,deskripsi,materi,created_at,(id_bank_soal_version_aktif IS NOT NULL) AS soal_uploaded
-	FROM bank_soal
+	SELECT 
+		b.id_bank_soal,
+		b.id_mapel,
+		b.id_kelas,
+		b.id_pengguna,
+		b.nama_bank_soal,
+		b.deskripsi,
+		b.materi,
+		b.created_at,
+		(b.id_bank_soal_version_aktif IS NOT NULL) AS soal_uploaded,
+		k.tingkat_kelas,
+		m.nama_mapel,
+		p.nama_lengkap
+	FROM bank_soal b
+	JOIN kelas k ON b.id_kelas = k.id_kelas
+	JOIN mata_pelajaran m ON b.id_mapel = m.id_mapel
+	JOIN pengguna p ON b.id_pengguna = p.id_pengguna
 `
 
 func (r *BankSoalRepo) buildListBankSoalQuery(filter query.BankSoalFilter, uploadedOnly bool) (string, []any) {
@@ -39,30 +54,30 @@ func (r *BankSoalRepo) buildListBankSoalQuery(filter query.BankSoalFilter, uploa
 	args := make([]any, 0, 4)
 
 	if uploadedOnly {
-		where = append(where, "id_bank_soal_version_aktif IS NOT NULL")
+		where = append(where, "b.id_bank_soal_version_aktif IS NOT NULL")
 	}
 
 	if filter.Search != "" {
 		args = append(args, "%"+filter.Search+"%")
 		idx := len(args)
-		where = append(where, fmt.Sprintf("(nama_bank_soal ILIKE $%d OR deskripsi ILIKE $%d OR materi ILIKE $%d)", idx, idx, idx))
+		where = append(where, fmt.Sprintf("(b.nama_bank_soal ILIKE $%d OR b.deskripsi ILIKE $%d OR b.materi ILIKE $%d)", idx, idx, idx))
 	}
 
 	if filter.TingkatKelas != nil {
 		args = append(args, *filter.TingkatKelas)
-		where = append(where, fmt.Sprintf("id_kelas = $%d", len(args)))
+		where = append(where, fmt.Sprintf("b.id_kelas = $%d", len(args)))
 	}
 
 	if filter.Mapel != nil {
 		args = append(args, *filter.Mapel)
-		where = append(where, fmt.Sprintf("id_mapel = $%d", len(args)))
+		where = append(where, fmt.Sprintf("b.id_mapel = $%d", len(args)))
 	}
 
 	if len(where) > 0 {
 		baseQuery = fmt.Sprintf("%s WHERE %s", baseQuery, strings.Join(where, " AND "))
 	}
 
-	baseQuery = fmt.Sprintf("%s ORDER BY created_at ASC", baseQuery)
+	baseQuery = fmt.Sprintf("%s ORDER BY b.created_at ASC", baseQuery)
 
 	if filter.Limit > 0 {
 		args = append(args, filter.Limit)
@@ -89,6 +104,9 @@ func (r *BankSoalRepo) scanBankSoalRows(ctx context.Context, op string, rows pgx
 			&item.Materi,
 			&item.CreatedAt,
 			&item.SoalUploaded,
+			&item.TingkatKelas,
+			&item.Mapel,
+			&item.GuruPembuat,
 		); err != nil {
 			r.loggerFor(ctx).Error(ctx, "failed scan bank soal", "layer", "repo.db", "op", op, "err", err)
 			return nil, err
@@ -142,10 +160,25 @@ func (r *BankSoalRepo) GetBankSoalUploaded(ctx context.Context, filter query.Ban
 
 func (r *BankSoalRepo) GetBankSoalByGuru(ctx context.Context, idPengguna bank_soal.ID) ([]bank_soal.BankSoal, error) {
 	const queryText = `
-		SELECT id_bank_soal,id_mapel,id_kelas,id_pengguna,nama_bank_soal,deskripsi,materi,created_at,(id_bank_soal_version_aktif IS NOT NULL) AS soal_uploaded
-		FROM bank_soal
-		WHERE id_pengguna = $1
-		ORDER BY created_at ASC
+		SELECT 
+			b.id_bank_soal,
+			b.id_mapel,
+			b.id_kelas,
+			b.id_pengguna,
+			b.nama_bank_soal,
+			b.deskripsi,
+			b.materi,
+			b.created_at,
+			(b.id_bank_soal_version_aktif IS NOT NULL) AS soal_uploaded,
+			k.tingkat_kelas,
+			m.nama_mapel,
+			p.nama_lengkap
+		FROM bank_soal b
+		JOIN kelas k ON b.id_kelas = k.id_kelas
+		JOIN mata_pelajaran m ON b.id_mapel = m.id_mapel
+		JOIN pengguna p ON b.id_pengguna = p.id_pengguna
+		WHERE b.id_pengguna = $1
+		ORDER BY b.created_at ASC
 	`
 
 	rows, err := r.q.Query(ctx, queryText, idPengguna)
@@ -165,9 +198,24 @@ func (r *BankSoalRepo) GetBankSoalByGuru(ctx context.Context, idPengguna bank_so
 
 func (r *BankSoalRepo) GetBankSoalById(ctx context.Context, idBankSoal bank_soal.ID) (bank_soal.BankSoal, error) {
 	const queryText = `
-		SELECT id_bank_soal,id_mapel,id_kelas,id_pengguna,nama_bank_soal,deskripsi,materi,created_at,(id_bank_soal_version_aktif IS NOT NULL) AS soal_uploaded
-		FROM bank_soal
-		WHERE id_bank_soal = $1
+		SELECT 
+			b.id_bank_soal,
+			b.id_mapel,
+			b.id_kelas,
+			b.id_pengguna,
+			b.nama_bank_soal,
+			b.deskripsi,
+			b.materi,
+			b.created_at,
+			(b.id_bank_soal_version_aktif IS NOT NULL) AS soal_uploaded,
+			k.tingkat_kelas,
+			m.nama_mapel,
+			p.nama_lengkap
+		FROM bank_soal b
+		JOIN kelas k ON b.id_kelas = k.id_kelas
+		JOIN mata_pelajaran m ON b.id_mapel = m.id_mapel
+		JOIN pengguna p ON b.id_pengguna = p.id_pengguna
+		WHERE b.id_bank_soal = $1
 	`
 
 	var item bank_soal.BankSoal
@@ -181,6 +229,9 @@ func (r *BankSoalRepo) GetBankSoalById(ctx context.Context, idBankSoal bank_soal
 		&item.Materi,
 		&item.CreatedAt,
 		&item.SoalUploaded,
+		&item.TingkatKelas,
+		&item.Mapel,
+		&item.GuruPembuat,
 	); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return bank_soal.BankSoal{}, coreerror.ErrNotFound

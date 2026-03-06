@@ -5,6 +5,9 @@ export type BankSoalApiItem = {
   id_mapel: number;
   id_kelas: number;
   id_pengguna: number;
+  mapel: string;
+  guru_pembuat: string;
+  kelas: string;
   nama_bank_soal: string;
   deskripsi: string;
   materi: string;
@@ -41,6 +44,7 @@ export type BankSoalFormValues = {
   namaBankSoal: string;
   kelasId: number | "";
   mapelId: number | "";
+  materi: string;
   deskripsi: string;
 };
 

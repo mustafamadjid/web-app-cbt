@@ -24,6 +24,7 @@ const initialValues: BankSoalFormValues = {
   namaBankSoal: "",
   kelasId: "",
   mapelId: "",
+  materi: "",
   deskripsi: "",
 };
 
@@ -84,6 +85,7 @@ const BankSoalForm = () => {
     namaBankSoal: [requiredString("Nama bank soal wajib diisi.")],
     kelasId: [requiredValue("Kelas wajib dipilih.")],
     mapelId: [requiredValue("Mata pelajaran wajib dipilih.")],
+    materi: [requiredString("Materi wajib diisi.")],
     deskripsi: [requiredString("Deskripsi wajib diisi.")],
   });
 
@@ -98,6 +100,7 @@ const BankSoalForm = () => {
       namaBankSoal: true,
       kelasId: true,
       mapelId: true,
+      materi: true,
       deskripsi: true,
     });
 
@@ -120,7 +123,7 @@ const BankSoalForm = () => {
         id_kelas: selectedKelas.id_tingkat_kelas,
         id_mapel: selectedMapel.id,
         deskripsi: values.deskripsi.trim(),
-        materi: `Kelas ${selectedKelas.tingkat_kelas}`,
+        materi: values.materi.trim(),
       });
 
       toast.success("Bank soal berhasil dibuat.");
@@ -158,7 +161,7 @@ const BankSoalForm = () => {
               <h2 className={sectionTitle}>Informasi Bank Soal</h2>
               <p className={helperText}>
                 Pilih tingkat kelas, mata pelajaran, lalu isi deskripsi singkat bank
-                soal.
+                soal beserta materi yang dicakup.
               </p>
             </div>
 
@@ -263,6 +266,25 @@ const BankSoalForm = () => {
                 </select>
                 {hasError("mapelId") && (
                   <p className="mt-1 text-xs text-rose-500">{errors.mapelId}</p>
+                )}
+              </div>
+
+              <div className="md:col-span-2">
+                <InputField
+                  id="materi"
+                  label="Materi"
+                  value={values.materi}
+                  onChange={(v) => setField("materi", v)}
+                  onBlur={() => onBlur("materi")}
+                  placeholder="Contoh: Persamaan Linear Dua Variabel"
+                  inputClassName={
+                    hasError("materi") ? "border-rose-300 ring-rose-100" : ""
+                  }
+                  disabled={submitting}
+                  required
+                />
+                {hasError("materi") && (
+                  <p className="mt-1 text-xs text-rose-500">{errors.materi}</p>
                 )}
               </div>
             </div>

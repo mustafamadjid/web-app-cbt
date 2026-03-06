@@ -9,6 +9,10 @@ type BankSoal struct {
 	IdMapel       ID
 	IdKelas       ID
 	IdPengguna    ID
+
+	TingkatKelas  int
+	Mapel         string
+	GuruPembuat   string
 	NamaBankSoal  string
 	Deskripsi     string
 	Materi        string

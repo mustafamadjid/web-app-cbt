@@ -95,6 +95,25 @@ type JawabanUjianSiswa struct {
 	WaktuJawab     *time.Time
 }
 
+type SoalUjianSiswa struct {
+	IdSoal ID
+	IdBankSoalVersion ID
+	TipeSoal string
+	Pertanyaan string
+	Gambar *string
+	BobotSoal int
+	NoUrutSoal int
+
+	OpsiJawaban []OpsiPilganUjian
+}
+
+type OpsiPilganUjian struct {
+	IdPilihanGanda ID
+	IdSoal ID
+	IsiPilihan string
+	IsBenar bool
+}
+
 func (status StatusUjian) ValidStatus() bool {
 	switch status {
 	case BELUM_MULAI, MULAI, SELESAI, DIBATALKAN:

@@ -2,6 +2,7 @@ package httpx
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -212,11 +213,19 @@ func parseListBankSoalRequest(r *http.Request) (ListBankSoalRequest, error) {
 }
 
 func toBankSoalResponse(item bank_soal.BankSoal) BankSoalResponse {
+	kelasLabel := "-"
+	if item.TingkatKelas > 0 {
+		kelasLabel = fmt.Sprintf("Kelas %d", item.TingkatKelas)
+	}
+
 	return BankSoalResponse{
 		IDBankSoal:    int(item.IdBankSoal),
 		IDMapel:       int(item.IdMapel),
 		IDKelas:       int(item.IdKelas),
 		IDPengguna:    int(item.IdPengguna),
+		Mapel:         item.Mapel,
+		GuruPembuat:   item.GuruPembuat,
+		Kelas:         kelasLabel,
 		NamaBankSoal:  item.NamaBankSoal,
 		Deskripsi:     item.Deskripsi,
 		Materi:        item.Materi,

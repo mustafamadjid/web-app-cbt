@@ -55,18 +55,14 @@ const BankSoal = () => {
 
   const { execute: executeDeleteBankSoal } = useDeleteBankSoal();
 
+  // --------------------------------------------
+  // Hooks ambil data kelas, mapel, dan bank soal
+  // --------------------------------------------
   const { data: kelasData } = useGetDataKelasFull();
   const opsiTingkatKelas = useMemo(
     () => kelasData?.item_tingkat_kelas ?? [],
     [kelasData],
   );
-
-  const kelasLabelById = useMemo(() => {
-    return opsiTingkatKelas.reduce<Record<number, string>>((acc, tingkat) => {
-      acc[tingkat.id_tingkat_kelas] = `Kelas ${tingkat.tingkat_kelas}`;
-      return acc;
-    }, {});
-  }, [opsiTingkatKelas]);
 
   const { data: mapelRowsData } = useGetMapel({ limit: 50, offset: 0 });
   const mapelRows = useMemo(() => mapelRowsData ?? [], [mapelRowsData]);
@@ -81,13 +77,6 @@ const BankSoal = () => {
       label: mapel.namaMapel,
     }));
   }, [mapelRows, selectedKelasId]);
-
-  const mapelLabelById = useMemo(() => {
-    return mapelRows.reduce<Record<number, string>>((acc, mapel) => {
-      acc[mapel.id] = mapel.namaMapel;
-      return acc;
-    }, {});
-  }, [mapelRows]);
 
   const isUploadedOnly = uploadStatusFilter === "UPLOADED";
 
@@ -132,6 +121,9 @@ const BankSoal = () => {
   } = useGetBankSoalByGuru(idPengguna);
   const myRawItems = useMemo(() => myRawItemsData ?? [], [myRawItemsData]);
 
+  // --------------------------------------------
+  // Filtering dan pencarian
+  // --------------------------------------------
   const myFilteredItems = useMemo(() => {
     if (idPengguna <= 0) return [];
 
@@ -153,8 +145,9 @@ const BankSoal = () => {
           item.nama_bank_soal,
           item.materi,
           item.deskripsi,
-          mapelLabelById[item.id_mapel],
-          kelasLabelById[item.id_kelas],
+          item.mapel,
+          item.kelas,
+          item.guru_pembuat,
         ]
           .filter(Boolean)
           .join(" ")
@@ -168,8 +161,6 @@ const BankSoal = () => {
   }, [
     debouncedSearch,
     idPengguna,
-    kelasLabelById,
-    mapelLabelById,
     myRawItems,
     uploadStatusFilter,
     selectedKelasId,
@@ -180,12 +171,12 @@ const BankSoal = () => {
   const myItems = myFilteredItems.slice(myOffset, myOffset + batasData);
 
   const items: BankSoalItem[] = isUploadedOnly
-    ? uploadedItemsData ?? []
-    : itemsData ?? [];
+    ? (uploadedItemsData ?? [])
+    : (itemsData ?? []);
   const loading = isUploadedOnly ? loadingUploadedItemsData : loadingItemsData;
   const errorMsg = isUploadedOnly
-    ? errorUploadedItemsData ?? ""
-    : errorItemsData ?? "";
+    ? (errorUploadedItemsData ?? "")
+    : (errorItemsData ?? "");
   const refetchAll = isUploadedOnly ? refetchUploadedItems : refetchAllRaw;
 
   useEffect(() => {
@@ -200,7 +191,13 @@ const BankSoal = () => {
   useEffect(() => {
     setHalamanSemua(1);
     setHalamanSaya(1);
-  }, [debouncedSearch, selectedKelasId, selectedMapelId, uploadStatusFilter, batasData]);
+  }, [
+    debouncedSearch,
+    selectedKelasId,
+    selectedMapelId,
+    uploadStatusFilter,
+    batasData,
+  ]);
 
   const isFiltering =
     search.trim() !== "" ||
@@ -233,18 +230,11 @@ const BankSoal = () => {
     setUploadStatusFilter("ALL");
   };
 
-  const resolveGuruLabel = (item: BankSoalItem) => {
-    if (item.id_pengguna === idPengguna) {
-      return user?.username ?? `Pengguna #${item.id_pengguna}`;
-    }
-    return `Pengguna #${item.id_pengguna}`;
-  };
+  const resolveGuruLabel = (item: BankSoalItem) => item.guru_pembuat || "-";
 
-  const resolveMapelLabel = (item: BankSoalItem) =>
-    mapelLabelById[item.id_mapel] ?? `Mapel #${item.id_mapel}`;
+  const resolveMapelLabel = (item: BankSoalItem) => item.mapel || "-";
 
-  const resolveKelasLabel = (item: BankSoalItem) =>
-    kelasLabelById[item.id_kelas] ?? `Kelas #${item.id_kelas}`;
+  const resolveKelasLabel = (item: BankSoalItem) => item.kelas || "-";
 
   const handleDelete = async () => {
     if (targetDeleteId == null) return;
@@ -264,8 +254,7 @@ const BankSoal = () => {
     }
   };
 
-  const semuaAwal =
-    items.length === 0 ? 0 : (halamanSemua - 1) * batasData + 1;
+  const semuaAwal = items.length === 0 ? 0 : (halamanSemua - 1) * batasData + 1;
   const semuaAkhir =
     items.length === 0 ? 0 : (halamanSemua - 1) * batasData + items.length;
   const bisaSemuaSebelumnya = halamanSemua > 1;

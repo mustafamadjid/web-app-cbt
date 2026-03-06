@@ -40,3 +40,7 @@ type JawabanUjianRepository interface {
 	UpdateJawabanUjianSiswa(ctx context.Context, id ujian.ID, payload updatepatch.UpdateJawabanUjianSiswaPatch) error
 	DeleteJawabanUjianSiswa(ctx context.Context, id ujian.ID) error
 }
+
+type SoalUjianRepository interface {
+	GetSoalUjianByBankSoal(ctx context.Context, idBankSoal ujian.ID)(ujian.SoalUjianSiswa,error)
+}
