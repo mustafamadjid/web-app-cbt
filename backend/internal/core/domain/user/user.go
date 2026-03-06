@@ -25,11 +25,11 @@ const (
 type Pengguna struct {
 	ID             ID
 	Username       string
-	Email          Email
+	Email          *Email
 	PasswordHashed string
 	NamaLengkap    string
 	JenisKelamin   string
-	NoHp           string
+	NoHp           *string
 	Role           Role
 	StatusAkun     StatusAkun
 	Foto           string
@@ -54,11 +54,21 @@ func (role Role) ValidRole() bool {
 	}
 }
 
-func CheckNewEmail(raw string) (Email, error) {
-	s := strings.TrimSpace(strings.ToLower(raw))
+func CheckNewEmail(raw *string) (Email, error) {
+	if raw == nil {
+		return "", ErrInvalidEmail
+	}
+	
+	s := strings.TrimSpace(strings.ToLower(*raw))
+
 	if s == "" {
 		return "", ErrInvalidEmail
 	}
+
+	if len(s) > 254 {
+	return "", ErrInvalidEmail
+	}
+
 	if _, err := mail.ParseAddress(s); err != nil {
 		return "", ErrInvalidEmail
 	}

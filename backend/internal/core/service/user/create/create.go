@@ -48,11 +48,18 @@ func (uc *CreateTx) CreateGuru(ctx context.Context, cmd CreateGuruCmd, actor use
 	}
 
 	// Validasi
-	emailValidated, error := user.CheckNewEmail(cmd.Email)
-	if error != nil {
-		logger.Error(ctx, "failed validating email", "layer", "core.service", "op", "user.create_guru", "err", error)
-		return CreateGuruRes{}, error
+	var email *user.Email
+	if cmd.Email != nil {
+		emailValidated, error := user.CheckNewEmail(cmd.Email)
+		if error != nil {
+			logger.Error(ctx, "failed validating email", "layer", "core.service", "op", "user.create_guru", "err", error)
+			return CreateGuruRes{}, error
+		}
+
+		email = &emailValidated
 	}
+
+	
 
 	// Hash password
 	hashedPassword, error := uc.hasher.GenerateHash(cmd.Password)
@@ -93,7 +100,7 @@ func (uc *CreateTx) CreateGuru(ctx context.Context, cmd CreateGuruCmd, actor use
 
 	userData := user.Pengguna{
 		Username:       cmd.Username,
-		Email:          emailValidated,
+		Email:          email,
 		PasswordHashed: hashedPassword,
 		NamaLengkap:    cmd.NamaLengkap,
 		JenisKelamin:   cmd.JenisKelamin,
@@ -163,10 +170,18 @@ func (uc *CreateTx) CreateSiswa(ctx context.Context, cmd CreateSiswaCmd, actor u
 		nisnToStore = v
 	}
 
-	emailValidated, err := user.CheckNewEmail(cmd.Email)
-	if err != nil {
-		return CreateSiswaRes{}, err
+	// Validasi
+	var email *user.Email
+	if cmd.Email != nil {
+		emailValidated, error := user.CheckNewEmail(cmd.Email)
+		if error != nil {
+			logger.Error(ctx, "failed validating email", "layer", "core.service", "op", "user.create_guru", "err", error)
+			return CreateSiswaRes{}, error
+		}
+
+		email = &emailValidated
 	}
+
 
 	if err := user.CheckAbsen(cmd.NoAbsen); err != nil {
 		return CreateSiswaRes{}, err
@@ -211,7 +226,7 @@ func (uc *CreateTx) CreateSiswa(ctx context.Context, cmd CreateSiswaCmd, actor u
 
 	userData := user.Pengguna{
 		Username:       cmd.Username,
-		Email:          emailValidated,
+		Email:          email,
 		PasswordHashed: hashedPassword,
 		NamaLengkap:    cmd.NamaLengkap,
 		JenisKelamin:   cmd.JenisKelamin,

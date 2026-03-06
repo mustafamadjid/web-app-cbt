@@ -127,10 +127,20 @@ export async function deleteMataPelajaran(idMapel: number) {
 // Hook Wrappers
 // =====================
 
-export function useGetMapel(params: MataPelajaranFilterParams = {}) {
+export function useGetMapel(
+  params: MataPelajaranFilterParams = {},
+  enabled = true,
+) {
   return useFetch(
-    () => getMapel(params),
-    [params.search, params.tingkatKelas, params.namaMapel, params.limit, params.offset],
+    () => (enabled ? getMapel(params) : Promise.resolve([])),
+    [
+      params.search,
+      params.tingkatKelas,
+      params.namaMapel,
+      params.limit,
+      params.offset,
+      enabled,
+    ],
   );
 }
 

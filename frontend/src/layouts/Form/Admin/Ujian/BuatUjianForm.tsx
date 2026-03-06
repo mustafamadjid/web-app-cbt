@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 
 import DatePicker from "@/components/common/DateInput/DatePicker";
 import TimePicker from "@/components/common/DateInput/TimePicker";
+import BankSoalSelect from "@/components/common/Select/BankSoalSelect";
 import InputField from "@/components/common/Input/InputField";
 import { useAuth } from "@/contexts/AuthContext";
 import { buildCreatePenjadwalanUjianPayload } from "@/helper/FormData/buildCreatePenjadwalanUjianPayload";
@@ -20,12 +21,14 @@ import { paths } from "@/routes/paths";
 import { ApiError } from "@/services/Api/api";
 import { useGetBankSoal } from "@/services/Api/features-api/BankSoal/banksoal.service";
 import { useGetDataKelasFull } from "@/services/Api/features-api/DataMaster/kelas.service";
+import { useGetMapel } from "@/services/Api/features-api/DataMaster/mapel.service";
 import { useGetRuangUjian } from "@/services/Api/features-api/DataMaster/ruang-ujian.service";
 import { useGetSesi } from "@/services/Api/features-api/DataMaster/sesi.service";
 import { useGetAllGuru } from "@/services/Api/features-api/KelolaAkun/akunguru.service";
 import { useGetListSiswa } from "@/services/Api/features-api/KelolaAkun/akunsiswa.service";
 import { createJadwalUjian } from "@/services/Api/features-api/Ujian/jadwalujian.service";
 import type { FullDataKelas, NamaKelas, TingkatKelas } from "@/types/DataMaster/Kelas";
+import type { MataPelajaranRow } from "@/types/DataMaster/MataPelajaran";
 import type { DataGuru } from "@/types/KelolaAkun/AkunGuru";
 import type { DataAkunSiswa } from "@/types/KelolaAkun/AkunSiswa";
 import type { BuatUjianFormValues } from "@/types/Ujian/BuatUjian";
@@ -68,6 +71,7 @@ const BuatUjianForm = () => {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [selectedMapelId, setSelectedMapelId] = useState(0);
 
   const setField = createSetField(setValues);
 
@@ -94,16 +98,29 @@ const BuatUjianForm = () => {
   );
 
   const {
+    data: mapelData,
+    loading: loadingMapel,
+    error: mapelError,
+  } = useGetMapel({
+    tingkatKelas: values.id_kelas > 0 ? values.id_kelas : undefined,
+    limit: 100,
+    offset: 0,
+  }, values.id_kelas > 0);
+  const mapelOptions: MataPelajaranRow[] = mapelData ?? [];
+
+  const bankSoalFetchEnabled = values.id_kelas > 0 && selectedMapelId > 0;
+  const {
     data: bankSoalData,
     loading: loadingBankSoal,
     error: bankSoalError,
   } = useGetBankSoal(
     {
       id_kelas: values.id_kelas > 0 ? values.id_kelas : undefined,
+      id_mapel: selectedMapelId > 0 ? selectedMapelId : undefined,
       limit: 100,
       offset: 0,
     },
-    values.id_kelas > 0,
+    bankSoalFetchEnabled,
   );
   const bankSoalOptions: BankSoalItem[] = bankSoalData ?? [];
 
@@ -151,6 +168,7 @@ const BuatUjianForm = () => {
 
   const loadErrorMessage =
     kelasError ||
+    mapelError ||
     bankSoalError ||
     ruangError ||
     sesiError ||
@@ -160,6 +178,7 @@ const BuatUjianForm = () => {
   useEffect(() => {
     setField("id_nama_kelas", 0);
     setField("id_bank_soal", 0);
+    setSelectedMapelId(0);
   }, [values.id_kelas]);
 
   useEffect(() => {
@@ -177,10 +196,27 @@ const BuatUjianForm = () => {
     }
   }, [bankSoalOptions, values.id_bank_soal]);
 
+  useEffect(() => {
+    if (
+      selectedMapelId !== 0 &&
+      !mapelOptions.some((item) => item.id === selectedMapelId)
+    ) {
+      setSelectedMapelId(0);
+      setField("id_bank_soal", 0);
+    }
+  }, [mapelOptions, selectedMapelId]);
+
   const durasiMenit = useMemo(
     () => calculateDuration(values.waktu_mulai, values.waktu_selesai),
     [values.waktu_mulai, values.waktu_selesai],
   );
+
+  const bankSoalPlaceholder =
+    values.id_kelas === 0
+      ? "Pilih tingkat kelas terlebih dahulu"
+      : selectedMapelId === 0
+        ? "Pilih mapel terlebih dahulu"
+        : "Pilih bank soal";
 
   const validate = createValidator<BuatUjianFormValues>({
     nama_ujian: [requiredString("Nama ujian wajib diisi.")],
@@ -325,11 +361,11 @@ const BuatUjianForm = () => {
             <div className="mb-4">
               <h2 className={sectionTitle}>Kelas & Bank Soal</h2>
               <p className={helperText}>
-                Gunakan data kelas penuh, lalu pilih bank soal sesuai tingkat kelas.
+                Gunakan data kelas penuh, pilih mapel, lalu pilih bank soal sesuai filter.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
               <div>
                 <label htmlFor="id_kelas" className="text-xs font-medium text-slate-600">
                   Tingkat Kelas
@@ -406,26 +442,47 @@ const BuatUjianForm = () => {
               </div>
 
               <div className="md:col-span-2 lg:col-span-1">
-                <label htmlFor="id_bank_soal" className="text-xs font-medium text-slate-600">
-                  Bank Soal
+                <label htmlFor="id_mapel_filter" className="text-xs font-medium text-slate-600">
+                  Mapel
                 </label>
                 <select
-                  id="id_bank_soal"
-                  value={values.id_bank_soal}
-                  onChange={(event) => setField("id_bank_soal", Number(event.target.value))}
-                  onBlur={() => onBlur("id_bank_soal")}
-                  disabled={values.id_kelas === 0 || loadingBankSoal}
-                  className={`${selectBaseClass} ${hasError("id_bank_soal") ? "border-rose-300 ring-rose-100" : ""}`}
+                  id="id_mapel_filter"
+                  value={selectedMapelId}
+                  onChange={(event) => {
+                    setSelectedMapelId(Number(event.target.value));
+                    setField("id_bank_soal", 0);
+                  }}
+                  disabled={values.id_kelas === 0 || loadingMapel}
+                  className={selectBaseClass}
                 >
                   <option value={0}>
-                    {loadingBankSoal ? "Memuat bank soal..." : "Pilih bank soal"}
+                    {values.id_kelas === 0
+                      ? "Pilih tingkat kelas dulu"
+                      : loadingMapel
+                        ? "Memuat mapel..."
+                        : "Pilih mapel"}
                   </option>
-                  {bankSoalOptions.map((item) => (
-                    <option key={item.id_bank_soal} value={item.id_bank_soal}>
-                      {item.nama_bank_soal}
+                  {mapelOptions.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.namaMapel}
                     </option>
                   ))}
                 </select>
+              </div>
+
+              <div className="md:col-span-2 lg:col-span-2">
+                <BankSoalSelect
+                  id="id_bank_soal"
+                  label="Bank Soal"
+                  value={values.id_bank_soal}
+                  options={bankSoalOptions}
+                  onChange={(selectedId) => setField("id_bank_soal", selectedId)}
+                  onBlur={() => onBlur("id_bank_soal")}
+                  disabled={values.id_kelas === 0 || selectedMapelId === 0}
+                  loading={loadingBankSoal}
+                  placeholder={bankSoalPlaceholder}
+                  error={hasError("id_bank_soal")}
+                />
                 {hasError("id_bank_soal") && (
                   <p className="mt-1 text-xs text-rose-600">{errors.id_bank_soal}</p>
                 )}

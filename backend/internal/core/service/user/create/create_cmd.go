@@ -8,11 +8,11 @@ import (
 
 type CreateGuruCmd struct {
 	Username     string
-	Email        string
+	Email        *string
 	Password     string
 	NamaLengkap  string
 	JenisKelamin string
-	NoHp         string
+	NoHp         *string
 	Foto         string
 
 	Nip         string
@@ -22,11 +22,11 @@ type CreateGuruCmd struct {
 
 type CreateSiswaCmd struct {
 	Username     string
-	Email        string
+	Email        *string
 	Password     string
 	NamaLengkap  string
 	JenisKelamin string
-	NoHp         string
+	NoHp         *string
 	Foto         string
 	
 	IdNamaKelas    user.ID
