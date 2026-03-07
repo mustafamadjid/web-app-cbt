@@ -1,12 +1,14 @@
-import type { JadwalUjianItem } from "../../../types/Ujian/jadwalUjian";
+ï»¿import type { JadwalUjianItem } from "../../../types/Ujian/jadwalUjian";
 import {
   Calendar,
   Clock,
-  MapPin,
-  User,
-  Hash,
   GraduationCap,
+  Hash,
+  MapPin,
+  Pencil,
   Play,
+  Trash2,
+  User,
   XCircle,
 } from "lucide-react";
 import { Link } from "react-router";
@@ -32,13 +34,17 @@ const statusConfig: Record<string, { label: string; color: string }> = {
 
 type BoxJadwalUjianProps = JadwalUjianItem & {
   linkJadwal?: string;
+  onEdit?: (idJadwal: number) => void;
+  onDelete?: (idUjian: number) => void;
   onStart?: (idUjian: number) => void;
   onCancel?: (idUjian: number) => void;
   canControl?: boolean;
   updating?: boolean;
+  deleting?: boolean;
 };
 
 const BoxJadwalUjian = ({
+  id,
   nama_ujian,
   pengawas_ujian,
   tgl_ujian,
@@ -50,23 +56,36 @@ const BoxJadwalUjian = ({
   nama_kelas,
   id_ujian,
   linkJadwal = "",
+  onEdit,
+  onDelete,
   onStart,
   onCancel,
   canControl = false,
   updating = false,
+  deleting = false,
 }: BoxJadwalUjianProps) => {
   const idUjian = id_ujian ?? 0;
   const status = status_ujian
     ? statusConfig[status_ujian]
     : { label: "Unknown", color: "bg-gray-100 text-gray-500" };
 
+  const disableEdit = updating || deleting || id <= 0;
+  const disableDelete = updating || deleting || idUjian <= 0;
   const disableStart =
-    updating || idUjian <= 0 || status_ujian === "berlangsung" || status_ujian === "selesai";
+    updating ||
+    deleting ||
+    idUjian <= 0 ||
+    status_ujian === "berlangsung" ||
+    status_ujian === "selesai";
   const disableCancel =
-    updating || idUjian <= 0 || status_ujian === "dibatalkan" || status_ujian === "selesai";
+    updating ||
+    deleting ||
+    idUjian <= 0 ||
+    status_ujian === "dibatalkan" ||
+    status_ujian === "selesai";
 
   return (
-    <Link to={linkJadwal} className="block group">
+    <Link to={linkJadwal} className="group block">
       <div className="relative overflow-hidden rounded-2xl border-2 border-slate-100 bg-white transition-all duration-300 hover:border-[#397e50]/30 hover:shadow-xl hover:shadow-slate-200/50">
         <div className="absolute left-0 top-0 h-full w-1.5 bg-[#397e50]" />
 
@@ -75,7 +94,7 @@ const BoxJadwalUjian = ({
             <div className="space-y-2">
               <span className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-100 px-2.5 py-1 text-2xs font-bold uppercase tracking-wider text-slate-600">
                 <GraduationCap size={14} />
-                Kelas {tingkat_kelas ?? "-"} • {nama_kelas ?? "-"}
+                Kelas {tingkat_kelas ?? "-"} - {nama_kelas ?? "-"}
               </span>
               <h3 className="text-xl font-extrabold leading-tight text-slate-800 transition-colors group-hover:text-[#397e50]">
                 {nama_ujian}
@@ -123,16 +142,44 @@ const BoxJadwalUjian = ({
           </div>
 
           {canControl && (
-            <div className="mt-6 flex flex-col gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:items-center sm:justify-end">
+            <div className="mt-6 flex flex-col gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
               <button
                 type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
+                onClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  if (id > 0) onEdit?.(id);
+                }}
+                disabled={disableEdit}
+                className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-slate-200 bg-white px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-slate-500 transition-all hover:border-sky-200 hover:bg-sky-50 hover:text-sky-600 disabled:opacity-30 disabled:hover:border-slate-200 disabled:hover:bg-transparent disabled:hover:text-slate-500"
+              >
+                <Pencil size={16} />
+                Update
+              </button>
+
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  if (idUjian > 0) onDelete?.(idUjian);
+                }}
+                disabled={disableDelete}
+                className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-slate-200 bg-white px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-slate-500 transition-all hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600 disabled:opacity-30 disabled:hover:border-slate-200 disabled:hover:bg-transparent disabled:hover:text-slate-500"
+              >
+                <Trash2 size={16} />
+                Hapus
+              </button>
+
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
                   if (idUjian > 0) onCancel?.(idUjian);
                 }}
                 disabled={disableCancel}
-                className="cursor-pointer flex items-center justify-center gap-2 rounded-xl border-2 border-slate-200 bg-white px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-slate-500 transition-all hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600 disabled:opacity-30 disabled:hover:border-slate-200 disabled:hover:bg-transparent disabled:hover:text-slate-500"
+                className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-slate-200 bg-white px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-slate-500 transition-all hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600 disabled:opacity-30 disabled:hover:border-slate-200 disabled:hover:bg-transparent disabled:hover:text-slate-500"
               >
                 <XCircle size={16} />
                 Batalkan
@@ -140,13 +187,13 @@ const BoxJadwalUjian = ({
 
               <button
                 type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
+                onClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
                   if (idUjian > 0) onStart?.(idUjian);
                 }}
                 disabled={disableStart}
-                className="cursor-pointer flex items-center justify-center gap-2 rounded-xl bg-[#397e50] px-6 py-2.5 text-xs font-bold uppercase tracking-widest text-white transition-all hover:bg-[#2d633f] hover:shadow-lg hover:shadow-emerald-900/20 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none"
+                className="flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#397e50] px-6 py-2.5 text-xs font-bold uppercase tracking-widest text-white transition-all hover:bg-[#2d633f] hover:shadow-lg hover:shadow-emerald-900/20 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none"
               >
                 <Play size={16} fill="currentColor" />
                 Mulai Ujian

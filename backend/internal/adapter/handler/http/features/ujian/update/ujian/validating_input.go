@@ -42,7 +42,7 @@ func ValidateInputIDRequestUpdateUjian(data UpdatePenjadwalanUjianRequest) error
 		return coreerror.ErrMissingId
 	}
 
-	if data.IdNamaKelas != nil && *data.IdNamaKelas <= 0 {
+	if data.IdNamaKelas != nil && *data.IdNamaKelas < 0 {
 		return coreerror.ErrMissingId
 	}
 

@@ -45,6 +45,7 @@ type InfraModule struct {
 	pengumumanRepo pengumuman_repo.PengumumanRepo
 	ruangUjianRepo ruangujian_repo.RuangUjianRepo
 	listUjianRepo  ujian_repo.ListUjianRepository
+	soalUjianRepo  ujian_repo.SoalUjianRepository
 	ujianRepo      ujian_repo.UjianRepository
 	pesertaRepo    ujian_repo.PesertaUjianRepository
 	jawabanRepo    ujian_repo.JawabanUjianRepository
@@ -79,6 +80,7 @@ func BuildInfraModule(pool *pgxpool.Pool, logger corelog.Logger) *InfraModule {
 		pengumumanRepo:        pg.NewPengumumanRepo(pool, logger),
 		ruangUjianRepo:        pg.NewRuangUjianRepo(pool, logger),
 		listUjianRepo:         pgujian.NewListUjianRepo(pool, logger),
+		soalUjianRepo:         pgujian.NewListSoalUjianRepo(pool, logger),
 		ujianRepo:             pgujian.NewUjianRepo(pool, logger, pool),
 		pesertaRepo:           pgujian.NewPesertaUjianRepo(pool, logger),
 		jawabanRepo:           pgujian.NewJawabanUjianRepo(pool, logger),

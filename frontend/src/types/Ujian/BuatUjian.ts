@@ -25,6 +25,23 @@ export type BuatUjianFormValues = {
   token: string;
 };
 
+export const EMPTY_BUAT_UJIAN_FORM_VALUES: BuatUjianFormValues = {
+  nama_ujian: "",
+  deskripsi_ujian: "",
+  id_kelas: 0,
+  kelas_scope: "SEMUA",
+  id_nama_kelas: 0,
+  id_bank_soal: 0,
+  tanggal_ujian: "",
+  waktu_mulai: "",
+  waktu_selesai: "",
+  id_ruangan: 0,
+  acak_soal: true,
+  id_pengawas: 0,
+  id_sesi: 0,
+  token: "",
+};
+
 export type CreatePenjadwalanUjianPayload = {
   id_bank_soal: number;
   id_kelas: number;
@@ -44,6 +61,13 @@ export type CreatePenjadwalanUjianPayload = {
 };
 
 export type UpdatePenjadwalanUjianPayload = Partial<CreatePenjadwalanUjianPayload>;
+
+export type UjianEditFormData = {
+  id_ujian: number;
+  id_jadwal_ujian: number;
+  selected_mapel_id: number;
+  values: BuatUjianFormValues;
+};
 
 export type BankSoalOption = {
   id: number;

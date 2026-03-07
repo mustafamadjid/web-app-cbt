@@ -20,6 +20,7 @@ import { useGetDataKelasFull } from "@/services/Api/features-api/DataMaster/kela
 import { useGetMapel } from "@/services/Api/features-api/DataMaster/mapel.service";
 import { paths } from "@/routes/paths";
 import { useAuth } from "@/contexts/AuthContext";
+import { ApiError } from "@/services/Api/api";
 
 function useDebouncedValue<T>(value: T, delayMs = 300) {
   const [debounced, setDebounced] = useState(value);
@@ -247,7 +248,11 @@ const BankSoal = () => {
       setTargetDeleteId(null);
     } catch (e) {
       const message =
-        e instanceof Error ? e.message : "Gagal menghapus bank soal.";
+        e instanceof ApiError 
+        ? e.code === "DELETE_RESTRICTED"
+        ? "Silakan hapus data yang terkait dengan bank soal ini (jadwal ujian)"
+        : "Bank soal gagal dihapus"
+        : "Bank soal gagal dihapus";
       toast.error(message);
     } finally {
       setDeleteLoading(false);
@@ -538,9 +543,7 @@ const BankSoal = () => {
                   onKelola={(item) =>
                     navigate(getDetailPath(item.id_bank_soal))
                   }
-                  onPreview={(item) =>
-                    navigate(getDetailPath(item.id_bank_soal))
-                  }
+                  onPreview={(idBankSoal) => navigate(getDetailPath(idBankSoal))}
                   onUpload={(item) =>
                     navigate(getUploadPath(item.id_bank_soal))
                   }
@@ -670,9 +673,7 @@ const BankSoal = () => {
                   onKelola={(item) =>
                     navigate(getDetailPath(item.id_bank_soal))
                   }
-                  onPreview={(item) =>
-                    navigate(getDetailPath(item.id_bank_soal))
-                  }
+                  onPreview={(idBankSoal) => navigate(getDetailPath(idBankSoal))}
                   onUpload={(item) =>
                     navigate(getUploadPath(item.id_bank_soal))
                   }

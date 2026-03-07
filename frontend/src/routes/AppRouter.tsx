@@ -38,6 +38,7 @@ import BuatBankSoal from "@/pages/Admin/Dashboard/BankSoal/BuatBankSoal";
 import DetailBankSoal from "@/pages/Admin/Dashboard/BankSoal/DetailBankSoal";
 
 import BuatUjian from "@/pages/Admin/Dashboard/Ujian/BuatUjian";
+import EditUjian from "@/pages/Admin/Dashboard/Ujian/EditUjian";
 import JadwalUjian from "@/pages/Admin/Dashboard/Ujian/JadwalUjian";
 import DetailUjian from "@/pages/Admin/Dashboard/Ujian/DetailUjian/DetailUjian";
 
@@ -121,6 +122,7 @@ export const router = createBrowserRouter([
               { path: paths.dashboard.buat_ujian, element: <BuatUjian /> },
               { path: paths.dashboard.jadwal_ujian, element: <JadwalUjian /> },
               { path: paths.dashboard.detail_ujian, element: <DetailUjian /> },
+              { path: paths.dashboard.edit_ujian, element: <EditUjian /> },
               { path: paths.dashboard.hasil_ujian, element: <HasilUjian /> },
               {
                 path: paths.dashboard.hasil_ujian_detail,
@@ -217,6 +219,10 @@ export const router = createBrowserRouter([
               {
                 path: paths.dashboard.detail_ujian_guru,
                 element: <DetailUjian />,
+              },
+              {
+                path: paths.dashboard.edit_ujian_guru,
+                element: <EditUjian />,
               },
               {
                 path: paths.dashboard.hasil_ujian_guru,

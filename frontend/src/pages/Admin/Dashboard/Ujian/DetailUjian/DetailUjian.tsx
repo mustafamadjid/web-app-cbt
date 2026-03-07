@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 import PrintButton from "@/components/common/Input/PrintButton";
+import { useAuth } from "@/contexts/AuthContext";
 import { paths } from "@/routes/paths";
 import { useGetBankSoal } from "@/services/Api/features-api/BankSoal/banksoal.service";
 import { useGetDataKelasFull } from "@/services/Api/features-api/DataMaster/kelas.service";
@@ -37,14 +38,19 @@ const statusColorMap: Record<string, string> = {
 
 const DetailUjian = () => {
   const params = useParams();
+  const { user } = useAuth();
   const jadwalId = Number(params.id);
   const isJadwalIdValid = Number.isFinite(jadwalId) && jadwalId > 0;
+  const backPath =
+    user?.role === "GURU"
+      ? paths.dashboard.jadwal_ujian_guru
+      : paths.dashboard.jadwal_ujian;
 
   const {
     data: detail,
     loading,
     error,
-  } = useGetJadwalUjianDetail(isJadwalIdValid ? jadwalId : -1);
+  } = useGetJadwalUjianDetail(jadwalId, isJadwalIdValid);
 
   const { data: kelasData } = useGetDataKelasFull();
   const { data: ruangData } = useGetRuangUjian();
@@ -126,7 +132,7 @@ const DetailUjian = () => {
       <div className="mb-8 flex flex-col gap-4 border-b border-slate-100 pb-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <Link
-            to={paths.dashboard.jadwal_ujian}
+            to={backPath}
             className="group mb-2 inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition hover:text-[#397e50]"
           >
             <ArrowLeft
@@ -175,7 +181,7 @@ const DetailUjian = () => {
           <AlertCircle size={40} className="mb-3 text-red-500" />
           <p className="text-lg font-semibold text-red-700">{errorMsg}</p>
           <Link
-            to={paths.dashboard.jadwal_ujian}
+            to={backPath}
             className="mt-4 text-sm font-bold text-red-600 underline"
           >
             Kembali

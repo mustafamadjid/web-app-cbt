@@ -1,13 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
 import { Calendar, CalendarRange, Layers, MapPin, Search } from "lucide-react";
+import { useNavigate } from "react-router";
+import toast from "react-hot-toast";
 
 import BoxJadwalUjian from "@/components/features/Ujian/BoxJadwalUjian";
+import ConfirmAlert from "@/components/ui/ConfirmAlert/ConfirmAlert";
 import { useAuth } from "@/contexts/AuthContext";
 import { tahunOption } from "@/helper/TahunOption/TahunOption";
 import { paths } from "@/routes/paths";
 import { useGetDataKelasFull } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { useGetRuangUjian } from "@/services/Api/features-api/DataMaster/ruang-ujian.service";
 import {
+  useDeleteJadwalUjian,
   updateStatusUjian,
   useGetJadwalUjian,
 } from "@/services/Api/features-api/Ujian/jadwalujian.service";
@@ -36,6 +40,7 @@ function useDebouncedValue<T>(value: T, delayMs: number) {
 
 const JadwalUjian = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState<JadwalUjianStatusClient>("berlangsung");
   const [searchTerm, setSearchTerm] = useState("");
@@ -46,13 +51,19 @@ const JadwalUjian = () => {
   const [selectedTahun, setSelectedTahun] = useState<string | null>(null);
   const [updatingIdUjian, setUpdatingIdUjian] = useState<number | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<JadwalUjianItem | null>(null);
 
   const { data: kelasData } = useGetDataKelasFull();
   const { data: ruangData } = useGetRuangUjian();
+  const { execute: executeDeleteUjian, loading: deletingUjian } = useDeleteJadwalUjian();
 
   const tingkatKelasOptions: TingkatKelas[] = kelasData?.item_tingkat_kelas ?? [];
   const ruangOptions: RuangUjianRow[] = ruangData ?? [];
   const tahunOptions = useMemo(() => tahunOption().map((item) => String(item)), []);
+  const detailPathTemplate =
+    user?.role === "GURU" ? paths.dashboard.detail_ujian_guru : paths.dashboard.detail_ujian;
+  const editPathTemplate =
+    user?.role === "GURU" ? paths.dashboard.edit_ujian_guru : paths.dashboard.edit_ujian;
 
   const {
     data: jadwalDataRaw,
@@ -106,6 +117,32 @@ const JadwalUjian = () => {
       }
     } finally {
       setUpdatingIdUjian(null);
+    }
+  };
+
+  const handleEdit = (idJadwal: number) => {
+    navigate(editPathTemplate.replace(":id", String(idJadwal)));
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget?.id_ujian || deleteTarget.id_ujian <= 0) {
+      setActionError("ID ujian tidak valid untuk dihapus.");
+      setDeleteTarget(null);
+      return;
+    }
+
+    setActionError(null);
+    try {
+      await executeDeleteUjian(deleteTarget.id_ujian);
+      toast.success(`Ujian "${deleteTarget.nama_ujian}" berhasil dihapus.`);
+      setDeleteTarget(null);
+      await refetch();
+    } catch (deleteError) {
+      if (deleteError instanceof Error) {
+        setActionError(deleteError.message);
+      } else {
+        setActionError("Gagal menghapus ujian.");
+      }
     }
   };
 
@@ -254,11 +291,14 @@ const JadwalUjian = () => {
                   <BoxJadwalUjian
                     key={item.id}
                     {...item}
+                    onEdit={handleEdit}
+                    onDelete={() => setDeleteTarget(item)}
                     onStart={(idUjian) => handleStatusUpdate(idUjian, "berlangsung")}
                     onCancel={(idUjian) => handleStatusUpdate(idUjian, "dibatalkan")}
                     canControl={canControlUjian(item)}
                     updating={item.id_ujian != null && updatingIdUjian === item.id_ujian}
-                    linkJadwal={paths.dashboard.detail_ujian.replace(":id", String(item.id))}
+                    deleting={item.id_ujian != null && deleteTarget?.id_ujian === item.id_ujian && deletingUjian}
+                    linkJadwal={detailPathTemplate.replace(":id", String(item.id))}
                   />
                 ))
               ) : (
@@ -273,6 +313,21 @@ const JadwalUjian = () => {
           )}
         </div>
       </div>
+
+      <ConfirmAlert
+        isOpen={deleteTarget != null}
+        title="Konfirmasi Hapus Ujian"
+        message={
+          deleteTarget
+            ? `Ujian "${deleteTarget.nama_ujian}" akan dihapus permanen. Lanjutkan?`
+            : ""
+        }
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+        isLoading={deletingUjian}
+        confirmLabel="Ya, Hapus"
+        loadingLabel="Menghapus..."
+      />
     </div>
   );
 };

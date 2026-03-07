@@ -10,7 +10,7 @@ type BoxBankSoalProps = {
   kelasLabel?: string;
   tglBuat?: string;
   soalUploaded?: boolean;
-  onPreview?: () => void;
+  onPreview?: (idBankSoal: number) => void;
   onUpload?: () => void;
   onKelola?: () => void;
   onHapus?: () => void;
@@ -31,6 +31,7 @@ const kelasLabelClass = (kelasLabel?: string) => {
 };
 
 const BoxBankSoal: React.FC<BoxBankSoalProps> = ({
+  idBankSoal,
   namaBankSoal = "Bank Soal",
   guruLabel = "-",
   mapelLabel = "-",
@@ -101,7 +102,7 @@ const BoxBankSoal: React.FC<BoxBankSoalProps> = ({
               {/* Primary Button: Preview */}
               <button
                 type="button"
-                onClick={onPreview}
+                onClick={() => onPreview?.(idBankSoal)}
                 disabled={!onPreview || !soalUploaded}
                 className={[
                   "inline-flex cursor-pointer items-center gap-2 rounded-full px-5 py-2 text-sm font-bold text-white shadow-md transition-all",

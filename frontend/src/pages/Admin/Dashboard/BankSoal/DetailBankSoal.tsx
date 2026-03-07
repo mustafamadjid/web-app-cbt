@@ -1,70 +1,169 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 
+import { useAuth } from "@/contexts/AuthContext";
+import { resolveImageUrl } from "@/helper/MediaUrl/resolveMediaUrl";
 import SoalLayout from "@/layouts/BankSoalLayout/SoalLayout";
 import { paths } from "@/routes/paths";
+import { useGetBankSoalById } from "@/services/Api/features-api/BankSoal/banksoal.service";
 import { useGetSoalUjian } from "@/services/Api/features-api/BankSoal/soalUjian.service";
+import type { SoalPreviewItem } from "@/types/Ujian/SoalPreview";
+
+const OPTION_LABELS = ["A", "B", "C", "D", "E", "F", "G", "H"];
+
+const selectBaseClass =
+  "block w-full cursor-pointer appearance-none rounded-xl border border-slate-200 bg-white py-2.5 pl-3 pr-8 text-sm font-medium text-slate-700 outline-none transition hover:border-slate-300 focus:border-[#397e50] focus:ring-2 focus:ring-[#397e50]/20";
+
+type BankSoalPreviewContentProps = {
+  title: string;
+  soalPreview: SoalPreviewItem[];
+  acakSoal: boolean;
+  onChangeAcakSoal: (value: boolean) => void;
+  onBack: () => void;
+};
+
+const BankSoalPreviewContent = ({
+  title,
+  soalPreview,
+  acakSoal,
+  onChangeAcakSoal,
+  onBack,
+}: BankSoalPreviewContentProps) => {
+  const [selectedOptions, setSelectedOptions] = useState<Record<number, number>>(
+    {},
+  );
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const totalSoal = soalPreview.length;
+  const currentSoal = soalPreview[currentIndex];
+
+  const handleSelectOption = (soalId: number, optionId: number) => {
+    setSelectedOptions((prev) => ({
+      ...prev,
+      [soalId]: optionId,
+    }));
+  };
+
+  const questionNavigator = (
+    <div className="space-y-4">
+      <div className="grid gap-4 md:grid-cols-[220px_1fr] md:items-end">
+        <div>
+          <label
+            htmlFor="acak_soal_preview"
+            className="text-xs font-medium text-slate-600"
+          >
+            Acak Soal
+          </label>
+          <select
+            id="acak_soal_preview"
+            value={acakSoal ? "ya" : "tidak"}
+            onChange={(event) => onChangeAcakSoal(event.target.value === "ya")}
+            className={selectBaseClass}
+          >
+            <option value="tidak">Tidak, urutan tetap</option>
+            <option value="ya">Ya, acak soal</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        <p className="text-xs font-semibold text-slate-400">Nomor Urut Soal</p>
+        <div className="flex flex-wrap gap-2">
+          {soalPreview.map((soal, index) => {
+            const isActive = index === currentIndex;
+            return (
+              <button
+                key={soal.id}
+                type="button"
+                onClick={() => setCurrentIndex(index)}
+                className={[
+                  "flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border text-sm font-semibold transition",
+                  isActive
+                    ? "border-[#397e50] bg-[#397e50] text-white"
+                    : "border-slate-200 text-slate-500 hover:border-[#397e50] hover:text-[#397e50]",
+                ].join(" ")}
+                aria-label={`Soal nomor ${soal.nomor}`}
+              >
+                {soal.nomor}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <SoalLayout
+      title={title}
+      currentNumber={currentIndex + 1}
+      totalSoal={totalSoal}
+      sisaWaktu="00:00:00"
+      soal={currentSoal}
+      questionNavigator={questionNavigator}
+      selectedOptionId={selectedOptions[currentSoal.id]}
+      onSelectOption={(optionId) => handleSelectOption(currentSoal.id, optionId)}
+      onPrev={currentIndex > 0 ? () => setCurrentIndex((prev) => prev - 1) : undefined}
+      onNext={
+        currentIndex < totalSoal - 1
+          ? () => setCurrentIndex((prev) => prev + 1)
+          : undefined
+      }
+      onBack={onBack}
+    />
+  );
+};
 
 const DetailBankSoal = () => {
   const params = useParams();
   const navigate = useNavigate();
-  const bankSoalId = Number(params.id);
-  const isBankSoalIdValid = Number.isFinite(bankSoalId);
+  const { user } = useAuth();
 
-  const [selectedOptions, setSelectedOptions] = useState<
-    Record<number, string>
-  >({});
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const bankSoalId = Number(params.id);
+  const isBankSoalIdValid = Number.isInteger(bankSoalId) && bankSoalId > 0;
+  const bankSoalListPath =
+    user?.role === "GURU"
+      ? paths.dashboard.bank_soal_guru
+      : paths.dashboard.bank_soal;
+
+  const [acakSoal, setAcakSoal] = useState(false);
 
   const {
-    data: rawSoalUjian,
-    loading,
-    error,
-  } = useGetSoalUjian(isBankSoalIdValid ? bankSoalId : -1);
+    data: soalRows,
+    loading: loadingSoal,
+    error: soalError,
+  } = useGetSoalUjian(bankSoalId, acakSoal, isBankSoalIdValid);
 
-  const soalUjian = useMemo(
+  const { data: bankSoalData, loading: loadingBankSoal } = useGetBankSoalById(
+    bankSoalId,
+    isBankSoalIdValid,
+  );
+
+  const soalPreview = useMemo<SoalPreviewItem[]>(
     () =>
-      rawSoalUjian
-        ? {
-            namaUjian: rawSoalUjian.nama_ujian,
-            sisaWaktu: rawSoalUjian.sisa_waktu ?? "00:00:00",
-            soal: rawSoalUjian.soal,
-          }
-        : null,
-    [rawSoalUjian],
+      (soalRows ?? []).map((soal) => ({
+        id: soal.id_soal,
+        nomor: soal.no_urut_soal,
+        tipe: soal.tipe_soal,
+        pertanyaan: soal.pertanyaan,
+        gambar_url: resolveImageUrl(soal.gambar) || undefined,
+        opsi: soal.opsi_jawaban.map((opsi, index) => ({
+          id: opsi.id_pilihan_ganda,
+          label: OPTION_LABELS[index] ?? String(index + 1),
+          text: opsi.isi_pilihan,
+        })),
+      })),
+    [soalRows],
   );
 
-  useEffect(() => {
-    setCurrentIndex(0);
-  }, [soalUjian?.namaUjian]);
+  const errorMsg = !isBankSoalIdValid ? "ID bank soal tidak valid." : soalError;
+  const title =
+    bankSoalData?.nama_bank_soal ??
+    (isBankSoalIdValid ? `Bank Soal #${bankSoalId}` : "Bank Soal");
 
-  const errorMsg = !isBankSoalIdValid ? "ID bank soal tidak valid." : (error ?? "");
-
-  const totalSoal = useMemo(
-    () => soalUjian?.soal.length ?? 0,
-    [soalUjian?.soal.length]
-  );
-
-  const handleSelectOption = (soalId: number, value: string) => {
-    setSelectedOptions((prev) => ({
-      ...prev,
-      [soalId]: value,
-    }));
-  };
-
-  const handlePrev = () => {
-    setCurrentIndex((prev) => Math.max(prev - 1, 0));
-  };
-
-  const handleNext = () => {
-    setCurrentIndex((prev) =>
-      Math.min(prev + 1, Math.max(totalSoal - 1, 0))
-    );
-  };
-
-  if (loading) {
+  if (loadingSoal || (isBankSoalIdValid && loadingBankSoal && !bankSoalData)) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50 text-sm text-slate-500">
+      <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 text-center text-sm text-slate-500">
         Memuat soal bank soal...
       </div>
     );
@@ -76,7 +175,7 @@ const DetailBankSoal = () => {
         <p className="text-sm font-semibold text-slate-700">{errorMsg}</p>
         <button
           type="button"
-          onClick={() => navigate(paths.dashboard.bank_soal)}
+          onClick={() => navigate(bankSoalListPath)}
           className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-500 transition hover:border-[#397e50] hover:text-[#397e50]"
         >
           Kembali ke Bank Soal
@@ -85,7 +184,7 @@ const DetailBankSoal = () => {
     );
   }
 
-  if (!soalUjian || totalSoal === 0) {
+  if (soalPreview.length === 0) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-slate-50 px-4 text-center">
         <p className="text-sm font-semibold text-slate-700">
@@ -93,7 +192,7 @@ const DetailBankSoal = () => {
         </p>
         <button
           type="button"
-          onClick={() => navigate(paths.dashboard.bank_soal)}
+          onClick={() => navigate(bankSoalListPath)}
           className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-500 transition hover:border-[#397e50] hover:text-[#397e50]"
         >
           Kembali ke Bank Soal
@@ -102,49 +201,14 @@ const DetailBankSoal = () => {
     );
   }
 
-  const currentSoal = soalUjian.soal[currentIndex];
-  const questionNavigator = (
-    <div className="space-y-3">
-      <p className="text-xs font-semibold text-slate-400">
-        Nomor Urut Soal
-      </p>
-      <div className="flex flex-wrap gap-2">
-        {soalUjian.soal.map((soal, index) => {
-          const isActive = index === currentIndex;
-          return (
-            <button
-              key={soal.id_soal}
-              type="button"
-              onClick={() => setCurrentIndex(index)}
-              className={[
-                "flex h-10 cursor-pointer w-10 items-center justify-center rounded-lg border text-sm font-semibold transition",
-                isActive
-                  ? "border-[#397e50] bg-[#397e50] text-white"
-                  : "border-slate-200 text-slate-500 hover:border-[#397e50] hover:text-[#397e50]",
-              ].join(" ")}
-              aria-label={`Soal nomor ${soal.nomor_urut_soal}`}
-            >
-              {soal.nomor_urut_soal}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-
   return (
-    <SoalLayout
-      title={soalUjian.namaUjian}
-      currentNumber={currentIndex + 1}
-      totalSoal={totalSoal}
-      sisaWaktu={soalUjian.sisaWaktu}
-      soal={currentSoal}
-      questionNavigator={questionNavigator}
-      selectedOption={selectedOptions[currentSoal.id_soal]}
-      onSelectOption={(value) => handleSelectOption(currentSoal.id_soal, value)}
-      onPrev={handlePrev}
-      onNext={handleNext}
-      onBack={() => navigate(paths.dashboard.bank_soal)}
+    <BankSoalPreviewContent
+      key={`${bankSoalId}-${acakSoal ? "acak" : "tetap"}`}
+      title={title}
+      soalPreview={soalPreview}
+      acakSoal={acakSoal}
+      onChangeAcakSoal={setAcakSoal}
+      onBack={() => navigate(bankSoalListPath)}
     />
   );
 };

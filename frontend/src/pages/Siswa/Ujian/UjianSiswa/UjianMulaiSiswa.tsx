@@ -2,47 +2,39 @@ import React from "react";
 import { useNavigate, useParams } from "react-router";
 import SoalLayout from "@/layouts/BankSoalLayout/SoalLayout";
 import { paths } from "@/routes/paths";
-import { useGetSoalUjian } from "@/services/Api/features-api/BankSoal/soalUjian.service";
+import { useGetMockSoalUjianSiswa } from "@/services/Api/features-api/Ujian/soalUjianSiswa.mock";
+import type { SoalPreviewData } from "@/types/Ujian/SoalPreview";
 
-const UjianMulaiSiswa: React.FC = () => {
-  const navigate = useNavigate();
-  const { id, bankSoalId } = useParams();
+type SiswaSoalPreviewContentProps = {
+  soalData: SoalPreviewData;
+  onBack: () => void;
+};
+
+const SiswaSoalPreviewContent: React.FC<SiswaSoalPreviewContentProps> = ({
+  soalData,
+  onBack,
+}) => {
   const [currentIndex, setCurrentIndex] = React.useState(0);
   const [selectedOptions, setSelectedOptions] = React.useState<
-    Record<number, string>
+    Record<number, number>
   >({});
 
-  const parsedBankSoalId = Number(bankSoalId);
-  const isBankSoalIdValid = Number.isFinite(parsedBankSoalId);
-  const {
-    data: soalData,
-    loading,
-    error,
-  } = useGetSoalUjian(isBankSoalIdValid ? parsedBankSoalId : -1);
+  const totalSoal = soalData.soal.length;
+  const currentSoal = soalData.soal[currentIndex];
 
-  React.useEffect(() => {
-    setCurrentIndex(0);
-  }, [soalData?.id_bank_soal]);
-
-  const errorMessage =
-    !bankSoalId || !isBankSoalIdValid ? "Bank soal tidak ditemukan." : error;
-
-  const totalSoal = soalData?.soal.length ?? 0;
-  const currentSoal = soalData?.soal[currentIndex];
-
-  const handleSelectOption = (soalId: number, value: string) => {
-    setSelectedOptions((prev) => ({ ...prev, [soalId]: value }));
+  const handleSelectOption = (soalId: number, optionId: number) => {
+    setSelectedOptions((prev) => ({ ...prev, [soalId]: optionId }));
   };
 
   const questionNavigator = (
     <div className="space-y-3">
       <p className="text-xs font-semibold text-slate-400">Nomor Soal</p>
       <div className="flex flex-wrap gap-2">
-        {soalData?.soal.map((soal, index) => {
+        {soalData.soal.map((soal, index) => {
           const isActive = index === currentIndex;
           return (
             <button
-              key={soal.id_soal}
+              key={soal.id}
               type="button"
               onClick={() => setCurrentIndex(index)}
               className={[
@@ -51,15 +43,54 @@ const UjianMulaiSiswa: React.FC = () => {
                   ? "border-[#397e50] bg-[#397e50] text-white"
                   : "border-slate-200 text-slate-500 hover:border-[#397e50] hover:text-[#397e50]",
               ].join(" ")}
-              aria-label={`Soal nomor ${soal.nomor_urut_soal}`}
+              aria-label={`Soal nomor ${soal.nomor}`}
             >
-              {soal.nomor_urut_soal}
+              {soal.nomor}
             </button>
           );
         })}
       </div>
     </div>
   );
+
+  return (
+    <SoalLayout
+      title={soalData.title}
+      currentNumber={currentIndex + 1}
+      totalSoal={totalSoal}
+      sisaWaktu={soalData.sisa_waktu}
+      soal={currentSoal}
+      questionNavigator={questionNavigator}
+      selectedOptionId={selectedOptions[currentSoal.id]}
+      onSelectOption={(optionId) => handleSelectOption(currentSoal.id, optionId)}
+      onPrev={
+        currentIndex > 0 ? () => setCurrentIndex((prev) => prev - 1) : undefined
+      }
+      onNext={
+        currentIndex < totalSoal - 1
+          ? () => setCurrentIndex((prev) => prev + 1)
+          : undefined
+      }
+      onBack={onBack}
+    />
+  );
+};
+
+const UjianMulaiSiswa: React.FC = () => {
+  const navigate = useNavigate();
+  const { bankSoalId } = useParams();
+
+  const parsedBankSoalId = Number(bankSoalId);
+  const isBankSoalIdValid =
+    Number.isInteger(parsedBankSoalId) && parsedBankSoalId > 0;
+  const {
+    data: soalData,
+    loading,
+    error,
+  } = useGetMockSoalUjianSiswa(parsedBankSoalId, isBankSoalIdValid);
+
+  const errorMessage =
+    !bankSoalId || !isBankSoalIdValid ? "Bank soal tidak ditemukan." : error;
 
   if (loading) {
     return (
@@ -69,7 +100,7 @@ const UjianMulaiSiswa: React.FC = () => {
     );
   }
 
-  if (errorMessage || !currentSoal) {
+  if (errorMessage || !soalData || soalData.soal.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-red-200 bg-white p-6 text-center text-sm text-red-500">
         {errorMessage ?? "Soal ujian tidak tersedia."}
@@ -78,23 +109,9 @@ const UjianMulaiSiswa: React.FC = () => {
   }
 
   return (
-    <SoalLayout
-      title={soalData?.nama_ujian ?? `Ujian ${id ?? ""}`}
-      currentNumber={currentIndex + 1}
-      totalSoal={totalSoal}
-      sisaWaktu={soalData?.sisa_waktu ?? "00:00:00"}
-      soal={currentSoal}
-      questionNavigator={questionNavigator}
-      selectedOption={selectedOptions[currentSoal.id_soal]}
-      onSelectOption={(value) => handleSelectOption(currentSoal.id_soal, value)}
-      onPrev={
-        currentIndex > 0 ? () => setCurrentIndex((prev) => prev - 1) : undefined
-      }
-      onNext={
-        currentIndex < totalSoal - 1
-          ? () => setCurrentIndex((prev) => prev + 1)
-          : undefined
-      }
+    <SiswaSoalPreviewContent
+      key={parsedBankSoalId}
+      soalData={soalData}
       onBack={() => navigate(paths.dashboard.ujian_siswa)}
     />
   );

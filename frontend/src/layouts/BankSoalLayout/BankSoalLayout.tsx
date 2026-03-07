@@ -4,7 +4,7 @@ import type { BankSoalItem } from "@/types/BankSoal/BankSoal";
 
 type BankSoalLayoutProps = {
   items: BankSoalItem[];
-  onPreview?: (item: BankSoalItem) => void;
+  onPreview?: (idBankSoal: number) => void;
   onUpload?: (item: BankSoalItem) => void;
   onKelola?: (item: BankSoalItem) => void;
   onHapus?: (item: BankSoalItem) => void;
@@ -77,7 +77,7 @@ const BankSoalLayout: React.FC<BankSoalLayoutProps> = ({
                   materi={item.materi}
                   tglBuat={item.tanggal_dibuat}
                   soalUploaded={item.soal_uploaded}
-                  onPreview={onPreview ? () => onPreview(item) : undefined}
+                  onPreview={onPreview}
                   onUpload={onUpload ? () => onUpload(item) : undefined}
                   onKelola={onKelola ? () => onKelola(item) : undefined}
                   onHapus={onHapus ? () => onHapus(item) : undefined}

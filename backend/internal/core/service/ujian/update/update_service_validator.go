@@ -34,7 +34,7 @@ func validateUpdateUjianPatchID(payload updatepatch.UpdateUjianPatch) error {
 	if payload.IdKelas != nil && *payload.IdKelas <= 0 {
 		return coreerror.ErrMissingId
 	}
-	if payload.IdNamaKelas != nil && *payload.IdNamaKelas <= 0 {
+	if payload.IdNamaKelas != nil && *payload.IdNamaKelas < 0 {
 		return coreerror.ErrMissingId
 	}
 	if payload.IdGuru != nil && *payload.IdGuru <= 0 {

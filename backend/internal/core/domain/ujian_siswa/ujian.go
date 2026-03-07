@@ -100,7 +100,7 @@ type SoalUjianSiswa struct {
 	IdBankSoalVersion ID
 	TipeSoal string
 	Pertanyaan string
-	Gambar *string
+	Gambar  string
 	BobotSoal int
 	NoUrutSoal int
 
@@ -123,8 +123,4 @@ func (status StatusUjian) ValidStatus() bool {
 	}
 }
 
-func isValidDate(dateStr string) bool {
-	layout := "2006-01-02"
-	_, err := time.Parse(layout, dateStr)
-	return err == nil
-}
+

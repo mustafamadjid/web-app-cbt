@@ -109,8 +109,14 @@ export function useGetBankSoalUploaded(
   );
 }
 
-export function useGetBankSoalById(idBankSoal: number) {
-  return useFetch(() => getBankSoalById(idBankSoal), [idBankSoal]);
+export function useGetBankSoalById(idBankSoal: number, enabled = true) {
+  return useFetch(
+    () =>
+      enabled
+        ? getBankSoalById(idBankSoal)
+        : Promise.resolve(null as BankSoalItem | null),
+    [idBankSoal, enabled],
+  );
 }
 
 export function useGetBankSoalByGuru(idPengguna: number) {

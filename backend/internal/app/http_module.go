@@ -74,6 +74,7 @@ func BuildHTTPModule(deps HTTPDeps) *HTTPModule {
 		Ujian: routes.UjianHandlers{
 			CreateUjianHandler:        deps.Ujian.CreateUjianHandler,
 			ListHandler:               deps.Ujian.ListHandler,
+			ListSoalUjianHandler:      deps.Ujian.ListSoalUjianHandler,
 			GetHandler:                deps.Ujian.GetHandler,
 			UpdateUjianHandler:        deps.Ujian.UpdateUjianHandler,
 			UpdatePesertaUjianHandler: deps.Ujian.UpdatePesertaUjianHandler,

@@ -1,13 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router";
-import toast from "react-hot-toast";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import DatePicker from "@/components/common/DateInput/DatePicker";
 import TimePicker from "@/components/common/DateInput/TimePicker";
-import BankSoalSelect from "@/components/common/Select/BankSoalSelect";
 import InputField from "@/components/common/Input/InputField";
-import { useAuth } from "@/contexts/AuthContext";
-import { buildCreatePenjadwalanUjianPayload } from "@/helper/FormData/buildCreatePenjadwalanUjianPayload";
+import BankSoalSelect from "@/components/common/Select/BankSoalSelect";
 import { calculateDuration } from "@/helper/CalculateDuration/calculateDuration";
 import { createSetField } from "@/helper/setField/setField";
 import {
@@ -17,7 +13,6 @@ import {
   requiredString,
   requiredValue,
 } from "@/helper/validate/validateForm";
-import { paths } from "@/routes/paths";
 import { ApiError } from "@/services/Api/api";
 import { useGetBankSoal } from "@/services/Api/features-api/BankSoal/banksoal.service";
 import { useGetDataKelasFull } from "@/services/Api/features-api/DataMaster/kelas.service";
@@ -26,31 +21,27 @@ import { useGetRuangUjian } from "@/services/Api/features-api/DataMaster/ruang-u
 import { useGetSesi } from "@/services/Api/features-api/DataMaster/sesi.service";
 import { useGetAllGuru } from "@/services/Api/features-api/KelolaAkun/akunguru.service";
 import { useGetListSiswa } from "@/services/Api/features-api/KelolaAkun/akunsiswa.service";
-import { createJadwalUjian } from "@/services/Api/features-api/Ujian/jadwalujian.service";
+import type { BankSoalItem } from "@/types/BankSoal/BankSoal";
 import type { FullDataKelas, NamaKelas, TingkatKelas } from "@/types/DataMaster/Kelas";
 import type { MataPelajaranRow } from "@/types/DataMaster/MataPelajaran";
-import type { DataGuru } from "@/types/KelolaAkun/AkunGuru";
-import type { DataAkunSiswa } from "@/types/KelolaAkun/AkunSiswa";
-import type { BuatUjianFormValues } from "@/types/Ujian/BuatUjian";
-import type { BankSoalItem } from "@/types/BankSoal/BankSoal";
 import type { RuangUjianRow } from "@/types/DataMaster/RuangUjian";
 import type { SesiRow } from "@/types/DataMaster/Sesi";
+import type { DataGuru } from "@/types/KelolaAkun/AkunGuru";
+import type { DataAkunSiswa } from "@/types/KelolaAkun/AkunSiswa";
+import {
+  EMPTY_BUAT_UJIAN_FORM_VALUES,
+  type BuatUjianFormValues,
+} from "@/types/Ujian/BuatUjian";
 
-const initialValues: BuatUjianFormValues = {
-  nama_ujian: "",
-  deskripsi_ujian: "",
-  id_kelas: 0,
-  kelas_scope: "SEMUA",
-  id_nama_kelas: 0,
-  id_bank_soal: 0,
-  tanggal_ujian: "",
-  waktu_mulai: "",
-  waktu_selesai: "",
-  id_ruangan: 0,
-  acak_soal: true,
-  id_pengawas: 0,
-  id_sesi: 0,
-  token: "",
+type BuatUjianFormProps = {
+  mode?: "create" | "edit";
+  initialValues?: BuatUjianFormValues;
+  initialSelectedMapelId?: number;
+  loadingInitialData?: boolean;
+  title?: string;
+  description?: string;
+  submitLabel?: string;
+  onSubmit: (values: BuatUjianFormValues) => Promise<void>;
 };
 
 const sectionTitle = "text-sm font-semibold text-slate-800";
@@ -64,20 +55,44 @@ const timePatternRule = matchesPattern(
   "Gunakan format 24 jam HH:mm, contoh 07:30.",
 );
 
-const BuatUjianForm = () => {
-  const navigate = useNavigate();
-  const { user } = useAuth();
+const BuatUjianForm = ({
+  mode = "create",
+  initialValues = EMPTY_BUAT_UJIAN_FORM_VALUES,
+  initialSelectedMapelId = 0,
+  loadingInitialData = false,
+  title,
+  description,
+  submitLabel,
+  onSubmit,
+}: BuatUjianFormProps) => {
   const [values, setValues] = useState<BuatUjianFormValues>(initialValues);
+  const [selectedMapelId, setSelectedMapelId] = useState(initialSelectedMapelId);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [selectedMapelId, setSelectedMapelId] = useState(0);
+  const skipNextKelasResetRef = useRef(true);
 
   const setField = createSetField(setValues);
+  const isEditMode = mode === "edit";
+  const pageTitle = title ?? (isEditMode ? "Edit Ujian" : "Buat Ujian");
+  const pageDescription =
+    description ??
+    (isEditMode
+      ? "Perbarui detail ujian dan kirim hanya perubahan yang dibutuhkan server."
+      : "Lengkapi detail ujian dan jadwalnya sesuai data server.");
+  const actionLabel = submitLabel ?? (isEditMode ? "Simpan Perubahan" : "Simpan Ujian");
 
   const onBlur = (name: keyof BuatUjianFormValues) => {
     setTouched((prev) => ({ ...prev, [name]: true }));
   };
+
+  useEffect(() => {
+    setValues(initialValues);
+    setSelectedMapelId(initialSelectedMapelId);
+    setTouched({});
+    setSubmitError(null);
+    skipNextKelasResetRef.current = true;
+  }, [initialValues, initialSelectedMapelId]);
 
   const {
     data: kelasData,
@@ -101,11 +116,14 @@ const BuatUjianForm = () => {
     data: mapelData,
     loading: loadingMapel,
     error: mapelError,
-  } = useGetMapel({
-    tingkatKelas: values.id_kelas > 0 ? values.id_kelas : undefined,
-    limit: 100,
-    offset: 0,
-  }, values.id_kelas > 0);
+  } = useGetMapel(
+    {
+      tingkatKelas: values.id_kelas > 0 ? values.id_kelas : undefined,
+      limit: 100,
+      offset: 0,
+    },
+    values.id_kelas > 0,
+  );
   const mapelOptions: MataPelajaranRow[] = mapelData ?? [];
 
   const bankSoalFetchEnabled = values.id_kelas > 0 && selectedMapelId > 0;
@@ -176,8 +194,16 @@ const BuatUjianForm = () => {
     siswaError;
 
   useEffect(() => {
-    setField("id_nama_kelas", 0);
-    setField("id_bank_soal", 0);
+    if (skipNextKelasResetRef.current) {
+      skipNextKelasResetRef.current = false;
+      return;
+    }
+
+    setValues((prev) => ({
+      ...prev,
+      id_nama_kelas: 0,
+      id_bank_soal: 0,
+    }));
     setSelectedMapelId(0);
   }, [values.id_kelas]);
 
@@ -185,26 +211,28 @@ const BuatUjianForm = () => {
     if (values.kelas_scope === "SEMUA" && values.id_nama_kelas !== 0) {
       setField("id_nama_kelas", 0);
     }
-  }, [values.kelas_scope, values.id_nama_kelas]);
+  }, [setField, values.kelas_scope, values.id_nama_kelas]);
 
   useEffect(() => {
-    if (
-      values.id_bank_soal !== 0 &&
-      !bankSoalOptions.some((item) => item.id_bank_soal === values.id_bank_soal)
-    ) {
+    if (loadingBankSoal || values.id_bank_soal === 0) {
+      return;
+    }
+
+    if (!bankSoalOptions.some((item) => item.id_bank_soal === values.id_bank_soal)) {
       setField("id_bank_soal", 0);
     }
-  }, [bankSoalOptions, values.id_bank_soal]);
+  }, [bankSoalOptions, loadingBankSoal, setField, values.id_bank_soal]);
 
   useEffect(() => {
-    if (
-      selectedMapelId !== 0 &&
-      !mapelOptions.some((item) => item.id === selectedMapelId)
-    ) {
+    if (loadingMapel || selectedMapelId === 0) {
+      return;
+    }
+
+    if (!mapelOptions.some((item) => item.id === selectedMapelId)) {
       setSelectedMapelId(0);
       setField("id_bank_soal", 0);
     }
-  }, [mapelOptions, selectedMapelId]);
+  }, [loadingMapel, mapelOptions, selectedMapelId, setField]);
 
   const durasiMenit = useMemo(
     () => calculateDuration(values.waktu_mulai, values.waktu_selesai),
@@ -258,8 +286,16 @@ const BuatUjianForm = () => {
   const hasError = (name: keyof BuatUjianFormValues) =>
     Boolean(errors[name]) && Boolean(touched[name]);
 
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleReset = () => {
+    setValues(initialValues);
+    setSelectedMapelId(initialSelectedMapelId);
+    setTouched({});
+    setSubmitError(null);
+    skipNextKelasResetRef.current = true;
+  };
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
     setSubmitError(null);
 
     const nextTouched: Record<string, boolean> = {};
@@ -274,26 +310,13 @@ const BuatUjianForm = () => {
       return;
     }
 
-    if (!user?.id_pengguna || user.id_pengguna <= 0) {
-      setSubmitError("Akun login tidak valid untuk membuat ujian.");
-      return;
-    }
-
     setSubmitting(true);
     try {
-      const payload = buildCreatePenjadwalanUjianPayload({
-        values,
-        idGuru: user.id_pengguna,
-      });
-      await createJadwalUjian(payload);
-      toast.success("Jadwal ujian berhasil dibuat.");
-      const nextPath =
-        user.role === "GURU"
-          ? paths.dashboard.jadwal_ujian_guru
-          : paths.dashboard.jadwal_ujian;
-      navigate(nextPath);
+      await onSubmit(values);
     } catch (error) {
       if (error instanceof ApiError) {
+        setSubmitError(error.message);
+      } else if (error instanceof Error) {
         setSubmitError(error.message);
       } else {
         setSubmitError("Terjadi kesalahan saat menyimpan ujian.");
@@ -303,23 +326,31 @@ const BuatUjianForm = () => {
     }
   };
 
+  if (loadingInitialData) {
+    return (
+      <div className="flex min-h-[360px] items-center justify-center py-8">
+        <div className="flex flex-col items-center gap-3 rounded-2xl border border-slate-200 bg-white px-8 py-10 text-slate-500 shadow-sm">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#397e50] border-t-transparent" />
+          <p className="text-sm font-medium">Memuat data ujian...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen w-full py-8">
       <div className="mx-auto w-full max-w-6xl px-4">
         <div className="mb-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h1 className="text-base font-semibold text-slate-900">Buat Ujian</h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Lengkapi detail ujian dan jadwalnya sesuai data server.
-          </p>
+          <h1 className="text-base font-semibold text-slate-900">{pageTitle}</h1>
+          <p className="mt-1 text-sm text-slate-500">{pageDescription}</p>
         </div>
 
-        <form onSubmit={onSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="mb-4">
               <h2 className={sectionTitle}>Informasi Ujian</h2>
               <p className={helperText}>Isi nama dan deskripsi ujian.</p>
             </div>
-
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="md:col-span-2">
                 <InputField
@@ -375,7 +406,7 @@ const BuatUjianForm = () => {
                   value={values.id_kelas}
                   onChange={(event) => setField("id_kelas", Number(event.target.value))}
                   onBlur={() => onBlur("id_kelas")}
-                  disabled={loadingKelas}
+                  disabled={loadingKelas || submitting}
                   className={`${selectBaseClass} ${hasError("id_kelas") ? "border-rose-300 ring-rose-100" : ""}`}
                 >
                   <option value={0}>
@@ -406,7 +437,7 @@ const BuatUjianForm = () => {
                     )
                   }
                   onBlur={() => onBlur("kelas_scope")}
-                  disabled={values.id_kelas === 0}
+                  disabled={values.id_kelas === 0 || submitting}
                   className={`${selectBaseClass} ${hasError("kelas_scope") ? "border-rose-300 ring-rose-100" : ""}`}
                 >
                   <option value="SEMUA">Semua kelas di tingkat ini</option>
@@ -426,7 +457,9 @@ const BuatUjianForm = () => {
                   value={values.id_nama_kelas}
                   onChange={(event) => setField("id_nama_kelas", Number(event.target.value))}
                   onBlur={() => onBlur("id_nama_kelas")}
-                  disabled={values.id_kelas === 0 || values.kelas_scope !== "SPESIFIK"}
+                  disabled={
+                    values.id_kelas === 0 || values.kelas_scope !== "SPESIFIK" || submitting
+                  }
                   className={`${selectBaseClass} ${hasError("id_nama_kelas") ? "border-rose-300 ring-rose-100" : ""}`}
                 >
                   <option value={0}>Pilih nama kelas</option>
@@ -452,7 +485,7 @@ const BuatUjianForm = () => {
                     setSelectedMapelId(Number(event.target.value));
                     setField("id_bank_soal", 0);
                   }}
-                  disabled={values.id_kelas === 0 || loadingMapel}
+                  disabled={values.id_kelas === 0 || loadingMapel || submitting}
                   className={selectBaseClass}
                 >
                   <option value={0}>
@@ -478,7 +511,7 @@ const BuatUjianForm = () => {
                   options={bankSoalOptions}
                   onChange={(selectedId) => setField("id_bank_soal", selectedId)}
                   onBlur={() => onBlur("id_bank_soal")}
-                  disabled={values.id_kelas === 0 || selectedMapelId === 0}
+                  disabled={values.id_kelas === 0 || selectedMapelId === 0 || submitting}
                   loading={loadingBankSoal}
                   placeholder={bankSoalPlaceholder}
                   error={hasError("id_bank_soal")}
@@ -575,7 +608,7 @@ const BuatUjianForm = () => {
                   value={values.id_ruangan}
                   onChange={(event) => setField("id_ruangan", Number(event.target.value))}
                   onBlur={() => onBlur("id_ruangan")}
-                  disabled={loadingRuang}
+                  disabled={loadingRuang || submitting}
                   className={`${selectBaseClass} ${hasError("id_ruangan") ? "border-rose-300 ring-rose-100" : ""}`}
                 >
                   <option value={0}>{loadingRuang ? "Memuat ruang..." : "Pilih ruang ujian"}</option>
@@ -599,7 +632,7 @@ const BuatUjianForm = () => {
                   value={values.id_sesi}
                   onChange={(event) => setField("id_sesi", Number(event.target.value))}
                   onBlur={() => onBlur("id_sesi")}
-                  disabled={loadingSesi}
+                  disabled={loadingSesi || submitting}
                   className={`${selectBaseClass} ${hasError("id_sesi") ? "border-rose-300 ring-rose-100" : ""}`}
                 >
                   <option value={0}>{loadingSesi ? "Memuat sesi..." : "Pilih sesi ujian"}</option>
@@ -623,7 +656,7 @@ const BuatUjianForm = () => {
                   value={values.id_pengawas}
                   onChange={(event) => setField("id_pengawas", Number(event.target.value))}
                   onBlur={() => onBlur("id_pengawas")}
-                  disabled={loadingGuru}
+                  disabled={loadingGuru || submitting}
                   className={`${selectBaseClass} ${hasError("id_pengawas") ? "border-rose-300 ring-rose-100" : ""}`}
                 >
                   <option value={0}>{loadingGuru ? "Memuat guru..." : "Pilih guru pengawas"}</option>
@@ -655,6 +688,7 @@ const BuatUjianForm = () => {
                   id="acak_soal"
                   value={values.acak_soal ? "ya" : "tidak"}
                   onChange={(event) => setField("acak_soal", event.target.value === "ya")}
+                  disabled={submitting}
                   className={selectBaseClass}
                 >
                   <option value="ya">Ya, acak soal</option>
@@ -746,12 +780,8 @@ const BuatUjianForm = () => {
           <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
             <button
               type="button"
-              className="inline-flex cursor-pointer items-center justify-center rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed"
-              onClick={() => {
-                setValues(initialValues);
-                setTouched({});
-                setSubmitError(null);
-              }}
+              className="inline-flex cursor-pointer items-center justify-center rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-70"
+              onClick={handleReset}
               disabled={submitting}
             >
               Reset
@@ -762,7 +792,7 @@ const BuatUjianForm = () => {
               className="inline-flex cursor-pointer items-center justify-center rounded-lg bg-[#397e50] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#2f6a43] disabled:cursor-not-allowed disabled:opacity-70"
               disabled={submitting}
             >
-              {submitting ? "Menyimpan..." : "Simpan Ujian"}
+              {submitting ? "Menyimpan..." : actionLabel}
             </button>
           </div>
         </form>
