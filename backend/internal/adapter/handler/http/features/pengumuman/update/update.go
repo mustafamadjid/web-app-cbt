@@ -155,7 +155,3 @@ func (h *UpdatePengumumanHandler) UpdatePengumuman(w http.ResponseWriter, r *htt
 
 	httpResponse.WriteOKNoData(w, http.StatusOK, "success")
 }
-
-func ptrPengumumanID(id pengumuman.ID) *pengumuman.ID {
-	return &id
-}

@@ -1,31 +1,28 @@
 package httpx
 
-type UjianResponse struct {
-	IDUjian        int     `json:"id_ujian"`
-	IDBankSoal     int     `json:"id_bank_soal"`
-	IDKelas        int     `json:"id_kelas"`
-	IDNamaKelas    *int    `json:"id_nama_kelas"`
-	IDGuru         int     `json:"id_guru"`
-	NamaUjian      string  `json:"nama_ujian"`
-	DeskripsiUjian *string `json:"deskripsi_ujian"`
-	AcakSoal       bool    `json:"acak_soal"`
-	CreatedAt      string  `json:"created_at"`
-	UpdatedAt      *string `json:"updated_at"`
-}
-
-type JadwalUjianResponse struct {
-	IDJadwalUjian int     `json:"id_jadwal_ujian"`
-	IDUjian       int     `json:"id_ujian"`
-	IDSesi        int     `json:"id_sesi"`
-	IDRuangan     int     `json:"id_ruangan"`
-	IDPengawas    int     `json:"id_pengawas"`
-	Token         string  `json:"token"`
-	TanggalUjian  string  `json:"tanggal_ujian"`
-	WaktuMulai    string  `json:"waktu_mulai"`
-	WaktuSelesai  string  `json:"waktu_selesai"`
-	StatusUjian   string  `json:"status_ujian"`
-	CreatedAt     string  `json:"created_at"`
-	UpdatedAt     *string `json:"updated_at"`
+type ListUjianByIdResponse struct {
+	ID               int    `json:"id"`
+	IDUjian          int    `json:"id_ujian"`
+	IDGuru           int    `json:"id_guru"`
+	IDPengawas       int    `json:"id_pengawas"`
+	NamaUjian        string `json:"nama_ujian"`
+	PengawasUjian    string `json:"pengawas_ujian"`
+	TglUjian         string `json:"tgl_ujian"`
+	TanggalUjian     string `json:"tanggal_ujian"`
+	WaktuMulai       string `json:"waktu_mulai"`
+	WaktuSelesai     string `json:"waktu_selesai"`
+	SesiUjian        int    `json:"sesi_ujian"`
+	RuangUjian       string `json:"ruang_ujian"`
+	IDRuang          int    `json:"id_ruang"`
+	StatusUjian      string `json:"status_ujian"`
+	Started          int    `json:"started"`
+	TingkatKelas     int    `json:"tingkat_kelas"`
+	TingkatKelasID   int    `json:"tingkat_kelas_id"`
+	NamaKelas        string `json:"nama_kelas"`
+	PembuatUsername  string `json:"pembuat_username"`
+	PengawasUsername string `json:"pengawas_username"`
+	DeskripsiUjian   string `json:"deskripsi_ujian"`
+	Token            string `json:"token"`
 }
 
 type PesertaUjianResponse struct {
@@ -48,3 +45,4 @@ type JawabanUjianSiswaResponse struct {
 	IsBenar        *bool   `json:"is_benar"`
 	WaktuJawab     *string `json:"waktu_jawab"`
 }
+

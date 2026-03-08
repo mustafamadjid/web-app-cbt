@@ -8,7 +8,6 @@ import (
 	"github.com/julienschmidt/httprouter"
 	httpResponse "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper/response_envelope"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
-	importsoal "github.com/mustafamadjid/web-app-cbt/internal/core/domain/import_soal"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/service/import_soal/get_job"
 )
@@ -29,18 +28,6 @@ type jobResponse struct {
 	TotalSoal  int    `json:"total_soal"`
 	CreatedAt  string `json:"created_at"`
 	UpdatedAt  string `json:"updated_at"`
-}
-
-func toJobResponse(j importsoal.ImportSoalJob) jobResponse {
-	return jobResponse{
-		IDJob:      j.IDJob,
-		IDBankSoal: j.IDBankSoal,
-		Status:     string(j.Status),
-		ErrorMsg:   j.ErrorMsg,
-		TotalSoal:  j.TotalSoal,
-		CreatedAt:  j.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
-		UpdatedAt:  j.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
-	}
 }
 
 func (h *GetJobHandler) GetJobByID(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -94,10 +81,5 @@ func (h *GetJobHandler) GetJobsByBankSoal(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	responseList := make([]jobResponse, 0, len(jobs))
-	for _, j := range jobs {
-		responseList = append(responseList, toJobResponse(j))
-	}
-
-	httpResponse.WriteOK(w, http.StatusOK, responseList, "success")
+	httpResponse.WriteOK(w, http.StatusOK, toJobResponses(jobs), "success")
 }

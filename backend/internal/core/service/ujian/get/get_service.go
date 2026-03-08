@@ -45,42 +45,24 @@ func (r *GetUjianService) GetAllUjianService(ctx context.Context, filter query.L
 	return items, nil
 }
 
-// func (r *GetUjianService) GetUjianByIdService(ctx context.Context, id ujian.ID) (ujian.Ujian, error) {
-// 	logger := corelog.FromContext(ctx)
+func(r *GetUjianService)GetUjianByIdService(ctx context.Context, idUjian ujian.ID) (ujian.ListUjian, error){
+	logger := corelog.FromContext(ctx)
 
-// 	if err := validateUjianID(id); err != nil {
-// 		logger.Error(ctx, "failed get ujian by id", "layer", "core.service", "op", "ujian.get_by_id", "err", coreerror.ErrMissingId)
-// 		return ujian.Ujian{}, err
-// 	}
+	if err := validateUjianID(idUjian); err != nil {
+		logger.Error(ctx, "failed get ujian by id", "layer", "core.service", "op", "ujian.get_by_id", "err", coreerror.ErrMissingId)
+		return ujian.ListUjian{}, err
+	}
 
-// 	item, err := r.repo.GetUjianById(ctx, id)
-// 	if err != nil {
-// 		logger.Error(ctx, "failed get ujian by id", "layer", "core.service", "op", "ujian.get_by_id", "err", err)
-// 		return ujian.Ujian{}, err
-// 	}
-// 	return item, nil
-// }
+	item,err := r.repo.GetUjianById(ctx,idUjian)
+	if err != nil {
+		logger.Error(ctx, "failed get ujian by id", "layer", "core.service", "op", "ujian.get_by_id", "err", err)
+		return ujian.ListUjian{}, err
+	}
+	
+	return item, nil
+}
 
-// func (r *GetUjianService) GetJadwalUjianByIdService(ctx context.Context, id ujian.ID) (ujian.JadwalUjian, error) {
-// 	logger := corelog.FromContext(ctx)
 
-// 	if err := validateUjianID(id); err != nil {
-// 		logger.Error(ctx, "failed get jadwal ujian by id", "layer", "core.service", "op", "ujian.get_jadwal_by_id", "err", coreerror.ErrMissingId)
-// 		return ujian.JadwalUjian{}, err
-// 	}
-
-// 	item, err := r.repo.GetJadwalUjianById(ctx, id)
-// 	if err != nil {
-// 		logger.Error(ctx, "failed get jadwal ujian by id", "layer", "core.service", "op", "ujian.get_jadwal_by_id", "err", err)
-// 		return ujian.JadwalUjian{}, err
-// 	}
-// 	item = sanitizeJadwalUjian(item)
-// 	if err := validateJadwalUjian(item); err != nil {
-// 		logger.Error(ctx, "failed get jadwal ujian by id", "layer", "core.service", "op", "ujian.get_jadwal_by_id.validate", "err", err)
-// 		return ujian.JadwalUjian{}, coreerror.ErrInvalidInput
-// 	}
-// 	return item, nil
-// }
 
 func (r *GetUjianService) GetAllPesertaUjianService(ctx context.Context, peserta ujian.PesertaUjian) ([]ujian.PesertaUjian, error) {
 	logger := corelog.FromContext(ctx)

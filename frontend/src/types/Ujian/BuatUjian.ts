@@ -60,15 +60,6 @@ export type CreatePenjadwalanUjianPayload = {
   id_pengawas: number;
 };
 
-export type UpdatePenjadwalanUjianPayload = Partial<CreatePenjadwalanUjianPayload>;
-
-export type UjianEditFormData = {
-  id_ujian: number;
-  id_jadwal_ujian: number;
-  selected_mapel_id: number;
-  values: BuatUjianFormValues;
-};
-
 export type BankSoalOption = {
   id: number;
   nama: string;

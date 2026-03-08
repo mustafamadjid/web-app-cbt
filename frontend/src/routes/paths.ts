@@ -51,7 +51,6 @@ export const paths = {
 
     jadwal_ujian: djoinAdmin(join("ujian", "/jadwal")),
     detail_ujian: djoinAdmin(join("ujian", "/jadwal/:id")),
-    edit_ujian: djoinAdmin(join("ujian", "/jadwal/:id/edit")),
     buat_ujian: djoinAdmin(join("ujian", "/buat-ujian")),
     hasil_ujian: djoinAdmin(join("ujian", "/hasil")),
     hasil_ujian_detail: djoinAdmin(join("ujian", "/hasil/:id")),
@@ -70,7 +69,6 @@ export const paths = {
 
     jadwal_ujian_guru: djoinGuru(join("ujian", "/jadwal")),
     detail_ujian_guru: djoinGuru(join("ujian", "/jadwal/:id")),
-    edit_ujian_guru: djoinGuru(join("ujian", "/jadwal/:id/edit")),
     buat_ujian_guru: djoinGuru(join("ujian", "/buat-ujian")),
     hasil_ujian_guru: djoinGuru(join("ujian", "/hasil")),
     hasil_ujian_detail_guru: djoinGuru(join("ujian", "/hasil/:id")),

@@ -172,106 +172,94 @@ func (r *ListUjianRepo) GetAllUjian(ctx context.Context, filter query.ListUjianF
 	return results, nil
 }
 
-func (r *ListUjianRepo) GetUjianById(ctx context.Context, id ujian.ID) (ujian.Ujian, error) {
-	const queryText = `
+func (r *ListUjianRepo) GetUjianById(ctx context.Context, id ujian.ID) (ujian.ListUjian, error) {
+	query := `
 		SELECT
-			id_ujian,
-			id_bank_soal,
-			id_kelas,
-			id_nama_kelas,
-			id_guru,
-			nama_ujian,
-			deskripsi_ujian,
-			acak_soal,
-			created_at,
-			updated_at
-		FROM ujian
-		WHERE id_ujian = $1
+			u.id_ujian,
+			u.id_bank_soal,
+			u.id_guru,
+			u.nama_ujian,
+			u.deskripsi_ujian,
+			pg.username AS pembuat_username,
+			u.id_kelas,
+			u.id_nama_kelas,
+			u.acak_soal,
+			k.tingkat_kelas,
+			nk.nama_kelas,
+			ju.id_jadwal_ujian,
+			ju.tanggal_ujian,
+			ju.waktu_mulai,
+			ju.waktu_selesai,
+			ju.status_ujian,
+			ju.id_pengawas,
+			p.nama_lengkap,
+			p.username AS pengawas_username,
+			ju.id_sesi,
+			ju.token,
+			s.nama_sesi,
+			ju.id_ruangan,
+			ru.nama_ruangan
+		FROM ujian u
+		JOIN jadwal_ujian ju
+			ON ju.id_ujian = u.id_ujian
+		JOIN kelas k
+			ON k.id_kelas = u.id_kelas
+		LEFT JOIN nama_kelas nk
+			ON nk.id_nama_kelas = u.id_nama_kelas
+		JOIN pengguna pg
+			ON pg.id_pengguna = u.id_guru
+		JOIN pengguna p
+			ON p.id_pengguna = ju.id_pengawas
+		JOIN sesi_ujian s
+			ON s.id_sesi = ju.id_sesi
+		JOIN ruang_ujian ru
+			ON ru.id_ruangan = ju.id_ruangan
+		WHERE u.id_ujian = $1
 	`
-
 	var (
-		item        ujian.Ujian
-		idNamaKelas sql.NullInt64
-		deskripsi   sql.NullString
-		updatedAt   sql.NullTime
+		item           ujian.ListUjian
+		idNamaKls      sql.NullInt64
+		namaKelas      sql.NullString
+		deskripsiUjian sql.NullString
 	)
 
-	if err := r.q.QueryRow(ctx, queryText, id).Scan(
+	err := r.q.QueryRow(ctx, query, id).Scan(
 		&item.IdUjian,
 		&item.IdBankSoal,
-		&item.IdKelas,
-		&idNamaKelas,
 		&item.IdGuru,
 		&item.NamaUjian,
-		&deskripsi,
+		&deskripsiUjian,
+		&item.PembuatUsername,
+		&item.IdKelas,
+		&idNamaKls,
 		&item.AcakSoal,
-		&item.CreatedAt,
-		&updatedAt,
-	); err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return ujian.Ujian{}, coreerror.ErrNotFound
-		}
-		r.loggerFor(ctx).Error(ctx, "failed get ujian by id", "layer", "repo.db", "op", "ujian.get_by_id", "err", err)
-		return ujian.Ujian{}, err
-	}
-
-	item.IdNamaKelas = nullInt64ToUjianIDPtr(idNamaKelas)
-	item.DeskripsiUjian = nullStringToPtr(deskripsi)
-	item.UpdatedAt = nullTimeToPtr(updatedAt)
-
-	return item, nil
-}
-
-func (r *ListUjianRepo) GetJadwalUjianById(ctx context.Context, id ujian.ID) (ujian.JadwalUjian, error) {
-	const queryText = `
-		SELECT
-			id_jadwal_ujian,
-			id_ujian,
-			id_sesi,
-			id_ruangan,
-			id_pengawas,
-			tanggal_ujian,
-			waktu_mulai,
-			waktu_selesai,
-			token,
-			status_ujian,
-			created_at,
-			updated_at
-		FROM jadwal_ujian
-		WHERE id_jadwal_ujian = $1
-	`
-
-	var (
-		item       ujian.JadwalUjian
-		idPengawas sql.NullInt64
-		updatedAt  sql.NullTime
-	)
-
-	if err := r.q.QueryRow(ctx, queryText, id).Scan(
+		&item.TingkatKelas,
+		&namaKelas,
 		&item.IdJadwalUjian,
-		&item.IdUjian,
-		&item.IdSesi,
-		&item.IdRuangan,
-		&idPengawas,
 		&item.TanggalUjian,
 		&item.WaktuMulai,
 		&item.WaktuSelesai,
-		&item.Token,
 		&item.StatusUjian,
-		&item.CreatedAt,
-		&updatedAt,
-	); err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return ujian.JadwalUjian{}, coreerror.ErrNotFound
-		}
-		r.loggerFor(ctx).Error(ctx, "failed get jadwal ujian by id", "layer", "repo.db", "op", "ujian.get_jadwal_by_id", "err", err)
-		return ujian.JadwalUjian{}, err
+		&item.IdPengawas,
+		&item.NamaPengawas,
+		&item.PengawasUsername,
+		&item.IdSesi,
+		&item.Token,
+		&item.NamaSesi,
+		&item.IdRuangan,
+		&item.NamaRuangan,
+	)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return ujian.ListUjian{}, coreerror.ErrNotFound
+	}
+	if err != nil {
+		r.loggerFor(ctx).Error(ctx, "failed scanning list ujian", "layer", "repo.db", "op", "ujian.get_by_id.scan", "err", err)
+		return ujian.ListUjian{}, err
 	}
 
-	if idPengawas.Valid {
-		item.IdPengawas = ujian.ID(idPengawas.Int64)
-	}
-	item.UpdatedAt = nullTimeToPtr(updatedAt)
+	item.IdNamaKelas = nullInt64ToUjianIDPtr(idNamaKls)
+	item.NamaKelas = nullStringToPtr(namaKelas)
+	item.DeskripsiUjian = nullStringToPtr(deskripsiUjian)
 
 	return item, nil
 }

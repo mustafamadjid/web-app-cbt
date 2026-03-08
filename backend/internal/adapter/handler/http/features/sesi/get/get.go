@@ -11,7 +11,6 @@ import (
 	validator "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/validation"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
-	query "github.com/mustafamadjid/web-app-cbt/internal/core/query/sesi"
 	sesi_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/sesi/get"
 )
 
@@ -44,16 +43,7 @@ func (h *GetSesiHandler) ListSesi(w http.ResponseWriter, r *http.Request, _ http
 		return
 	}
 
-	resp := ListSesiResponse{Items: make([]SesiResponse, 0, len(items))}
-	for _, item := range items {
-		resp.Items = append(resp.Items, SesiResponse{
-			IdSesi:   int(item.IdSesi),
-			KodeSesi: item.KodeSesi,
-			NamaSesi: item.NamaSesi,
-		})
-	}
-
-	httpResponse.WriteOK(w, http.StatusOK, resp, "Success")
+	httpResponse.WriteOK(w, http.StatusOK, toListSesiResponse(items), "Success")
 }
 
 func (h *GetSesiHandler) GetSesiByID(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
@@ -82,11 +72,7 @@ func (h *GetSesiHandler) GetSesiByID(w http.ResponseWriter, r *http.Request, par
 		return
 	}
 
-	httpResponse.WriteOK(w, http.StatusOK, SesiResponse{
-		IdSesi:   int(item.IdSesi),
-		KodeSesi: item.KodeSesi,
-		NamaSesi: item.NamaSesi,
-	}, "Success")
+	httpResponse.WriteOK(w, http.StatusOK, toSesiResponse(item), "Success")
 }
 
 func (h *GetSesiHandler) GetSesiByKode(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
@@ -116,40 +102,5 @@ func (h *GetSesiHandler) GetSesiByKode(w http.ResponseWriter, r *http.Request, p
 		return
 	}
 
-	httpResponse.WriteOK(w, http.StatusOK, SesiResponse{
-		IdSesi:   int(item.IdSesi),
-		KodeSesi: item.KodeSesi,
-		NamaSesi: item.NamaSesi,
-	}, "Success")
-}
-
-func parseListSesiFilters(r *http.Request) (query.ListSesiFilter, error) {
-	values := r.URL.Query()
-	filters := query.ListSesiFilter{}
-
-	filters.Search = strings.TrimSpace(values.Get("q"))
-	if filters.Search == "" {
-		filters.Search = strings.TrimSpace(values.Get("search"))
-	}
-	if err := validator.ValidateInputSafe(filters.Search, "search"); err != nil {
-		return query.ListSesiFilter{}, err
-	}
-
-	if limitRaw := strings.TrimSpace(values.Get("limit")); limitRaw != "" {
-		limit, err := strconv.Atoi(limitRaw)
-		if err != nil {
-			return query.ListSesiFilter{}, errors.New("limit must be a number")
-		}
-		filters.Limit = limit
-	}
-
-	if offsetRaw := strings.TrimSpace(values.Get("offset")); offsetRaw != "" {
-		offset, err := strconv.Atoi(offsetRaw)
-		if err != nil {
-			return query.ListSesiFilter{}, errors.New("offset must be a number")
-		}
-		filters.Offset = offset
-	}
-
-	return filters, nil
+	httpResponse.WriteOK(w, http.StatusOK, toSesiResponse(item), "Success")
 }

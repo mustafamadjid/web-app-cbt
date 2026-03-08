@@ -72,6 +72,10 @@ type ListUjian struct {
 
 	IdRuangan   ID
 	NamaRuangan string
+
+	DeskripsiUjian *string
+	Token 			string
+	AcakSoal   		bool
 }
 
 type PesertaUjian struct {

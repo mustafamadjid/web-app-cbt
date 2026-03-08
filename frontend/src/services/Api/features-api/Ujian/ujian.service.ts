@@ -7,8 +7,11 @@ import type {
   BuatUjianSubmitResponse,
   SiswaPreviewItem,
 } from "@/types/Ujian/BuatUjian";
+import type { DetailUjianItem } from "@/types/Ujian/DetailUjian";
 import { DUMMY_SISWA } from "@/services/Api/features-api/KelolaAkun/akunsiswa.service";
 import { getTingkatKelasById } from "@/services/Api/features-api/DataMaster/kelas.service";
+
+const UJIAN_DETAIL_ENDPOINT = "/ujian/detail";
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -42,6 +45,12 @@ export async function submitBuatUjian(values: BuatUjianFormValues) {
   return res.data;
 }
 
+export async function getDetailUjianById(idUjian: number): Promise<DetailUjianItem> {
+  return api<DetailUjianItem>(`${UJIAN_DETAIL_ENDPOINT}/${idUjian}`, {
+    method: "GET",
+  });
+}
+
 // =====================
 // Hook Wrappers
 // =====================
@@ -55,4 +64,14 @@ export function useGetUjianSiswaPreview(params: { tingkatKelasId?: number }) {
 
 export function useSubmitBuatUjian() {
   return usePost((values: BuatUjianFormValues) => submitBuatUjian(values));
+}
+
+export function useGetDetailUjianById(idUjian: number, enabled = true) {
+  return useFetch(
+    () =>
+      enabled
+        ? getDetailUjianById(idUjian)
+        : Promise.resolve(null as DetailUjianItem | null),
+    [idUjian, enabled],
+  );
 }

@@ -22,7 +22,11 @@ import { useGetSesi } from "@/services/Api/features-api/DataMaster/sesi.service"
 import { useGetAllGuru } from "@/services/Api/features-api/KelolaAkun/akunguru.service";
 import { useGetListSiswa } from "@/services/Api/features-api/KelolaAkun/akunsiswa.service";
 import type { BankSoalItem } from "@/types/BankSoal/BankSoal";
-import type { FullDataKelas, NamaKelas, TingkatKelas } from "@/types/DataMaster/Kelas";
+import type {
+  FullDataKelas,
+  NamaKelas,
+  TingkatKelas,
+} from "@/types/DataMaster/Kelas";
 import type { MataPelajaranRow } from "@/types/DataMaster/MataPelajaran";
 import type { RuangUjianRow } from "@/types/DataMaster/RuangUjian";
 import type { SesiRow } from "@/types/DataMaster/Sesi";
@@ -34,10 +38,6 @@ import {
 } from "@/types/Ujian/BuatUjian";
 
 type BuatUjianFormProps = {
-  mode?: "create" | "edit";
-  initialValues?: BuatUjianFormValues;
-  initialSelectedMapelId?: number;
-  loadingInitialData?: boolean;
   title?: string;
   description?: string;
   submitLabel?: string;
@@ -56,43 +56,28 @@ const timePatternRule = matchesPattern(
 );
 
 const BuatUjianForm = ({
-  mode = "create",
-  initialValues = EMPTY_BUAT_UJIAN_FORM_VALUES,
-  initialSelectedMapelId = 0,
-  loadingInitialData = false,
   title,
   description,
   submitLabel,
   onSubmit,
 }: BuatUjianFormProps) => {
-  const [values, setValues] = useState<BuatUjianFormValues>(initialValues);
-  const [selectedMapelId, setSelectedMapelId] = useState(initialSelectedMapelId);
+  const [values, setValues] = useState<BuatUjianFormValues>(
+    EMPTY_BUAT_UJIAN_FORM_VALUES,
+  );
+  const [selectedMapelId, setSelectedMapelId] = useState(0);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const skipNextKelasResetRef = useRef(true);
 
   const setField = createSetField(setValues);
-  const isEditMode = mode === "edit";
-  const pageTitle = title ?? (isEditMode ? "Edit Ujian" : "Buat Ujian");
-  const pageDescription =
-    description ??
-    (isEditMode
-      ? "Perbarui detail ujian dan kirim hanya perubahan yang dibutuhkan server."
-      : "Lengkapi detail ujian dan jadwalnya sesuai data server.");
-  const actionLabel = submitLabel ?? (isEditMode ? "Simpan Perubahan" : "Simpan Ujian");
+  const pageTitle = title ?? "Buat Ujian";
+  const pageDescription = description ?? "Silakan lengkapi data ujian";
+  const actionLabel = submitLabel ?? "Simpan Ujian";
 
   const onBlur = (name: keyof BuatUjianFormValues) => {
     setTouched((prev) => ({ ...prev, [name]: true }));
   };
-
-  useEffect(() => {
-    setValues(initialValues);
-    setSelectedMapelId(initialSelectedMapelId);
-    setTouched({});
-    setSubmitError(null);
-    skipNextKelasResetRef.current = true;
-  }, [initialValues, initialSelectedMapelId]);
 
   const {
     data: kelasData,
@@ -218,7 +203,9 @@ const BuatUjianForm = ({
       return;
     }
 
-    if (!bankSoalOptions.some((item) => item.id_bank_soal === values.id_bank_soal)) {
+    if (
+      !bankSoalOptions.some((item) => item.id_bank_soal === values.id_bank_soal)
+    ) {
       setField("id_bank_soal", 0);
     }
   }, [bankSoalOptions, loadingBankSoal, setField, values.id_bank_soal]);
@@ -266,7 +253,10 @@ const BuatUjianForm = ({
       (_, currentValues) =>
         currentValues.waktu_mulai &&
         currentValues.waktu_selesai &&
-        calculateDuration(currentValues.waktu_mulai, currentValues.waktu_selesai) <= 0
+        calculateDuration(
+          currentValues.waktu_mulai,
+          currentValues.waktu_selesai,
+        ) <= 0
           ? "Waktu selesai harus setelah waktu mulai."
           : null,
     ],
@@ -276,9 +266,7 @@ const BuatUjianForm = ({
     token: [
       requiredString("Token ujian wajib diisi."),
       (value) =>
-        value.trim().length > 30
-          ? "Token ujian maksimal 30 karakter."
-          : null,
+        value.trim().length > 30 ? "Token ujian maksimal 30 karakter." : null,
     ],
   });
 
@@ -287,8 +275,8 @@ const BuatUjianForm = ({
     Boolean(errors[name]) && Boolean(touched[name]);
 
   const handleReset = () => {
-    setValues(initialValues);
-    setSelectedMapelId(initialSelectedMapelId);
+    setValues(EMPTY_BUAT_UJIAN_FORM_VALUES);
+    setSelectedMapelId(0);
     setTouched({});
     setSubmitError(null);
     skipNextKelasResetRef.current = true;
@@ -306,7 +294,9 @@ const BuatUjianForm = ({
 
     const currentErrors = validate(values);
     if (Object.keys(currentErrors).length > 0) {
-      setSubmitError("Periksa kembali input yang masih kosong atau belum valid.");
+      setSubmitError(
+        "Periksa kembali input yang masih kosong atau belum valid.",
+      );
       return;
     }
 
@@ -326,22 +316,13 @@ const BuatUjianForm = ({
     }
   };
 
-  if (loadingInitialData) {
-    return (
-      <div className="flex min-h-[360px] items-center justify-center py-8">
-        <div className="flex flex-col items-center gap-3 rounded-2xl border border-slate-200 bg-white px-8 py-10 text-slate-500 shadow-sm">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#397e50] border-t-transparent" />
-          <p className="text-sm font-medium">Memuat data ujian...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen w-full py-8">
       <div className="mx-auto w-full max-w-6xl px-4">
         <div className="mb-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h1 className="text-base font-semibold text-slate-900">{pageTitle}</h1>
+          <h1 className="text-base font-semibold text-slate-900">
+            {pageTitle}
+          </h1>
           <p className="mt-1 text-sm text-slate-500">{pageDescription}</p>
         </div>
 
@@ -360,29 +341,44 @@ const BuatUjianForm = ({
                   onChange={(value) => setField("nama_ujian", value)}
                   onBlur={() => onBlur("nama_ujian")}
                   placeholder="Contoh: Ujian Tengah Semester Matematika"
-                  inputClassName={hasError("nama_ujian") ? "border-rose-300 ring-rose-100" : ""}
+                  inputClassName={
+                    hasError("nama_ujian")
+                      ? "border-rose-300 ring-rose-100"
+                      : ""
+                  }
                 />
                 {hasError("nama_ujian") && (
-                  <p className="mt-1 text-xs text-rose-600">{errors.nama_ujian}</p>
+                  <p className="mt-1 text-xs text-rose-600">
+                    {errors.nama_ujian}
+                  </p>
                 )}
               </div>
 
               <div className="md:col-span-2">
-                <label htmlFor="deskripsi_ujian" className="text-xs font-medium text-slate-600">
+                <label
+                  htmlFor="deskripsi_ujian"
+                  className="text-xs font-medium text-slate-600"
+                >
                   Deskripsi Ujian
                 </label>
                 <textarea
                   id="deskripsi_ujian"
                   className={`min-h-[100px] w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-[#397e50] focus:ring-2 focus:ring-[#397e50] ${
-                    hasError("deskripsi_ujian") ? "border-rose-300 ring-rose-100" : ""
+                    hasError("deskripsi_ujian")
+                      ? "border-rose-300 ring-rose-100"
+                      : ""
                   }`}
                   value={values.deskripsi_ujian}
-                  onChange={(event) => setField("deskripsi_ujian", event.target.value)}
+                  onChange={(event) =>
+                    setField("deskripsi_ujian", event.target.value)
+                  }
                   onBlur={() => onBlur("deskripsi_ujian")}
                   placeholder="Jelaskan cakupan materi ujian."
                 />
                 {hasError("deskripsi_ujian") && (
-                  <p className="mt-1 text-xs text-rose-600">{errors.deskripsi_ujian}</p>
+                  <p className="mt-1 text-xs text-rose-600">
+                    {errors.deskripsi_ujian}
+                  </p>
                 )}
               </div>
             </div>
@@ -391,40 +387,52 @@ const BuatUjianForm = ({
           <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="mb-4">
               <h2 className={sectionTitle}>Kelas & Bank Soal</h2>
-              <p className={helperText}>
-                Gunakan data kelas penuh, pilih mapel, lalu pilih bank soal sesuai filter.
-              </p>
             </div>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
               <div>
-                <label htmlFor="id_kelas" className="text-xs font-medium text-slate-600">
+                <label
+                  htmlFor="id_kelas"
+                  className="text-xs font-medium text-slate-600"
+                >
                   Tingkat Kelas
                 </label>
                 <select
                   id="id_kelas"
                   value={values.id_kelas}
-                  onChange={(event) => setField("id_kelas", Number(event.target.value))}
+                  onChange={(event) =>
+                    setField("id_kelas", Number(event.target.value))
+                  }
                   onBlur={() => onBlur("id_kelas")}
                   disabled={loadingKelas || submitting}
                   className={`${selectBaseClass} ${hasError("id_kelas") ? "border-rose-300 ring-rose-100" : ""}`}
                 >
                   <option value={0}>
-                    {loadingKelas ? "Memuat tingkat kelas..." : "Pilih tingkat kelas"}
+                    {loadingKelas
+                      ? "Memuat tingkat kelas..."
+                      : "Pilih tingkat kelas"}
                   </option>
                   {tingkatKelasOptions.map((item) => (
-                    <option key={item.id_tingkat_kelas} value={item.id_tingkat_kelas}>
+                    <option
+                      key={item.id_tingkat_kelas}
+                      value={item.id_tingkat_kelas}
+                    >
                       Kelas {item.tingkat_kelas}
                     </option>
                   ))}
                 </select>
                 {hasError("id_kelas") && (
-                  <p className="mt-1 text-xs text-rose-600">{errors.id_kelas}</p>
+                  <p className="mt-1 text-xs text-rose-600">
+                    {errors.id_kelas}
+                  </p>
                 )}
               </div>
 
               <div>
-                <label htmlFor="kelas_scope" className="text-xs font-medium text-slate-600">
+                <label
+                  htmlFor="kelas_scope"
+                  className="text-xs font-medium text-slate-600"
+                >
                   Cakupan Kelas
                 </label>
                 <select
@@ -444,21 +452,30 @@ const BuatUjianForm = ({
                   <option value="SPESIFIK">Spesifik nama kelas</option>
                 </select>
                 {hasError("kelas_scope") && (
-                  <p className="mt-1 text-xs text-rose-600">{errors.kelas_scope}</p>
+                  <p className="mt-1 text-xs text-rose-600">
+                    {errors.kelas_scope}
+                  </p>
                 )}
               </div>
 
               <div>
-                <label htmlFor="id_nama_kelas" className="text-xs font-medium text-slate-600">
+                <label
+                  htmlFor="id_nama_kelas"
+                  className="text-xs font-medium text-slate-600"
+                >
                   Nama Kelas
                 </label>
                 <select
                   id="id_nama_kelas"
                   value={values.id_nama_kelas}
-                  onChange={(event) => setField("id_nama_kelas", Number(event.target.value))}
+                  onChange={(event) =>
+                    setField("id_nama_kelas", Number(event.target.value))
+                  }
                   onBlur={() => onBlur("id_nama_kelas")}
                   disabled={
-                    values.id_kelas === 0 || values.kelas_scope !== "SPESIFIK" || submitting
+                    values.id_kelas === 0 ||
+                    values.kelas_scope !== "SPESIFIK" ||
+                    submitting
                   }
                   className={`${selectBaseClass} ${hasError("id_nama_kelas") ? "border-rose-300 ring-rose-100" : ""}`}
                 >
@@ -470,12 +487,17 @@ const BuatUjianForm = ({
                   ))}
                 </select>
                 {hasError("id_nama_kelas") && (
-                  <p className="mt-1 text-xs text-rose-600">{errors.id_nama_kelas}</p>
+                  <p className="mt-1 text-xs text-rose-600">
+                    {errors.id_nama_kelas}
+                  </p>
                 )}
               </div>
 
               <div className="md:col-span-2 lg:col-span-1">
-                <label htmlFor="id_mapel_filter" className="text-xs font-medium text-slate-600">
+                <label
+                  htmlFor="id_mapel_filter"
+                  className="text-xs font-medium text-slate-600"
+                >
                   Mapel
                 </label>
                 <select
@@ -509,15 +531,21 @@ const BuatUjianForm = ({
                   label="Bank Soal"
                   value={values.id_bank_soal}
                   options={bankSoalOptions}
-                  onChange={(selectedId) => setField("id_bank_soal", selectedId)}
+                  onChange={(selectedId) =>
+                    setField("id_bank_soal", selectedId)
+                  }
                   onBlur={() => onBlur("id_bank_soal")}
-                  disabled={values.id_kelas === 0 || selectedMapelId === 0 || submitting}
+                  disabled={
+                    values.id_kelas === 0 || selectedMapelId === 0 || submitting
+                  }
                   loading={loadingBankSoal}
                   placeholder={bankSoalPlaceholder}
                   error={hasError("id_bank_soal")}
                 />
                 {hasError("id_bank_soal") && (
-                  <p className="mt-1 text-xs text-rose-600">{errors.id_bank_soal}</p>
+                  <p className="mt-1 text-xs text-rose-600">
+                    {errors.id_bank_soal}
+                  </p>
                 )}
               </div>
             </div>
@@ -526,9 +554,7 @@ const BuatUjianForm = ({
           <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="mb-4">
               <h2 className={sectionTitle}>Jadwal Ujian</h2>
-              <p className={helperText}>
-                Gunakan format waktu 24 jam `HH:mm` seperti 07:30 dan 13:45.
-              </p>
+              <p className={helperText}></p>
             </div>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
@@ -542,7 +568,9 @@ const BuatUjianForm = ({
                   error={hasError("tanggal_ujian")}
                 />
                 {hasError("tanggal_ujian") && (
-                  <p className="mt-1 text-xs text-rose-600">{errors.tanggal_ujian}</p>
+                  <p className="mt-1 text-xs text-rose-600">
+                    {errors.tanggal_ujian}
+                  </p>
                 )}
               </div>
 
@@ -555,9 +583,13 @@ const BuatUjianForm = ({
                   onBlur={() => onBlur("waktu_mulai")}
                   error={hasError("waktu_mulai")}
                 />
-                <p className="mt-1 text-[11px] text-slate-500">Waktu ujian memakai WIB (24 jam).</p>
+                <p className="mt-1 text-[11px] text-slate-500">
+                  Waktu ujian memakai WIB (24 jam).
+                </p>
                 {hasError("waktu_mulai") && (
-                  <p className="mt-1 text-xs text-rose-600">{errors.waktu_mulai}</p>
+                  <p className="mt-1 text-xs text-rose-600">
+                    {errors.waktu_mulai}
+                  </p>
                 )}
               </div>
 
@@ -570,9 +602,13 @@ const BuatUjianForm = ({
                   onBlur={() => onBlur("waktu_selesai")}
                   error={hasError("waktu_selesai")}
                 />
-                <p className="mt-1 text-[11px] text-slate-500">Waktu ujian memakai WIB (24 jam).</p>
+                <p className="mt-1 text-[11px] text-slate-500">
+                  Waktu ujian memakai WIB (24 jam).
+                </p>
                 {hasError("waktu_selesai") && (
-                  <p className="mt-1 text-xs text-rose-600">{errors.waktu_selesai}</p>
+                  <p className="mt-1 text-xs text-rose-600">
+                    {errors.waktu_selesai}
+                  </p>
                 )}
               </div>
 
@@ -600,18 +636,25 @@ const BuatUjianForm = ({
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <div>
-                <label htmlFor="id_ruangan" className="text-xs font-medium text-slate-600">
+                <label
+                  htmlFor="id_ruangan"
+                  className="text-xs font-medium text-slate-600"
+                >
                   Ruang Ujian
                 </label>
                 <select
                   id="id_ruangan"
                   value={values.id_ruangan}
-                  onChange={(event) => setField("id_ruangan", Number(event.target.value))}
+                  onChange={(event) =>
+                    setField("id_ruangan", Number(event.target.value))
+                  }
                   onBlur={() => onBlur("id_ruangan")}
                   disabled={loadingRuang || submitting}
                   className={`${selectBaseClass} ${hasError("id_ruangan") ? "border-rose-300 ring-rose-100" : ""}`}
                 >
-                  <option value={0}>{loadingRuang ? "Memuat ruang..." : "Pilih ruang ujian"}</option>
+                  <option value={0}>
+                    {loadingRuang ? "Memuat ruang..." : "Pilih ruang ujian"}
+                  </option>
                   {ruangOptions.map((item) => (
                     <option key={item.id_ruangan} value={item.id_ruangan}>
                       {item.nama_ruangan}
@@ -619,23 +662,32 @@ const BuatUjianForm = ({
                   ))}
                 </select>
                 {hasError("id_ruangan") && (
-                  <p className="mt-1 text-xs text-rose-600">{errors.id_ruangan}</p>
+                  <p className="mt-1 text-xs text-rose-600">
+                    {errors.id_ruangan}
+                  </p>
                 )}
               </div>
 
               <div>
-                <label htmlFor="id_sesi" className="text-xs font-medium text-slate-600">
+                <label
+                  htmlFor="id_sesi"
+                  className="text-xs font-medium text-slate-600"
+                >
                   Sesi Ujian
                 </label>
                 <select
                   id="id_sesi"
                   value={values.id_sesi}
-                  onChange={(event) => setField("id_sesi", Number(event.target.value))}
+                  onChange={(event) =>
+                    setField("id_sesi", Number(event.target.value))
+                  }
                   onBlur={() => onBlur("id_sesi")}
                   disabled={loadingSesi || submitting}
                   className={`${selectBaseClass} ${hasError("id_sesi") ? "border-rose-300 ring-rose-100" : ""}`}
                 >
-                  <option value={0}>{loadingSesi ? "Memuat sesi..." : "Pilih sesi ujian"}</option>
+                  <option value={0}>
+                    {loadingSesi ? "Memuat sesi..." : "Pilih sesi ujian"}
+                  </option>
                   {sesiOptions.map((item) => (
                     <option key={item.id_sesi} value={item.id_sesi}>
                       {item.kode_sesi} - {item.nama_sesi}
@@ -648,18 +700,25 @@ const BuatUjianForm = ({
               </div>
 
               <div>
-                <label htmlFor="id_pengawas" className="text-xs font-medium text-slate-600">
+                <label
+                  htmlFor="id_pengawas"
+                  className="text-xs font-medium text-slate-600"
+                >
                   Guru Pengawas
                 </label>
                 <select
                   id="id_pengawas"
                   value={values.id_pengawas}
-                  onChange={(event) => setField("id_pengawas", Number(event.target.value))}
+                  onChange={(event) =>
+                    setField("id_pengawas", Number(event.target.value))
+                  }
                   onBlur={() => onBlur("id_pengawas")}
                   disabled={loadingGuru || submitting}
                   className={`${selectBaseClass} ${hasError("id_pengawas") ? "border-rose-300 ring-rose-100" : ""}`}
                 >
-                  <option value={0}>{loadingGuru ? "Memuat guru..." : "Pilih guru pengawas"}</option>
+                  <option value={0}>
+                    {loadingGuru ? "Memuat guru..." : "Pilih guru pengawas"}
+                  </option>
                   {guruOptions.map((item) => (
                     <option key={item.id_pengguna} value={item.id_pengguna}>
                       {item.nama_lengkap}
@@ -667,7 +726,9 @@ const BuatUjianForm = ({
                   ))}
                 </select>
                 {hasError("id_pengawas") && (
-                  <p className="mt-1 text-xs text-rose-600">{errors.id_pengawas}</p>
+                  <p className="mt-1 text-xs text-rose-600">
+                    {errors.id_pengawas}
+                  </p>
                 )}
               </div>
             </div>
@@ -676,18 +737,23 @@ const BuatUjianForm = ({
           <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="mb-4">
               <h2 className={sectionTitle}>Keamanan & Token</h2>
-              <p className={helperText}>Token bebas, maksimal 30 karakter.</p>
+              <p className={helperText}>Token maksimal 30 karakter.</p>
             </div>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
-                <label htmlFor="acak_soal" className="text-xs font-medium text-slate-600">
+                <label
+                  htmlFor="acak_soal"
+                  className="text-xs font-medium text-slate-600"
+                >
                   Acak Soal
                 </label>
                 <select
                   id="acak_soal"
                   value={values.acak_soal ? "ya" : "tidak"}
-                  onChange={(event) => setField("acak_soal", event.target.value === "ya")}
+                  onChange={(event) =>
+                    setField("acak_soal", event.target.value === "ya")
+                  }
                   disabled={submitting}
                   className={selectBaseClass}
                 >
@@ -704,7 +770,9 @@ const BuatUjianForm = ({
                   onChange={(value) => setField("token", value.slice(0, 30))}
                   onBlur={() => onBlur("token")}
                   placeholder="Contoh: UTS-MTK-01"
-                  inputClassName={hasError("token") ? "border-rose-300 ring-rose-100" : ""}
+                  inputClassName={
+                    hasError("token") ? "border-rose-300 ring-rose-100" : ""
+                  }
                 />
                 <p className="mt-1 text-[11px] text-slate-500">
                   {values.token.length}/30 karakter
@@ -723,7 +791,7 @@ const BuatUjianForm = ({
                 <p className={helperText}>
                   {values.kelas_scope === "SPESIFIK"
                     ? "Preview mengambil id_tingkat_kelas dan id_nama_kelas."
-                    : "Preview mengambil id_tingkat_kelas saja."}
+                    : "."}
                 </p>
               </div>
               <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
@@ -733,7 +801,8 @@ const BuatUjianForm = ({
 
             {!siswaPreviewEnabled && (
               <p className="text-sm text-slate-500">
-                Pilih tingkat kelas, dan jika scope spesifik pilih nama kelas, untuk melihat siswa.
+                Pilih tingkat kelas, dan jika scope spesifik pilih nama kelas,
+                untuk melihat siswa.
               </p>
             )}
 
@@ -741,9 +810,13 @@ const BuatUjianForm = ({
               <p className="text-sm text-slate-500">Memuat data siswa...</p>
             )}
 
-            {siswaPreviewEnabled && !loadingSiswa && siswaPreview.length === 0 && (
-              <p className="text-sm text-slate-500">Belum ada siswa pada filter kelas ini.</p>
-            )}
+            {siswaPreviewEnabled &&
+              !loadingSiswa &&
+              siswaPreview.length === 0 && (
+                <p className="text-sm text-slate-500">
+                  Belum ada siswa pada filter kelas ini.
+                </p>
+              )}
 
             {siswaPreview.length > 0 && (
               <div className="max-h-64 overflow-y-auto rounded-lg border border-slate-200">
@@ -758,11 +831,18 @@ const BuatUjianForm = ({
                   </thead>
                   <tbody>
                     {siswaPreview.map((siswa) => (
-                      <tr key={siswa.id_pengguna} className="border-t border-slate-100">
-                        <td className="px-3 py-2 font-medium text-slate-700">{siswa.nama_lengkap}</td>
+                      <tr
+                        key={siswa.id_pengguna}
+                        className="border-t border-slate-100"
+                      >
+                        <td className="px-3 py-2 font-medium text-slate-700">
+                          {siswa.nama_lengkap}
+                        </td>
                         <td className="px-3 py-2">{siswa.no_absen}</td>
                         <td className="px-3 py-2">{siswa.nama_kelas}</td>
-                        <td className="px-3 py-2 capitalize">{siswa.status_akun}</td>
+                        <td className="px-3 py-2 capitalize">
+                          {siswa.status_akun}
+                        </td>
                       </tr>
                     ))}
                   </tbody>

@@ -106,21 +106,3 @@ func (h *UpdateUjianHandler) UpdateUjian(w http.ResponseWriter, r *http.Request,
 
 	httpResponse.WriteOKNoData(w, http.StatusOK, "success")
 }
-
-func toIDUjianPointer(value *int) *ujian.ID {
-	if value == nil {
-		return nil
-	}
-
-	id := ujian.ID(*value)
-	return &id
-}
-
-func toStatusUjianPointer(value *string) *ujian.StatusUjian {
-	if value == nil {
-		return nil
-	}
-
-	status := ujian.StatusUjian(*value)
-	return &status
-}

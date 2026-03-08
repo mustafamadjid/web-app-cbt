@@ -7,20 +7,13 @@ import {
   Calendar,
   GraduationCap,
   Hash,
-  Layout,
   MapPin,
-  ShieldCheck,
 } from "lucide-react";
 
 import PrintButton from "@/components/common/Input/PrintButton";
 import { useAuth } from "@/contexts/AuthContext";
 import { paths } from "@/routes/paths";
-import { useGetBankSoal } from "@/services/Api/features-api/BankSoal/banksoal.service";
-import { useGetDataKelasFull } from "@/services/Api/features-api/DataMaster/kelas.service";
-import { useGetRuangUjian } from "@/services/Api/features-api/DataMaster/ruang-ujian.service";
-import { useGetSesi } from "@/services/Api/features-api/DataMaster/sesi.service";
-import { useGetAllGuru } from "@/services/Api/features-api/KelolaAkun/akunguru.service";
-import { useGetJadwalUjianDetail } from "@/services/Api/features-api/Ujian/jadwalujian.service";
+import { useGetDetailUjianById } from "@/services/Api/features-api/Ujian/ujian.service";
 
 const statusLabelMap: Record<string, string> = {
   belum_dimulai: "Belum Dimulai",
@@ -36,11 +29,19 @@ const statusColorMap: Record<string, string> = {
   dibatalkan: "bg-rose-50 text-rose-700 border-rose-200",
 };
 
+const calculateDuration = (mulai: string, selesai: string) => {
+  const [mulaiHour = 0, mulaiMinute = 0] = mulai.split(":").map(Number);
+  const [selesaiHour = 0, selesaiMinute = 0] = selesai.split(":").map(Number);
+  const mulaiMinuteTotal = mulaiHour * 60 + mulaiMinute;
+  const selesaiMinuteTotal = selesaiHour * 60 + selesaiMinute;
+  return Math.max(0, selesaiMinuteTotal - mulaiMinuteTotal);
+};
+
 const DetailUjian = () => {
   const params = useParams();
   const { user } = useAuth();
-  const jadwalId = Number(params.id);
-  const isJadwalIdValid = Number.isFinite(jadwalId) && jadwalId > 0;
+  const ujianId = Number(params.id);
+  const isUjianIdValid = Number.isFinite(ujianId) && ujianId > 0;
   const backPath =
     user?.role === "GURU"
       ? paths.dashboard.jadwal_ujian_guru
@@ -50,77 +51,27 @@ const DetailUjian = () => {
     data: detail,
     loading,
     error,
-  } = useGetJadwalUjianDetail(jadwalId, isJadwalIdValid);
+  } = useGetDetailUjianById(ujianId, isUjianIdValid);
 
-  const { data: kelasData } = useGetDataKelasFull();
-  const { data: ruangData } = useGetRuangUjian();
-  const { data: sesiData } = useGetSesi();
-  const { data: guruData } = useGetAllGuru();
-  const { data: bankSoalData } = useGetBankSoal(
-    {
-      id_kelas: detail?.id_kelas,
-      limit: 100,
-      offset: 0,
-    },
-    Boolean(detail?.id_kelas),
-  );
+  const errorMsg = !isUjianIdValid ? "ID ujian tidak valid." : (error ?? "");
 
-  const errorMsg = !isJadwalIdValid ? "ID jadwal ujian tidak valid." : (error ?? "");
-
-  const tanggalLabel = useMemo(() => {
-    if (!detail?.tanggal_ujian) return "-";
-    const date = new Date(`${detail.tanggal_ujian}T00:00:00`);
-    return date.toLocaleDateString("id-ID", {
-      weekday: "long",
-      day: "2-digit",
-      month: "long",
-      year: "numeric",
-    });
-  }, [detail?.tanggal_ujian]);
+  const durasiMenit = useMemo(() => {
+    if (!detail) return 0;
+    return calculateDuration(detail.waktu_mulai, detail.waktu_selesai);
+  }, [detail]);
 
   const tingkatLabel = useMemo(() => {
     if (!detail) return "-";
-    const item = kelasData?.item_tingkat_kelas.find(
-      (tingkat) => tingkat.id_tingkat_kelas === detail.id_kelas,
-    );
-    return item ? `Kelas ${item.tingkat_kelas}` : `Kelas #${detail.id_kelas}`;
-  }, [detail, kelasData?.item_tingkat_kelas]);
+    return `Kelas ${detail.tingkat_kelas}`;
+  }, [detail]);
 
   const namaKelasLabel = useMemo(() => {
     if (!detail) return "-";
-    if (!detail.id_nama_kelas) return "Semua kelas di tingkat ini";
-    const item = kelasData?.item_nama_kelas.find(
-      (namaKelas) => namaKelas.id_nama_kelas === detail.id_nama_kelas,
-    );
-    return item ? item.nama_kelas : `Kelas #${detail.id_nama_kelas}`;
-  }, [detail, kelasData?.item_nama_kelas]);
-
-  const pengawasLabel = useMemo(() => {
-    if (!detail) return "-";
-    const item = guruData?.find((guru) => guru.id_pengguna === detail.id_pengawas);
-    return item?.nama_lengkap ?? detail.pengawas_ujian ?? "-";
-  }, [detail, guruData]);
-
-  const sesiLabel = useMemo(() => {
-    if (!detail) return "-";
-    const item = sesiData?.find((sesi) => sesi.id_sesi === detail.id_sesi);
-    return item ? `${item.kode_sesi} - ${item.nama_sesi}` : `Sesi #${detail.id_sesi}`;
-  }, [detail, sesiData]);
-
-  const ruangLabel = useMemo(() => {
-    if (!detail) return "-";
-    const item = ruangData?.find((ruang) => ruang.id_ruangan === detail.id_ruangan);
-    return item?.nama_ruangan ?? detail.ruang_ujian ?? "-";
-  }, [detail, ruangData]);
-
-  const bankSoalLabel = useMemo(() => {
-    if (!detail) return "-";
-    const item = bankSoalData?.find((bank) => bank.id_bank_soal === detail.id_bank_soal);
-    return item?.nama_bank_soal ?? `Bank Soal #${detail.id_bank_soal}`;
-  }, [detail, bankSoalData]);
+    return detail.nama_kelas.trim() || "Semua kelas di tingkat ini";
+  }, [detail]);
 
   const statusLabel = detail?.status_ujian
-    ? statusLabelMap[detail.status_ujian] ?? "Tidak Diketahui"
+    ? (statusLabelMap[detail.status_ujian] ?? "Tidak Diketahui")
     : "Tidak Diketahui";
 
   const handlePrint = () => {
@@ -144,13 +95,7 @@ const DetailUjian = () => {
           <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">
             {detail?.nama_ujian ?? "Memuat Detail..."}
           </h1>
-          <div className="mt-1 flex items-center gap-3 text-sm text-slate-500">
-            <span className="flex items-center gap-1.5 font-medium">
-              <Hash size={14} className="text-slate-400" /> ID Ujian: {detail?.id_ujian ?? "-"}
-            </span>
-            <span className="text-slate-300">|</span>
-            <span className="font-semibold text-[#397e50]">{tingkatLabel}</span>
-          </div>
+          <span className="font-semibold text-[#397e50] ml-2">{tingkatLabel}</span>
         </div>
 
         {!loading && detail && (
@@ -198,7 +143,8 @@ const DetailUjian = () => {
                 </div>
                 <div className="p-6">
                   <p className="text-sm leading-relaxed text-slate-600">
-                    {detail.deskripsi_ujian || "Tidak ada deskripsi tambahan untuk ujian ini."}
+                    {detail.deskripsi_ujian ||
+                      "Tidak ada deskripsi tambahan untuk ujian ini."}
                   </p>
                 </div>
               </div>
@@ -212,7 +158,9 @@ const DetailUjian = () => {
                   <div className="space-y-3">
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-slate-500">Tanggal</span>
-                      <span className="font-bold text-slate-700">{tanggalLabel}</span>
+                      <span className="font-bold text-slate-700">
+                        {detail.tgl_ujian}
+                      </span>
                     </div>
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-slate-500">Jam</span>
@@ -222,7 +170,9 @@ const DetailUjian = () => {
                     </div>
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-slate-500">Durasi</span>
-                      <span className="font-bold text-[#397e50]">{detail.durasi_menit} Menit</span>
+                      <span className="font-bold text-[#397e50]">
+                        {durasiMenit} Menit
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -235,15 +185,23 @@ const DetailUjian = () => {
                   <div className="space-y-3">
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-slate-500">Ruangan</span>
-                      <span className="font-bold text-[#397e50]">{ruangLabel}</span>
+                      <span className="font-bold text-[#397e50]">
+                        {detail.ruang_ujian || "-"}
+                      </span>
                     </div>
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-slate-500">Sesi</span>
-                      <span className="font-bold text-slate-700">{sesiLabel}</span>
+                      <span className="font-bold text-slate-700">
+                        {detail.sesi_ujian > 0
+                          ? `Sesi ${detail.sesi_ujian}`
+                          : "-"}
+                      </span>
                     </div>
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-slate-500">Pengawas</span>
-                      <span className="font-bold text-slate-700">{pengawasLabel}</span>
+                      <span className="font-bold text-slate-700">
+                        {detail.pengawas_ujian || "-"}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -283,18 +241,15 @@ const DetailUjian = () => {
                       <GraduationCap size={18} />
                     </div>
                     <div>
-                      <p className="text-2xs font-bold uppercase text-slate-400">Kelas</p>
-                      <p className="text-xs font-bold leading-tight text-slate-800">{tingkatLabel}</p>
-                      <p className="text-2xs text-slate-500">{namaKelasLabel}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
-                      <Layout size={18} />
-                    </div>
-                    <div>
-                      <p className="text-2xs font-bold uppercase text-slate-400">Bank Soal</p>
-                      <p className="text-xs font-bold leading-tight text-slate-800">{bankSoalLabel}</p>
+                      <p className="text-2xs font-bold uppercase text-slate-400">
+                        Kelas
+                      </p>
+                      <p className="text-xs font-bold leading-tight text-slate-800">
+                        {tingkatLabel}
+                      </p>
+                      <p className="text-2xs text-slate-500">
+                        {namaKelasLabel}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -302,13 +257,9 @@ const DetailUjian = () => {
 
               <div className="rounded-2xl border border-emerald-100 bg-emerald-50/20 p-6">
                 <h3 className="mb-5 text-2xs font-bold uppercase tracking-[0.15em] text-emerald-800/60">
-                  Sistem & Keamanan
+                  Akses Ujian
                 </h3>
                 <div className="space-y-5">
-                  <div className="flex items-center gap-2 text-xs font-semibold text-slate-600">
-                    <ShieldCheck size={16} className="text-[#397e50]" />
-                    {detail.acak_soal ? "Soal Diacak" : "Urutan Statis"}
-                  </div>
                   <div className="rounded-xl border border-white bg-white p-5 text-center shadow-sm">
                     <p className="mb-2 text-[9px] font-bold uppercase tracking-widest text-slate-400">
                       Token Akses

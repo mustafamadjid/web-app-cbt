@@ -3,11 +3,9 @@ package httpx
 import (
 	"errors"
 	"net/http"
-	"time"
 
 	"github.com/julienschmidt/httprouter"
 
-	httpx "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/profil_sekolah"
 	httpResponse "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper/response_envelope"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
@@ -21,8 +19,6 @@ type GetProfilSekolahHandler struct {
 func NewGetProfilSekolahHandler(svc *profil_sekolah_service.GetProfilSekolahService) *GetProfilSekolahHandler {
 	return &GetProfilSekolahHandler{svc: svc}
 }
-
-
 
 func (h *GetProfilSekolahHandler) GetProfilSekolah(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	logger := corelog.FromContext(r.Context())
@@ -43,18 +39,5 @@ func (h *GetProfilSekolahHandler) GetProfilSekolah(w http.ResponseWriter, r *htt
 		return
 	}
 
-	response := httpx.ProfilSekolahResponse{
-		IDProfil:      int(profil.IDProfil),
-		EmailSekolah:  profil.EmailSekolah,
-		NoTelpSekolah: profil.NoTelpSekolah,
-		KepalaSekolah: profil.KepalaSekolah,
-		WakaSekolah:   profil.WakaSekolah,
-		NamaSekolah:   profil.NamaSekolah,
-		AlamatSekolah: profil.AlamatSekolah,
-		LogoSekolah:   profil.LogoSekolah,
-		CreatedAt:     profil.CreatedAt.Format(time.RFC3339),
-		UpdatedAt:     profil.UpdatedAt.Format(time.RFC3339),
-	}
-
-	httpResponse.WriteOK(w, http.StatusOK, response, "Success")
+	httpResponse.WriteOK(w, http.StatusOK, toProfilSekolahResponse(profil), "Success")
 }

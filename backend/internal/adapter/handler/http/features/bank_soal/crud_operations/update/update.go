@@ -99,11 +99,4 @@ func (h *UpdateBankSoalHandler) UpdateBankSoal(w http.ResponseWriter, r *http.Re
 	httpResponse.WriteOKNoData(w, http.StatusOK, "Success")
 }
 
-func toBankSoalIDPointer(v *int) *bank_soal.ID {
-	if v == nil {
-		return nil
-	}
 
-	id := bank_soal.ID(*v)
-	return &id
-}

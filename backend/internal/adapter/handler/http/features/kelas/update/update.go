@@ -7,10 +7,9 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/middleware"
-	validator "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/validation"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/aktivitas_user"
-	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/kelas"
-
+	
+	validator "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/validation"
 	httphelper "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper"
 	httpResponse "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper/response_envelope"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
@@ -108,10 +107,4 @@ func (h *UpdateKelasHandler) UpdateNamaKelas(w http.ResponseWriter, r *http.Requ
 	httpResponse.WriteOKNoData(w, http.StatusOK, "success update nama kelas")
 }
 
-func toKelasIDPointer(v *int) *kelas.ID {
-	if v == nil {
-		return nil
-	}
-	id := kelas.ID(*v)
-	return &id
-}
+

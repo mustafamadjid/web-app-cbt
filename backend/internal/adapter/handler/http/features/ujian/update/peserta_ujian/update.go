@@ -88,12 +88,3 @@ func (h *UpdatePesertaUjianHandler) UpdatePesertaUjian(w http.ResponseWriter, r 
 
 	httpResponse.WriteOKNoData(w, http.StatusOK, "success")
 }
-
-func toIDPesertaUjianPointer(value *int) *ujian.ID {
-	if value == nil {
-		return nil
-	}
-
-	id := ujian.ID(*value)
-	return &id
-}

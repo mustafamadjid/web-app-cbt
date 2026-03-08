@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { Calendar, CalendarRange, Layers, MapPin, Search } from "lucide-react";
-import { useNavigate } from "react-router";
 import toast from "react-hot-toast";
 
 import BoxJadwalUjian from "@/components/features/Ujian/BoxJadwalUjian";
@@ -12,7 +11,6 @@ import { useGetDataKelasFull } from "@/services/Api/features-api/DataMaster/kela
 import { useGetRuangUjian } from "@/services/Api/features-api/DataMaster/ruang-ujian.service";
 import {
   useDeleteJadwalUjian,
-  updateStatusUjian,
   useGetJadwalUjian,
 } from "@/services/Api/features-api/Ujian/jadwalujian.service";
 import type { TingkatKelas } from "@/types/DataMaster/Kelas";
@@ -40,7 +38,6 @@ function useDebouncedValue<T>(value: T, delayMs: number) {
 
 const JadwalUjian = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState<JadwalUjianStatusClient>("berlangsung");
   const [searchTerm, setSearchTerm] = useState("");
@@ -49,7 +46,6 @@ const JadwalUjian = () => {
   const [selectedTingkatId, setSelectedTingkatId] = useState<number | null>(null);
   const [selectedRuang, setSelectedRuang] = useState<number | null>(null);
   const [selectedTahun, setSelectedTahun] = useState<string | null>(null);
-  const [updatingIdUjian, setUpdatingIdUjian] = useState<number | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<JadwalUjianItem | null>(null);
 
@@ -62,8 +58,6 @@ const JadwalUjian = () => {
   const tahunOptions = useMemo(() => tahunOption().map((item) => String(item)), []);
   const detailPathTemplate =
     user?.role === "GURU" ? paths.dashboard.detail_ujian_guru : paths.dashboard.detail_ujian;
-  const editPathTemplate =
-    user?.role === "GURU" ? paths.dashboard.edit_ujian_guru : paths.dashboard.edit_ujian;
 
   const {
     data: jadwalDataRaw,
@@ -98,30 +92,6 @@ const JadwalUjian = () => {
     if (user.role === "ADMIN") return true;
     if (user.role !== "GURU") return false;
     return ujian.id_guru === user.id_pengguna || ujian.id_pengawas === user.id_pengguna;
-  };
-
-  const handleStatusUpdate = async (
-    idUjian: number,
-    nextStatus: JadwalUjianStatusClient,
-  ) => {
-    setActionError(null);
-    setUpdatingIdUjian(idUjian);
-    try {
-      await updateStatusUjian(idUjian, nextStatus);
-      await refetch();
-    } catch (updateError) {
-      if (updateError instanceof Error) {
-        setActionError(updateError.message);
-      } else {
-        setActionError("Gagal memperbarui status ujian.");
-      }
-    } finally {
-      setUpdatingIdUjian(null);
-    }
-  };
-
-  const handleEdit = (idJadwal: number) => {
-    navigate(editPathTemplate.replace(":id", String(idJadwal)));
   };
 
   const handleDelete = async () => {
@@ -291,14 +261,14 @@ const JadwalUjian = () => {
                   <BoxJadwalUjian
                     key={item.id}
                     {...item}
-                    onEdit={handleEdit}
                     onDelete={() => setDeleteTarget(item)}
-                    onStart={(idUjian) => handleStatusUpdate(idUjian, "berlangsung")}
-                    onCancel={(idUjian) => handleStatusUpdate(idUjian, "dibatalkan")}
                     canControl={canControlUjian(item)}
-                    updating={item.id_ujian != null && updatingIdUjian === item.id_ujian}
-                    deleting={item.id_ujian != null && deleteTarget?.id_ujian === item.id_ujian && deletingUjian}
-                    linkJadwal={detailPathTemplate.replace(":id", String(item.id))}
+                    deleting={
+                      item.id_ujian != null &&
+                      deleteTarget?.id_ujian === item.id_ujian &&
+                      deletingUjian
+                    }
+                    linkJadwal={detailPathTemplate.replace(":id", String(item.id_ujian ?? 0))}
                   />
                 ))
               ) : (

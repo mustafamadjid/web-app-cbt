@@ -33,7 +33,7 @@ const BuatUjian = () => {
     );
   };
 
-  return <BuatUjianForm mode="create" onSubmit={handleSubmit} />;
+  return <BuatUjianForm onSubmit={handleSubmit} />;
 };
 
 export default BuatUjian;

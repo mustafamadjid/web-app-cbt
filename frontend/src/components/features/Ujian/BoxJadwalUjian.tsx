@@ -5,11 +5,8 @@ import {
   GraduationCap,
   Hash,
   MapPin,
-  Pencil,
-  Play,
   Trash2,
   User,
-  XCircle,
 } from "lucide-react";
 import { Link } from "react-router";
 
@@ -34,17 +31,12 @@ const statusConfig: Record<string, { label: string; color: string }> = {
 
 type BoxJadwalUjianProps = JadwalUjianItem & {
   linkJadwal?: string;
-  onEdit?: (idJadwal: number) => void;
   onDelete?: (idUjian: number) => void;
-  onStart?: (idUjian: number) => void;
-  onCancel?: (idUjian: number) => void;
   canControl?: boolean;
-  updating?: boolean;
   deleting?: boolean;
 };
 
 const BoxJadwalUjian = ({
-  id,
   nama_ujian,
   pengawas_ujian,
   tgl_ujian,
@@ -56,12 +48,8 @@ const BoxJadwalUjian = ({
   nama_kelas,
   id_ujian,
   linkJadwal = "",
-  onEdit,
   onDelete,
-  onStart,
-  onCancel,
   canControl = false,
-  updating = false,
   deleting = false,
 }: BoxJadwalUjianProps) => {
   const idUjian = id_ujian ?? 0;
@@ -69,20 +57,7 @@ const BoxJadwalUjian = ({
     ? statusConfig[status_ujian]
     : { label: "Unknown", color: "bg-gray-100 text-gray-500" };
 
-  const disableEdit = updating || deleting || id <= 0;
-  const disableDelete = updating || deleting || idUjian <= 0;
-  const disableStart =
-    updating ||
-    deleting ||
-    idUjian <= 0 ||
-    status_ujian === "berlangsung" ||
-    status_ujian === "selesai";
-  const disableCancel =
-    updating ||
-    deleting ||
-    idUjian <= 0 ||
-    status_ujian === "dibatalkan" ||
-    status_ujian === "selesai";
+  const disableDelete = deleting || idUjian <= 0;
 
   return (
     <Link to={linkJadwal} className="group block">
@@ -148,20 +123,6 @@ const BoxJadwalUjian = ({
                 onClick={(event) => {
                   event.preventDefault();
                   event.stopPropagation();
-                  if (id > 0) onEdit?.(id);
-                }}
-                disabled={disableEdit}
-                className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-slate-200 bg-white px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-slate-500 transition-all hover:border-sky-200 hover:bg-sky-50 hover:text-sky-600 disabled:opacity-30 disabled:hover:border-slate-200 disabled:hover:bg-transparent disabled:hover:text-slate-500"
-              >
-                <Pencil size={16} />
-                Update
-              </button>
-
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.preventDefault();
-                  event.stopPropagation();
                   if (idUjian > 0) onDelete?.(idUjian);
                 }}
                 disabled={disableDelete}
@@ -169,34 +130,6 @@ const BoxJadwalUjian = ({
               >
                 <Trash2 size={16} />
                 Hapus
-              </button>
-
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.preventDefault();
-                  event.stopPropagation();
-                  if (idUjian > 0) onCancel?.(idUjian);
-                }}
-                disabled={disableCancel}
-                className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-slate-200 bg-white px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-slate-500 transition-all hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600 disabled:opacity-30 disabled:hover:border-slate-200 disabled:hover:bg-transparent disabled:hover:text-slate-500"
-              >
-                <XCircle size={16} />
-                Batalkan
-              </button>
-
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.preventDefault();
-                  event.stopPropagation();
-                  if (idUjian > 0) onStart?.(idUjian);
-                }}
-                disabled={disableStart}
-                className="flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#397e50] px-6 py-2.5 text-xs font-bold uppercase tracking-widest text-white transition-all hover:bg-[#2d633f] hover:shadow-lg hover:shadow-emerald-900/20 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none"
-              >
-                <Play size={16} fill="currentColor" />
-                Mulai Ujian
               </button>
             </div>
           )}

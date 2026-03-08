@@ -10,7 +10,6 @@ import (
 	httpResponse "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper/response_envelope"
 	validator "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/validation"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
-	matapelajaran "github.com/mustafamadjid/web-app-cbt/internal/core/domain/mata_pelajaran"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 	updatepatch "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/update_patch"
 	mapel_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/mata_pelajaran/update"
@@ -97,12 +96,4 @@ func (h *UpdateMapelHandler) UpdateMapel(w http.ResponseWriter, r *http.Request,
 	}
 
 	httpResponse.WriteOK(w, http.StatusOK, UpdateMapelResponse{Success: true}, "success update mata pelajaran")
-}
-
-func toMapelIDPointer(v *int) *matapelajaran.ID {
-	if v == nil {
-		return nil
-	}
-	id := matapelajaran.ID(*v)
-	return &id
 }

@@ -37,7 +37,7 @@ func (h *GetPengumumanHandler) GetPengumumanActive(w http.ResponseWriter, r *htt
 		return
 	}
 
-	httpResponse.WriteOK(w, http.StatusOK, mapPengumumanList(items), "Success")
+	httpResponse.WriteOK(w, http.StatusOK, toPengumumanResponses(items), "Success")
 }
 
 func (h *GetPengumumanHandler) GetPengumumanNonActive(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -55,7 +55,7 @@ func (h *GetPengumumanHandler) GetPengumumanNonActive(w http.ResponseWriter, r *
 		return
 	}
 
-	httpResponse.WriteOK(w, http.StatusOK, mapPengumumanList(items), "Success")
+	httpResponse.WriteOK(w, http.StatusOK, toPengumumanResponses(items), "Success")
 }
 
 func (h *GetPengumumanHandler) GetPengumumanIncoming(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -73,7 +73,7 @@ func (h *GetPengumumanHandler) GetPengumumanIncoming(w http.ResponseWriter, r *h
 		return
 	}
 
-	httpResponse.WriteOK(w, http.StatusOK, mapPengumumanList(items), "Success")
+	httpResponse.WriteOK(w, http.StatusOK, toPengumumanResponses(items), "Success")
 }
 
 func (h *GetPengumumanHandler) GetPengumumanByID(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -104,26 +104,5 @@ func (h *GetPengumumanHandler) GetPengumumanByID(w http.ResponseWriter, r *http.
 		return
 	}
 
-	httpResponse.WriteOK(w, http.StatusOK, mapPengumuman(item), "Success")
-}
-
-func mapPengumumanList(items []pengumuman.Pengumuman) []PengumumanGetResponse {
-	response := make([]PengumumanGetResponse, 0, len(items))
-	for _, item := range items {
-		response = append(response, mapPengumuman(item))
-	}
-
-	return response
-}
-
-func mapPengumuman(item pengumuman.Pengumuman) PengumumanGetResponse {
-	return PengumumanGetResponse{
-		IdPengumuman:             int(item.IdPengumuman),
-		IdPengguna:               int(item.IdPengguna),
-		JudulPengumuman:          item.JudulPengumuman,
-		IsiPengumuman:            item.IsiPengumuman,
-		TanggalRilisPengumuman:   item.TanggalRilisPengumuman,
-		TanggalSelesaiPengumuman: item.TanggalSelesaiPengumuman,
-		DokumenPengumuman:        item.DokumenPengumuman,
-	}
+	httpResponse.WriteOK(w, http.StatusOK, toPengumumanResponse(item), "Success")
 }
