@@ -11,12 +11,6 @@ import (
 type ListUjianRepository interface {
 	GetAllUjian(ctx context.Context, filter query.ListUjianFilter) ([]ujian.ListUjian, error)
 	GetUjianById(ctx context.Context, id ujian.ID) (ujian.ListUjian, error)
-
-	GetAllPesertaUjian(ctx context.Context, peserta ujian.PesertaUjian) ([]ujian.PesertaUjian, error)
-	GetPesertaUjianBySiswa(ctx context.Context, idSiswa ujian.ID, peserta ujian.PesertaUjian) (ujian.PesertaUjian, error)
-
-	GetAllJawabanUjianSiswa(ctx context.Context, jawaban ujian.JawabanUjianSiswa) ([]ujian.JawabanUjianSiswa, error)
-	GetJawabanBySiswa(ctx context.Context, idSiswa ujian.ID, jawaban ujian.JawabanUjianSiswa) (ujian.JawabanUjianSiswa, error)
 }
 
 type UjianRepository interface {
@@ -27,18 +21,6 @@ type UjianRepository interface {
 	DeleteUjian(ctx context.Context, id ujian.ID) error
 }
 
-type PesertaUjianRepository interface {
-	CreatePesertaUjian(ctx context.Context, peserta ujian.PesertaUjian) (ujian.ID, error)
-	UpdatePesertaUjian(ctx context.Context, id ujian.ID, payload updatepatch.UpdatePesertaUjianPatch) error
-	DeletePesertaUjian(ctx context.Context, id ujian.ID) error
-}
-
-type JawabanUjianRepository interface {
-	CreateJawabanUjianSiswa(ctx context.Context, jawaban ujian.JawabanUjianSiswa) (ujian.ID, error)
-	UpdateJawabanUjianSiswa(ctx context.Context, id ujian.ID, payload updatepatch.UpdateJawabanUjianSiswaPatch) error
-	DeleteJawabanUjianSiswa(ctx context.Context, id ujian.ID) error
-}
-
 type SoalUjianRepository interface {
-	GetSoalUjianByBankSoal(ctx context.Context, idBankSoal ujian.ID)([]ujian.SoalUjianSiswa,error)
+	GetSoalUjianByBankSoal(ctx context.Context, idBankSoal ujian.ID) ([]ujian.SoalUjianSiswa, error)
 }

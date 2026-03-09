@@ -31,12 +31,10 @@ import (
 	sesiget "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/sesi/get"
 	sesiupdate "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/sesi/update"
 	ujiancreate "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/create/ujian"
-	ujiandeletepeserta "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/delete/peserta_ujian"
 	ujiandeleteujian "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/delete/ujian"
 	ujianget "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/get"
 	ujianlist "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/list"
 	ujianlistsoal "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/list_soal_ujian"
-	ujianupdatepeserta "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/update/peserta_ujian"
 	ujianupdateujian "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/update/ujian"
 	usercreate "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/user/create"
 	userdelete "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/user/delete"
@@ -92,14 +90,12 @@ type RuangUjianHandlers struct {
 }
 
 type UjianHandlers struct {
-	CreateUjianHandler        *ujiancreate.CreateRuangUjianHandler
-	ListHandler               *ujianlist.ListUjianHandler
-	ListSoalUjianHandler      *ujianlistsoal.ListSoalUjianHandler
-	GetHandler                *ujianget.GetUjianHandler
-	UpdateUjianHandler        *ujianupdateujian.UpdateUjianHandler
-	UpdatePesertaUjianHandler *ujianupdatepeserta.UpdatePesertaUjianHandler
-	DeleteUjianHandler        *ujiandeleteujian.DeleteUjianHandler
-	DeletePesertaUjianHandler *ujiandeletepeserta.DeletePesertaUjianHandler
+	CreateUjianHandler   *ujiancreate.CreateRuangUjianHandler
+	ListHandler          *ujianlist.ListUjianHandler
+	ListSoalUjianHandler *ujianlistsoal.ListSoalUjianHandler
+	GetHandler           *ujianget.GetUjianHandler
+	UpdateUjianHandler   *ujianupdateujian.UpdateUjianHandler
+	DeleteUjianHandler   *ujiandeleteujian.DeleteUjianHandler
 }
 
 type SesiHandlers struct {

@@ -74,48 +74,27 @@ type ListUjian struct {
 	NamaRuangan string
 
 	DeskripsiUjian *string
-	Token 			string
-	AcakSoal   		bool
-}
-
-type PesertaUjian struct {
-	IdPesertaUjian ID
-	IdJadwalUjian  ID
-	IdSiswa        ID
-	WaktuMulai     *time.Time
-	WaktuSubmit    *time.Time
-	NilaiUjian     *float64
-	CreatedAt      time.Time
-	UpdatedAt      *time.Time
-}
-
-type JawabanUjianSiswa struct {
-	IdJawaban      ID
-	IdPesertaUjian ID
-	IdSoal         ID
-	IdPilihan      *ID
-	JawabanEssay   *string
-	IsBenar        *bool
-	WaktuJawab     *time.Time
+	Token          string
+	AcakSoal       bool
 }
 
 type SoalUjianSiswa struct {
-	IdSoal ID
+	IdSoal            ID
 	IdBankSoalVersion ID
-	TipeSoal string
-	Pertanyaan string
-	Gambar  string
-	BobotSoal int
-	NoUrutSoal int
+	TipeSoal          string
+	Pertanyaan        string
+	Gambar            string
+	BobotSoal         int
+	NoUrutSoal        int
 
 	OpsiJawaban []OpsiPilganUjian
 }
 
 type OpsiPilganUjian struct {
 	IdPilihanGanda ID
-	IdSoal ID
-	IsiPilihan string
-	IsBenar bool
+	IdSoal         ID
+	IsiPilihan     string
+	IsBenar        bool
 }
 
 func (status StatusUjian) ValidStatus() bool {
@@ -126,5 +105,3 @@ func (status StatusUjian) ValidStatus() bool {
 		return false
 	}
 }
-
-

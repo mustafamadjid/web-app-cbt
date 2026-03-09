@@ -47,8 +47,6 @@ type InfraModule struct {
 	listUjianRepo  ujian_repo.ListUjianRepository
 	soalUjianRepo  ujian_repo.SoalUjianRepository
 	ujianRepo      ujian_repo.UjianRepository
-	pesertaRepo    ujian_repo.PesertaUjianRepository
-	jawabanRepo    ujian_repo.JawabanUjianRepository
 	sesiRepo       sesi_repo.SesiRepository
 
 	importSoalJobRepo importsoal_repo.ImportSoalJobRepo
@@ -82,8 +80,6 @@ func BuildInfraModule(pool *pgxpool.Pool, logger corelog.Logger) *InfraModule {
 		listUjianRepo:         pgujian.NewListUjianRepo(pool, logger),
 		soalUjianRepo:         pgujian.NewListSoalUjianRepo(pool, logger),
 		ujianRepo:             pgujian.NewUjianRepo(pool, logger, pool),
-		pesertaRepo:           pgujian.NewPesertaUjianRepo(pool, logger),
-		jawabanRepo:           pgujian.NewJawabanUjianRepo(pool, logger),
 		sesiRepo:              pg.NewSesirepo(pool, logger),
 		importSoalJobRepo:     pg.NewImportSoalJobRepo(pool, logger),
 		isiSoalBatchRepo:      pg.NewIsiSoalBatchRepo(pool, logger),

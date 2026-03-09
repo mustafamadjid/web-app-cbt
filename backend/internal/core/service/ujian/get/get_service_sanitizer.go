@@ -94,20 +94,3 @@ func sanitizeListUjianItem(item ujian.ListUjian) ujian.ListUjian {
 
 	return item
 }
-
-func sanitizeAndValidateJawabanFilter(filter ujian.JawabanUjianSiswa) (ujian.JawabanUjianSiswa, error) {
-	if filter.IdJawaban < 0 || filter.IdPesertaUjian < 0 || filter.IdSoal < 0 {
-		return filter, errInvalidJawaban
-	}
-	if filter.IdPilihan != nil && *filter.IdPilihan <= 0 {
-		return filter, errInvalidJawaban
-	}
-	if filter.JawabanEssay != nil {
-		jawabanEssay := strings.TrimSpace(*filter.JawabanEssay)
-		if jawabanEssay == "" {
-			return filter, errInvalidJawaban
-		}
-		filter.JawabanEssay = &jawabanEssay
-	}
-	return filter, nil
-}

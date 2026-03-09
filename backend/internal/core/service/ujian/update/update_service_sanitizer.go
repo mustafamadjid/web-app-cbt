@@ -56,14 +56,3 @@ func sanitizeTokenJadwalUjianPatch(payload *updatepatch.UpdateJadwalUjianPatch) 
 	payload.Token = &token
 	return nil
 }
-func sanitizeJawabanEssayPatch(payload *updatepatch.UpdateJawabanUjianSiswaPatch) error {
-	if payload.JawabanEssay == nil {
-		return nil
-	}
-	jawabanEssay := strings.TrimSpace(*payload.JawabanEssay)
-	if jawabanEssay == "" {
-		return coreerror.ErrMissingField
-	}
-	payload.JawabanEssay = &jawabanEssay
-	return nil
-}

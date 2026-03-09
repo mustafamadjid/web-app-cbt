@@ -12,12 +12,6 @@ func validateUjianID(id ujian.ID) error {
 	}
 	return nil
 }
-func validatePesertaFilter(filter ujian.PesertaUjian) error {
-	if filter.IdPesertaUjian < 0 || filter.IdJadwalUjian < 0 || filter.IdSiswa < 0 {
-		return errInvalidPeserta
-	}
-	return nil
-}
 
 func validateJadwalUjian(item ujian.JadwalUjian) error {
 	if item.IdJadwalUjian <= 0 ||

@@ -31,25 +31,6 @@ type UpdateJadwalUjianPatch struct {
 }
 
 type UpdatePenjadwalanUjian struct {
-	Ujian UpdateUjianPatch
+	Ujian       UpdateUjianPatch
 	JadwalUjian UpdateJadwalUjianPatch
 }
-
-type UpdatePesertaUjianPatch struct {
-	IdJadwalUjian *ujian.ID
-	IdSiswa       *ujian.ID
-	WaktuMulai    *time.Time
-	WaktuSubmit   *time.Time
-	NilaiUjian    *float64
-	UpdatedAt     *time.Time
-}
-
-type UpdateJawabanUjianSiswaPatch struct {
-	IdPesertaUjian *ujian.ID
-	IdSoal         *ujian.ID
-	IdPilihan      *ujian.ID
-	JawabanEssay   *string
-	IsBenar        *bool
-	WaktuJawab     *time.Time
-}
-

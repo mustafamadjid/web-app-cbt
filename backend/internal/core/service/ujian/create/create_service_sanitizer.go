@@ -19,14 +19,3 @@ func sanitizeCreateUjian(data ujian.PenjadwalanUjian) ujian.PenjadwalanUjian {
 	data.JadwalUjian.StatusUjian = ujian.StatusUjian(strings.ToUpper(strings.TrimSpace(string(data.JadwalUjian.StatusUjian))))
 	return data
 }
-func sanitizeCreateJawabanUjianSiswa(data ujian.JawabanUjianSiswa) ujian.JawabanUjianSiswa {
-	if data.JawabanEssay != nil {
-		jawabanEssay := strings.TrimSpace(*data.JawabanEssay)
-		if jawabanEssay == "" {
-			data.JawabanEssay = nil
-		} else {
-			data.JawabanEssay = &jawabanEssay
-		}
-	}
-	return data
-}

@@ -15,14 +15,4 @@ func RegisterUjianRoutes(router *httprouter.Router, handlers UjianHandlers, mw M
 
 	router.PATCH("/ujian/detail/:idUjian", requireAdminGuru(mw.RateLimitStandard(handlers.UpdateUjianHandler.UpdateUjian)))
 	router.DELETE("/ujian/detail/:idUjian", requireAdminGuru(mw.RateLimitStandard(handlers.DeleteUjianHandler.DeleteUjian)))
-
-
-	router.GET("/peserta-ujian", requireAdminGuru(mw.RateLimitStandard(handlers.GetHandler.GetAllPesertaUjian)))
-	router.PATCH("/peserta-ujian/:idPesertaUjian", requireAdminGuru(mw.RateLimitStandard(handlers.UpdatePesertaUjianHandler.UpdatePesertaUjian)))
-	router.DELETE("/peserta-ujian/:idPesertaUjian", requireAdminGuru(mw.RateLimitStandard(handlers.DeletePesertaUjianHandler.DeletePesertaUjian)))
-
-	router.GET("/peserta-ujian/siswa/:idSiswa", requireAdminGuru(mw.RateLimitStandard(handlers.GetHandler.GetPesertaUjianBySiswa)))
-
-	router.GET("/jawaban-ujian-siswa", requireAdminGuru(mw.RateLimitStandard(handlers.GetHandler.GetAllJawabanUjianSiswa)))
-	router.GET("/jawaban-ujian-siswa/siswa/:idSiswa", requireAdminGuru(mw.RateLimitStandard(handlers.GetHandler.GetJawabanBySiswa)))
 }

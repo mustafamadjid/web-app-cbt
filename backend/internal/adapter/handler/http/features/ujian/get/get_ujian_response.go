@@ -24,25 +24,3 @@ type ListUjianByIdResponse struct {
 	DeskripsiUjian   string `json:"deskripsi_ujian"`
 	Token            string `json:"token"`
 }
-
-type PesertaUjianResponse struct {
-	IDPesertaUjian int      `json:"id_peserta_ujian"`
-	IDJadwalUjian  int      `json:"id_jadwal_ujian"`
-	IDSiswa        int      `json:"id_siswa"`
-	WaktuMulai     *string  `json:"waktu_mulai"`
-	WaktuSubmit    *string  `json:"waktu_submit"`
-	NilaiUjian     *float64 `json:"nilai_ujian"`
-	CreatedAt      string   `json:"created_at"`
-	UpdatedAt      *string  `json:"updated_at"`
-}
-
-type JawabanUjianSiswaResponse struct {
-	IDJawaban      int     `json:"id_jawaban"`
-	IDPesertaUjian int     `json:"id_peserta_ujian"`
-	IDSoal         int     `json:"id_soal"`
-	IDPilihan      *int    `json:"id_pilihan"`
-	JawabanEssay   *string `json:"jawaban_essay"`
-	IsBenar        *bool   `json:"is_benar"`
-	WaktuJawab     *string `json:"waktu_jawab"`
-}
-
