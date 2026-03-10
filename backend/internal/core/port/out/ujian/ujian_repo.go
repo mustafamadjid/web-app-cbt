@@ -24,3 +24,24 @@ type UjianRepository interface {
 type SoalUjianRepository interface {
 	GetSoalUjianByBankSoal(ctx context.Context, idBankSoal ujian.ID) ([]ujian.SoalUjianSiswa, error)
 }
+
+type AttemptUjianRepository interface {
+	GetAttemptUjianById(ctx context.Context, idAttempt ujian.ID) (ujian.AttemptUjian, error)
+	CreateAttemptUjian(ctx context.Context, data ujian.AttemptUjian) error
+	UpdateAttemptUjian(ctx context.Context, idAttempt ujian.ID, data updatepatch.UpdateAttemptUjianPatch) error
+	DeleteAttemptUjian(ctx context.Context, idAttempt ujian.ID) error
+}
+
+type HasilUjianRepository interface {
+	GetHasilUjianByAttempId(ctx context.Context, idAttempt ujian.ID) (ujian.HasilUjian, error)
+	CreateHasilUjian(ctx context.Context, data ujian.HasilUjian) error
+	UpdateHasilUjian(ctx context.Context, idAttempt ujian.ID, data updatepatch.UpdateHasilUjianPatch) error
+	DeleteHasilUjian(ctx context.Context, idAttempt ujian.ID) error
+}
+
+type JawabanUjianRepository interface {
+	GetJawabanUjianByAttemptId(ctx context.Context, idAttempt ujian.ID) ([]ujian.JawabanUjian, error)
+	CreateJawabanUjian(ctx context.Context, data ujian.JawabanUjian) error
+	UpdateJawabanUjian(ctx context.Context, idAttempt ujian.ID, data updatepatch.UpdateJawabanUjianPatch) error
+	DeleteJawabanUjian(ctx context.Context, idAttempt ujian.ID) error
+}

@@ -97,6 +97,7 @@ type OpsiPilganUjian struct {
 	IsBenar        bool
 }
 
+
 func (status StatusUjian) ValidStatus() bool {
 	switch status {
 	case BELUM_MULAI, MULAI, SELESAI, DIBATALKAN:
