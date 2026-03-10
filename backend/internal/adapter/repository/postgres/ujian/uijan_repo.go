@@ -44,6 +44,7 @@ func (r *UjianRepo) CreateUjian(ctx context.Context, data ujian.PenjadwalanUjian
 	}()
 
 	var idUjian int64
+	var idJadwalUjian int64
 
 	err = tx.QueryRow(
 		ctx,
@@ -71,7 +72,7 @@ func (r *UjianRepo) CreateUjian(ctx context.Context, data ujian.PenjadwalanUjian
 		return err
 	}
 
-	_, err = tx.Exec(
+	err = tx.QueryRow(
 		ctx,
 		`INSERT INTO jadwal_ujian (
 			id_ujian,
@@ -84,7 +85,8 @@ func (r *UjianRepo) CreateUjian(ctx context.Context, data ujian.PenjadwalanUjian
 			token,
 			status_ujian
 		)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+		RETURNING id_jadwal_ujian`,
 		idUjian,
 		data.JadwalUjian.IdSesi,
 		data.JadwalUjian.IdRuangan,
@@ -94,9 +96,27 @@ func (r *UjianRepo) CreateUjian(ctx context.Context, data ujian.PenjadwalanUjian
 		data.JadwalUjian.WaktuSelesai,
 		data.JadwalUjian.Token,
 		data.JadwalUjian.StatusUjian,
-	)
+	).Scan(&idJadwalUjian)
 	if err != nil {
 		r.loggerFor(ctx).Error(ctx, "failed to insert jadwal ujian", "layer", "repo.db", "op", "ujian.create.insert_jadwal", "err", err)
+		return err
+	}
+
+	_, err = tx.Exec(
+		ctx,
+		`INSERT INTO peserta_ujian (id_jadwal_ujian, id_siswa)
+		SELECT $1, ps.id_pengguna
+		FROM profil_siswa ps
+		JOIN nama_kelas nk
+			ON nk.id_nama_kelas = ps.id_nama_kelas
+		WHERE nk.id_kelas = $2
+			AND ($3::bigint IS NULL OR ps.id_nama_kelas = $3)`,
+		idJadwalUjian,
+		data.Ujian.IdKelas,
+		data.Ujian.IdNamaKelas,
+	)
+	if err != nil {
+		r.loggerFor(ctx).Error(ctx, "failed to insert peserta ujian", "layer", "repo.db", "op", "ujian.create.insert_peserta", "err", err)
 		return err
 	}
 
