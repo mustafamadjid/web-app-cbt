@@ -83,10 +83,12 @@ func (h *GetSesiHandler) GetSesiByKode(w http.ResponseWriter, r *http.Request, p
 	}
 
 	kodeSesi := strings.TrimSpace(params.ByName("kodeSesi"))
-	if err := validator.ValidateInputSafe(kodeSesi, "kode_sesi"); err != nil {
+	validatedKodeSesi, err := validator.ValidateRequiredPrintableText(kodeSesi, "kode_sesi")
+	if err != nil {
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", err.Error())
 		return
 	}
+	kodeSesi = validatedKodeSesi
 
 	item, err := h.svc.GetSesiByKodeService(r.Context(), kodeSesi)
 	if err != nil {

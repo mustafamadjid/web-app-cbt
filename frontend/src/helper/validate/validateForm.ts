@@ -65,6 +65,16 @@ export const minLength = (
   };
 };
 
+export const maxLength = (
+  max: number,
+  message: string
+): ValidationRule<string, Record<string, unknown>> => {
+  return (value) => {
+    if (isEmptyValue(value)) return null;
+    return value.length > max ? message : null;
+  };
+};
+
 export const integerNumber = (
   message: string
 ): ValidationRule<number | "", Record<string, unknown>> => {

@@ -31,6 +31,9 @@ func (uc *CreateTx) CreateGuru(ctx context.Context, cmd CreateGuruCmd, actor use
 	}
 
 	cmd = sanitizeCreateGuruCmd(cmd)
+	if err := user.CheckUsernameLength(cmd.Username); err != nil {
+		return CreateGuruRes{}, err
+	}
 
 	isDashedNip := cmd.Nip == "-"
 
@@ -58,8 +61,6 @@ func (uc *CreateTx) CreateGuru(ctx context.Context, cmd CreateGuruCmd, actor use
 
 		email = &emailValidated
 	}
-
-	
 
 	// Hash password
 	hashedPassword, error := uc.hasher.GenerateHash(cmd.Password)
@@ -154,6 +155,9 @@ func (uc *CreateTx) CreateSiswa(ctx context.Context, cmd CreateSiswaCmd, actor u
 	}
 
 	cmd = sanitizeCreateSiswaCmd(cmd)
+	if err := user.CheckUsernameLength(cmd.Username); err != nil {
+		return CreateSiswaRes{}, err
+	}
 
 	isDashedNisn := cmd.Nisn == "-"
 
@@ -181,7 +185,6 @@ func (uc *CreateTx) CreateSiswa(ctx context.Context, cmd CreateSiswaCmd, actor u
 
 		email = &emailValidated
 	}
-
 
 	if err := user.CheckAbsen(cmd.NoAbsen); err != nil {
 		return CreateSiswaRes{}, err

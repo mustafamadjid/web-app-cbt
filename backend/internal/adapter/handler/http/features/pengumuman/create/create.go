@@ -62,10 +62,12 @@ func (h *CreatePengumumanHandler) CreatePengumuman(w http.ResponseWriter, r *htt
 		return
 	}
 
-	if err := validator.ValidateInputSafe(req.JudulPengumuman, "judul_pengumuman"); err != nil {
+	judulPengumuman, err := validator.ValidateRequiredPrintableText(req.JudulPengumuman, "judul_pengumuman")
+	if err != nil {
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", err.Error())
 		return
 	}
+	req.JudulPengumuman = judulPengumuman
 
 	dokumenPath := ""
 	relativePathPtr, err := httphelper.StoreFileToDisk(r, "dokumen_pengumuman", false, h.storeDocument.SaveDocumentRelative)

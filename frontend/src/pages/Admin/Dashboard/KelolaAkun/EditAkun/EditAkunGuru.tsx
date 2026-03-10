@@ -96,6 +96,7 @@ const EditAkunGuru = () => {
 
   return (
     <EditAkunGuruForm
+      key={`${initialValues.id_pengguna}-${initialValues.username}-${fotoUrl}`}
       initialValues={initialValues}
       initialFotoUrl={fotoUrl}
       onSubmit={handleSubmit}

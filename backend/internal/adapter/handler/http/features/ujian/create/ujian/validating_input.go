@@ -4,25 +4,32 @@ import (
 	validator "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/validation"
 )
 
-func ValidateInputSafeRequestUjian(data CreatePenjadwalanUjianRequest) error {
-	if err := validator.ValidateInputSafe(data.NamaUjian, "nama_ujian"); err != nil {
-		return err
+func ValidateCreateUjianRequestFields(data CreatePenjadwalanUjianRequest) (CreatePenjadwalanUjianRequest, error) {
+	namaUjian, err := validator.ValidateRequiredPrintableText(data.NamaUjian, "nama_ujian")
+	if err != nil {
+		return CreatePenjadwalanUjianRequest{}, err
 	}
+	data.NamaUjian = namaUjian
 
-	if err := validator.ValidateInputSafe(data.Token, "token"); err != nil {
-		
-		return err
+	token, err := validator.ValidateRequiredPrintableText(data.Token, "token")
+	if err != nil {
+		return CreatePenjadwalanUjianRequest{}, err
 	}
+	data.Token = token
 
 	if data.DeskripsiUjian != nil {
-		if err := validator.ValidateInputSafe(*data.DeskripsiUjian, "deskripsi_ujian"); err != nil {
-			return err
+		value, err := validator.ValidateRequiredPrintableText(*data.DeskripsiUjian, "deskripsi_ujian")
+		if err != nil {
+			return CreatePenjadwalanUjianRequest{}, err
 		}
+		data.DeskripsiUjian = &value
 	}
 
-	if err := validator.ValidateInputSafe(data.StatusUjian, "status_ujian"); err != nil {
-		return err
+	statusUjian, err := validator.ValidateRequiredPrintableText(data.StatusUjian, "status_ujian")
+	if err != nil {
+		return CreatePenjadwalanUjianRequest{}, err
 	}
+	data.StatusUjian = statusUjian
 
-	return nil
+	return data, nil
 }

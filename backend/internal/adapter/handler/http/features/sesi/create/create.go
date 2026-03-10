@@ -49,19 +49,23 @@ func (h *CreateSesiHandler) CreateSesiHandler(w http.ResponseWriter, r *http.Req
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: nama sesi is required")
 		return
 	}
-	if err := validator.ValidateInputSafe(dataRequest.NamaSesi, "nama_sesi"); err != nil {
+	namaSesi, err := validator.ValidateRequiredPrintableText(dataRequest.NamaSesi, "nama_sesi")
+	if err != nil {
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", err.Error())
 		return
 	}
+	dataRequest.NamaSesi = namaSesi
 
 	if dataRequest.KodeSesi == "" {
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: kode sesi is required")
 		return
 	}
-	if err := validator.ValidateInputSafe(dataRequest.KodeSesi, "kode_sesi"); err != nil {
+	kodeSesi, err := validator.ValidateRequiredPrintableText(dataRequest.KodeSesi, "kode_sesi")
+	if err != nil {
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", err.Error())
 		return
 	}
+	dataRequest.KodeSesi = kodeSesi
 
 	if err := h.svc.CreateSesiService(r.Context(), sesi.Sesi{
 		NamaSesi: dataRequest.NamaSesi,

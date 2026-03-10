@@ -163,14 +163,17 @@ func (r *UserRepo) CreateUser(ctx context.Context, pengguna user.Pengguna) (user
 }
 
 func (r *UserRepo) UpdateUser(ctx context.Context, idPengguna user.ID, pengguna updatepatch.Pengguna) error {
-	set := make([]string, 0, 6)
-	args := make([]any, 0, 7)
+	set := make([]string, 0, 8)
+	args := make([]any, 0, 9)
 
 	add := func(col string, v any) {
 		args = append(args, v)
 		set = append(set, fmt.Sprintf("%s=$%d", col, len(args)))
 	}
 
+	if pengguna.Username != nil {
+		add("username", *pengguna.Username)
+	}
 	if pengguna.NamaLengkap != nil {
 		add("nama_lengkap", *pengguna.NamaLengkap)
 	}

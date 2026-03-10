@@ -3,6 +3,7 @@ package updatepatch
 import "github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 
 type Pengguna struct {
+	Username     *string
 	NamaLengkap  *string
 	Email        *user.Email
 	NoHp         *string

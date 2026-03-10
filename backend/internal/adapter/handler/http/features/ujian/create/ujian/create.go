@@ -48,10 +48,12 @@ func (s *CreateRuangUjianHandler) CreateUjian(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	if err := ValidateInputSafeRequestUjian(dataRequest); err != nil {
+	validatedRequest, err := ValidateCreateUjianRequestFields(dataRequest)
+	if err != nil {
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", err.Error())
 		return
 	}
+	dataRequest = validatedRequest
 
 	var idNamaKelas *ujian.ID
 	if dataRequest.IdNamaKelas != nil {

@@ -55,17 +55,21 @@ func (h *UpdateRuangUjianHandler) UpdateRuangUjian(w http.ResponseWriter, r *htt
 	}
 
 	if dataRequest.NamaRuangan != nil {
-		if err := validator.ValidateInputSafe(*dataRequest.NamaRuangan, "nama_ruang"); err != nil {
+		value, err := validator.ValidateRequiredPrintableText(*dataRequest.NamaRuangan, "nama_ruang")
+		if err != nil {
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "invalid input")
 			return
 		}
+		*dataRequest.NamaRuangan = value
 	}
 
 	if dataRequest.KodeRuang != nil {
-		if err := validator.ValidateInputSafe(*dataRequest.KodeRuang, "kode_ruang"); err != nil {
+		value, err := validator.ValidateRequiredPrintableText(*dataRequest.KodeRuang, "kode_ruang")
+		if err != nil {
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "invalid input")
 			return
 		}
+		*dataRequest.KodeRuang = value
 	}
 
 	patch := updatepatch.UpdateRuangUjianPatch{

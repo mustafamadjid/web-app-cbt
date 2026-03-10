@@ -53,17 +53,21 @@ func (h *UpdateSesiHandler) UpdateSesi(w http.ResponseWriter, r *http.Request, p
 	}
 
 	if dataRequest.KodeSesi != nil {
-		if err := validator.ValidateInputSafe(*dataRequest.KodeSesi, "kode_sesi"); err != nil {
+		value, err := validator.ValidateRequiredPrintableText(*dataRequest.KodeSesi, "kode_sesi")
+		if err != nil {
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", err.Error())
 			return
 		}
+		*dataRequest.KodeSesi = value
 	}
 
 	if dataRequest.NamaSesi != nil {
-		if err := validator.ValidateInputSafe(*dataRequest.NamaSesi, "nama_sesi"); err != nil {
+		value, err := validator.ValidateRequiredPrintableText(*dataRequest.NamaSesi, "nama_sesi")
+		if err != nil {
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", err.Error())
 			return
 		}
+		*dataRequest.NamaSesi = value
 	}
 
 	patch := updatepatch.UpdateSesiPatch{

@@ -130,10 +130,12 @@ func (h *CreateKelasHandler) CreateNamaKelas(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	if err := validator.ValidateInputSafe(dataRequest.NamaKelas, "nama_kelas"); err != nil {
+	namaKelas, err := validator.ValidateRequiredPrintableText(dataRequest.NamaKelas, "nama_kelas")
+	if err != nil {
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", err.Error())
 		return
 	}
+	dataRequest.NamaKelas = namaKelas
 
 	cmdData := kelas_service.CreateNamaKelasCmd{
 		IdTingkatKelas: kelas.ID(dataRequest.IdTingkatKelas),

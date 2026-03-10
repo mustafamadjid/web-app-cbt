@@ -55,12 +55,13 @@ func (h *ResetPasswordHandler) ResetPasswordHandler(w http.ResponseWriter, r *ht
 		return
 	}
 
-	if err := validator.ValidatePassword(dataRequest.Password); err != nil {
+	password, err := validator.ValidatePassword(dataRequest.Password)
+	if err != nil {
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", err.Error())
 		return
 	}
 
-	if err := h.svc.ResetPasswordService(r.Context(), userID, dataRequest.Password); err != nil {
+	if err := h.svc.ResetPasswordService(r.Context(), userID, password); err != nil {
 		logger.Error(r.Context(), "failed updating password", "layer", "adapter.http.handler", "op", "user.reset_password", "user_id", userID, "err", err)
 		httpResponse.WriteErr(w, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error")
 		return

@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
-	"regexp"
 	"time"
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/cookie"
 	"github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/middleware"
+	validator "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/validation"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/aktivitas_user"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/service/auth_service"
@@ -55,16 +55,23 @@ func (h *AuthHandler) Login(write http.ResponseWriter, req *http.Request, _ http
 		return
 	}
 
-	re := regexp.MustCompile(`^[a-zA-Z0-9._]{3,13}$`)
-	if !re.MatchString(reqBody.Username) {
-		logger.Info(req.Context(), "invalid login input", "layer", "adapter.http.handler", "op", "auth.login", "err", "invalid_username")
-		httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request : invalid character. It must be 3-16 characters long and contain only letters, numbers, and underscores.")
+	username, err := validator.ValidateUsername(reqBody.Username)
+	if err != nil {
+		logger.Info(req.Context(), "invalid login username", "layer", "adapter.http.handler", "op", "auth.login", "err", err)
+		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
+		return
+	}
+
+	password, err := validator.ValidatePassword(reqBody.Password)
+	if err != nil {
+		logger.Info(req.Context(), "invalid login password", "layer", "adapter.http.handler", "op", "auth.login", "err", err)
+		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
 
 	reqCmd := auth_service.LoginCmd{
-		Username: reqBody.Username,
-		Password: reqBody.Password,
+		Username: username,
+		Password: password,
 	}
 
 	now := time.Now()
@@ -73,6 +80,8 @@ func (h *AuthHandler) Login(write http.ResponseWriter, req *http.Request, _ http
 	if err != nil {
 		logger.Error(req.Context(), "login failed", "layer", "adapter.http.handler", "op", "auth.login", "err", err)
 		switch {
+		case errors.Is(err, coreerror.ErrUsernameLengthInvalid):
+			httpResponse.WriteErr(write, http.StatusBadRequest, "USERNAME_LENGTH_INVALID", "username length invalid")
 		case errors.Is(err, coreerror.ErrInvalidCreds):
 			httpResponse.WriteErr(write, http.StatusUnauthorized, "INVALID_CREDENTIALS", "unauthorized : invalid credentials")
 		case errors.Is(err, coreerror.ErrHasSession):
@@ -84,7 +93,7 @@ func (h *AuthHandler) Login(write http.ResponseWriter, req *http.Request, _ http
 	}
 
 	responseData := LoginResponse{
-		Username:   res.Username,
+		Username: res.Username,
 	}
 
 	cookie.SetAccessCookie(write, h.cookies, res.AccessToken, now.Add(h.accessTTL))
@@ -185,7 +194,13 @@ func (h *AuthHandler) AdminRevokeUser(write http.ResponseWriter, req *http.Reque
 		return
 	}
 
-	if err := h.svc.AdminRevokingSession(req.Context(), reqBody.SessionId); err != nil {
+	sessionID, err := validator.ValidateRequiredPrintableText(reqBody.SessionId, "session_id")
+	if err != nil {
+		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
+		return
+	}
+
+	if err := h.svc.AdminRevokingSession(req.Context(), sessionID); err != nil {
 		logger.Error(req.Context(), "failed revoking session", "layer", "adapter.http.handler", "op", "auth.admin_revoke", "session_id", reqBody.SessionId, "err", err)
 		switch {
 		case errors.Is(err, coreerror.ErrNotFound):
@@ -198,7 +213,6 @@ func (h *AuthHandler) AdminRevokeUser(write http.ResponseWriter, req *http.Reque
 	httpResponse.WriteOKNoData(write, http.StatusOK, "success")
 }
 
-
 func (h *AuthHandler) AuthMe(write http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	logger := corelog.FromContext(req.Context())
 	if req.Method != http.MethodGet {
@@ -206,16 +220,16 @@ func (h *AuthHandler) AuthMe(write http.ResponseWriter, req *http.Request, _ htt
 		return
 	}
 
-	actor,ok := middleware.ActorFromContext(req.Context())
+	actor, ok := middleware.ActorFromContext(req.Context())
 	if !ok {
 		logger.Error(req.Context(), "failed getting actor", "layer", "adapter.http.handler", "op", "auth.auth_me", "err", "actor_not_found")
 		httpResponse.WriteErr(write, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error")
 		return
 	}
-	responseData := AuthMeResponse {
+	responseData := AuthMeResponse{
 		IdPengguna: actor.IdPengguna,
-		Username: actor.Username,
-		Role: actor.Role,
+		Username:   actor.Username,
+		Role:       actor.Role,
 	}
 
 	httpResponse.WriteOK(write, http.StatusOK, responseData, "success")

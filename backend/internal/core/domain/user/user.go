@@ -4,6 +4,9 @@ import (
 	"errors"
 	"net/mail"
 	"strings"
+	"unicode/utf8"
+
+	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 )
 
 type ID int
@@ -22,6 +25,11 @@ const (
 	NONAKTIF StatusAkun = "NONAKTIF"
 )
 
+const (
+	UsernameMinLength = 5
+	UsernameMaxLength = 20
+)
+
 type Pengguna struct {
 	ID             ID
 	Username       string
@@ -37,7 +45,7 @@ type Pengguna struct {
 
 type Actor struct {
 	IdPengguna ID
-	Username string
+	Username   string
 	Role       Role
 }
 
@@ -54,11 +62,19 @@ func (role Role) ValidRole() bool {
 	}
 }
 
+func CheckUsernameLength(username string) error {
+	length := utf8.RuneCountInString(strings.TrimSpace(username))
+	if length < UsernameMinLength || length > UsernameMaxLength {
+		return coreerror.ErrUsernameLengthInvalid
+	}
+	return nil
+}
+
 func CheckNewEmail(raw *string) (Email, error) {
 	if raw == nil {
 		return "", ErrInvalidEmail
 	}
-	
+
 	s := strings.TrimSpace(strings.ToLower(*raw))
 
 	if s == "" {
@@ -66,7 +82,7 @@ func CheckNewEmail(raw *string) (Email, error) {
 	}
 
 	if len(s) > 254 {
-	return "", ErrInvalidEmail
+		return "", ErrInvalidEmail
 	}
 
 	if _, err := mail.ParseAddress(s); err != nil {

@@ -61,70 +61,72 @@ func (h *UpdateProfilSekolahHandler) UpdateProfilSekolah(w http.ResponseWriter, 
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: email_sekolah is required")
 			return
 		}
-		if err := validator.ValidateInputSafe(email, "email_sekolah"); err != nil {
+		value, err := validator.ValidateEmailAddress(email, "email_sekolah")
+		if err != nil {
 			httpResponse.WriteErr(w, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 			return
 		}
-		if err := validator.ValidateEmail(email); err != nil {
-			httpResponse.WriteErr(w, http.StatusBadRequest, "INVALID_INPUT", err.Error())
-			return
-		}
-		updateRequest.EmailSekolah = &email
+		updateRequest.EmailSekolah = &value
 	}
 	if noTelp, ok := getOptional("no_telp_sekolah"); ok {
 		if noTelp == "" {
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: no_telp_sekolah is required")
 			return
 		}
-		if err := validator.ValidateInputSafe(noTelp, "no_telp_sekolah"); err != nil {
+		value, err := validator.ValidateRequiredPrintableText(noTelp, "no_telp_sekolah")
+		if err != nil {
 			httpResponse.WriteErr(w, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 			return
 		}
-		updateRequest.NoTelpSekolah = &noTelp
+		updateRequest.NoTelpSekolah = &value
 	}
 	if kepala, ok := getOptional("kepala_sekolah"); ok {
 		if kepala == "" {
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: kepala_sekolah is required")
 			return
 		}
-		if err := validator.ValidateInputSafe(kepala, "kepala_sekolah"); err != nil {
+		value, err := validator.ValidateRequiredPrintableText(kepala, "kepala_sekolah")
+		if err != nil {
 			httpResponse.WriteErr(w, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 			return
 		}
-		updateRequest.KepalaSekolah = &kepala
+		updateRequest.KepalaSekolah = &value
 	}
 	if waka, ok := getOptional("waka_sekolah"); ok {
 		if waka == "" {
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: waka_sekolah is required")
 			return
 		}
-		if err := validator.ValidateInputSafe(waka, "waka_sekolah"); err != nil {
+		value, err := validator.ValidateRequiredPrintableText(waka, "waka_sekolah")
+		if err != nil {
 			httpResponse.WriteErr(w, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 			return
 		}
-		updateRequest.WakaSekolah = &waka
+		updateRequest.WakaSekolah = &value
 	}
 	if nama, ok := getOptional("nama_sekolah"); ok {
 		if nama == "" {
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: nama_sekolah is required")
 			return
 		}
-		if err := validator.ValidateInputSafe(nama, "nama_sekolah"); err != nil {
+		value, err := validator.ValidateRequiredPrintableText(nama, "nama_sekolah")
+		if err != nil {
 			httpResponse.WriteErr(w, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 			return
 		}
-		updateRequest.NamaSekolah = &nama
+		updateRequest.NamaSekolah = &value
 	}
 	if alamat, ok := getOptional("alamat_sekolah"); ok {
 		if alamat == "" {
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: alamat_sekolah is required")
 			return
 		}
-		if err := validator.ValidateInputSafe(alamat, "alamat_sekolah"); err != nil {
+		value, err := validator.ValidateRequiredPrintableText(alamat, "alamat_sekolah")
+		if err != nil {
 			httpResponse.WriteErr(w, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 			return
 		}
-		updateRequest.AlamatSekolah = &alamat
+		updateRequest.AlamatSekolah = &value
 	}
 
 	logoPtr, err := httphelper.StoreFileToDisk(r, "logo_sekolah", false, h.storeImage.SavePhotoRelative)

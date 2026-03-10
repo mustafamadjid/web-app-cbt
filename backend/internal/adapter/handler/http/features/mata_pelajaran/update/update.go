@@ -53,24 +53,30 @@ func (h *UpdateMapelHandler) UpdateMapel(w http.ResponseWriter, r *http.Request,
 	}
 
 	if dataRequest.KodeMapel != nil {
-		if err := validator.ValidateInputSafe(*dataRequest.KodeMapel, "kode_mapel"); err != nil {
+		value, err := validator.ValidateRequiredPrintableText(*dataRequest.KodeMapel, "kode_mapel")
+		if err != nil {
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "invalid input")
 			return
 		}
+		*dataRequest.KodeMapel = value
 	}
 
 	if dataRequest.NamaMapel != nil {
-		if err := validator.ValidateInputSafe(*dataRequest.NamaMapel, "nama_mapel"); err != nil {
+		value, err := validator.ValidateRequiredPrintableText(*dataRequest.NamaMapel, "nama_mapel")
+		if err != nil {
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "invalid input")
 			return
 		}
+		*dataRequest.NamaMapel = value
 	}
 
 	if dataRequest.Deskripsi != nil {
-		if err := validator.ValidateInputSafe(*dataRequest.Deskripsi, "deskripsi"); err != nil {
+		value, err := validator.ValidateRequiredPrintableText(*dataRequest.Deskripsi, "deskripsi")
+		if err != nil {
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "invalid input")
 			return
 		}
+		*dataRequest.Deskripsi = value
 	}
 
 	patch := updatepatch.UpdateMapelPatch{

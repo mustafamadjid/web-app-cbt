@@ -25,7 +25,7 @@ func NewUpdateUserService(txm txout.TxManager, session out.SessionRepository, de
 }
 
 func hasPenggunaPatch(p updatepatch.Pengguna) bool {
-	return p.NamaLengkap != nil || p.Email != nil || p.NoHp != nil || p.Foto != nil || p.StatusAkun != nil || p.Role != nil
+	return p.Username != nil || p.NamaLengkap != nil || p.Email != nil || p.NoHp != nil || p.Foto != nil || p.StatusAkun != nil || p.Role != nil || p.JenisKelamin != nil
 }
 
 func hasProfilPatch(p updatepatch.ProfilGuru) bool {
@@ -84,6 +84,7 @@ func (u *UpdateTx) UpdateGuru(ctx context.Context, cmd UpdateGuruCmd, actor user
 
 	// Update patch pengguna
 	penggunaPatch := updatepatch.Pengguna{
+		Username:     cmd.Username,
 		NamaLengkap:  cmd.NamaLengkap,
 		Email:        emailVO,
 		NoHp:         cmd.NoHp,
@@ -178,12 +179,14 @@ func (u *UpdateTx) UpdateSiswa(ctx context.Context, cmd UpdateSiswaCmd, actor us
 	}()
 
 	penggunaPatch := updatepatch.Pengguna{
-		NamaLengkap: cmd.NamaLengkap,
-		Email:       emailVO,
-		NoHp:        cmd.NoHp,
-		Foto:        cmd.Foto,
-		StatusAkun:  cmd.StatusAkun,
-		Role:        cmd.Role,
+		Username:     cmd.Username,
+		NamaLengkap:  cmd.NamaLengkap,
+		Email:        emailVO,
+		NoHp:         cmd.NoHp,
+		Foto:         cmd.Foto,
+		StatusAkun:   cmd.StatusAkun,
+		Role:         cmd.Role,
+		JenisKelamin: cmd.JenisKelamin,
 	}
 
 	if hasPenggunaPatch(penggunaPatch) {
@@ -229,11 +232,13 @@ func (u *UpdateTx) UpdateSiswa(ctx context.Context, cmd UpdateSiswaCmd, actor us
 }
 
 func hasNoFieldToUpdateGuru(cmd UpdateGuruCmd) bool {
-	return cmd.NamaLengkap == nil &&
+	return cmd.Username == nil &&
+		cmd.NamaLengkap == nil &&
 		cmd.Email == nil &&
 		cmd.NoHp == nil &&
 		cmd.Foto == nil &&
 		cmd.StatusAkun == nil &&
+		cmd.Role == nil &&
 		cmd.Nip == nil &&
 		cmd.Jabatan == nil &&
 		cmd.BidangStudi == nil &&
@@ -241,12 +246,14 @@ func hasNoFieldToUpdateGuru(cmd UpdateGuruCmd) bool {
 }
 
 func hasNoFieldToUpdateSiswa(cmd UpdateSiswaCmd) bool {
-	return cmd.NamaLengkap == nil &&
+	return cmd.Username == nil &&
+		cmd.NamaLengkap == nil &&
 		cmd.Email == nil &&
 		cmd.NoHp == nil &&
 		cmd.Foto == nil &&
 		cmd.StatusAkun == nil &&
 		cmd.Role == nil &&
+		cmd.JenisKelamin == nil &&
 		cmd.IdTingkatKelas == nil &&
 		cmd.IdNamaKelas == nil &&
 		cmd.Nisn == nil &&

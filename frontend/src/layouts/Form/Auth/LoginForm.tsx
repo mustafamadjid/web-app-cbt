@@ -7,6 +7,10 @@ import "../../../index.css";
 
 // UI
 import Spinner from "@/components/ui/spinner";
+import {
+  USERNAME_LENGTH_INVALID_MESSAGE,
+  USERNAME_MAX_LENGTH,
+} from "@/constants/username";
 
 // Components
 import LoginInputField from "../../../components/common/Input/Auth/LoginInputField";
@@ -34,9 +38,11 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
     } catch (e) {
       const message =
         e instanceof ApiError
-          ? e.code === "HAS_SESSION"
-            ? "Login gagal. Silakan logout terlebih dahulu pada device sebelumnya"
-            : "Login Gagal. Silakan Coba lagi"
+          ? e.code === "USERNAME_LENGTH_INVALID"
+            ? USERNAME_LENGTH_INVALID_MESSAGE
+            : e.code === "HAS_SESSION"
+              ? "Login gagal. Silakan logout terlebih dahulu pada device sebelumnya"
+              : "Login Gagal. Silakan Coba lagi"
           : "Login gagal.";
       setError(message);
     } finally {
@@ -56,6 +62,7 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
             value={username}
             onChange={setUsername}
             autoComplete="username"
+            maxLength={USERNAME_MAX_LENGTH}
           />
 
           <div className="relative">

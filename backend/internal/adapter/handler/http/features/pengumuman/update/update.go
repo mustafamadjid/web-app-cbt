@@ -73,12 +73,13 @@ func (h *UpdatePengumumanHandler) UpdatePengumuman(w http.ResponseWriter, r *htt
 			return
 		}
 
-		if err := validator.ValidateInputSafe(judul, "judul_pengumuman"); err != nil {
+		value, err := validator.ValidateRequiredPrintableText(judul, "judul_pengumuman")
+		if err != nil {
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", err.Error())
 			return
 		}
 
-		req.JudulPengumuman = &judul
+		req.JudulPengumuman = &value
 	}
 
 	if isi, ok := getOptional("isi_pengumuman"); ok {

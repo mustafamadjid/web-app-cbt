@@ -11,6 +11,7 @@ type InputFieldProps = {
   autoComplete?: string;
   disabled?: boolean;
   required?: boolean;
+  maxLength?: number;
 };
 
 const InputField = ({
@@ -26,6 +27,7 @@ const InputField = ({
   autoComplete = "off",
   disabled = false,
   required = true,
+  maxLength,
 }: InputFieldProps) => {
   return (
     <>
@@ -57,6 +59,7 @@ const InputField = ({
           autoComplete={autoComplete}
           disabled={disabled}
           required={required}
+          maxLength={maxLength}
         />
       </div>
     </>

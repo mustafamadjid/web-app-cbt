@@ -19,9 +19,11 @@ func parseListSesiFilters(r *http.Request) (query.ListSesiFilter, error) {
 	if filters.Search == "" {
 		filters.Search = strings.TrimSpace(values.Get("search"))
 	}
-	if err := validator.ValidateInputSafe(filters.Search, "search"); err != nil {
+	search, err := validator.ValidateOptionalPrintableText(filters.Search, "search")
+	if err != nil {
 		return query.ListSesiFilter{}, err
 	}
+	filters.Search = search
 
 	if limitRaw := strings.TrimSpace(values.Get("limit")); limitRaw != "" {
 		limit, err := strconv.Atoi(limitRaw)

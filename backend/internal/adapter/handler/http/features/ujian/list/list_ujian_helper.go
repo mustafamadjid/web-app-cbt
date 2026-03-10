@@ -20,9 +20,11 @@ func parseListUjianRequest(r *http.Request) (ListUjianRequest, error) {
 	if req.Search == "" {
 		req.Search = strings.TrimSpace(values.Get("search"))
 	}
-	if err := validator.ValidateInputSafe(req.Search, "search"); err != nil {
+	search, err := validator.ValidateOptionalPrintableText(req.Search, "search")
+	if err != nil {
 		return ListUjianRequest{}, err
 	}
+	req.Search = search
 
 	if tanggal := strings.TrimSpace(values.Get("tanggal")); tanggal != "" {
 		req.Tanggal = &tanggal

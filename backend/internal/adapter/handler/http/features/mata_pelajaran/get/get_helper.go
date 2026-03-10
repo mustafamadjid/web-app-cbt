@@ -19,9 +19,11 @@ func parseListMapelFilters(r *http.Request) (query.ListMapelFilter, error) {
 	if filters.Search == "" {
 		filters.Search = strings.TrimSpace(values.Get("search"))
 	}
-	if err := validator.ValidateInputSafe(filters.Search, "search"); err != nil {
+	search, err := validator.ValidateOptionalPrintableText(filters.Search, "search")
+	if err != nil {
 		return query.ListMapelFilter{}, err
 	}
+	filters.Search = search
 
 	if namaMapel := strings.TrimSpace(values.Get("nama_mapel")); namaMapel != "" {
 		filters.NamaMapel = &namaMapel

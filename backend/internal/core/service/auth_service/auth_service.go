@@ -2,6 +2,7 @@ package auth_service
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
@@ -22,7 +23,7 @@ type AuthService struct {
 	accessTokens  out.AccessTokenService
 	refreshTokens out.RefreshTokenService
 
-	refreshTTL 		time.Duration
+	refreshTTL time.Duration
 }
 
 func NewAuthService(authUser auth_port_out.AuthUserrepository, user outuser.UserRepository, hash out.PasswordHasher, session out.SessionRepository, accessToken out.AccessTokenService, refreshToken out.RefreshTokenService, refreshTTL time.Duration) *AuthService {
@@ -31,6 +32,11 @@ func NewAuthService(authUser auth_port_out.AuthUserrepository, user outuser.User
 
 func (authService *AuthService) Login(ctx context.Context, cmd LoginCmd) (LoginRes, error) {
 	logger := corelog.FromContext(ctx)
+	cmd.Username = strings.TrimSpace(cmd.Username)
+	if err := user.CheckUsernameLength(cmd.Username); err != nil {
+		return LoginRes{}, err
+	}
+
 	u, err := authService.authUsers.FindByUsername(ctx, cmd.Username)
 	if err != nil {
 		logger.Info(ctx, "invalid credentials", "layer", "core.service", "op", "auth.login", "err", err)
@@ -50,7 +56,6 @@ func (authService *AuthService) Login(ctx context.Context, cmd LoginCmd) (LoginR
 		logger.Error(ctx, "failed revoking expired sessions", "layer", "core.service", "op", "auth.login", "user_id", u.ID, "err", err)
 		return LoginRes{}, err
 	}
-
 
 	checkSession, err := authService.sessions.HasActiveSession(ctx, u.ID)
 	if err != nil {

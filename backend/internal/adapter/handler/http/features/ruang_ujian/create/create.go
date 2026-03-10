@@ -54,15 +54,19 @@ func (h *CreateRuangUjianHandler) CreateRuangUjian(w http.ResponseWriter, r *htt
 		return
 	}
 
-	if err := validator.ValidateInputSafe(dataRequest.NamaRuangan, "nama_ruangan"); err != nil {
+	namaRuangan, err := validator.ValidateRequiredPrintableText(dataRequest.NamaRuangan, "nama_ruangan")
+	if err != nil {
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", err.Error())
 		return
 	}
+	dataRequest.NamaRuangan = namaRuangan
 
-	if err := validator.ValidateInputSafe(dataRequest.KodeRuang, "kode_ruang"); err != nil {
+	kodeRuang, err := validator.ValidateRequiredPrintableText(dataRequest.KodeRuang, "kode_ruang")
+	if err != nil {
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", err.Error())
 		return
 	}
+	dataRequest.KodeRuang = kodeRuang
 
 	data := ruangujian.RuangUjian{
 		NamaRuangan: dataRequest.NamaRuangan,

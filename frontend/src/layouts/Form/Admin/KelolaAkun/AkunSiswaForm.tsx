@@ -17,11 +17,18 @@ import {
   createValidator,
   fileMaxSize,
   fileTypeStartsWith,
+  maxLength,
   minLength,
   requiredString,
   requiredValue,
 } from "@/helper/validate/validateForm";
 import toast from "react-hot-toast";
+import {
+  USERNAME_HELPER_TEXT,
+  USERNAME_LENGTH_INVALID_MESSAGE,
+  USERNAME_MAX_LENGTH,
+  USERNAME_MIN_LENGTH,
+} from "@/constants/username";
 
 const initialValues: StudentRegisterFormValues = {
   nama_lengkap: "",
@@ -44,6 +51,7 @@ const helperText = "text-xs text-slate-500";
 const NISN_LENGTH = 10;
 const DUPLICATE_ACCOUNT_MESSAGES: Record<string, string> = {
   USERNAME_TAKEN: "Username sudah terdaftar. Gunakan username lain yang unik.",
+  USERNAME_LENGTH_INVALID: USERNAME_LENGTH_INVALID_MESSAGE,
   EMAIL_TAKEN: "Email sudah terdaftar. Gunakan email lain yang unik.",
   NO_HP_TAKEN: "Nomor HP sudah terdaftar. Gunakan nomor HP lain yang unik.",
   NISN_TAKEN: "NISN sudah terdaftar. Gunakan NISN lain yang unik.",
@@ -112,7 +120,11 @@ const AkunSiswaForm = () => {
 
   const validate = createValidator<StudentRegisterFormValues>({
     nama_lengkap: [requiredString("Nama lengkap wajib diisi.")],
-    username: [requiredString("Username wajib diisi.")],
+    username: [
+      requiredString("Username wajib diisi."),
+      minLength(USERNAME_MIN_LENGTH, USERNAME_LENGTH_INVALID_MESSAGE),
+      maxLength(USERNAME_MAX_LENGTH, USERNAME_LENGTH_INVALID_MESSAGE),
+    ],
     password: [
       requiredString("Password wajib diisi."),
       minLength(8, "Password minimal 8 karakter."),
@@ -317,11 +329,15 @@ const AkunSiswaForm = () => {
                   onChange={(v) => setField("username", v)}
                   onBlur={() => onBlur("username")}
                   placeholder="contoh: siti.aminah"
+                  maxLength={USERNAME_MAX_LENGTH}
                   inputClassName={
                     hasError("username") ? "border-rose-300 ring-rose-100" : ""
                   }
                   required
                 />
+                <p className="mt-1 text-xs text-slate-500">
+                  {USERNAME_HELPER_TEXT}
+                </p>
                 {hasError("username") && (
                   <p className="mt-1 text-xs text-rose-600">
                     {errors.username}

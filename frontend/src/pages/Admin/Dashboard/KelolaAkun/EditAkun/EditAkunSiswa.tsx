@@ -113,6 +113,7 @@ const EditAkunSiswa = () => {
 
   return (
     <EditAkunSiswaForm
+      key={`${initialValues.id_pengguna}-${initialValues.username}-${fotoUrl}`}
       initialValues={initialValues}
       initialFotoUrl={fotoUrl}
       onSubmit={handleSubmit}

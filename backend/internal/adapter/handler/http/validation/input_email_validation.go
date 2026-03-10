@@ -1,21 +1,22 @@
 package httpx
 
 import (
-	"errors"
+	"regexp"
 	"strings"
 )
 
-func ValidateEmail(email string) error {
-	trimmedEmail := strings.TrimSpace(email)
-	parts := strings.Split(trimmedEmail, "@")
-	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
-		return errors.New("invalid email: email harus mengandung @ dan domain")
-	}
+var EmailLiteRe = regexp.MustCompile(`^[^\s@]+@[^\s@]+\.[^\s@]+$`)
 
-	domain := parts[1]
-	if strings.HasPrefix(domain, ".") || strings.HasSuffix(domain, ".") || !strings.Contains(domain, ".") {
-		return errors.New("invalid email: domain email tidak valid")
-	}
+func ValidateEmailAddress(value, field string) (string, error) {
+	return ValidateByRule(strings.ToLower(value), field, Rule{
+		Required:  true,
+		TrimSpace: true,
+		MaxLen:    254,
+		RejectCtl: true,
+		Pattern:   EmailLiteRe,
+	})
+}
 
-	return nil
+func ValidateEmail(value string) (string, error) {
+	return ValidateEmailAddress(value, "email")
 }

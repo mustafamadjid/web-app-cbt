@@ -50,20 +50,26 @@ func (h *CreateBankSoalHandler) CreateBankSoal(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	if err := validator.ValidateInputSafe(dataRequest.Deskripsi, "deskripsi"); err != nil {
+	deskripsi, err := validator.ValidateRequiredPrintableText(dataRequest.Deskripsi, "deskripsi")
+	if err != nil {
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", err.Error())
 		return
 	}
+	dataRequest.Deskripsi = deskripsi
 
-	if err := validator.ValidateInputSafe(dataRequest.Materi, "materi"); err != nil {
+	materi, err := validator.ValidateRequiredPrintableText(dataRequest.Materi, "materi")
+	if err != nil {
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", err.Error())
 		return
 	}
+	dataRequest.Materi = materi
 
-	if err := validator.ValidateInputSafe(dataRequest.NamaBankSoal, "nama_bank_soal"); err != nil {
+	namaBankSoal, err := validator.ValidateRequiredPrintableText(dataRequest.NamaBankSoal, "nama_bank_soal")
+	if err != nil {
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", err.Error())
 		return
 	}
+	dataRequest.NamaBankSoal = namaBankSoal
 
 	if dataRequest.IdKelas <= 0 {
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: id kelas is required")

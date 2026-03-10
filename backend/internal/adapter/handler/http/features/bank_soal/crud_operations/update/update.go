@@ -54,22 +54,28 @@ func (h *UpdateBankSoalHandler) UpdateBankSoal(w http.ResponseWriter, r *http.Re
 	}
 
 	if req.NamaBankSoal != nil {
-		if err := validator.ValidateInputSafe(*req.NamaBankSoal, "nama_bank_soal"); err != nil {
+		value, err := validator.ValidateRequiredPrintableText(*req.NamaBankSoal, "nama_bank_soal")
+		if err != nil {
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", err.Error())
 			return
 		}
+		*req.NamaBankSoal = value
 	}
 	if req.Deskripsi != nil {
-		if err := validator.ValidateInputSafe(*req.Deskripsi, "deskripsi"); err != nil {
+		value, err := validator.ValidateRequiredPrintableText(*req.Deskripsi, "deskripsi")
+		if err != nil {
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", err.Error())
 			return
 		}
+		*req.Deskripsi = value
 	}
 	if req.Materi != nil {
-		if err := validator.ValidateInputSafe(*req.Materi, "materi"); err != nil {
+		value, err := validator.ValidateRequiredPrintableText(*req.Materi, "materi")
+		if err != nil {
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", err.Error())
 			return
 		}
+		*req.Materi = value
 	}
 
 	patch := updatepatch.UpdateBankSoalPatch{
@@ -98,5 +104,3 @@ func (h *UpdateBankSoalHandler) UpdateBankSoal(w http.ResponseWriter, r *http.Re
 
 	httpResponse.WriteOKNoData(w, http.StatusOK, "Success")
 }
-
-

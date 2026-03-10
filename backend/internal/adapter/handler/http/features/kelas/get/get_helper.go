@@ -19,9 +19,11 @@ func parseListKelasFilters(r *http.Request) (query.ListKelasFilter, error) {
 	if filters.Search == "" {
 		filters.Search = strings.TrimSpace(values.Get("search"))
 	}
-	if err := validator.ValidateInputSafe(filters.Search, "search"); err != nil {
+	search, err := validator.ValidateOptionalPrintableText(filters.Search, "search")
+	if err != nil {
 		return query.ListKelasFilter{}, err
 	}
+	filters.Search = search
 
 	if tingkatKelasRaw := strings.TrimSpace(values.Get("tingkat_kelas")); tingkatKelasRaw != "" {
 		tingkatKelas, err := strconv.Atoi(tingkatKelasRaw)

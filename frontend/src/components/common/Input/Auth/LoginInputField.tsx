@@ -11,6 +11,7 @@ type LoginInputFieldProps = {
   disabled?: boolean;
 
   required?: boolean;
+  maxLength?: number;
 };
 
 const LoginInputField = ({
@@ -24,6 +25,7 @@ const LoginInputField = ({
   disabled,
 
   required = true,
+  maxLength,
 }: LoginInputFieldProps) => {
   return (
     <div className="relative">
@@ -34,6 +36,7 @@ const LoginInputField = ({
         required={required}
         autoComplete={autoComplete}
         disabled={disabled}
+        maxLength={maxLength}
         onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
           onChange(e.target.value)
         }

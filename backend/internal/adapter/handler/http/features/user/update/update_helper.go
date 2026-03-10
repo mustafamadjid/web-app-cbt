@@ -227,6 +227,8 @@ func (h *UpdateHandler) writeUpdateError(w http.ResponseWriter, err error, role 
 		httpResponse.WriteErr(w, http.StatusForbidden, "FORBIDDEN", "forbidden")
 	case errors.Is(err, coreerror.ErrNoFieldToUpdate):
 		httpResponse.WriteErr(w, http.StatusBadRequest, "NO_FIELD_TO_UPDATE", "no field to update")
+	case errors.Is(err, coreerror.ErrUsernameLengthInvalid):
+		httpResponse.WriteErr(w, http.StatusBadRequest, "USERNAME_LENGTH_INVALID", "username length invalid")
 	case errors.Is(err, coreerror.ErrUsernameTaken):
 		httpResponse.WriteErr(w, http.StatusConflict, "USERNAME_TAKEN", "username sudah terdaftar. data yang diinputkan harus unik")
 	case errors.Is(err, coreerror.ErrEmailTaken):
@@ -333,21 +335,20 @@ func applyOptionalStrings(values map[string][]string, fields map[string]**string
 			continue
 		}
 		val := raw[0]
-		if err := validator.ValidateInputSafe(val, key); err != nil {
+		var err error
+		switch key {
+		case "username":
+			val, err = validator.ValidateUsername(val)
+		case "email":
+			val, err = validator.ValidateEmailAddress(val, key)
+		default:
+			val, err = validator.ValidateRequiredPrintableText(val, key)
+		}
+		if err != nil {
 			return requestError{
 				status:  http.StatusBadRequest,
 				code:    "INVALID_INPUT",
 				message: err.Error(),
-			}
-		}
-
-		if key == "email" {
-			if err := validator.ValidateEmail(val); err != nil {
-				return requestError{
-					status:  http.StatusBadRequest,
-					code:    "INVALID_INPUT",
-					message: err.Error(),
-				}
 			}
 		}
 

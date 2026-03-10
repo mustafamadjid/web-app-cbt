@@ -54,28 +54,34 @@ func (h *CreateMapelHandler) CreateMapel(w http.ResponseWriter, r *http.Request,
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: kode mapel is required")
 		return
 	}
-	if err := validator.ValidateInputSafe(dataRequest.KodeMapel, "kode_mapel"); err != nil {
+	kodeMapel, err := validator.ValidateRequiredPrintableText(dataRequest.KodeMapel, "kode_mapel")
+	if err != nil {
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", err.Error())
 		return
 	}
+	dataRequest.KodeMapel = kodeMapel
 
 	if dataRequest.NamaMapel == "" {
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: nama mapel is required")
 		return
 	}
-	if err := validator.ValidateInputSafe(dataRequest.NamaMapel, "nama_mapel"); err != nil {
+	namaMapel, err := validator.ValidateRequiredPrintableText(dataRequest.NamaMapel, "nama_mapel")
+	if err != nil {
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", err.Error())
 		return
 	}
+	dataRequest.NamaMapel = namaMapel
 
 	if dataRequest.Deskripsi == "" {
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: deskripsi is required")
 		return
 	}
-	if err := validator.ValidateInputSafe(dataRequest.Deskripsi, "deskripsi"); err != nil {
+	deskripsi, err := validator.ValidateRequiredPrintableText(dataRequest.Deskripsi, "deskripsi")
+	if err != nil {
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", err.Error())
 		return
 	}
+	dataRequest.Deskripsi = deskripsi
 
 	cmdData := matapelajaran.MataPelajaran{
 		IdKelas:   matapelajaran.ID(dataRequest.IdKelas),

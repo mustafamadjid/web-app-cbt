@@ -55,12 +55,13 @@ func (h *UpdateUjianHandler) UpdateUjian(w http.ResponseWriter, r *http.Request,
 		return
 	}
 
-	if err := ValidateInputIDRequestUpdateUjian(dataRequest); err != nil {
+	if err := ValidateUpdateUjianRequestIDs(dataRequest); err != nil {
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: invalid id")
 		return
 	}
 
-	if err := ValidateInputSafeRequestUpdateUjian(dataRequest); err != nil {
+	dataRequest, err = ValidateUpdateUjianRequestFields(dataRequest)
+	if err != nil {
 		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: invalid input")
 		return
 	}

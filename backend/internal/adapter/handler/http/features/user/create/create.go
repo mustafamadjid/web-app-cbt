@@ -88,50 +88,64 @@ func (h *UserHandler) CreateGuru(write http.ResponseWriter, req *http.Request, _
 		httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request : invalid request body")
 		return
 	}
-	if err := validator.ValidateInputSafe(cmd.Username, "username"); err != nil {
+	username, err := validator.ValidateUsername(cmd.Username)
+	if err != nil {
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
+	cmd.Username = username
 	if cmd.Email != nil {
-		if err := validator.ValidateInputSafe(*cmd.Email, "email"); err != nil {
+		email, err := validator.ValidateEmail(*cmd.Email)
+		if err != nil {
 			httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 			return
 		}
-		if err := validator.ValidateEmail(*cmd.Email); err != nil {
-			httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
-			return
-		}
+		cmd.Email = &email
 	}
-	if err := validator.ValidatePassword(cmd.Password); err != nil {
+	password, err := validator.ValidatePassword(cmd.Password)
+	if err != nil {
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
-	if err := validator.ValidateInputSafe(cmd.NamaLengkap, "nama_lengkap"); err != nil {
+	cmd.Password = password
+	namaLengkap, err := validator.ValidateRequiredPrintableText(cmd.NamaLengkap, "nama_lengkap")
+	if err != nil {
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
-	if err := validator.ValidateInputSafe(cmd.JenisKelamin, "jenis_kelamin"); err != nil {
+	cmd.NamaLengkap = namaLengkap
+	jenisKelamin, err := validator.ValidateRequiredPrintableText(cmd.JenisKelamin, "jenis_kelamin")
+	if err != nil {
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
+	cmd.JenisKelamin = jenisKelamin
 	if cmd.NoHp != nil {
-		if err := validator.ValidateInputSafe(*cmd.NoHp, "no_hp"); err != nil {
+		noHp, err := validator.ValidateRequiredPrintableText(*cmd.NoHp, "no_hp")
+		if err != nil {
 			httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 			return
 		}
+		cmd.NoHp = &noHp
 	}
-	if err := validator.ValidateInputSafe(cmd.Nip, "nip"); err != nil {
+	nip, err := validator.ValidateRequiredPrintableText(cmd.Nip, "nip")
+	if err != nil {
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
-	if err := validator.ValidateInputSafe(cmd.Jabatan, "jabatan"); err != nil {
+	cmd.Nip = nip
+	jabatan, err := validator.ValidateRequiredPrintableText(cmd.Jabatan, "jabatan")
+	if err != nil {
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
-	if err := validator.ValidateInputSafe(cmd.BidangStudi, "bidang_studi"); err != nil {
+	cmd.Jabatan = jabatan
+	bidangStudi, err := validator.ValidateRequiredPrintableText(cmd.BidangStudi, "bidang_studi")
+	if err != nil {
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
+	cmd.BidangStudi = bidangStudi
 	actor, ok := middleware.ActorFromContext(req.Context())
 	if !ok {
 		logger.Error(req.Context(), "missing actor in context", "layer", "adapter.http.handler", "op", "user.create_guru", "err", "actor_not_found")
@@ -146,6 +160,10 @@ func (h *UserHandler) CreateGuru(write http.ResponseWriter, req *http.Request, _
 
 		case errors.Is(err, coreerror.ErrForbidden):
 			httpResponse.WriteErr(write, http.StatusForbidden, "FORBIDDEN", "forbidden")
+			return
+
+		case errors.Is(err, coreerror.ErrUsernameLengthInvalid):
+			httpResponse.WriteErr(write, http.StatusBadRequest, "USERNAME_LENGTH_INVALID", "username length invalid")
 			return
 
 		case errors.Is(err, coreerror.ErrInvalidInput):
@@ -298,46 +316,58 @@ func (h *UserHandler) CreateSiswa(write http.ResponseWriter, req *http.Request, 
 		httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request: invalid request body")
 		return
 	}
-	if err := validator.ValidateInputSafe(cmd.Username, "username"); err != nil {
+	username, err := validator.ValidateUsername(cmd.Username)
+	if err != nil {
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
+	cmd.Username = username
 	if cmd.Email != nil {
-		if err := validator.ValidateInputSafe(*cmd.Email, "email"); err != nil {
+		email, err := validator.ValidateEmail(*cmd.Email)
+		if err != nil {
 			httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 			return
 		}
-		if err := validator.ValidateEmail(*cmd.Email); err != nil {
-			httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
-			return
-		}
+		cmd.Email = &email
 	}
-	if err := validator.ValidatePassword(cmd.Password); err != nil {
+	password, err := validator.ValidatePassword(cmd.Password)
+	if err != nil {
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
-	if err := validator.ValidateInputSafe(cmd.NamaLengkap, "nama_lengkap"); err != nil {
+	cmd.Password = password
+	namaLengkap, err := validator.ValidateRequiredPrintableText(cmd.NamaLengkap, "nama_lengkap")
+	if err != nil {
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
-	if err := validator.ValidateInputSafe(cmd.JenisKelamin, "jenis_kelamin"); err != nil {
+	cmd.NamaLengkap = namaLengkap
+	jenisKelamin, err := validator.ValidateRequiredPrintableText(cmd.JenisKelamin, "jenis_kelamin")
+	if err != nil {
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
+	cmd.JenisKelamin = jenisKelamin
 	if cmd.NoHp != nil {
-		if err := validator.ValidateInputSafe(*cmd.NoHp, "no_hp"); err != nil {
+		noHp, err := validator.ValidateRequiredPrintableText(*cmd.NoHp, "no_hp")
+		if err != nil {
 			httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 			return
 		}
+		cmd.NoHp = &noHp
 	}
-	if err := validator.ValidateInputSafe(cmd.Nisn, "nisn"); err != nil {
+	nisn, err := validator.ValidateRequiredPrintableText(cmd.Nisn, "nisn")
+	if err != nil {
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
-	if err := validator.ValidateInputSafe(cmd.TempatLahir, "tempat_lahir"); err != nil {
+	cmd.Nisn = nisn
+	tempatLahir, err := validator.ValidateRequiredPrintableText(cmd.TempatLahir, "tempat_lahir")
+	if err != nil {
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
+	cmd.TempatLahir = tempatLahir
 
 	res, err := h.svc.CreateSiswa(req.Context(), cmd, actor)
 	if err != nil {
@@ -346,6 +376,10 @@ func (h *UserHandler) CreateSiswa(write http.ResponseWriter, req *http.Request, 
 
 		case errors.Is(err, coreerror.ErrForbidden):
 			httpResponse.WriteErr(write, http.StatusForbidden, "FORBIDDEN", "forbidden")
+			return
+
+		case errors.Is(err, coreerror.ErrUsernameLengthInvalid):
+			httpResponse.WriteErr(write, http.StatusBadRequest, "USERNAME_LENGTH_INVALID", "username length invalid")
 			return
 
 		case errors.Is(err, coreerror.ErrInvalidInput):

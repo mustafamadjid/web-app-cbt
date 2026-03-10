@@ -5,35 +5,43 @@ import (
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 )
 
-func ValidateInputSafeRequestUpdateUjian(data UpdatePenjadwalanUjianRequest) error {
+func ValidateUpdateUjianRequestFields(data UpdatePenjadwalanUjianRequest) (UpdatePenjadwalanUjianRequest, error) {
 	if data.NamaUjian != nil {
-		if err := validator.ValidateInputSafe(*data.NamaUjian, "nama_ujian"); err != nil {
-			return err
+		value, err := validator.ValidateRequiredPrintableText(*data.NamaUjian, "nama_ujian")
+		if err != nil {
+			return UpdatePenjadwalanUjianRequest{}, err
 		}
+		data.NamaUjian = &value
 	}
 
 	if data.Token != nil {
-		if err := validator.ValidateInputSafe(*data.Token, "token"); err != nil {
-			return err
+		value, err := validator.ValidateRequiredPrintableText(*data.Token, "token")
+		if err != nil {
+			return UpdatePenjadwalanUjianRequest{}, err
 		}
+		data.Token = &value
 	}
 
 	if data.DeskripsiUjian != nil {
-		if err := validator.ValidateInputSafe(*data.DeskripsiUjian, "deskripsi_ujian"); err != nil {
-			return err
+		value, err := validator.ValidateRequiredPrintableText(*data.DeskripsiUjian, "deskripsi_ujian")
+		if err != nil {
+			return UpdatePenjadwalanUjianRequest{}, err
 		}
+		data.DeskripsiUjian = &value
 	}
 
 	if data.StatusUjian != nil {
-		if err := validator.ValidateInputSafe(*data.StatusUjian, "status_ujian"); err != nil {
-			return err
+		value, err := validator.ValidateRequiredPrintableText(*data.StatusUjian, "status_ujian")
+		if err != nil {
+			return UpdatePenjadwalanUjianRequest{}, err
 		}
+		data.StatusUjian = &value
 	}
 
-	return nil
+	return data, nil
 }
 
-func ValidateInputIDRequestUpdateUjian(data UpdatePenjadwalanUjianRequest) error {
+func ValidateUpdateUjianRequestIDs(data UpdatePenjadwalanUjianRequest) error {
 	if data.IdBankSoal != nil && *data.IdBankSoal <= 0 {
 		return coreerror.ErrMissingId
 	}

@@ -55,6 +55,7 @@ func TestUpdateGuruBranchCoverage(t *testing.T) {
 		wantUpdateUser     bool
 		wantUpdateProfil   bool
 		wantEmailValue     string
+		wantUsernameValue  string
 	}{
 		{
 			name:  "Branch 1 -> semua patch berhasil",
@@ -70,6 +71,7 @@ func TestUpdateGuruBranchCoverage(t *testing.T) {
 			wantUpdateUser:     true,
 			wantUpdateProfil:   true,
 			wantEmailValue:     "guru@example.com",
+			wantUsernameValue:  "guruuser",
 		},
 		{
 			name:               "Branch 2 -> aktor bukan admin",
@@ -100,7 +102,7 @@ func TestUpdateGuruBranchCoverage(t *testing.T) {
 			cmd:                func() user_service.UpdateGuruCmd { c := validCmd(); c.Username = strPtr(" "); return c }(),
 			actor:              adminActor,
 			txm:                &fake_test.FakeTxManager{Tx: &fake_test.FakeTx{}},
-			wantErrText:        "username cannot be empty",
+			wantErr:            coreerror.ErrUsernameLengthInvalid,
 			wantBeginCalled:    false,
 			wantCommitCalled:   false,
 			wantRollbackCalled: false,
@@ -134,7 +136,7 @@ func TestUpdateGuruBranchCoverage(t *testing.T) {
 		{
 			name: "Branch 7 -> tidak ada field yang diupdate",
 			cmd: func() user_service.UpdateGuruCmd {
-				return user_service.UpdateGuruCmd{IdPengguna: 10, Username: strPtr("guru")}
+				return user_service.UpdateGuruCmd{IdPengguna: 10}
 			}(),
 			actor:              adminActor,
 			txm:                &fake_test.FakeTxManager{Tx: &fake_test.FakeTx{}},
@@ -213,8 +215,10 @@ func TestUpdateGuruBranchCoverage(t *testing.T) {
 			name: "Branch 12 -> hanya update profil",
 			cmd: func() user_service.UpdateGuruCmd {
 				c := validCmd()
+				c.Username = nil
 				c.NamaLengkap = nil
 				c.Email = nil
+				c.JenisKelamin = nil
 				c.NoHp = nil
 				c.Foto = nil
 				c.StatusAkun = nil
@@ -252,6 +256,25 @@ func TestUpdateGuruBranchCoverage(t *testing.T) {
 			wantUpdateUser:     true,
 			wantUpdateProfil:   false,
 			wantEmailValue:     "guru@example.com",
+			wantUsernameValue:  "guruuser",
+		},
+		{
+			name: "Branch 14 -> hanya update username",
+			cmd: user_service.UpdateGuruCmd{
+				IdPengguna: 10,
+				Username:   strPtr("guruupdate"),
+			},
+			actor: adminActor,
+			txm: &fake_test.FakeTxManager{Tx: &fake_test.FakeTx{
+				UserRepo:       &fake_test.FakeUserRepo{},
+				ProfilGuruRepo: &fake_test.FakeProfilGuruRepo{},
+			}},
+			wantBeginCalled:    true,
+			wantCommitCalled:   true,
+			wantRollbackCalled: true,
+			wantUpdateUser:     true,
+			wantUpdateProfil:   false,
+			wantUsernameValue:  "guruupdate",
 		},
 	}
 
@@ -280,6 +303,9 @@ func TestUpdateGuruBranchCoverage(t *testing.T) {
 				assert.Equal(t, tc.wantRollbackCalled, tc.txm.Tx.RollbackCalled)
 				if tc.txm.Tx.UserRepo != nil {
 					assert.Equal(t, tc.wantUpdateUser, tc.txm.Tx.UserRepo.UpdateCalled)
+					if tc.wantUsernameValue != "" && tc.txm.Tx.UserRepo.LastPatch.Username != nil {
+						assert.Equal(t, tc.wantUsernameValue, *tc.txm.Tx.UserRepo.LastPatch.Username)
+					}
 					if tc.wantEmailValue != "" && tc.txm.Tx.UserRepo.LastPatch.Email != nil {
 						assert.Equal(t, tc.wantEmailValue, string(*tc.txm.Tx.UserRepo.LastPatch.Email))
 					}
@@ -350,6 +376,7 @@ func TestUpdateSiswaBranchCoverage(t *testing.T) {
 		wantUpdateProfil   bool
 		wantEmailValue     string
 		wantNisnValue      string
+		wantUsernameValue  string
 	}{
 		{
 			name:  "Branch 1 -> semua patch berhasil",
@@ -366,6 +393,7 @@ func TestUpdateSiswaBranchCoverage(t *testing.T) {
 			wantUpdateProfil:   true,
 			wantEmailValue:     "siswa@example.com",
 			wantNisnValue:      "1234567890",
+			wantUsernameValue:  "siswauser",
 		},
 		{
 			name:               "Branch 2 -> aktor bukan admin",
@@ -396,7 +424,7 @@ func TestUpdateSiswaBranchCoverage(t *testing.T) {
 			cmd:                func() user_service.UpdateSiswaCmd { c := validCmd(); c.Username = strPtr(" "); return c }(),
 			actor:              adminActor,
 			txm:                &fake_test.FakeTxManager{Tx: &fake_test.FakeTx{}},
-			wantErrText:        "username cannot be empty",
+			wantErr:            coreerror.ErrUsernameLengthInvalid,
 			wantBeginCalled:    false,
 			wantCommitCalled:   false,
 			wantRollbackCalled: false,
@@ -466,7 +494,7 @@ func TestUpdateSiswaBranchCoverage(t *testing.T) {
 		{
 			name: "Branch 10 -> tidak ada field yang diupdate",
 			cmd: func() user_service.UpdateSiswaCmd {
-				return user_service.UpdateSiswaCmd{IdPengguna: 10, Username: strPtr("siswa")}
+				return user_service.UpdateSiswaCmd{IdPengguna: 10}
 			}(),
 			actor:              adminActor,
 			txm:                &fake_test.FakeTxManager{Tx: &fake_test.FakeTx{}},
@@ -545,8 +573,10 @@ func TestUpdateSiswaBranchCoverage(t *testing.T) {
 			name: "Branch 15 -> hanya update profil",
 			cmd: func() user_service.UpdateSiswaCmd {
 				c := validCmd()
+				c.Username = nil
 				c.NamaLengkap = nil
 				c.Email = nil
+				c.JenisKelamin = nil
 				c.NoHp = nil
 				c.Foto = nil
 				c.StatusAkun = nil
@@ -588,6 +618,25 @@ func TestUpdateSiswaBranchCoverage(t *testing.T) {
 			wantUpdateUser:     true,
 			wantUpdateProfil:   false,
 			wantEmailValue:     "siswa@example.com",
+			wantUsernameValue:  "siswauser",
+		},
+		{
+			name: "Branch 17 -> hanya update username",
+			cmd: user_service.UpdateSiswaCmd{
+				IdPengguna: 10,
+				Username:   strPtr("siswaupdate"),
+			},
+			actor: adminActor,
+			txm: &fake_test.FakeTxManager{Tx: &fake_test.FakeTx{
+				UserRepo:        &fake_test.FakeUserRepo{},
+				ProfilSiswaRepo: &fake_test.FakeProfilSiswaRepo{},
+			}},
+			wantBeginCalled:    true,
+			wantCommitCalled:   true,
+			wantRollbackCalled: true,
+			wantUpdateUser:     true,
+			wantUpdateProfil:   false,
+			wantUsernameValue:  "siswaupdate",
 		},
 	}
 
@@ -616,6 +665,9 @@ func TestUpdateSiswaBranchCoverage(t *testing.T) {
 				assert.Equal(t, tc.wantRollbackCalled, tc.txm.Tx.RollbackCalled)
 				if tc.txm.Tx.UserRepo != nil {
 					assert.Equal(t, tc.wantUpdateUser, tc.txm.Tx.UserRepo.UpdateCalled)
+					if tc.wantUsernameValue != "" && tc.txm.Tx.UserRepo.LastPatch.Username != nil {
+						assert.Equal(t, tc.wantUsernameValue, *tc.txm.Tx.UserRepo.LastPatch.Username)
+					}
 					if tc.wantEmailValue != "" && tc.txm.Tx.UserRepo.LastPatch.Email != nil {
 						assert.Equal(t, tc.wantEmailValue, string(*tc.txm.Tx.UserRepo.LastPatch.Email))
 					}

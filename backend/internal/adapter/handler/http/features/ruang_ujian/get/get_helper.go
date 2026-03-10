@@ -19,9 +19,11 @@ func parseListRuangUjianFilters(r *http.Request) (query.ListRuangUjianFilter, er
 	if filters.Search == "" {
 		filters.Search = strings.TrimSpace(values.Get("search"))
 	}
-	if err := validator.ValidateInputSafe(filters.Search, "search"); err != nil {
+	search, err := validator.ValidateOptionalPrintableText(filters.Search, "search")
+	if err != nil {
 		return query.ListRuangUjianFilter{}, err
 	}
+	filters.Search = search
 
 	if limitRaw := strings.TrimSpace(values.Get("limit")); limitRaw != "" {
 		limit, err := strconv.Atoi(limitRaw)

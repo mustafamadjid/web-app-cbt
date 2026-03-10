@@ -20,9 +20,11 @@ func parseListBankSoalRequest(r *http.Request) (ListBankSoalRequest, error) {
 		req.Search = strings.TrimSpace(values.Get("search"))
 	}
 
-	if err := validator.ValidateInputSafe(req.Search, "search"); err != nil {
+	search, err := validator.ValidateOptionalPrintableText(req.Search, "search")
+	if err != nil {
 		return ListBankSoalRequest{}, err
 	}
+	req.Search = search
 
 	if raw := strings.TrimSpace(values.Get("limit")); raw != "" {
 		parsed, err := strconv.Atoi(raw)

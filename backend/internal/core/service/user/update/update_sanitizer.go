@@ -10,8 +10,8 @@ import (
 func sanitizeAndValidateUpdateGuruCmd(cmd UpdateGuruCmd) (UpdateGuruCmd, *user.Email, error) {
 	if cmd.Username != nil {
 		trimmedUsername := strings.TrimSpace(*cmd.Username)
-		if trimmedUsername == "" {
-			return cmd, nil, errors.New("username cannot be empty")
+		if err := user.CheckUsernameLength(trimmedUsername); err != nil {
+			return cmd, nil, err
 		}
 		cmd.Username = &trimmedUsername
 	}
@@ -62,8 +62,8 @@ func sanitizeAndValidateUpdateGuruCmd(cmd UpdateGuruCmd) (UpdateGuruCmd, *user.E
 func sanitizeAndValidateUpdateSiswaCmd(cmd UpdateSiswaCmd) (UpdateSiswaCmd, *user.Email, error) {
 	if cmd.Username != nil {
 		trimmedUsername := strings.TrimSpace(*cmd.Username)
-		if trimmedUsername == "" {
-			return cmd, nil, errors.New("username cannot be empty")
+		if err := user.CheckUsernameLength(trimmedUsername); err != nil {
+			return cmd, nil, err
 		}
 		cmd.Username = &trimmedUsername
 	}

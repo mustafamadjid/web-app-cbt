@@ -8,10 +8,10 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/middleware"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/aktivitas_user"
-	
-	validator "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/validation"
+
 	httphelper "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper"
 	httpResponse "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper/response_envelope"
+	validator "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/validation"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 	updatepatch "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/update_patch"
@@ -58,10 +58,12 @@ func (h *UpdateKelasHandler) UpdateNamaKelas(w http.ResponseWriter, r *http.Requ
 	}
 
 	if dataRequest.NamaKelas != nil {
-		if err := validator.ValidateInputSafe(*dataRequest.NamaKelas, "nama_kelas"); err != nil {
+		value, err := validator.ValidateRequiredPrintableText(*dataRequest.NamaKelas, "nama_kelas")
+		if err != nil {
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", err.Error())
 			return
 		}
+		*dataRequest.NamaKelas = value
 	}
 
 	patch := updatepatch.NamaKelasPatch{
@@ -106,5 +108,3 @@ func (h *UpdateKelasHandler) UpdateNamaKelas(w http.ResponseWriter, r *http.Requ
 
 	httpResponse.WriteOKNoData(w, http.StatusOK, "success update nama kelas")
 }
-
-

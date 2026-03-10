@@ -57,12 +57,24 @@ func TestAuthServiceLoginBasisPath(t *testing.T) {
 
 	testCases := []struct {
 		name      string
+		cmd       auth_service.LoginCmd
 		setup     func(*fake_test.FakeAuthUserRepo, *fake_test.FakeHasher, *fake_test.FakeSessionRepo, *fake_test.FakeAccessToken, *fake_test.FakeRefreshToken)
 		wantErr   error
 		assertion func(*testing.T, auth_service.LoginRes, *fake_test.FakeAuthUserRepo, *fake_test.FakeHasher, *fake_test.FakeSessionRepo, *fake_test.FakeAccessToken, *fake_test.FakeRefreshToken)
 	}{
 		{
-			name: "Path 1 -> Username gagal ditemukan",
+			name:    "Path 1 -> Panjang username tidak valid",
+			cmd:     auth_service.LoginCmd{Username: "adm", Password: password},
+			wantErr: coreerror.ErrUsernameLengthInvalid,
+			assertion: func(t *testing.T, got auth_service.LoginRes, authRepo *fake_test.FakeAuthUserRepo, hasher *fake_test.FakeHasher, sessionRepo *fake_test.FakeSessionRepo, accessToken *fake_test.FakeAccessToken, refreshToken *fake_test.FakeRefreshToken) {
+				assert.Equal(t, auth_service.LoginRes{}, got)
+				assert.False(t, authRepo.FindCalled)
+				assert.False(t, hasher.CompareCalled)
+				assert.False(t, sessionRepo.RevokeExpiredCalled)
+			},
+		},
+		{
+			name: "Path 2 -> Username gagal ditemukan",
 			setup: func(authRepo *fake_test.FakeAuthUserRepo, hasher *fake_test.FakeHasher, sessionRepo *fake_test.FakeSessionRepo, accessToken *fake_test.FakeAccessToken, refreshToken *fake_test.FakeRefreshToken) {
 				authRepo.ByUsername = map[string]user.Pengguna{}
 			},
@@ -75,7 +87,7 @@ func TestAuthServiceLoginBasisPath(t *testing.T) {
 			},
 		},
 		{
-			name: "Path 2 -> Status akun tidak aktif",
+			name: "Path 3 -> Status akun tidak aktif",
 			setup: func(authRepo *fake_test.FakeAuthUserRepo, hasher *fake_test.FakeHasher, sessionRepo *fake_test.FakeSessionRepo, accessToken *fake_test.FakeAccessToken, refreshToken *fake_test.FakeRefreshToken) {
 				inactiveUser := baseUser
 				inactiveUser.StatusAkun = user.NONAKTIF
@@ -90,7 +102,7 @@ func TestAuthServiceLoginBasisPath(t *testing.T) {
 			},
 		},
 		{
-			name: "Path 3 -> Password tidak cocok",
+			name: "Path 4 -> Password tidak cocok",
 			setup: func(authRepo *fake_test.FakeAuthUserRepo, hasher *fake_test.FakeHasher, sessionRepo *fake_test.FakeSessionRepo, accessToken *fake_test.FakeAccessToken, refreshToken *fake_test.FakeRefreshToken) {
 				authRepo.ByUsername[username] = baseUser
 				hasher.Ok = false
@@ -103,7 +115,7 @@ func TestAuthServiceLoginBasisPath(t *testing.T) {
 			},
 		},
 		{
-			name: "Path 4 -> Revoke expired session gagal",
+			name: "Path 5 -> Revoke expired session gagal",
 			setup: func(authRepo *fake_test.FakeAuthUserRepo, hasher *fake_test.FakeHasher, sessionRepo *fake_test.FakeSessionRepo, accessToken *fake_test.FakeAccessToken, refreshToken *fake_test.FakeRefreshToken) {
 				authRepo.ByUsername[username] = baseUser
 				sessionRepo.RevokeExpiredErr = testErr
@@ -116,7 +128,7 @@ func TestAuthServiceLoginBasisPath(t *testing.T) {
 			},
 		},
 		{
-			name: "Path 5 -> Cek active session gagal",
+			name: "Path 6 -> Cek active session gagal",
 			setup: func(authRepo *fake_test.FakeAuthUserRepo, hasher *fake_test.FakeHasher, sessionRepo *fake_test.FakeSessionRepo, accessToken *fake_test.FakeAccessToken, refreshToken *fake_test.FakeRefreshToken) {
 				authRepo.ByUsername[username] = baseUser
 				sessionRepo.HasActiveErr = testErr
@@ -130,7 +142,7 @@ func TestAuthServiceLoginBasisPath(t *testing.T) {
 			},
 		},
 		{
-			name: "Path 6 -> User masih memiliki session aktif",
+			name: "Path 7 -> User masih memiliki session aktif",
 			setup: func(authRepo *fake_test.FakeAuthUserRepo, hasher *fake_test.FakeHasher, sessionRepo *fake_test.FakeSessionRepo, accessToken *fake_test.FakeAccessToken, refreshToken *fake_test.FakeRefreshToken) {
 				authRepo.ByUsername[username] = baseUser
 				sessionRepo.Store["existing_session"] = session.Session{
@@ -148,7 +160,7 @@ func TestAuthServiceLoginBasisPath(t *testing.T) {
 			},
 		},
 		{
-			name: "Path 7 -> Create session gagal",
+			name: "Path 8 -> Create session gagal",
 			setup: func(authRepo *fake_test.FakeAuthUserRepo, hasher *fake_test.FakeHasher, sessionRepo *fake_test.FakeSessionRepo, accessToken *fake_test.FakeAccessToken, refreshToken *fake_test.FakeRefreshToken) {
 				authRepo.ByUsername[username] = baseUser
 				sessionRepo.CreateSessionErr = testErr
@@ -161,7 +173,7 @@ func TestAuthServiceLoginBasisPath(t *testing.T) {
 			},
 		},
 		{
-			name: "Path 8 -> Generate access token gagal",
+			name: "Path 9 -> Generate access token gagal",
 			setup: func(authRepo *fake_test.FakeAuthUserRepo, hasher *fake_test.FakeHasher, sessionRepo *fake_test.FakeSessionRepo, accessToken *fake_test.FakeAccessToken, refreshToken *fake_test.FakeRefreshToken) {
 				authRepo.ByUsername[username] = baseUser
 				accessToken.GenerateAccessTokenErr = testErr
@@ -177,7 +189,7 @@ func TestAuthServiceLoginBasisPath(t *testing.T) {
 			},
 		},
 		{
-			name: "Path 9 -> Generate refresh token gagal",
+			name: "Path 10 -> Generate refresh token gagal",
 			setup: func(authRepo *fake_test.FakeAuthUserRepo, hasher *fake_test.FakeHasher, sessionRepo *fake_test.FakeSessionRepo, accessToken *fake_test.FakeAccessToken, refreshToken *fake_test.FakeRefreshToken) {
 				authRepo.ByUsername[username] = baseUser
 				refreshToken.GenerateRefreshTokenErr = testErr
@@ -193,7 +205,7 @@ func TestAuthServiceLoginBasisPath(t *testing.T) {
 			},
 		},
 		{
-			name: "Path 10 -> Login berhasil",
+			name: "Path 11 -> Login berhasil",
 			setup: func(authRepo *fake_test.FakeAuthUserRepo, hasher *fake_test.FakeHasher, sessionRepo *fake_test.FakeSessionRepo, accessToken *fake_test.FakeAccessToken, refreshToken *fake_test.FakeRefreshToken) {
 				authRepo.ByUsername[username] = baseUser
 			},
@@ -220,7 +232,9 @@ func TestAuthServiceLoginBasisPath(t *testing.T) {
 			t.Parallel()
 
 			authRepo, userRepo, hasher, sessionRepo, accessToken, refreshToken := newDeps()
-			tc.setup(authRepo, hasher, sessionRepo, accessToken, refreshToken)
+			if tc.setup != nil {
+				tc.setup(authRepo, hasher, sessionRepo, accessToken, refreshToken)
+			}
 
 			service := auth_service.NewAuthService(
 				authRepo,
@@ -232,7 +246,12 @@ func TestAuthServiceLoginBasisPath(t *testing.T) {
 				14*24*time.Hour,
 			)
 
-			got, err := service.Login(context.Background(), cmd)
+			inputCmd := cmd
+			if tc.cmd != (auth_service.LoginCmd{}) {
+				inputCmd = tc.cmd
+			}
+
+			got, err := service.Login(context.Background(), inputCmd)
 
 			if tc.wantErr != nil {
 				assert.ErrorIs(t, err, tc.wantErr)

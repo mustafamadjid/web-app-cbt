@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 import InputField from "@/components/common/Input/InputField";
 import ImageUpload from "@/components/features/Upload/ImageUpload";
@@ -16,9 +16,17 @@ import {
   createValidator,
   fileMaxSize,
   fileTypeStartsWith,
+  maxLength,
+  minLength,
   requiredString,
   requiredValue,
 } from "@/helper/validate/validateForm";
+import {
+  USERNAME_HELPER_TEXT,
+  USERNAME_LENGTH_INVALID_MESSAGE,
+  USERNAME_MAX_LENGTH,
+  USERNAME_MIN_LENGTH,
+} from "@/constants/username";
 
 type EditAkunSiswaFormProps = {
   initialValues: StudentUpdateFormValues;
@@ -34,6 +42,7 @@ const helperText = "text-xs text-slate-500";
 const NISN_LENGTH = 10;
 const DUPLICATE_ACCOUNT_MESSAGES: Record<string, string> = {
   USERNAME_TAKEN: "Username sudah terdaftar. Gunakan username lain yang unik.",
+  USERNAME_LENGTH_INVALID: USERNAME_LENGTH_INVALID_MESSAGE,
   EMAIL_TAKEN: "Email sudah terdaftar. Gunakan email lain yang unik.",
   NO_HP_TAKEN: "Nomor HP sudah terdaftar. Gunakan nomor HP lain yang unik.",
   NISN_TAKEN: "NISN sudah terdaftar. Gunakan NISN lain yang unik.",
@@ -83,26 +92,25 @@ const EditAkunSiswaForm = ({
   });
   const [resetPasswordTouched, setResetPasswordTouched] = useState<Record<string, boolean>>({});
   const [resetPasswordError, setResetPasswordError] = useState<string | null>(null);
-  const [fotoUrl, setFotoUrl] = useState<string>(initialFotoUrl ?? "");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const { data: kelasData } = useGetDataKelasFull();
   const daftarKelas: NamaKelas[] = kelasData?.item_nama_kelas ?? [];
 
-  useEffect(() => {
-    setValues(initialValues);
-    setTouched({});
-  }, [initialValues]);
-
-  useEffect(() => {
-    if (values.foto_profil) {
-      const url = URL.createObjectURL(values.foto_profil);
-      setFotoUrl(url);
-      return () => URL.revokeObjectURL(url);
+  const fotoUrl = useMemo(() => {
+    if (!values.foto_profil) {
+      return initialFotoUrl ?? "";
     }
 
-    setFotoUrl(initialFotoUrl ?? "");
-    return undefined;
+    return URL.createObjectURL(values.foto_profil);
   }, [initialFotoUrl, values.foto_profil]);
+
+  useEffect(() => {
+    if (!values.foto_profil) {
+      return undefined;
+    }
+
+    return () => URL.revokeObjectURL(fotoUrl);
+  }, [fotoUrl, values.foto_profil]);
 
   const setField = createSetField(setValues);
 
@@ -112,7 +120,11 @@ const EditAkunSiswaForm = ({
 
   const validate = createValidator<StudentUpdateFormValues>({
     nama_lengkap: [requiredString("Nama lengkap wajib diisi.")],
-    username: [requiredString("Username wajib diisi.")],
+    username: [
+      requiredString("Username wajib diisi."),
+      minLength(USERNAME_MIN_LENGTH, USERNAME_LENGTH_INVALID_MESSAGE),
+      maxLength(USERNAME_MAX_LENGTH, USERNAME_LENGTH_INVALID_MESSAGE),
+    ],
     jenis_kelamin: [requiredValue("Jenis kelamin wajib dipilih.")],
     email: [
       (value) => {
@@ -294,6 +306,7 @@ const EditAkunSiswaForm = ({
                   onChange={(v) => setField("username", v)}
                   onBlur={() => onBlur("username")}
                   placeholder="Contoh: sita.aminah"
+                  maxLength={USERNAME_MAX_LENGTH}
                   inputClassName={
                     hasError("username")
                       ? "border-rose-300 ring-rose-100"
@@ -302,6 +315,9 @@ const EditAkunSiswaForm = ({
                   disabled={isDisabled}
                   required
                 />
+                <p className="mt-1 text-xs text-slate-500">
+                  {USERNAME_HELPER_TEXT}
+                </p>
                 {hasError("username") && (
                   <p className="mt-1 text-xs text-rose-600">
                     {errors.username}
