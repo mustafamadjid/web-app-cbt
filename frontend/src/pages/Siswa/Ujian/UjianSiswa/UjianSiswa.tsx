@@ -1,38 +1,21 @@
 import React from "react";
 import { useNavigate } from "react-router";
-import UjianFilterBar from "@/components/features/Ujian/UjianFilterBar";
 import UjianSection from "@/components/features/Ujian/UjianSection";
 import UjianCard from "@/components/features/Ujian/UjianCard";
 import { useGetUjianBySiswa } from "@/services/Api/features-api/Ujian/ujianSiswa.service";
-import type {
-  UjianSiswaFilterParams,
-  UjianSiswaResponse,
-} from "@/types/Ujian/ujianSiswa";
 import { paths } from "@/routes/paths";
 
 const DEFAULT_SISWA_ID = 14;
 
 const UjianSiswa: React.FC = () => {
   const navigate = useNavigate();
-  const [filter, setFilter] = React.useState<UjianSiswaFilterParams>({});
   const [activeCategory, setActiveCategory] = React.useState<"upcoming" | "ongoing">(
     "upcoming",
   );
 
-  const { data, loading } = useGetUjianBySiswa({
-    siswaId: DEFAULT_SISWA_ID,
-    filter,
-  });
-
-  const ujianData: UjianSiswaResponse = React.useMemo(
-    () => ({
-      upcoming: data?.upcoming ?? [],
-      ongoing: data?.ongoing ?? [],
-      completed: data?.completed ?? [],
-      mapelOptions: data?.mapelOptions ?? [],
-    }),
-    [data],
-  );
+  const { data, loading } = useGetUjianBySiswa({ siswaId: DEFAULT_SISWA_ID });
+  const upcomingExams = data?.upcoming ?? [];
+  const ongoingExams = data?.ongoing ?? [];
 
   const handleStartExam = (id: number, bankSoalId: number) => {
     navigate(
@@ -66,23 +49,6 @@ const UjianSiswa: React.FC = () => {
           berlangsung.
         </p>
       </header>
-
-      <UjianFilterBar
-        month={filter.bulan}
-        year={filter.tahun}
-        mapel={filter.mapel}
-        mapelOptions={ujianData.mapelOptions}
-        onMonthChange={(value) =>
-          setFilter((prev) => ({ ...prev, bulan: value }))
-        }
-        onYearChange={(value) =>
-          setFilter((prev) => ({ ...prev, tahun: value }))
-        }
-        onMapelChange={(value) =>
-          setFilter((prev) => ({ ...prev, mapel: value }))
-        }
-        onReset={() => setFilter({})}
-      />
 
       {loading ? (
         <div className="rounded-xl border border-dashed border-gray-200 bg-white p-6 text-center text-sm text-gray-500">
@@ -149,12 +115,12 @@ const UjianSiswa: React.FC = () => {
               title="Jadwal Ujian Mendatang"
               description="Daftar ujian yang akan dilaksanakan dalam waktu dekat."
             >
-              {ujianData.upcoming.length === 0 ? (
+              {upcomingExams.length === 0 ? (
                 <div className="col-span-full rounded-xl border border-dashed border-gray-200 bg-white p-6 text-center text-sm text-gray-500">
                   Tidak ada jadwal ujian mendatang.
                 </div>
               ) : (
-                ujianData.upcoming.map((item) => (
+                upcomingExams.map((item) => (
                   <UjianCard key={item.id} item={item} />
                 ))
               )}
@@ -166,12 +132,12 @@ const UjianSiswa: React.FC = () => {
               title="Ujian Berlangsung Hari Ini"
               description="Ujian yang sedang berlangsung dan bisa dikerjakan sekarang."
             >
-              {ujianData.ongoing.length === 0 ? (
+              {ongoingExams.length === 0 ? (
                 <div className="col-span-full rounded-xl border border-dashed border-gray-200 bg-white p-6 text-center text-sm text-gray-500">
                   Tidak ada ujian yang sedang berlangsung.
                 </div>
               ) : (
-                ujianData.ongoing.map((item) => (
+                ongoingExams.map((item) => (
                   <UjianCard
                     key={item.id}
                     item={item}
