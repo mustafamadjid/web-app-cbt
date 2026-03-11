@@ -1,5 +1,14 @@
 package query
 
+
+type kategoriUjian string
+
+const (
+	MENDATANG kategoriUjian = "mendatang"
+	BERLANGSUNG kategoriUjian = "berlangsung"
+	SELESAI kategoriUjian = "selesai"
+)
+
 type ListUjianFilter struct {
 	Search string
 	Limit  int
@@ -7,7 +16,11 @@ type ListUjianFilter struct {
 
 	TanggalUjian   *string
 	Tahun          *string
+	Bulan          *string
 	TingkatKelasID *int
 	TingkatKelas   *int
 	RuangUjian     *int
+	IDMapel        *int
+
+	KategoriUjian kategoriUjian 
 }

@@ -12,11 +12,18 @@ import (
 )
 
 type AttemptUjianService struct {
-	repo ujian_repo.SiswaUjianChecker
+	repo        ujian_repo.SiswaUjianChecker
 	attemptRepo ujian_repo.AttemptUjianRepository
 }
 
-func(r *AttemptUjianService) AttemptUjian(ctx context.Context,idSiswa int,idJadwalUjian int,tokenUjian string,waktuAttempt time.Time)error {
+func NewAttemptUjianService(repo ujian_repo.SiswaUjianChecker, attemptRepo ujian_repo.AttemptUjianRepository) *AttemptUjianService {
+	return &AttemptUjianService{
+		repo:        repo,
+		attemptRepo: attemptRepo,
+	}
+}
+
+func (r *AttemptUjianService) AttemptUjian(ctx context.Context, idSiswa int, idJadwalUjian int, tokenUjian string, waktuAttempt time.Time) error {
 	logger := corelog.FromContext(ctx)
 
 	if idSiswa <= 0 {
@@ -29,7 +36,6 @@ func(r *AttemptUjianService) AttemptUjian(ctx context.Context,idSiswa int,idJadw
 		return coreerror.ErrMissingId
 	}
 
-
 	tokenUjian = strings.ToUpper(strings.TrimSpace(tokenUjian))
 	if tokenUjian == "" {
 		logger.Error(ctx, "failed attempt ujian", "layer", "core.service", "op", "ujian.attempt.create", "err", coreerror.ErrMissingTokenUjian)
@@ -41,7 +47,7 @@ func(r *AttemptUjianService) AttemptUjian(ctx context.Context,idSiswa int,idJadw
 		return coreerror.ErrTimeEmpty
 	}
 
-	pesertaValid,idPesertaUjian,idJadwal,err := r.repo.CheckValidSiswaInPesertaUjianById(ctx,idSiswa)
+	pesertaValid, idPesertaUjian, idJadwal, err := r.repo.CheckValidSiswaInPesertaUjianById(ctx, idSiswa)
 	if err != nil {
 		logger.Error(ctx, "failed attempt ujian", "layer", "core.service", "op", "ujian.attempt.create", "err", err)
 		return err
@@ -57,7 +63,7 @@ func(r *AttemptUjianService) AttemptUjian(ctx context.Context,idSiswa int,idJadw
 		return coreerror.ErrPesertaNotAllowedToAttemptJadwal
 	}
 
-	deadlineUjian,err := r.repo.GetDeadlineUjian(ctx,idJadwalUjian)
+	deadlineUjian, err := r.repo.GetDeadlineUjian(ctx, idJadwalUjian)
 	if err != nil {
 		logger.Error(ctx, "failed attempt ujian", "layer", "core.service", "op", "ujian.attempt.create", "err", err)
 		return err
@@ -67,7 +73,7 @@ func(r *AttemptUjianService) AttemptUjian(ctx context.Context,idSiswa int,idJadw
 		return coreerror.ErrWaktuAttemptPesertaInvalid
 	}
 
-	tokenValid,err := r.repo.CheckTokenUjian(ctx,tokenUjian)
+	tokenValid, err := r.repo.CheckTokenUjian(ctx, tokenUjian)
 	if err != nil {
 		logger.Error(ctx, "failed attempt ujian", "layer", "core.service", "op", "ujian.attempt.create", "err", err)
 		return err
@@ -78,15 +84,13 @@ func(r *AttemptUjianService) AttemptUjian(ctx context.Context,idSiswa int,idJadw
 		return coreerror.ErrTokenUjianInvalid
 	}
 
-	
-
 	dataAttempt := ujian.AttemptUjian{
 		IdPesertaUjian: ujian.ID(idPesertaUjian),
-		WaktuMulai: &waktuAttempt,
-		DeadlineAt: &deadlineUjian,
+		WaktuMulai:     &waktuAttempt,
+		DeadlineAt:     &deadlineUjian,
 	}
 
-	if err := r.attemptRepo.CreateAttemptUjian(ctx,dataAttempt); err != nil {
+	if err := r.attemptRepo.CreateAttemptUjian(ctx, dataAttempt); err != nil {
 		logger.Error(ctx, "failed attempt ujian", "layer", "core.service", "op", "ujian.attempt.create", "err", err)
 		return err
 	}

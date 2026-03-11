@@ -30,6 +30,7 @@ import (
 	sesidelete "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/sesi/delete"
 	sesiget "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/sesi/get"
 	sesiupdate "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/sesi/update"
+	ujiancreateattempt "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/create/attempt_ujian"
 	ujiancreate "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/create/ujian"
 	ujiandeleteujian "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/delete/ujian"
 	ujianget "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/get"
@@ -90,6 +91,7 @@ type RuangUjianHandlers struct {
 }
 
 type UjianHandlers struct {
+	AttemptUjianHandler  *ujiancreateattempt.AttemptUjianHandler
 	CreateUjianHandler   *ujiancreate.CreateRuangUjianHandler
 	ListHandler          *ujianlist.ListUjianHandler
 	ListSoalUjianHandler *ujianlistsoal.ListSoalUjianHandler
