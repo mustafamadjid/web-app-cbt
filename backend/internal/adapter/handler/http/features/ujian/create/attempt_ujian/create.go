@@ -60,8 +60,6 @@ func (h *AttemptUjianHandler) AttemptUjian(w http.ResponseWriter, r *http.Reques
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: missing token ujian")
 		case errors.Is(err, coreerror.ErrTimeEmpty):
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: waktu_mulai is required")
-		case errors.Is(err, coreerror.ErrPesertaInvalid):
-			httpResponse.WriteErr(w, http.StatusBadRequest, "SISWA_NOT_FOUND_IN_PESERTA", "bad request: siswa not found in peserta ujian")
 		case errors.Is(err, coreerror.ErrPesertaNotAllowedToAttemptJadwal):
 			httpResponse.WriteErr(w, http.StatusForbidden, "SISWA_NOT_ALLOWED", "peserta ujian is not allowed to attempt this ujian")
 		case errors.Is(err, coreerror.ErrTokenUjianInvalid):

@@ -47,18 +47,13 @@ func (r *AttemptUjianService) AttemptUjian(ctx context.Context, idSiswa int, idJ
 		return coreerror.ErrTimeEmpty
 	}
 
-	pesertaValid, idPesertaUjian, idJadwal, err := r.repo.CheckValidSiswaInPesertaUjianById(ctx, idSiswa)
+	pesertaValid, idPesertaUjian, err := r.repo.CheckValidSiswaInPesertaUjianById(ctx, idSiswa, idJadwalUjian)
 	if err != nil {
 		logger.Error(ctx, "failed attempt ujian", "layer", "core.service", "op", "ujian.attempt.create", "err", err)
 		return err
 	}
 
 	if !pesertaValid {
-		logger.Error(ctx, "failed attempt ujian", "layer", "core.service", "op", "ujian.attempt.create", "err", coreerror.ErrPesertaInvalid)
-		return coreerror.ErrPesertaInvalid
-	}
-
-	if idJadwal != idJadwalUjian {
 		logger.Error(ctx, "failed attempt ujian", "layer", "core.service", "op", "ujian.attempt.create", "err", coreerror.ErrPesertaNotAllowedToAttemptJadwal)
 		return coreerror.ErrPesertaNotAllowedToAttemptJadwal
 	}

@@ -25,34 +25,28 @@ func (r *SiswaUjianRepo) loggerFor(ctx context.Context) corelog.Logger {
 	return corelog.FromContextOr(ctx, r.logger)
 }
 
-func (r *SiswaUjianRepo) CheckValidSiswaInPesertaUjianById(ctx context.Context, idSiswa int) (bool, int, int, error) {
+func (r *SiswaUjianRepo) CheckValidSiswaInPesertaUjianById(ctx context.Context, idSiswa int, idJadwalUjian int) (bool, int, error) {
 	const query = `
 		SELECT
-			pu.id_peserta_ujian,
-			pu.id_jadwal_ujian
+			pu.id_peserta_ujian
 		FROM peserta_ujian pu
-		JOIN jadwal_ujian ju
-			ON ju.id_jadwal_ujian = pu.id_jadwal_ujian
 		WHERE pu.id_siswa = $1
-		ORDER BY ju.tanggal_ujian DESC, ju.waktu_mulai DESC, pu.id_peserta_ujian DESC
+			AND pu.id_jadwal_ujian = $2
 		LIMIT 1
 	`
 
-	var (
-		idPesertaUjian int
-		idJadwalUjian  int
-	)
+	var idPesertaUjian int
 
-	err := r.q.QueryRow(ctx, query, idSiswa).Scan(&idPesertaUjian, &idJadwalUjian)
+	err := r.q.QueryRow(ctx, query, idSiswa, idJadwalUjian).Scan(&idPesertaUjian)
 	if errors.Is(err, pgx.ErrNoRows) {
-		return false, 0, 0, nil
+		return false, 0, nil
 	}
 	if err != nil {
 		r.loggerFor(ctx).Error(ctx, "failed checking siswa in peserta ujian", "layer", "repo.db", "op", "siswa_ujian.check_peserta", "err", err)
-		return false, 0, 0, err
+		return false, 0, err
 	}
 
-	return true, idPesertaUjian, idJadwalUjian, nil
+	return true, idPesertaUjian, nil
 }
 
 func (r *SiswaUjianRepo) CheckTokenUjian(ctx context.Context, token string) (bool, error) {
