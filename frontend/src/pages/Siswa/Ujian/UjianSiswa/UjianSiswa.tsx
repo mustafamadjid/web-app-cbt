@@ -3,7 +3,6 @@ import { useNavigate } from "react-router";
 import UjianFilterBar from "@/components/features/Ujian/UjianFilterBar";
 import UjianSection from "@/components/features/Ujian/UjianSection";
 import UjianCard from "@/components/features/Ujian/UjianCard";
-import UjianResultCard from "@/components/features/Ujian/UjianResultCard";
 import { useGetUjianBySiswa } from "@/services/Api/features-api/Ujian/ujianSiswa.service";
 import type {
   UjianSiswaFilterParams,
@@ -16,9 +15,9 @@ const DEFAULT_SISWA_ID = 14;
 const UjianSiswa: React.FC = () => {
   const navigate = useNavigate();
   const [filter, setFilter] = React.useState<UjianSiswaFilterParams>({});
-  const [activeCategory, setActiveCategory] = React.useState<
-    "upcoming" | "ongoing" | "completed"
-  >("upcoming");
+  const [activeCategory, setActiveCategory] = React.useState<"upcoming" | "ongoing">(
+    "upcoming",
+  );
 
   const { data, loading } = useGetUjianBySiswa({
     siswaId: DEFAULT_SISWA_ID,
@@ -56,12 +55,6 @@ const UjianSiswa: React.FC = () => {
       subtitle: "Mulai ujian yang sedang berlangsung.",
       badge: "Aktif",
     },
-    {
-      key: "completed" as const,
-      title: "Hasil Ujian",
-      subtitle: "Cek hasil ujian yang sudah selesai.",
-      badge: "Selesai",
-    },
   ];
 
   return (
@@ -69,7 +62,8 @@ const UjianSiswa: React.FC = () => {
       <header className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
         <h1 className="text-2xl font-bold text-[#37513d]">Ujian Siswa</h1>
         <p className="mt-2 text-sm text-gray-500">
-          Pilih kategori ujian terlebih dahulu untuk melihat detailnya.
+          Lihat jadwal ujian yang akan datang atau mulai ujian yang sedang
+          berlangsung.
         </p>
       </header>
 
@@ -184,23 +178,6 @@ const UjianSiswa: React.FC = () => {
                     actionLabel="Mulai Sekarang"
                     onAction={() => handleStartExam(item.id, item.id_bank_soal)}
                   />
-                ))
-              )}
-            </UjianSection>
-          )}
-
-          {activeCategory === "completed" && (
-            <UjianSection
-              title="Hasil Ujian"
-              description="Rekap ujian yang sudah kamu selesaikan beserta nilai."
-            >
-              {ujianData.completed.length === 0 ? (
-                <div className="col-span-full rounded-xl border border-dashed border-gray-200 bg-white p-6 text-center text-sm text-gray-500">
-                  Belum ada hasil ujian yang tersedia.
-                </div>
-              ) : (
-                ujianData.completed.map((item) => (
-                  <UjianResultCard key={item.id} item={item} />
                 ))
               )}
             </UjianSection>

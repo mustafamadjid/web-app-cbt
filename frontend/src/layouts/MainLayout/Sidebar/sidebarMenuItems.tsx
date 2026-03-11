@@ -207,12 +207,20 @@ export const mainMenuItems: SidebarMenuItem[] = [
     roles: SISWA_ONLY,
   },
   {
-    id: 102,
+    id: 103,
     type: "link",
     label: "Ujian",
     to: paths.dashboard.ujian_siswa,
     end: true,
     icon: SvgIcons.book,
+    roles: SISWA_ONLY,
+  },
+  {
+    id: 104,
+    type: "link",
+    label: "Hasil Ujian",
+    to: paths.dashboard.hasil_ujian_siswa,
+    icon: SvgIcons.eye,
     roles: SISWA_ONLY,
   },
 ];

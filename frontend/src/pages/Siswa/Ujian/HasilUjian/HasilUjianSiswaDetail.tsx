@@ -19,11 +19,11 @@ const HasilUjianSiswaDetail: React.FC = () => {
       <header className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
         <button
           type="button"
-          onClick={() => navigate(paths.dashboard.ujian_siswa)}
+          onClick={() => navigate(paths.dashboard.hasil_ujian_siswa)}
           className="flex items-center gap-2 text-sm font-semibold text-[#397e50]"
         >
           <ArrowLeft className="h-4 w-4" />
-          Kembali ke daftar ujian
+          Kembali ke hasil ujian
         </button>
         <h1 className="mt-4 text-2xl font-bold text-[#37513d]">
           Detail Hasil Ujian

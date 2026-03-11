@@ -35,7 +35,6 @@ func (s *DeleteUserService) Delete(ctx context.Context, idPengguna user.ID) erro
 	
 	if err := s.deleteFile.DeleteFile(ctx,u.Foto); err != nil {
 		logger.Error(ctx, "failed deleting user", "layer", "core.service", "op", "user.delete_file_foto", "user_id", idPengguna, "err", err)
-		return err
 	}
 
 	if err := s.users.DeleteUser(ctx, idPengguna); err != nil {

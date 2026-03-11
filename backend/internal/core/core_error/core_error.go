@@ -59,4 +59,12 @@ var (
 	ErrContentTypeMustJson      = errors.New("content type must be application/json")
 	ErrContentTypeMustMultipart = errors.New("content type must be multipart/form-data")
 	ErrInvalidMultipartForm     = errors.New("invalid multipart form")
+
+	ErrTimeEmpty = errors.New("time is empty")
+
+	ErrPesertaInvalid = errors.New("Siswa not found in peserta ujian")
+	ErrWaktuAttemptPesertaInvalid = errors.New("Expired attempt time (waktu attempt lewat dari waktu selesai ujian)")
+	ErrTokenUjianInvalid = errors.New("Invalid token ujian")
+	ErrPesertaNotAllowedToAttemptJadwal = errors.New("Peserta ujian is not allowed to attempt this ujian")
+	ErrMissingTokenUjian = errors.New("Missing token ujian")
 )

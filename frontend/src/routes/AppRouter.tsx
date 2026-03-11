@@ -56,6 +56,7 @@ import HomeSiswa from "@/pages/Siswa/HomeSiswa";
 import UjianSiswa from "@/pages/Siswa/Ujian/UjianSiswa/UjianSiswa";
 import UjianTokenSiswa from "@/pages/Siswa/Ujian/UjianSiswa/UjianTokenSiswa";
 import UjianMulaiSiswa from "@/pages/Siswa/Ujian/UjianSiswa/UjianMulaiSiswa";
+import HasilUjianSiswa from "@/pages/Siswa/Ujian/HasilUjian/HasilUjianSiswa";
 import HasilUjianSiswaDetailSiswa from "@/pages/Siswa/Ujian/HasilUjian/HasilUjianSiswaDetail";
 import PublicOnlyRoute from "./PublicOnlyRoute";
 import ProfilePage from "@/pages/Profile/ProfilePage";
@@ -270,6 +271,10 @@ export const router = createBrowserRouter([
             children: [
               { index: true, element: <HomeSiswa /> },
               { path: paths.dashboard.ujian_siswa, element: <UjianSiswa /> },
+              {
+                path: paths.dashboard.hasil_ujian_siswa,
+                element: <HasilUjianSiswa />,
+              },
               {
                 path: paths.dashboard.ujian_siswa_token,
                 element: <UjianTokenSiswa />,
