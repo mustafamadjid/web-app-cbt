@@ -11,9 +11,9 @@ import (
 	ujian "github.com/mustafamadjid/web-app-cbt/internal/core/domain/ujian_siswa"
 )
 
-func parseListUjianRequest(r *http.Request) (ListUjianRequest, error) {
+func parseListUjianSiswaRequest(r *http.Request) (ListUjianSiswaRequest, error) {
 	values := r.URL.Query()
-	req := ListUjianRequest{
+	req := ListUjianSiswaRequest{
 		Search: strings.TrimSpace(values.Get("q")),
 	}
 
@@ -22,7 +22,7 @@ func parseListUjianRequest(r *http.Request) (ListUjianRequest, error) {
 	}
 	search, err := validator.ValidateOptionalPrintableText(req.Search, "search")
 	if err != nil {
-		return ListUjianRequest{}, err
+		return ListUjianSiswaRequest{}, err
 	}
 	req.Search = search
 
@@ -43,7 +43,7 @@ func parseListUjianRequest(r *http.Request) (ListUjianRequest, error) {
 	if raw := strings.TrimSpace(values.Get("limit")); raw != "" {
 		parsed, err := strconv.Atoi(raw)
 		if err != nil {
-			return ListUjianRequest{}, errors.New("limit must be a number")
+			return ListUjianSiswaRequest{}, errors.New("limit must be a number")
 		}
 		req.Limit = parsed
 	}
@@ -51,7 +51,7 @@ func parseListUjianRequest(r *http.Request) (ListUjianRequest, error) {
 	if raw := strings.TrimSpace(values.Get("offset")); raw != "" {
 		parsed, err := strconv.Atoi(raw)
 		if err != nil {
-			return ListUjianRequest{}, errors.New("offset must be a number")
+			return ListUjianSiswaRequest{}, errors.New("offset must be a number")
 		}
 		req.Offset = parsed
 	}
@@ -60,15 +60,16 @@ func parseListUjianRequest(r *http.Request) (ListUjianRequest, error) {
 	if tingkatKelasIDRaw != "" {
 		parsed, err := strconv.Atoi(tingkatKelasIDRaw)
 		if err != nil {
-			return ListUjianRequest{}, errors.New("tingkat_kelas_id must be a number")
+			return ListUjianSiswaRequest{}, errors.New("tingkat_kelas_id must be a number")
 		}
 		req.TingkatKelasID = &parsed
 	}
+
 	tingkatKelasRaw := strings.TrimSpace(values.Get("tingkat_kelas"))
 	if tingkatKelasRaw != "" {
 		parsed, err := strconv.Atoi(tingkatKelasRaw)
 		if err != nil {
-			return ListUjianRequest{}, errors.New("tingkat_kelas must be a number")
+			return ListUjianSiswaRequest{}, errors.New("tingkat_kelas must be a number")
 		}
 		req.TingkatKelas = &parsed
 	}
@@ -80,7 +81,7 @@ func parseListUjianRequest(r *http.Request) (ListUjianRequest, error) {
 	if ruangUjianRaw != "" {
 		parsed, err := strconv.Atoi(ruangUjianRaw)
 		if err != nil {
-			return ListUjianRequest{}, errors.New("ruang_ujian_id must be a number")
+			return ListUjianSiswaRequest{}, errors.New("ruang_ujian_id must be a number")
 		}
 		req.RuangUjianID = &parsed
 	}
@@ -92,7 +93,7 @@ func parseListUjianRequest(r *http.Request) (ListUjianRequest, error) {
 	if idMapelRaw != "" {
 		parsed, err := strconv.Atoi(idMapelRaw)
 		if err != nil {
-			return ListUjianRequest{}, errors.New("id_mapel must be a number")
+			return ListUjianSiswaRequest{}, errors.New("id_mapel must be a number")
 		}
 		req.IDMapel = &parsed
 	}
@@ -105,44 +106,52 @@ func parseListUjianRequest(r *http.Request) (ListUjianRequest, error) {
 	return req, nil
 }
 
-func toListUjianResponses(items []ujian.ListUjian) []ListUjianResponse {
-	response := make([]ListUjianResponse, 0, len(items))
+func toListUjianSiswaResponses(items []ujian.ListUjian) []ListUjianSiswaResponse {
+	response := make([]ListUjianSiswaResponse, 0, len(items))
 	for _, item := range items {
-		response = append(response, toListUjianResponse(item))
+		response = append(response, toListUjianSiswaResponse(item))
 	}
 
 	return response
 }
 
-func toListUjianResponse(item ujian.ListUjian) ListUjianResponse {
+func toListUjianSiswaResponse(item ujian.ListUjian) ListUjianSiswaResponse {
 	namaKelas := ""
 	if item.NamaKelas != nil {
 		namaKelas = *item.NamaKelas
 	}
 
+	deskripsiUjian := ""
+	if item.DeskripsiUjian != nil {
+		deskripsiUjian = *item.DeskripsiUjian
+	}
+
 	status, started := mapStatusUjian(item.StatusUjian)
 
-	return ListUjianResponse{
-		ID:               int(item.IdJadwalUjian),
-		IDUjian:          int(item.IdUjian),
-		IDGuru:           int(item.IdGuru),
-		IDPengawas:       int(item.IdPengawas),
-		NamaUjian:        item.NamaUjian,
-		PengawasUjian:    item.NamaPengawas,
-		TglUjian:         httphelper.FormatTanggalIndonesia(item.TanggalUjian),
-		TanggalUjian:     httphelper.FormatDateOnly(item.TanggalUjian),
-		WaktuMulai:       httphelper.FormatTimeOnly(item.WaktuMulai),
-		WaktuSelesai:     httphelper.FormatTimeOnly(item.WaktuSelesai),
-		SesiUjian:        int(item.IdSesi),
-		RuangUjian:       item.NamaRuangan,
-		IDRuang:          int(item.IdRuangan),
-		StatusUjian:      status,
-		Started:          started,
-		TingkatKelas:     item.TingkatKelas,
-		TingkatKelasID:   int(item.IdKelas),
-		NamaKelas:        namaKelas,
-		PembuatUsername:  item.PembuatUsername,
-		PengawasUsername: item.PengawasUsername,
+	return ListUjianSiswaResponse{
+		ID:                  int(item.IdJadwalUjian),
+		IDUjian:             int(item.IdUjian),
+		IDBankSoal:          int(item.IdBankSoal),
+		IDGuru:              int(item.IdGuru),
+		IDPengawas:          int(item.IdPengawas),
+		NamaUjian:           item.NamaUjian,
+		PengawasUjian:       item.NamaPengawas,
+		TglUjian:            httphelper.FormatTanggalIndonesia(item.TanggalUjian),
+		TanggalUjian:        httphelper.FormatDateOnly(item.TanggalUjian),
+		WaktuMulai:          httphelper.FormatTimeOnly(item.WaktuMulai),
+		WaktuSelesai:        httphelper.FormatTimeOnly(item.WaktuSelesai),
+		SesiUjian:           int(item.IdSesi),
+		NamaSesi:            item.NamaSesi,
+		RuangUjian:          item.NamaRuangan,
+		IDRuang:             int(item.IdRuangan),
+		StatusUjian:         status,
+		Started:             started,
+		TingkatKelas:        item.TingkatKelas,
+		TingkatKelasID:      int(item.IdKelas),
+		NamaKelas:           namaKelas,
+		PengawasNamaLengkap: item.PengawasNamaLengkap,
+		DeskripsiUjian:      deskripsiUjian,
+		AcakSoal:            item.AcakSoal,
 	}
 }
 

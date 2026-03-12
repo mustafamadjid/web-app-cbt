@@ -61,11 +61,13 @@ type ListUjian struct {
 	TanggalUjian  time.Time
 	WaktuMulai    time.Time
 	WaktuSelesai  time.Time
-	StatusUjian   StatusUjian
+	StatusUjian   *StatusUjian
 
 	IdPengawas       ID
 	NamaPengawas     string
 	PengawasUsername string
+
+	PengawasNamaLengkap string
 
 	IdSesi   ID
 	NamaSesi string
@@ -96,7 +98,6 @@ type OpsiPilganUjian struct {
 	IsiPilihan     string
 	IsBenar        bool
 }
-
 
 func (status StatusUjian) ValidStatus() bool {
 	switch status {

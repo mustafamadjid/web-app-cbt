@@ -3,6 +3,7 @@ package httpx
 import (
 	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/julienschmidt/httprouter"
 	httpResponse "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper/response_envelope"
@@ -43,6 +44,19 @@ func (h *ListUjianHandler) ListUjian(w http.ResponseWriter, r *http.Request, _ h
 		TingkatKelasID: req.TingkatKelasID,
 		TingkatKelas:   req.TingkatKelas,
 		RuangUjian:     req.RuangUjianID,
+	}
+
+	switch strings.ToLower(strings.TrimSpace(req.KategoriUjian)) {
+	case "belum_dimulai", "belum_mulai":
+		filter.KategoriUjian = query.MENDATANG
+	case string(query.MENDATANG):
+		filter.KategoriUjian = query.MENDATANG
+	case string(query.BERLANGSUNG):
+		filter.KategoriUjian = query.BERLANGSUNG
+	case string(query.SELESAI):
+		filter.KategoriUjian = query.SELESAI
+	case string(query.DIBATALKAN):
+		filter.KategoriUjian = query.DIBATALKAN
 	}
 
 	items, err := h.svc.GetAllUjianService(r.Context(), filter)

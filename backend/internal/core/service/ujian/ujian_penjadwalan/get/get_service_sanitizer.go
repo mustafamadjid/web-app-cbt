@@ -52,6 +52,22 @@ func sanitizeAndValidateListUjianFilter(filter query.ListUjianFilter) (query.Lis
 	if filter.RuangUjian != nil && *filter.RuangUjian <= 0 {
 		return filter, errInvalidRuangUjian
 	}
+
+	switch strings.ToLower(strings.TrimSpace(string(filter.KategoriUjian))) {
+	case "":
+		filter.KategoriUjian = ""
+	case string(query.MENDATANG):
+		filter.KategoriUjian = query.MENDATANG
+	case string(query.BERLANGSUNG):
+		filter.KategoriUjian = query.BERLANGSUNG
+	case string(query.SELESAI):
+		filter.KategoriUjian = query.SELESAI
+	case string(query.DIBATALKAN):
+		filter.KategoriUjian = query.DIBATALKAN
+	default:
+		return filter, errInvalidKategoriUjian
+	}
+
 	return filter, nil
 }
 

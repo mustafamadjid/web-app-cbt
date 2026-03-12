@@ -5,8 +5,12 @@ import (
 	ujian "github.com/mustafamadjid/web-app-cbt/internal/core/domain/ujian_siswa"
 )
 
-func mapStatusUjian(status ujian.StatusUjian) (string, int) {
-	switch status {
+func mapStatusUjian(status *ujian.StatusUjian) (string, int) {
+	if status == nil {
+		return "belum_dimulai", 0
+	}
+
+	switch *status {
 	case ujian.BELUM_MULAI:
 		return "belum_dimulai", 0
 	case ujian.MULAI:

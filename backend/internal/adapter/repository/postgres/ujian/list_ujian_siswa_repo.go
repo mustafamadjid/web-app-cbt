@@ -17,7 +17,7 @@ func (r *SiswaUjianRepo) buildListUjianSiswaQuery(idSiswa int, filter query.List
 			u.id_bank_soal,
 			u.id_guru,
 			u.nama_ujian,
-			pg.username AS pembuat_username,
+	
 			u.id_kelas,
 			u.id_nama_kelas,
 			k.tingkat_kelas,
@@ -29,7 +29,7 @@ func (r *SiswaUjianRepo) buildListUjianSiswaQuery(idSiswa int, filter query.List
 			ju.status_ujian,
 			ju.id_pengawas,
 			p.nama_lengkap,
-			p.username AS pengawas_username,
+			p.nama_lengkap AS pengawas_nama_lengkap,
 			ju.id_sesi,
 			s.nama_sesi,
 			ju.id_ruangan,
@@ -50,8 +50,6 @@ func (r *SiswaUjianRepo) buildListUjianSiswaQuery(idSiswa int, filter query.List
 			ON k.id_kelas = u.id_kelas
 		LEFT JOIN nama_kelas nk
 			ON nk.id_nama_kelas = u.id_nama_kelas
-		JOIN pengguna pg
-			ON pg.id_pengguna = u.id_guru
 		JOIN pengguna p
 			ON p.id_pengguna = ju.id_pengawas
 		JOIN sesi_ujian s
@@ -112,6 +110,8 @@ func (r *SiswaUjianRepo) buildListUjianSiswaQuery(idSiswa int, filter query.List
 		where = append(where, "ju.waktu_mulai <= NOW() AND ju.waktu_selesai >= NOW()")
 	case query.SELESAI:
 		where = append(where, "ju.waktu_selesai < NOW()")
+	case query.DIBATALKAN:
+		where = append(where, "ju.status_ujian = 'DIBATALKAN'")
 	}
 
 	baseQuery = fmt.Sprintf("%s WHERE %s", baseQuery, strings.Join(where, " AND "))
@@ -145,6 +145,7 @@ func (r *SiswaUjianRepo) ListUjianSiswa(ctx context.Context, idSiswa int, filter
 			idNamaKelas    sql.NullInt64
 			namaKelas      sql.NullString
 			deskripsiUjian sql.NullString
+			statusUjian    sql.NullString
 		)
 
 		if err := rows.Scan(
@@ -152,7 +153,6 @@ func (r *SiswaUjianRepo) ListUjianSiswa(ctx context.Context, idSiswa int, filter
 			&item.IdBankSoal,
 			&item.IdGuru,
 			&item.NamaUjian,
-			&item.PembuatUsername,
 			&item.IdKelas,
 			&idNamaKelas,
 			&item.TingkatKelas,
@@ -161,10 +161,10 @@ func (r *SiswaUjianRepo) ListUjianSiswa(ctx context.Context, idSiswa int, filter
 			&item.TanggalUjian,
 			&item.WaktuMulai,
 			&item.WaktuSelesai,
-			&item.StatusUjian,
+			&statusUjian,
 			&item.IdPengawas,
 			&item.NamaPengawas,
-			&item.PengawasUsername,
+			&item.PengawasNamaLengkap,
 			&item.IdSesi,
 			&item.NamaSesi,
 			&item.IdRuangan,
@@ -180,6 +180,7 @@ func (r *SiswaUjianRepo) ListUjianSiswa(ctx context.Context, idSiswa int, filter
 		item.IdNamaKelas = nullInt64ToUjianIDPtr(idNamaKelas)
 		item.NamaKelas = nullStringToPtr(namaKelas)
 		item.DeskripsiUjian = nullStringToPtr(deskripsiUjian)
+		item.StatusUjian = nullStringToStatusUjianPtr(statusUjian)
 
 		results = append(results, item)
 	}
@@ -191,5 +192,3 @@ func (r *SiswaUjianRepo) ListUjianSiswa(ctx context.Context, idSiswa int, filter
 
 	return results, nil
 }
-
-

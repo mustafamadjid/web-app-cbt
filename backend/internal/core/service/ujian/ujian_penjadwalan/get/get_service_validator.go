@@ -76,7 +76,7 @@ func validateListUjian(item ujian.ListUjian) error {
 		return errInvalidWaktuUjian
 	}
 
-	if !item.StatusUjian.ValidStatus() {
+	if item.StatusUjian != nil && !item.StatusUjian.ValidStatus() {
 		return errInvalidStatusUjian
 	}
 

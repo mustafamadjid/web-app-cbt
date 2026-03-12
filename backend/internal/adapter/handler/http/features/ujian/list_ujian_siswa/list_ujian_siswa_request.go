@@ -1,6 +1,6 @@
 package httpx
 
-type ListUjianRequest struct {
+type ListUjianSiswaRequest struct {
 	Search         string
 	Limit          int
 	Offset         int

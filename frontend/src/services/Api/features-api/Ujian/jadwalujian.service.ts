@@ -5,10 +5,13 @@ import type { CreatePenjadwalanUjianPayload } from "@/types/Ujian/BuatUjian";
 import type {
   JadwalUjianFilterParams,
   JadwalUjianItem,
+  JadwalUjianSiswaFilterParams,
+  JadwalUjianSiswaItem,
   JadwalUjianStatusClient,
 } from "@/types/Ujian/jadwalUjian";
 
 const JADWAL_UJIAN_ENDPOINT = "/jadwal-ujian";
+const SISWA_JADWAL_UJIAN_ENDPOINT = "/siswa/ujian/list";
 const UJIAN_DETAIL_ENDPOINT = "/ujian/detail";
 
 type JadwalUjianApiItem = {
@@ -32,6 +35,14 @@ type JadwalUjianApiItem = {
   nama_kelas: string;
   pembuat_username: string;
   pengawas_username: string;
+};
+
+type JadwalUjianSiswaApiItem = Omit<
+  JadwalUjianSiswaItem,
+  "status_ujian" | "pengawas_nama_lengkap"
+> & {
+  status_ujian: string;
+  pengawas_nama_lengkap?: string | null;
 };
 
 const toClientStatus = (status: string): JadwalUjianStatusClient => {
@@ -75,6 +86,15 @@ const mapJadwalUjianItem = (item: JadwalUjianApiItem): JadwalUjianItem => ({
   nama_kelas: item.nama_kelas,
 });
 
+const mapJadwalUjianSiswaItem = (
+  item: JadwalUjianSiswaApiItem,
+): JadwalUjianSiswaItem => ({
+  ...item,
+  status_ujian: toClientStatus(item.status_ujian),
+  pengawas_nama_lengkap:
+    item.pengawas_nama_lengkap?.trim() || item.pengawas_ujian,
+});
+
 export async function getJadwalUjian(
   params: JadwalUjianFilterParams = {},
 ): Promise<JadwalUjianItem[]> {
@@ -84,6 +104,7 @@ export async function getJadwalUjian(
     tingkat_kelas_id: params.tingkatKelasId ?? undefined,
     ruang_ujian_id: params.ruangUjianId ?? undefined,
     tahun: params.tahun ?? undefined,
+    kategori_ujian: params.kategoriUjian ?? undefined,
   };
 
   const response = await api<JadwalUjianApiItem[]>(JADWAL_UJIAN_ENDPOINT, {
@@ -92,6 +113,34 @@ export async function getJadwalUjian(
   });
 
   return response.map(mapJadwalUjianItem);
+}
+
+export async function GetAllJadwalUjianForSiswa(
+  params: JadwalUjianSiswaFilterParams = {},
+): Promise<JadwalUjianSiswaItem[]> {
+  const queryParams: Record<string, string | number | undefined> = {
+    search: params.search?.trim() || undefined,
+    limit: params.limit ?? undefined,
+    offset: params.offset ?? undefined,
+    tanggal: params.tanggal || undefined,
+    tahun: params.tahun ?? undefined,
+    bulan: params.bulan ?? undefined,
+    tingkat_kelas_id: params.tingkatKelasId ?? undefined,
+    tingkat_kelas: params.tingkatKelas ?? undefined,
+    ruang_ujian_id: params.ruangUjianId ?? undefined,
+    id_mapel: params.idMapel ?? undefined,
+    kategori_ujian: params.kategoriUjian ?? undefined,
+  };
+
+  const response = await api<JadwalUjianSiswaApiItem[]>(
+    SISWA_JADWAL_UJIAN_ENDPOINT,
+    {
+      method: "GET",
+      params: queryParams,
+    },
+  );
+
+  return response.map(mapJadwalUjianSiswaItem);
 }
 
 export async function createJadwalUjian(payload: CreatePenjadwalanUjianPayload) {
@@ -121,6 +170,28 @@ export function useGetJadwalUjian(params: JadwalUjianFilterParams = {}) {
       params.tingkatKelasId,
       params.ruangUjianId,
       params.tahun,
+      params.kategoriUjian,
+    ],
+  );
+}
+
+export function useGetAllJadwalUjianForSiswa(
+  params: JadwalUjianSiswaFilterParams = {},
+) {
+  return useFetch(
+    () => GetAllJadwalUjianForSiswa(params),
+    [
+      params.search,
+      params.limit,
+      params.offset,
+      params.tanggal,
+      params.tahun,
+      params.bulan,
+      params.tingkatKelasId,
+      params.tingkatKelas,
+      params.ruangUjianId,
+      params.idMapel,
+      params.kategoriUjian,
     ],
   );
 }

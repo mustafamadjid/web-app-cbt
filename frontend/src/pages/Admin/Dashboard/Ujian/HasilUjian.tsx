@@ -5,7 +5,6 @@ import { paths } from "@/routes/paths";
 import { tahunOption } from "@/helper/TahunOption/TahunOption";
 import { Calendar, Layers } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useGetTingkatKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
 
 const HasilUjian = () => {
   const { user } = useAuth();
@@ -20,8 +19,8 @@ const HasilUjian = () => {
     [],
   );
 
-  const { data: tingkatKelasData } = useGetTingkatKelas();
-  const TingkatKelass = tingkatKelasData ?? [];
+
+
 
   const {
     data: daftarUjianData,
@@ -68,14 +67,7 @@ const HasilUjian = () => {
                 className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm transition-all focus:border-[#397e50] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#397e50]/10"
               >
                 <option value="">Semua Kelas</option>
-                {TingkatKelass.map((tingkat) => (
-                  <option
-                    key={tingkat.id_tingkat_kelas}
-                    value={tingkat.id_tingkat_kelas}
-                  >
-                    Kelas {tingkat.tingkat_kelas}
-                  </option>
-                ))}
+              
               </select>
             </div>
             <div className="space-y-2">
@@ -142,3 +134,12 @@ const HasilUjian = () => {
 };
 
 export default HasilUjian;
+
+
+  // {
+  //   TingkatKelass.map((tingkat) => (
+  //     <option key={tingkat.id_tingkat_kelas} value={tingkat.id_tingkat_kelas}>
+  //       Kelas {tingkat.tingkat_kelas}
+  //     </option>
+  //   ));
+  // }

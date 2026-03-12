@@ -70,22 +70,10 @@ const JadwalUjian = () => {
     ruangUjianId: selectedRuang ?? undefined,
     tingkatKelasId: selectedTingkatId ?? undefined,
     tahun: selectedTahun || undefined,
+    kategoriUjian: activeTab,
   });
 
   const jadwalData: JadwalUjianItem[] = jadwalDataRaw ?? [];
-
-  const groupedJadwal = useMemo(() => {
-    const grouped: Record<JadwalUjianStatusClient, JadwalUjianItem[]> = {
-      belum_dimulai: [],
-      berlangsung: [],
-      selesai: [],
-      dibatalkan: [],
-    };
-    jadwalData.forEach((item) => {
-      grouped[item.status_ujian].push(item);
-    });
-    return grouped;
-  }, [jadwalData]);
 
   const canControlUjian = (ujian: JadwalUjianItem) => {
     if (!user) return false;
@@ -216,7 +204,7 @@ const JadwalUjian = () => {
         <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-slate-100 p-1.5 sm:w-fit">
           {STATUS_SECTIONS.map((section) => {
             const isActive = activeTab === section.key;
-            const count = groupedJadwal[section.key].length;
+            const count = isActive ? jadwalData.length : 0;
             return (
               <button
                 key={section.key}
@@ -256,8 +244,8 @@ const JadwalUjian = () => {
             </div>
           ) : (
             <div className="flex flex-col gap-5">
-              {groupedJadwal[activeTab].length > 0 ? (
-                groupedJadwal[activeTab].map((item) => (
+              {jadwalData.length > 0 ? (
+                jadwalData.map((item) => (
                   <BoxJadwalUjian
                     key={item.id}
                     {...item}

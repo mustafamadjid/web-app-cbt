@@ -1,6 +1,7 @@
 package siswaujian_service
 
 import (
+	"errors"
 	"strconv"
 	"time"
 
@@ -14,6 +15,16 @@ func validateListUjianSiswaID(idSiswa int) error {
 	}
 	return nil
 }
+
+var (
+	errInvalidTanggalUjian  = errors.New("invalid tanggal ujian")
+	errInvalidTahun         = errors.New("invalid tahun")
+	errInvalidBulan         = errors.New("invalid bulan")
+	errInvalidTingkatKelas  = errors.New("invalid tingkat kelas")
+	errInvalidRuangUjian    = errors.New("invalid ruang ujian")
+	errInvalidIDMapel       = errors.New("invalid id mapel")
+	errInvalidKategoriUjian = errors.New("invalid kategori ujian")
+)
 
 func validateListUjianSiswaFilter(filter query.ListUjianFilter) error {
 	if filter.TanggalUjian != nil {
@@ -64,7 +75,7 @@ func validateListUjianSiswaFilter(filter query.ListUjianFilter) error {
 	}
 
 	switch filter.KategoriUjian {
-	case "", query.MENDATANG, query.BERLANGSUNG, query.SELESAI:
+	case "", query.MENDATANG, query.BERLANGSUNG, query.SELESAI, query.DIBATALKAN:
 		return nil
 	default:
 		return errInvalidKategoriUjian

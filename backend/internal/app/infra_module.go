@@ -39,17 +39,18 @@ type InfraModule struct {
 	profilSekolah outprofil.ProfilSekolahRepository
 	aktivitasUser outaktivitas.AktivitasUserRepository
 
-	kelasRepo         kelas_repo.KelasRepository
-	bankSoalRepo      bank_soal_repo.BankSoalRepository
-	mapelRepo         mapel_repo.MataPelajaranRepository
-	pengumumanRepo    pengumuman_repo.PengumumanRepo
-	ruangUjianRepo    ruangujian_repo.RuangUjianRepo
-	listUjianRepo     ujian_repo.ListUjianRepository
-	soalUjianRepo     ujian_repo.SoalUjianRepository
-	ujianRepo         ujian_repo.UjianRepository
-	attemptUjianRepo  ujian_repo.AttemptUjianRepository
-	siswaUjianChecker ujian_repo.SiswaUjianChecker
-	sesiRepo          sesi_repo.SesiRepository
+	kelasRepo          kelas_repo.KelasRepository
+	bankSoalRepo       bank_soal_repo.BankSoalRepository
+	mapelRepo          mapel_repo.MataPelajaranRepository
+	pengumumanRepo     pengumuman_repo.PengumumanRepo
+	ruangUjianRepo     ruangujian_repo.RuangUjianRepo
+	listUjianRepo      ujian_repo.ListUjianRepository
+	listUjianSiswaRepo ujian_repo.ListUjianSiswaRepository
+	soalUjianRepo      ujian_repo.SoalUjianRepository
+	ujianRepo          ujian_repo.UjianRepository
+	attemptUjianRepo   ujian_repo.AttemptUjianRepository
+	siswaUjianChecker  ujian_repo.SiswaUjianChecker
+	sesiRepo           sesi_repo.SesiRepository
 
 	importSoalJobRepo importsoal_repo.ImportSoalJobRepo
 	isiSoalBatchRepo  importsoal_repo.IsiSoalBatchRepo
@@ -61,6 +62,7 @@ func BuildInfraModule(pool *pgxpool.Pool, logger corelog.Logger) *InfraModule {
 	profilGuruRepo := pg.NewProfilgGuruRepo(pool, logger)
 	profilSiswaRepo := pg.NewProfilSiswaRepo(pool, logger)
 	ujianRepo := pgujian.NewUjianRepo(pool, logger, pool)
+	siswaUjianRepo := pgujian.NewSiswaUjianRepo(pool, logger)
 
 	return &InfraModule{
 		Pool:                  pool,
@@ -81,10 +83,11 @@ func BuildInfraModule(pool *pgxpool.Pool, logger corelog.Logger) *InfraModule {
 		pengumumanRepo:        pg.NewPengumumanRepo(pool, logger),
 		ruangUjianRepo:        pg.NewRuangUjianRepo(pool, logger),
 		listUjianRepo:         pgujian.NewListUjianRepo(pool, logger),
+		listUjianSiswaRepo:    siswaUjianRepo,
 		soalUjianRepo:         pgujian.NewListSoalUjianRepo(pool, logger),
 		ujianRepo:             ujianRepo,
 		attemptUjianRepo:      ujianRepo,
-		siswaUjianChecker:     pgujian.NewSiswaUjianRepo(pool, logger),
+		siswaUjianChecker:     siswaUjianRepo,
 		sesiRepo:              pg.NewSesirepo(pool, logger),
 		importSoalJobRepo:     pg.NewImportSoalJobRepo(pool, logger),
 		isiSoalBatchRepo:      pg.NewIsiSoalBatchRepo(pool, logger),

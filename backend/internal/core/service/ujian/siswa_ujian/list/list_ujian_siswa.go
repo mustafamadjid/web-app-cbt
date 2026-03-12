@@ -2,7 +2,6 @@ package siswaujian_service
 
 import (
 	"context"
-	"errors"
 
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	ujian "github.com/mustafamadjid/web-app-cbt/internal/core/domain/ujian_siswa"
@@ -45,12 +44,3 @@ func (s *ListUjianSiswaService) ListUjianSiswa(ctx context.Context, idSiswa int,
 	return items, nil
 }
 
-var (
-	errInvalidTanggalUjian  = errors.New("invalid tanggal ujian")
-	errInvalidTahun         = errors.New("invalid tahun")
-	errInvalidBulan         = errors.New("invalid bulan")
-	errInvalidTingkatKelas  = errors.New("invalid tingkat kelas")
-	errInvalidRuangUjian    = errors.New("invalid ruang ujian")
-	errInvalidIDMapel       = errors.New("invalid id mapel")
-	errInvalidKategoriUjian = errors.New("invalid kategori ujian")
-)

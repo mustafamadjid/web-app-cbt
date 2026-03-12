@@ -2,10 +2,8 @@ import React from "react";
 import { useNavigate } from "react-router";
 import UjianSection from "@/components/features/Ujian/UjianSection";
 import UjianCard from "@/components/features/Ujian/UjianCard";
-import { useGetUjianBySiswa } from "@/services/Api/features-api/Ujian/ujianSiswa.service";
+import { useGetAllJadwalUjianForSiswa } from "@/services/Api/features-api/Ujian/jadwalujian.service";
 import { paths } from "@/routes/paths";
-
-const DEFAULT_SISWA_ID = 14;
 
 const UjianSiswa: React.FC = () => {
   const navigate = useNavigate();
@@ -13,9 +11,26 @@ const UjianSiswa: React.FC = () => {
     "upcoming",
   );
 
-  const { data, loading } = useGetUjianBySiswa({ siswaId: DEFAULT_SISWA_ID });
-  const upcomingExams = data?.upcoming ?? [];
-  const ongoingExams = data?.ongoing ?? [];
+  const {
+    data: upcomingData,
+    loading: upcomingLoading,
+    error: upcomingError,
+  } = useGetAllJadwalUjianForSiswa({
+    kategoriUjian: "mendatang",
+  });
+  const {
+    data: ongoingData,
+    loading: ongoingLoading,
+    error: ongoingError,
+  } = useGetAllJadwalUjianForSiswa({
+    kategoriUjian: "berlangsung",
+  });
+
+  const loading = upcomingLoading || ongoingLoading;
+  const error = upcomingError || ongoingError;
+
+  const upcomingExams = upcomingData ?? [];
+  const ongoingExams = ongoingData ?? [];
 
   const handleStartExam = (id: number, bankSoalId: number) => {
     navigate(
@@ -53,6 +68,10 @@ const UjianSiswa: React.FC = () => {
       {loading ? (
         <div className="rounded-xl border border-dashed border-gray-200 bg-white p-6 text-center text-sm text-gray-500">
           Memuat data ujian...
+        </div>
+      ) : error ? (
+        <div className="rounded-xl border border-dashed border-red-200 bg-white p-6 text-center text-sm text-red-500">
+          Gagal memuat data ujian: {error}
         </div>
       ) : (
         <div className="space-y-8">

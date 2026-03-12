@@ -1,11 +1,10 @@
 import { useAuth } from "@/contexts/AuthContext";
 import UjianTerlaksanaWidget from "@/components/features/widget/Siswa/UjianTerlaksanaWidget";
 import RataRataNilaiWidget from "@/components/features/widget/Siswa/RataRataNilaiWidget";
-import JadwalUjianSiswaWidget from "@/components/features/widget/JadwalUjian/JadwalUjianSiswaWidget";
 import { PengumumanWidget } from "@/components/features/widget/Pengumuman/PengumumanWidget";
 import {
   useGetSiswaDashboardSummary,
-  useGetSiswaJadwalUjian,
+
   useGetSiswaPengumuman,
   useGetSiswaRataRataSemester,
 } from "@/services/Api/features-api/Siswa/homeSiswa.service";
@@ -15,7 +14,6 @@ const HomeSiswa = () => {
 
   // Hooks: fetch all siswa dashboard data
   const { data: summary, loading: loadingSummary } = useGetSiswaDashboardSummary();
-  const { data: jadwal } = useGetSiswaJadwalUjian();
   const { data: pengumuman } = useGetSiswaPengumuman();
   const { data: rataRata } = useGetSiswaRataRataSemester();
 
@@ -54,9 +52,7 @@ const HomeSiswa = () => {
           <div className="lg:col-span-7">
             <PengumumanWidget items={pengumuman ?? []} />
           </div>
-          <div className="lg:col-span-5">
-            <JadwalUjianSiswaWidget items={jadwal ?? []} />
-          </div>
+         
         </div>
 
         {loading && (

@@ -39,6 +39,8 @@ func sanitizeAndValidateListUjianSiswaFilter(filter query.ListUjianFilter) (quer
 		filter.KategoriUjian = query.BERLANGSUNG
 	case string(query.SELESAI):
 		filter.KategoriUjian = query.SELESAI
+	case string(query.DIBATALKAN):
+		filter.KategoriUjian = query.DIBATALKAN
 	default:
 		return filter, errInvalidKategoriUjian
 	}

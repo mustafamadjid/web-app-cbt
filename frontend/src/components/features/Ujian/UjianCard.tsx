@@ -1,6 +1,6 @@
 import React from "react";
-import { CalendarDays, Clock, MapPin, User } from "lucide-react";
-import type { UjianSiswaExamItem } from "@/types/Ujian/ujianSiswa";
+import { CalendarDays, Clock, GraduationCap, MapPin, User } from "lucide-react";
+import type { JadwalUjianSiswaItem } from "@/types/Ujian/jadwalUjian";
 
 const statusLabel: Record<string, string> = {
   belum_dimulai: "Mendatang",
@@ -9,9 +9,9 @@ const statusLabel: Record<string, string> = {
 };
 
 type UjianCardProps = {
-  item: UjianSiswaExamItem;
+  item: JadwalUjianSiswaItem;
   actionLabel?: string;
-  onAction?: (item: UjianSiswaExamItem) => void;
+  onAction?: (item: JadwalUjianSiswaItem) => void;
 };
 
 const UjianCard: React.FC<UjianCardProps> = ({
@@ -19,6 +19,13 @@ const UjianCard: React.FC<UjianCardProps> = ({
   actionLabel,
   onAction,
 }) => {
+  const kelasLabel =
+    [item.nama_kelas?.trim(), item.tingkat_kelas ? `Tingkat ${item.tingkat_kelas}` : ""]
+      .filter(Boolean)
+      .join(" • ") || "Kelas belum ditentukan";
+  const pengawasLabel =
+    item.pengawas_nama_lengkap?.trim() || item.pengawas_ujian || "-";
+
   return (
     <article className="flex h-full flex-col justify-between rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition hover:shadow-lg hover:shadow-[#397e50]/5">
       <div className="space-y-4">
@@ -31,7 +38,7 @@ const UjianCard: React.FC<UjianCardProps> = ({
               {item.nama_ujian}
             </h3>
             <p className="text-sm font-medium text-[#397e50]">
-              {item.mapel}
+              {kelasLabel}
             </p>
           </div>
           <div className="rounded-full bg-[#397e50]/10 px-3 py-1 text-xs font-semibold text-[#397e50]">
@@ -55,8 +62,12 @@ const UjianCard: React.FC<UjianCardProps> = ({
             <span>{item.ruang_ujian ?? "Ruang belum ditentukan"}</span>
           </div>
           <div className="flex items-center gap-2">
+            <GraduationCap className="h-4 w-4 text-[#397e50]" />
+            <span>{kelasLabel}</span>
+          </div>
+          <div className="flex items-center gap-2">
             <User className="h-4 w-4 text-[#397e50]" />
-            <span>{item.pengawas_ujian}</span>
+            <span>{pengawasLabel}</span>
           </div>
         </div>
       </div>

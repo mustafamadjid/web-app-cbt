@@ -1,12 +1,12 @@
 package query
 
-
 type kategoriUjian string
 
 const (
-	MENDATANG kategoriUjian = "mendatang"
+	MENDATANG   kategoriUjian = "mendatang"
 	BERLANGSUNG kategoriUjian = "berlangsung"
-	SELESAI kategoriUjian = "selesai"
+	SELESAI     kategoriUjian = "selesai"
+	DIBATALKAN  kategoriUjian = "dibatalkan"
 )
 
 type ListUjianFilter struct {
@@ -22,5 +22,5 @@ type ListUjianFilter struct {
 	RuangUjian     *int
 	IDMapel        *int
 
-	KategoriUjian kategoriUjian 
+	KategoriUjian kategoriUjian
 }

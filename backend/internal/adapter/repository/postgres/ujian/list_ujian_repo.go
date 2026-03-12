@@ -101,6 +101,17 @@ func (r *ListUjianRepo) GetAllUjian(ctx context.Context, filter query.ListUjianF
 		where = append(where, fmt.Sprintf("ju.id_ruangan = $%d", len(args)))
 	}
 
+	switch filter.KategoriUjian {
+	case query.MENDATANG:
+		where = append(where, "ju.waktu_mulai > NOW()")
+	case query.BERLANGSUNG:
+		where = append(where, "ju.waktu_mulai <= NOW() AND ju.waktu_selesai >= NOW()")
+	case query.SELESAI:
+		where = append(where, "ju.waktu_selesai < NOW()")
+	case query.DIBATALKAN:
+		where = append(where, "ju.status_ujian = 'DIBATALKAN'")
+	}
+
 	if len(where) > 0 {
 		baseQuery = fmt.Sprintf("%s WHERE %s", baseQuery, strings.Join(where, " AND "))
 	}
@@ -125,9 +136,10 @@ func (r *ListUjianRepo) GetAllUjian(ctx context.Context, filter query.ListUjianF
 	var results []ujian.ListUjian
 	for rows.Next() {
 		var (
-			item      ujian.ListUjian
-			idNamaKls sql.NullInt64
-			namaKelas sql.NullString
+			item        ujian.ListUjian
+			idNamaKls   sql.NullInt64
+			namaKelas   sql.NullString
+			statusUjian sql.NullString
 		)
 
 		if err := rows.Scan(
@@ -144,7 +156,7 @@ func (r *ListUjianRepo) GetAllUjian(ctx context.Context, filter query.ListUjianF
 			&item.TanggalUjian,
 			&item.WaktuMulai,
 			&item.WaktuSelesai,
-			&item.StatusUjian,
+			&statusUjian,
 			&item.IdPengawas,
 			&item.NamaPengawas,
 			&item.PengawasUsername,
@@ -159,6 +171,7 @@ func (r *ListUjianRepo) GetAllUjian(ctx context.Context, filter query.ListUjianF
 
 		item.IdNamaKelas = nullInt64ToUjianIDPtr(idNamaKls)
 		item.NamaKelas = nullStringToPtr(namaKelas)
+		item.StatusUjian = nullStringToStatusUjianPtr(statusUjian)
 
 		results = append(results, item)
 	}
@@ -220,6 +233,7 @@ func (r *ListUjianRepo) GetUjianById(ctx context.Context, id ujian.ID) (ujian.Li
 		idNamaKls      sql.NullInt64
 		namaKelas      sql.NullString
 		deskripsiUjian sql.NullString
+		statusUjian    sql.NullString
 	)
 
 	err := r.q.QueryRow(ctx, query, id).Scan(
@@ -238,7 +252,7 @@ func (r *ListUjianRepo) GetUjianById(ctx context.Context, id ujian.ID) (ujian.Li
 		&item.TanggalUjian,
 		&item.WaktuMulai,
 		&item.WaktuSelesai,
-		&item.StatusUjian,
+		&statusUjian,
 		&item.IdPengawas,
 		&item.NamaPengawas,
 		&item.PengawasUsername,
@@ -259,6 +273,7 @@ func (r *ListUjianRepo) GetUjianById(ctx context.Context, id ujian.ID) (ujian.Li
 	item.IdNamaKelas = nullInt64ToUjianIDPtr(idNamaKls)
 	item.NamaKelas = nullStringToPtr(namaKelas)
 	item.DeskripsiUjian = nullStringToPtr(deskripsiUjian)
+	item.StatusUjian = nullStringToStatusUjianPtr(statusUjian)
 
 	return item, nil
 }
@@ -277,4 +292,12 @@ func nullStringToPtr(v sql.NullString) *string {
 	}
 	s := v.String
 	return &s
+}
+
+func nullStringToStatusUjianPtr(v sql.NullString) *ujian.StatusUjian {
+	if !v.Valid {
+		return nil
+	}
+	status := ujian.StatusUjian(v.String)
+	return &status
 }
