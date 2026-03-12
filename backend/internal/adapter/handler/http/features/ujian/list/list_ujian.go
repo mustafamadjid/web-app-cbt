@@ -9,7 +9,7 @@ import (
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 	query "github.com/mustafamadjid/web-app-cbt/internal/core/query/ujian"
-	ujian_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/get"
+	ujian_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/ujian_penjadwalan/get"
 )
 
 type ListUjianHandler struct {

@@ -70,7 +70,11 @@ const EditAkunSiswa = () => {
       angkatan: siswaData.angkatan,
       tempat_lahir: siswaData.tempat_lahir,
       tanggal_lahir: siswaData.tanggal_lahir,
-      id_nama_kelas: namaMatch ? String(namaMatch.id_nama_kelas) : "",
+      id_nama_kelas: siswaData.id_nama_kelas
+        ? String(siswaData.id_nama_kelas)
+        : namaMatch
+          ? String(namaMatch.id_nama_kelas)
+          : "",
       foto_profil: null,
       status_akun: siswaData.status_akun,
     };

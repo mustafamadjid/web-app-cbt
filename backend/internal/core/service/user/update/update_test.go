@@ -276,6 +276,21 @@ func TestUpdateGuruBranchCoverage(t *testing.T) {
 			wantUpdateProfil:   false,
 			wantUsernameValue:  "guruupdate",
 		},
+		{
+			name: "Branch 15 -> foto kosong diabaikan",
+			cmd: user_service.UpdateGuruCmd{
+				IdPengguna: 10,
+				Foto:       strPtr(" "),
+			},
+			actor:              adminActor,
+			txm:                &fake_test.FakeTxManager{Tx: &fake_test.FakeTx{}},
+			wantErr:            coreerror.ErrNoFieldToUpdate,
+			wantBeginCalled:    false,
+			wantCommitCalled:   false,
+			wantRollbackCalled: false,
+			wantUpdateUser:     false,
+			wantUpdateProfil:   false,
+		},
 	}
 
 	for _, tc := range cases {
@@ -637,6 +652,21 @@ func TestUpdateSiswaBranchCoverage(t *testing.T) {
 			wantUpdateUser:     true,
 			wantUpdateProfil:   false,
 			wantUsernameValue:  "siswaupdate",
+		},
+		{
+			name: "Branch 18 -> foto kosong diabaikan",
+			cmd: user_service.UpdateSiswaCmd{
+				IdPengguna: 10,
+				Foto:       strPtr(" "),
+			},
+			actor:              adminActor,
+			txm:                &fake_test.FakeTxManager{Tx: &fake_test.FakeTx{}},
+			wantErr:            coreerror.ErrNoFieldToUpdate,
+			wantBeginCalled:    false,
+			wantCommitCalled:   false,
+			wantRollbackCalled: false,
+			wantUpdateUser:     false,
+			wantUpdateProfil:   false,
 		},
 	}
 

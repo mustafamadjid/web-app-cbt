@@ -193,8 +193,15 @@ func parseIDFromURLParam(ps httprouter.Params, key string) (user.ID, error) {
 }
 
 func (h *UpdateHandler) parseOptionalFoto(r *http.Request) (*string, error) {
-	relPath, err := httphelper.StoreFileToDisk(r, "foto", false, h.storeImage.SavePhotoRelative)
-	if err != nil {
+	for _, fieldName := range []string{"foto_profil", "foto"} {
+		relPath, err := httphelper.StoreFileToDisk(r, fieldName, false, h.storeImage.SavePhotoRelative)
+		if err == nil {
+			if relPath != nil {
+				return relPath, nil
+			}
+			continue
+		}
+
 		if errors.Is(err, coreerror.ErrFileTooLarge) {
 			return nil, requestError{
 				status:  http.StatusBadRequest,
@@ -210,7 +217,7 @@ func (h *UpdateHandler) parseOptionalFoto(r *http.Request) (*string, error) {
 		}
 	}
 
-	return relPath, nil
+	return nil, nil
 }
 
 func (h *UpdateHandler) writeRequestError(w http.ResponseWriter, err error) {
@@ -334,16 +341,10 @@ func applyOptionalStrings(values map[string][]string, fields map[string]**string
 		if !ok || len(raw) == 0 {
 			continue
 		}
-		val := raw[0]
-		var err error
-		switch key {
-		case "username":
-			val, err = validator.ValidateUsername(val)
-		case "email":
-			val, err = validator.ValidateEmailAddress(val, key)
-		default:
-			val, err = validator.ValidateRequiredPrintableText(val, key)
+		if shouldTreatBlankAsNil(key, raw[0]) {
+			continue
 		}
+		val, err := validateOptionalStringField(key, raw[0])
 		if err != nil {
 			return requestError{
 				status:  http.StatusBadRequest,
@@ -355,6 +356,39 @@ func applyOptionalStrings(values map[string][]string, fields map[string]**string
 		*target = &val
 	}
 	return nil
+}
+
+func shouldTreatBlankAsNil(key, value string) bool {
+	switch key {
+	case "email", "no_hp":
+		trimmed := strings.TrimSpace(value)
+		return trimmed == "" || strings.EqualFold(trimmed, "null") || strings.EqualFold(trimmed, "nil")
+	default:
+		return false
+	}
+}
+
+func validateOptionalStringField(key, value string) (string, error) {
+	switch key {
+	case "username":
+		return validator.ValidateUsername(value)
+	case "email":
+		return validator.ValidateEmailAddress(value, key)
+	case "nama_lengkap":
+		return validator.ValidatePersonName(value, key)
+	case "jenis_kelamin":
+		return validator.ValidateGenderLabel(value, key)
+	case "no_hp":
+		return validator.ValidatePhoneNumber(value, key)
+	case "nip":
+		return validator.ValidateNIPText(value, key)
+	case "nisn":
+		return validator.ValidateNISNText(value, key)
+	case "jabatan", "bidang_studi", "tempat_lahir":
+		return validator.ValidateSafeLabelText(value, key)
+	default:
+		return validator.ValidateRequiredPrintableText(value, key)
+	}
 }
 
 func parseOptionalStatus(values map[string][]string, key string) (*user.StatusAkun, error) {

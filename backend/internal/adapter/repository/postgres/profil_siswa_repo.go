@@ -34,6 +34,7 @@ func (r *ProfilSiswaRepo) FindProfilSiswaByID(ctx context.Context, id user.ID) (
 		SELECT 
 			ps.id_pengguna,
 			ps.id_siswa,
+			ps.id_nama_kelas,
 			u.username,
 			u.email,
 			u.nama_lengkap,
@@ -52,8 +53,8 @@ func (r *ProfilSiswaRepo) FindProfilSiswaByID(ctx context.Context, id user.ID) (
 		FROM profil_siswa ps
 		JOIN pengguna u ON ps.id_pengguna = u.id_pengguna
 		JOIN role r ON u.id_role = r.id_role
-		JOIN kelas k ON ps.id_kelas = k.id_kelas
 		JOIN nama_kelas nk ON ps.id_nama_kelas = nk.id_nama_kelas
+		JOIN kelas k ON nk.id_kelas = k.id_kelas
 		WHERE ps.id_pengguna = $1
 	`
 
@@ -72,6 +73,7 @@ func (r *ProfilSiswaRepo) FindProfilSiswaByID(ctx context.Context, id user.ID) (
 	err := r.q.QueryRow(ctx, query, id).Scan(
 		&result.IdPengguna,
 		&result.IdSiswa,
+		&result.IdNamaKelas,
 		&result.Username,
 		&email,
 		&result.NamaLengkap,

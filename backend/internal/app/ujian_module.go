@@ -8,12 +8,12 @@ import (
 	httplist "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/list"
 	httplistsoal "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/list_soal_ujian"
 	httpupdateujian "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/update/ujian"
-	ujian_create_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/create"
-	ujian_delete_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/delete"
-	ujian_get_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/get"
 	siswaujian_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian"
 	ujian_soal_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/soal_ujian"
-	ujian_update_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/update"
+	ujian_create_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/ujian_penjadwalan/create"
+	ujian_delete_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/ujian_penjadwalan/delete"
+	ujian_get_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/ujian_penjadwalan/get"
+	ujian_update_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/ujian_penjadwalan/update"
 )
 
 type UjianModule struct {
@@ -34,21 +34,15 @@ type UjianModule struct {
 }
 
 func BuildUjianModule(infra *InfraModule) *UjianModule {
-	createUjianSvc := ujian_create_service.NewCreateUjianService(
-		ujian_create_service.NewUjianRepository(infra.ujianRepo),
-	)
+	createUjianSvc := ujian_create_service.NewCreateUjianService(infra.ujianRepo)
 	attemptUjianSvc := siswaujian_service.NewAttemptUjianService(
 		infra.siswaUjianChecker,
 		infra.attemptUjianRepo,
 	)
 	getSvc := ujian_get_service.NewGetujianService(infra.listUjianRepo)
 	listSoalUjianSvc := ujian_soal_service.NewListSoalUjianService(infra.soalUjianRepo)
-	updateUjianSvc := ujian_update_service.NewUpdateUjianService(
-		ujian_update_service.NewUjianRepository(infra.ujianRepo),
-	)
-	deleteUjianSvc := ujian_delete_service.NewDeleteUjianService(
-		ujian_delete_service.NewUjianRepository(infra.ujianRepo),
-	)
+	updateUjianSvc := ujian_update_service.NewUpdateUjianService(infra.ujianRepo)
+	deleteUjianSvc := ujian_delete_service.NewDeleteUjianService(infra.ujianRepo)
 
 	attemptUjianHandler := httpcreateattemptujian.NewAttemptUjianHandler(attemptUjianSvc)
 	createUjianHandler := httpcreateujian.NewCreateUjianHandler(createUjianSvc)

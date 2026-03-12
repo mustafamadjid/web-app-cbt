@@ -6,14 +6,15 @@ import (
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	ujian "github.com/mustafamadjid/web-app-cbt/internal/core/domain/ujian_siswa"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
+	ujian_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/ujian"
 	updatepatch "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/update_patch"
 )
 
 type UpdateUjianService struct {
-	ujianRepo UjianRepository
+	ujianRepo ujian_repo.UjianRepository
 }
 
-func NewUpdateUjianService(ujianRepo UjianRepository) *UpdateUjianService {
+func NewUpdateUjianService(ujianRepo ujian_repo.UjianRepository) *UpdateUjianService {
 	return &UpdateUjianService{
 		ujianRepo: ujianRepo,
 	}

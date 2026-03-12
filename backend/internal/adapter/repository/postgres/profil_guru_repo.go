@@ -53,6 +53,9 @@ func (r *ProfilgGuruRepo) FindProfilGuruByID(ctx context.Context, id user.ID) (u
 
 	var result user.DataGuru
 
+	var email sql.NullString
+	var noHp sql.NullString
+	var foto sql.NullString
 	var nip sql.NullString
 	var jabatan sql.NullString
 	var bidangStudi sql.NullString
@@ -62,11 +65,11 @@ func (r *ProfilgGuruRepo) FindProfilGuruByID(ctx context.Context, id user.ID) (u
 		&result.IdPengguna,
 		&result.IdGuru,
 		&result.Username,
-		&result.Email,
+		&email,
 		&result.NamaLengkap,
 		&jenisKelamin,
-		&result.NoHp,
-		&result.Foto,
+		&noHp,
+		&foto,
 		&result.Role,
 		&result.StatusAkun,
 		&nip,
@@ -82,6 +85,15 @@ func (r *ProfilgGuruRepo) FindProfilGuruByID(ctx context.Context, id user.ID) (u
 		return user.DataGuru{}, err
 	}
 
+	if email.Valid {
+		result.Email = email.String
+	}
+	if noHp.Valid {
+		result.NoHp = noHp.String
+	}
+	if foto.Valid {
+		result.Foto = foto.String
+	}
 	if nip.Valid {
 		result.Nip = nip.String
 	}

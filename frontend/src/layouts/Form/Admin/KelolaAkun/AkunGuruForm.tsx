@@ -98,10 +98,7 @@ const AkunGuruForm = () => {
 
   const validate = createValidator<TeacherRegisterFormValues>({
     nama_lengkap: [requiredString("Nama lengkap wajib diisi.")],
-    email: [
-      requiredString("Email wajib diisi."),
-      emailFormat("Format email tidak valid."),
-    ],
+    email: [emailFormat("Format email tidak valid.")],
     username: [
       requiredString("Username wajib diisi."),
       minLength(USERNAME_MIN_LENGTH, USERNAME_LENGTH_INVALID_MESSAGE),
@@ -111,7 +108,6 @@ const AkunGuruForm = () => {
       requiredString("Password wajib diisi."),
       minLength(8, "Password minimal 8 karakter."),
     ],
-    no_hp: [requiredString("Nomor HP wajib diisi.")],
     nip: [
       requiredString("NIP wajib diisi."),
       (value) => {
@@ -252,7 +248,7 @@ const AkunGuruForm = () => {
                   inputClassName={
                     hasError("email") ? "border-rose-300 ring-rose-100" : ""
                   }
-                  required
+                  required={false}
                 />
                 {hasError("email") && (
                   <p className="mt-1 text-xs text-rose-600">{errors.email}</p>
@@ -352,7 +348,7 @@ const AkunGuruForm = () => {
                   inputClassName={
                     hasError("no_hp") ? "border-rose-300 ring-rose-100" : ""
                   }
-                  required
+                  required={false}
                 />
                 {hasError("no_hp") && (
                   <p className="mt-1 text-xs text-rose-600">{errors.no_hp}</p>
@@ -436,7 +432,7 @@ const AkunGuruForm = () => {
               sectionTitle="Foto Profil"
               helperText="Unggah foto profil (maks. 2MB)."
               formatText="Format: JPG/PNG"
-              optionalText="Akan ditampilkan pada akun guru."
+              optionalText="Opsional, akan ditampilkan pada akun guru."
               imgSrc={fotoUrl || undefined}
               imgAlt="Preview foto profil"
               type="file"

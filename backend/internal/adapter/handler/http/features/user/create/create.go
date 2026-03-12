@@ -49,13 +49,9 @@ func (h *UserHandler) CreateGuru(write http.ResponseWriter, req *http.Request, _
 		return
 	}
 
-	relPathPtr, err := httpx.StoreFileToDisk(req, "foto_profil", true, h.storeImage.SavePhotoRelative)
+	relPathPtr, err := httpx.StoreFileToDisk(req, "foto_profil", false, h.storeImage.SavePhotoRelative)
 	if err != nil {
 		switch {
-		case errors.Is(err, coreerror.ErrMissingField):
-			logger.Info(req.Context(), "missing foto file", "layer", "adapter.http.handler", "op", "user.create_guru", "err", err)
-			httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request : foto is required")
-			return
 		case errors.Is(err, coreerror.ErrFileTooLarge):
 			logger.Info(req.Context(), "file too large", "layer", "adapter.http.handler", "op", "user.create_guru", "err", err)
 			httpResponse.WriteErr(write, http.StatusBadRequest, "FILE_TOO_LARGE", "file too large")
@@ -108,39 +104,39 @@ func (h *UserHandler) CreateGuru(write http.ResponseWriter, req *http.Request, _
 		return
 	}
 	cmd.Password = password
-	namaLengkap, err := validator.ValidateRequiredPrintableText(cmd.NamaLengkap, "nama_lengkap")
+	namaLengkap, err := validator.ValidatePersonName(cmd.NamaLengkap, "nama_lengkap")
 	if err != nil {
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
 	cmd.NamaLengkap = namaLengkap
-	jenisKelamin, err := validator.ValidateRequiredPrintableText(cmd.JenisKelamin, "jenis_kelamin")
+	jenisKelamin, err := validator.ValidateGenderLabel(cmd.JenisKelamin, "jenis_kelamin")
 	if err != nil {
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
 	cmd.JenisKelamin = jenisKelamin
 	if cmd.NoHp != nil {
-		noHp, err := validator.ValidateRequiredPrintableText(*cmd.NoHp, "no_hp")
+		noHp, err := validator.ValidatePhoneNumber(*cmd.NoHp, "no_hp")
 		if err != nil {
 			httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 			return
 		}
 		cmd.NoHp = &noHp
 	}
-	nip, err := validator.ValidateRequiredPrintableText(cmd.Nip, "nip")
+	nip, err := validator.ValidateNIPText(cmd.Nip, "nip")
 	if err != nil {
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
 	cmd.Nip = nip
-	jabatan, err := validator.ValidateRequiredPrintableText(cmd.Jabatan, "jabatan")
+	jabatan, err := validator.ValidateSafeLabelText(cmd.Jabatan, "jabatan")
 	if err != nil {
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
 	cmd.Jabatan = jabatan
-	bidangStudi, err := validator.ValidateRequiredPrintableText(cmd.BidangStudi, "bidang_studi")
+	bidangStudi, err := validator.ValidateSafeLabelText(cmd.BidangStudi, "bidang_studi")
 	if err != nil {
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
@@ -225,13 +221,9 @@ func (h *UserHandler) CreateSiswa(write http.ResponseWriter, req *http.Request, 
 		return
 	}
 
-	relPathPtr, err := httpx.StoreFileToDisk(req, "foto_profil", true, h.storeImage.SavePhotoRelative)
+	relPathPtr, err := httpx.StoreFileToDisk(req, "foto_profil", false, h.storeImage.SavePhotoRelative)
 	if err != nil {
 		switch {
-		case errors.Is(err, coreerror.ErrMissingField):
-			logger.Info(req.Context(), "missing foto file", "layer", "adapter.http.handler", "op", "user.create_siswa", "err", err)
-			httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request : foto is required")
-			return
 		case errors.Is(err, coreerror.ErrFileTooLarge):
 			logger.Info(req.Context(), "file too large", "layer", "adapter.http.handler", "op", "user.create_siswa", "err", err)
 			httpResponse.WriteErr(write, http.StatusBadRequest, "FILE_TOO_LARGE", "file too large")
@@ -306,7 +298,6 @@ func (h *UserHandler) CreateSiswa(write http.ResponseWriter, req *http.Request, 
 		cmd.Password == "" ||
 		cmd.NamaLengkap == "" ||
 		cmd.JenisKelamin == "" ||
-		cmd.Foto == "" ||
 		cmd.IdNamaKelas == 0 ||
 		cmd.Nisn == "" ||
 		cmd.NoAbsen <= 0 ||
@@ -336,33 +327,33 @@ func (h *UserHandler) CreateSiswa(write http.ResponseWriter, req *http.Request, 
 		return
 	}
 	cmd.Password = password
-	namaLengkap, err := validator.ValidateRequiredPrintableText(cmd.NamaLengkap, "nama_lengkap")
+	namaLengkap, err := validator.ValidatePersonName(cmd.NamaLengkap, "nama_lengkap")
 	if err != nil {
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
 	cmd.NamaLengkap = namaLengkap
-	jenisKelamin, err := validator.ValidateRequiredPrintableText(cmd.JenisKelamin, "jenis_kelamin")
+	jenisKelamin, err := validator.ValidateGenderLabel(cmd.JenisKelamin, "jenis_kelamin")
 	if err != nil {
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
 	cmd.JenisKelamin = jenisKelamin
 	if cmd.NoHp != nil {
-		noHp, err := validator.ValidateRequiredPrintableText(*cmd.NoHp, "no_hp")
+		noHp, err := validator.ValidatePhoneNumber(*cmd.NoHp, "no_hp")
 		if err != nil {
 			httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 			return
 		}
 		cmd.NoHp = &noHp
 	}
-	nisn, err := validator.ValidateRequiredPrintableText(cmd.Nisn, "nisn")
+	nisn, err := validator.ValidateNISNText(cmd.Nisn, "nisn")
 	if err != nil {
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
 	cmd.Nisn = nisn
-	tempatLahir, err := validator.ValidateRequiredPrintableText(cmd.TempatLahir, "tempat_lahir")
+	tempatLahir, err := validator.ValidateSafeLabelText(cmd.TempatLahir, "tempat_lahir")
 	if err != nil {
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return

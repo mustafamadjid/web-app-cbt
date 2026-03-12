@@ -262,6 +262,7 @@ func toSiswaResponseFromData(item user.DataSiswa) SiswaResponseItem {
 		Email:        user.Email(item.Email),
 		NamaLengkap:  item.NamaLengkap,
 		StatusAkun:   item.StatusAkun,
+		IdNamaKelas:  item.IdNamaKelas,
 		Nisn:         item.Nisn,
 		NoAbsen:      item.NoAbsen,
 		Angkatan:     item.Angkatan,

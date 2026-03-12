@@ -2,9 +2,9 @@ package user_service
 
 import (
 	"errors"
-	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
-	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 	"strings"
+
+	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 )
 
 func sanitizeAndValidateUpdateGuruCmd(cmd UpdateGuruCmd) (UpdateGuruCmd, *user.Email, error) {
@@ -37,9 +37,10 @@ func sanitizeAndValidateUpdateGuruCmd(cmd UpdateGuruCmd) (UpdateGuruCmd, *user.E
 	if cmd.Foto != nil {
 		trimmedFoto := strings.TrimSpace(*cmd.Foto)
 		if trimmedFoto == "" {
-			return cmd, nil, coreerror.ErrMissingField
+			cmd.Foto = nil
+		} else {
+			cmd.Foto = &trimmedFoto
 		}
-		cmd.Foto = &trimmedFoto
 	}
 	if cmd.Nip != nil {
 		trimmedNip := strings.TrimSpace(*cmd.Nip)
@@ -89,9 +90,10 @@ func sanitizeAndValidateUpdateSiswaCmd(cmd UpdateSiswaCmd) (UpdateSiswaCmd, *use
 	if cmd.Foto != nil {
 		trimmedFoto := strings.TrimSpace(*cmd.Foto)
 		if trimmedFoto == "" {
-			return cmd, nil, coreerror.ErrMissingField
+			cmd.Foto = nil
+		} else {
+			cmd.Foto = &trimmedFoto
 		}
-		cmd.Foto = &trimmedFoto
 	}
 	if cmd.Nisn != nil {
 		nisn, err := user.CheckNewNISN(*cmd.Nisn)

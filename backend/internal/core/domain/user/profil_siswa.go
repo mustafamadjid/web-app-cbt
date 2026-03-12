@@ -10,20 +10,22 @@ import (
 type NISN string
 
 type ProfilSiswa struct {
-	ID             ID
-	IdPengguna     ID
-	IdNamaKelas    ID
-	Nisn           NISN
-	NoAbsen        int
-	Angkatan       int
-	TempatLahir    string
-	TanggalLahir   time.Time
+	ID           ID
+	IdPengguna   ID
+	IdNamaKelas  ID
+	Nisn         NISN
+	NoAbsen      int
+	Angkatan     int
+	TempatLahir  string
+	TanggalLahir time.Time
 }
+
 // IdTingkatKelas ID
 
 type DataSiswa struct {
 	IdPengguna   ID
 	IdSiswa      ID
+	IdNamaKelas  ID
 	Username     string
 	Email        string
 	NamaLengkap  string

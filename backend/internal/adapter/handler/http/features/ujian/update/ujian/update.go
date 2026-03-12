@@ -13,7 +13,7 @@ import (
 	ujian "github.com/mustafamadjid/web-app-cbt/internal/core/domain/ujian_siswa"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 	updatepatch "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/update_patch"
-	ujian_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/update"
+	ujian_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/ujian_penjadwalan/update"
 )
 
 type UpdateUjianHandler struct {

@@ -104,16 +104,12 @@ const EditAkunGuruForm = ({
   const validate = createValidator<TeacherUpdateFormValues>({
     role: [requiredString("Role wajib diisi.")],
     nama_lengkap: [requiredString("Nama lengkap wajib diisi.")],
-    email: [
-      requiredString("Email wajib diisi."),
-      emailFormat("Format email tidak valid."),
-    ],
+    email: [emailFormat("Format email tidak valid.")],
     username: [
       requiredString("Username wajib diisi."),
       minLength(USERNAME_MIN_LENGTH, USERNAME_LENGTH_INVALID_MESSAGE),
       maxLength(USERNAME_MAX_LENGTH, USERNAME_LENGTH_INVALID_MESSAGE),
     ],
-    no_hp: [requiredString("Nomor HP wajib diisi.")],
     nip: [
       requiredString("NIP wajib diisi."),
       (value) => {
@@ -266,7 +262,7 @@ const EditAkunGuruForm = ({
                     hasError("email") ? "border-rose-300 ring-rose-100" : ""
                   }
                   disabled={isDisabled}
-                  required
+                  required={false}
                 />
                 {hasError("email") && (
                   <p className="mt-1 text-xs text-rose-600">{errors.email}</p>
@@ -399,7 +395,7 @@ const EditAkunGuruForm = ({
                     hasError("no_hp") ? "border-rose-300 ring-rose-100" : ""
                   }
                   disabled={isDisabled}
-                  required
+                  required={false}
                 />
                 {hasError("no_hp") && (
                   <p className="mt-1 text-xs text-rose-600">{errors.no_hp}</p>

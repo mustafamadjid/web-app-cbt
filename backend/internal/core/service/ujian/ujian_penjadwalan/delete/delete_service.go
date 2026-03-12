@@ -6,13 +6,14 @@ import (
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	ujian "github.com/mustafamadjid/web-app-cbt/internal/core/domain/ujian_siswa"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
+	ujian_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/ujian"
 )
 
 type DeleteUjianService struct {
-	ujianRepo UjianRepository
+	ujianRepo ujian_repo.UjianRepository
 }
 
-func NewDeleteUjianService(ujianRepo UjianRepository) *DeleteUjianService {
+func NewDeleteUjianService(ujianRepo ujian_repo.UjianRepository) *DeleteUjianService {
 	return &DeleteUjianService{
 		ujianRepo: ujianRepo,
 	}

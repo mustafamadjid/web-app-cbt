@@ -82,7 +82,7 @@ export async function submitStudentRegister(values: StudentRegisterFormValues) {
         if (key === "password") return value;
         return value.trim();
       }
-      return value as any;
+      return value as string | number | boolean | Blob | null | undefined;
     },
   });
 
@@ -106,10 +106,12 @@ export async function updateSiswa(id: number, payload: StudentUpdatePayload) {
     transform: (key, value) => {
       if (value instanceof Blob) return value;
       if (typeof value === "string") {
-        if (key === "email") return value.trim().toLowerCase();
-        return value.trim();
+        const trimmed = value.trim();
+        if ((key === "email" || key === "no_hp") && trimmed === "") return null;
+        if (key === "email") return trimmed.toLowerCase();
+        return trimmed;
       }
-      return value as any;
+      return value as string | number | boolean | Blob | null | undefined;
     },
     skipNullish: true,
   });

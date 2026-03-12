@@ -5,13 +5,14 @@ import (
 
 	ujian "github.com/mustafamadjid/web-app-cbt/internal/core/domain/ujian_siswa"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
+	ujian_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/ujian"
 )
 
 type CreateUjianService struct {
-	ujianRepo UjianRepository
+	ujianRepo ujian_repo.UjianRepository
 }
 
-func NewCreateUjianService(ujianRepo UjianRepository) *CreateUjianService {
+func NewCreateUjianService(ujianRepo ujian_repo.UjianRepository) *CreateUjianService {
 	return &CreateUjianService{
 		ujianRepo: ujianRepo,
 	}

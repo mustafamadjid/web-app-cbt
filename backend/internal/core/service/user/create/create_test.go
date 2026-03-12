@@ -70,6 +70,27 @@ func TestCreateGuruBranchCoverage(t *testing.T) {
 			wantResult:         user_service.CreateGuruRes{IdPengguna: 10, IdProfilGuru: 20},
 		},
 		{
+			name: "Branch 1a -> foto guru opsional",
+			cmd: func() user_service.CreateGuruCmd {
+				c := validCmd()
+				c.Foto = ""
+				return c
+			}(),
+			actor: adminActor,
+			txm: &faketest.FakeTxManager{Tx: &faketest.FakeTx{
+				UserRepo:       &faketest.FakeUserRepo{CreateID: 11},
+				ProfilGuruRepo: &faketest.FakeProfilGuruRepo{CreateID: 21},
+			}},
+			hasher:             &faketest.FakeHasher{Hash: "hashed"},
+			wantBeginCalled:    true,
+			wantHasherCalled:   true,
+			wantCommitCalled:   true,
+			wantRollbackCalled: true,
+			wantCreateUser:     true,
+			wantCreateProfil:   true,
+			wantResult:         user_service.CreateGuruRes{IdPengguna: 11, IdProfilGuru: 21},
+		},
+		{
 			name:  "Branch 2 -> username taken",
 			cmd:   validCmd(),
 			actor: adminActor,
@@ -389,6 +410,27 @@ func TestCreateSiswaBranchCoverage(t *testing.T) {
 			wantCreateUser:     true,
 			wantCreateProfil:   true,
 			wantResult:         user_service.CreateSiswaRes{IdPengguna: 10, IdProfilSiswa: 20},
+		},
+		{
+			name: "Branch 1a -> foto siswa opsional",
+			cmd: func() user_service.CreateSiswaCmd {
+				c := validCmd()
+				c.Foto = ""
+				return c
+			}(),
+			actor: adminActor,
+			txm: &faketest.FakeTxManager{Tx: &faketest.FakeTx{
+				UserRepo:        &faketest.FakeUserRepo{CreateID: 11},
+				ProfilSiswaRepo: &faketest.FakeProfilSiswaRepo{CreateID: 21},
+			}},
+			hasher:             &faketest.FakeHasher{Hash: "hashed"},
+			wantBeginCalled:    true,
+			wantHasherCalled:   true,
+			wantCommitCalled:   true,
+			wantRollbackCalled: true,
+			wantCreateUser:     true,
+			wantCreateProfil:   true,
+			wantResult:         user_service.CreateSiswaRes{IdPengguna: 11, IdProfilSiswa: 21},
 		},
 		{
 			name:  "Branch 2 -> username taken",
