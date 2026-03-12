@@ -10,7 +10,7 @@ import (
 
 type SiswaUjianChecker interface {
 	CheckValidSiswaInPesertaUjianById(ctx context.Context, idSiswa int, idJadwalUjian int) (bool, int, error)
-	CheckTokenUjian(ctx context.Context,token string) (bool, error)
+	CheckTokenUjian(ctx context.Context,token string, idJadwalUjian int) (bool, error)
 
 	GetDeadlineUjian(ctx context.Context, idJadwalUjian int) (time.Time, error)
 }

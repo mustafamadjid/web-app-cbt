@@ -4,38 +4,31 @@ import UjianSection from "@/components/features/Ujian/UjianSection";
 import UjianCard from "@/components/features/Ujian/UjianCard";
 import { useGetAllJadwalUjianForSiswa } from "@/services/Api/features-api/Ujian/jadwalujian.service";
 import { paths } from "@/routes/paths";
+import type { JadwalUjianSiswaKategori } from "@/types/Ujian/jadwalUjian";
 
 const UjianSiswa: React.FC = () => {
   const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = React.useState<"upcoming" | "ongoing">(
-    "upcoming",
+    "ongoing",
   );
 
+  const activeKategoriUjian: JadwalUjianSiswaKategori =
+    activeCategory === "upcoming" ? "mendatang" : "berlangsung";
+
   const {
-    data: upcomingData,
-    loading: upcomingLoading,
-    error: upcomingError,
+    data: examData,
+    loading,
+    error,
   } = useGetAllJadwalUjianForSiswa({
-    kategoriUjian: "mendatang",
-  });
-  const {
-    data: ongoingData,
-    loading: ongoingLoading,
-    error: ongoingError,
-  } = useGetAllJadwalUjianForSiswa({
-    kategoriUjian: "berlangsung",
+    kategoriUjian: activeKategoriUjian,
   });
 
-  const loading = upcomingLoading || ongoingLoading;
-  const error = upcomingError || ongoingError;
-
-  const upcomingExams = upcomingData ?? [];
-  const ongoingExams = ongoingData ?? [];
+  const exams = examData ?? [];
 
   const handleStartExam = (id: number, bankSoalId: number) => {
     navigate(
       paths.dashboard.ujian_siswa_token
-        .replace(":id", String(id))
+        .replace(":idJadwalUjian", String(id))
         .replace(":bankSoalId", String(bankSoalId)),
     );
   };
@@ -134,12 +127,12 @@ const UjianSiswa: React.FC = () => {
               title="Jadwal Ujian Mendatang"
               description="Daftar ujian yang akan dilaksanakan dalam waktu dekat."
             >
-              {upcomingExams.length === 0 ? (
+              {exams.length === 0 ? (
                 <div className="col-span-full rounded-xl border border-dashed border-gray-200 bg-white p-6 text-center text-sm text-gray-500">
                   Tidak ada jadwal ujian mendatang.
                 </div>
               ) : (
-                upcomingExams.map((item) => (
+                exams.map((item) => (
                   <UjianCard key={item.id} item={item} />
                 ))
               )}
@@ -151,12 +144,12 @@ const UjianSiswa: React.FC = () => {
               title="Ujian Berlangsung Hari Ini"
               description="Ujian yang sedang berlangsung dan bisa dikerjakan sekarang."
             >
-              {ongoingExams.length === 0 ? (
+              {exams.length === 0 ? (
                 <div className="col-span-full rounded-xl border border-dashed border-gray-200 bg-white p-6 text-center text-sm text-gray-500">
                   Tidak ada ujian yang sedang berlangsung.
                 </div>
               ) : (
-                ongoingExams.map((item) => (
+                exams.map((item) => (
                   <UjianCard
                     key={item.id}
                     item={item}

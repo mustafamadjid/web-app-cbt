@@ -204,7 +204,7 @@ const JadwalUjian = () => {
         <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-slate-100 p-1.5 sm:w-fit">
           {STATUS_SECTIONS.map((section) => {
             const isActive = activeTab === section.key;
-            const count = isActive ? jadwalData.length : 0;
+            // const count = isActive ? jadwalData.length : 0;
             return (
               <button
                 key={section.key}
@@ -216,13 +216,13 @@ const JadwalUjian = () => {
                 }`}
               >
                 {section.label}
-                <span
+                {/* <span
                   className={`ml-1 rounded-md px-1.5 py-0.5 text-2xs ${
                     isActive ? "bg-[#397e50] text-white" : "bg-slate-200 text-slate-600"
                   }`}
                 >
                   {count}
-                </span>
+                </span> */}
               </button>
             );
           })}

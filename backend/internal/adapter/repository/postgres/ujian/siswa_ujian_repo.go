@@ -49,17 +49,17 @@ func (r *SiswaUjianRepo) CheckValidSiswaInPesertaUjianById(ctx context.Context, 
 	return true, idPesertaUjian, nil
 }
 
-func (r *SiswaUjianRepo) CheckTokenUjian(ctx context.Context, token string) (bool, error) {
+func (r *SiswaUjianRepo) CheckTokenUjian(ctx context.Context, token string, idJadwalUjian int) (bool, error) {
 	const query = `
 		SELECT EXISTS(
 			SELECT 1
 			FROM jadwal_ujian
-			WHERE UPPER(token) = UPPER($1)
+			WHERE UPPER(token) = UPPER($1) AND id_jadwal_ujian = $2
 		)
 	`
 
 	var exists bool
-	if err := r.q.QueryRow(ctx, query, token).Scan(&exists); err != nil {
+	if err := r.q.QueryRow(ctx, query, token, idJadwalUjian).Scan(&exists); err != nil {
 		r.loggerFor(ctx).Error(ctx, "failed checking token ujian", "layer", "repo.db", "op", "siswa_ujian.check_token", "err", err)
 		return false, err
 	}

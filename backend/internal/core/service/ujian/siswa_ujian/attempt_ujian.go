@@ -68,7 +68,7 @@ func (r *AttemptUjianService) AttemptUjian(ctx context.Context, idSiswa int, idJ
 		return coreerror.ErrWaktuAttemptPesertaInvalid
 	}
 
-	tokenValid, err := r.repo.CheckTokenUjian(ctx, tokenUjian)
+	tokenValid, err := r.repo.CheckTokenUjian(ctx, tokenUjian,idJadwalUjian)
 	if err != nil {
 		logger.Error(ctx, "failed attempt ujian", "layer", "core.service", "op", "ujian.attempt.create", "err", err)
 		return err
