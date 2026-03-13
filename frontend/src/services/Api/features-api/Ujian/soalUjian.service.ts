@@ -1,6 +1,6 @@
 import { useFetch } from "@/hooks/fetch";
 import { api } from "@/services/Api/api";
-import type { SoalUjian } from "@/types/Ujian/SoalUjian";
+import type { SoalUjian, SoalUjianSiswa } from "@/types/Ujian/SoalUjian";
 
 export async function getSoalUjian(
   bankSoalId: number,
@@ -11,6 +11,14 @@ export async function getSoalUjian(
     params: {
       acak_soal: String(acakSoal),
     },
+  });
+}
+
+export async function GetSoalUjianForSiswa(
+  idJadwalUjian: number,
+): Promise<SoalUjianSiswa[]> {
+  return api<SoalUjianSiswa[]>(`/siswa/soal-ujian/${idJadwalUjian}`, {
+    method: "GET",
   });
 }
 
@@ -25,5 +33,18 @@ export function useGetSoalUjian(
         ? getSoalUjian(bankSoalId, acakSoal)
         : Promise.resolve([] as SoalUjian[]),
     [bankSoalId, acakSoal, enabled],
+  );
+}
+
+export function useGetSoalUjianForSiswa(
+  idJadwalUjian: number,
+  enabled = true,
+) {
+  return useFetch(
+    () =>
+      enabled
+        ? GetSoalUjianForSiswa(idJadwalUjian)
+        : Promise.resolve([] as SoalUjianSiswa[]),
+    [idJadwalUjian, enabled],
   );
 }

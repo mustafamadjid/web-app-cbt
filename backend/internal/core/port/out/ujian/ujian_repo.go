@@ -23,6 +23,7 @@ type UjianRepository interface {
 
 type SoalUjianRepository interface {
 	GetSoalUjianByBankSoal(ctx context.Context, idBankSoal ujian.ID) ([]ujian.SoalUjianSiswa, error)
+	GetSoalUjianByBankSoalForSiswa(ctx context.Context, idJadwalUjian ujian.ID) ([]ujian.SoalUjianSiswa,bool, error)
 }
 
 type AttemptUjianRepository interface {

@@ -36,6 +36,7 @@ import (
 	ujianget "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/get"
 	ujianlist "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/list"
 	ujianlistsoal "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/list_soal_ujian"
+	ujianlistsoalsiswa "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/list_soal_ujian_for_siswa"
 	ujianlistsiswa "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/list_ujian_siswa"
 	ujianupdateujian "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/update/ujian"
 	usercreate "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/user/create"
@@ -92,14 +93,15 @@ type RuangUjianHandlers struct {
 }
 
 type UjianHandlers struct {
-	AttemptUjianHandler   *ujiancreateattempt.AttemptUjianHandler
-	CreateUjianHandler    *ujiancreate.CreateRuangUjianHandler
-	ListHandler           *ujianlist.ListUjianHandler
-	ListUjianSiswaHandler *ujianlistsiswa.ListUjianSiswaHandler
-	ListSoalUjianHandler  *ujianlistsoal.ListSoalUjianHandler
-	GetHandler            *ujianget.GetUjianHandler
-	UpdateUjianHandler    *ujianupdateujian.UpdateUjianHandler
-	DeleteUjianHandler    *ujiandeleteujian.DeleteUjianHandler
+	AttemptUjianHandler       *ujiancreateattempt.AttemptUjianHandler
+	CreateUjianHandler        *ujiancreate.CreateRuangUjianHandler
+	ListHandler               *ujianlist.ListUjianHandler
+	ListUjianSiswaHandler     *ujianlistsiswa.ListUjianSiswaHandler
+	ListSoalUjianHandler      *ujianlistsoal.ListSoalUjianHandler
+	ListSoalUjianSiswaHandler *ujianlistsoalsiswa.ListSoalUjianSiswaHandler
+	GetHandler                *ujianget.GetUjianHandler
+	UpdateUjianHandler        *ujianupdateujian.UpdateUjianHandler
+	DeleteUjianHandler        *ujiandeleteujian.DeleteUjianHandler
 }
 
 type SesiHandlers struct {

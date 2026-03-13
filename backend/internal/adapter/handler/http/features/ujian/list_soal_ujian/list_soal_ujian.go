@@ -1,7 +1,6 @@
 package httpx
 
 import (
-	"context"
 	"errors"
 	"net/http"
 
@@ -13,12 +12,8 @@ import (
 	ujian_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/soal_ujian"
 )
 
-type listSoalUjianService interface {
-	ListSoalUjian(ctx context.Context, idBankSoal ujian.ID, acakSoal bool) ([]ujian.SoalUjianSiswa, error)
-}
-
 type ListSoalUjianHandler struct {
-	svc listSoalUjianService
+	svc *ujian_service.ListSoalUjianService
 }
 
 func NewListSoalUjianHandler(svc *ujian_service.ListSoalUjianService) *ListSoalUjianHandler {

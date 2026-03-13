@@ -8,23 +8,11 @@ import (
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	ujian "github.com/mustafamadjid/web-app-cbt/internal/core/domain/ujian_siswa"
 	attemptujian_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/attempt_ujian/get"
+	fake_repo "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/attempt_ujian/get/fake_repo"
 	"github.com/stretchr/testify/assert"
 )
 
-type fakeGetAttemptRepo struct {
-	getFn     func(ctx context.Context, idAttempt ujian.ID) (ujian.AttemptUjian, error)
-	getCalled bool
-}
-
-func (f *fakeGetAttemptRepo) GetAttemptUjianById(ctx context.Context, idAttempt ujian.ID) (ujian.AttemptUjian, error) {
-	f.getCalled = true
-	if f.getFn != nil {
-		return f.getFn(ctx, idAttempt)
-	}
-	return ujian.AttemptUjian{}, nil
-}
-
-func TestGetAttemptUjianService(t *testing.T) {
+func TestGetAttemptUjianService_BranchCoverage(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -34,38 +22,29 @@ func TestGetAttemptUjianService(t *testing.T) {
 	tests := []struct {
 		name       string
 		idAttempt  ujian.ID
-		repo       *fakeGetAttemptRepo
+		repo       *fake_repo.FakeAttemptUjianRepo
 		wantErr    error
 		wantGet    bool
 		wantResult ujian.AttemptUjian
 	}{
 		{
-			name:      "branch 1 -> id attempt tidak valid",
+			name:      "Branch 1 -> idAttempt <= 0",
 			idAttempt: 0,
-			repo:      &fakeGetAttemptRepo{},
+			repo:      &fake_repo.FakeAttemptUjianRepo{},
 			wantErr:   coreerror.ErrMissingId,
 			wantGet:   false,
 		},
 		{
-			name:      "branch 2 -> repo error",
+			name:      "Branch 2 -> repo GetAttemptUjianById error",
 			idAttempt: 10,
-			repo: &fakeGetAttemptRepo{
-				getFn: func(context.Context, ujian.ID) (ujian.AttemptUjian, error) {
-					return ujian.AttemptUjian{}, repoErr
-				},
-			},
-			wantErr: repoErr,
-			wantGet: true,
+			repo:      &fake_repo.FakeAttemptUjianRepo{GetAttemptUjianByIdErr: repoErr},
+			wantErr:   repoErr,
+			wantGet:   true,
 		},
 		{
-			name:      "happy path -> berhasil get attempt",
-			idAttempt: 10,
-			repo: &fakeGetAttemptRepo{
-				getFn: func(_ context.Context, id ujian.ID) (ujian.AttemptUjian, error) {
-					assert.Equal(t, ujian.ID(10), id)
-					return expected, nil
-				},
-			},
+			name:       "Branch 3 -> berhasil get attempt ujian",
+			idAttempt:  10,
+			repo:       &fake_repo.FakeAttemptUjianRepo{GetAttemptUjianByIdRet: expected},
 			wantGet:    true,
 			wantResult: expected,
 		},
@@ -79,8 +58,16 @@ func TestGetAttemptUjianService(t *testing.T) {
 			svc := attemptujian_service.NewGetAttemptUjianService(tc.repo)
 			result, err := svc.GetAttemptUjianById(ctx, tc.idAttempt)
 
-			assert.ErrorIs(t, err, tc.wantErr)
-			assert.Equal(t, tc.wantGet, tc.repo.getCalled)
+			if tc.wantErr != nil {
+				assert.ErrorIs(t, err, tc.wantErr)
+			} else {
+				assert.NoError(t, err)
+			}
+
+			assert.Equal(t, tc.wantGet, tc.repo.GetAttemptUjianByIdCalled)
+			if tc.repo.GetAttemptUjianByIdCalled {
+				assert.Equal(t, tc.idAttempt, tc.repo.GotGetAttemptID)
+			}
 			assert.Equal(t, tc.wantResult, result)
 		})
 	}

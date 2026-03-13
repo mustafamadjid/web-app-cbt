@@ -26,7 +26,7 @@ const mapAttemptErrorMessage = (error: unknown): string => {
 const UjianTokenSiswa: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { idJadwalUjian, bankSoalId } = useParams();
+  const { idJadwalUjian } = useParams();
   const { execute: executeAttempt, loading: submittingAttempt } = useAttemptUjian();
   const [token, setToken] = React.useState("");
   const [submitError, setSubmitError] = React.useState<string | null>(null);
@@ -43,7 +43,7 @@ const UjianTokenSiswa: React.FC = () => {
     }
 
     const parsedIdJadwalUjian = Number(idJadwalUjian);
-    if (!bankSoalId || !Number.isInteger(parsedIdJadwalUjian) || parsedIdJadwalUjian <= 0) {
+    if (!Number.isInteger(parsedIdJadwalUjian) || parsedIdJadwalUjian <= 0) {
       setSubmitError("Data ujian tidak valid.");
       return;
     }
@@ -64,9 +64,10 @@ const UjianTokenSiswa: React.FC = () => {
     try {
       await executeAttempt(payload);
       navigate(
-        paths.dashboard.ujian_siswa_mulai
-          .replace(":idJadwalUjian", String(parsedIdJadwalUjian))
-          .replace(":bankSoalId", bankSoalId),
+        paths.dashboard.ujian_siswa_mulai.replace(
+          ":idJadwalUjian",
+          String(parsedIdJadwalUjian),
+        ),
       );
     } catch (error) {
       setSubmitError(mapAttemptErrorMessage(error));

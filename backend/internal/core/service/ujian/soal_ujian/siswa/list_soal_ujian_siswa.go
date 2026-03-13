@@ -10,31 +10,30 @@ import (
 	ujian_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/ujian"
 )
 
-type ListSoalUjianService struct {
+type ListSoalUjianSiswaService struct {
 	repo ujian_repo.SoalUjianRepository
 }
 
-func NewListSoalUjianService(repo ujian_repo.SoalUjianRepository) *ListSoalUjianService {
-	return &ListSoalUjianService{
+func NewListSoalUjianSiswaService(repo ujian_repo.SoalUjianRepository) *ListSoalUjianSiswaService {
+	return &ListSoalUjianSiswaService{
 		repo: repo,
 	}
 }
 
-func(r *ListSoalUjianService)ListSoalUjian(ctx context.Context, idBankSoal ujian.ID, acakSoal bool)([]ujian.SoalUjianSiswa, error){
+func(r *ListSoalUjianSiswaService) ListSoalUjianSiswa(ctx context.Context,idJadwalUjian ujian.ID) ([]ujian.SoalUjianSiswa, error) {
 	logger := corelog.FromContext(ctx)
 
-	if idBankSoal <= 0 {
+	if idJadwalUjian <= 0 {
 		logger.Error(ctx, "failed list soal ujian", "layer", "core.service", "op", "ujian.list_soal", "err", coreerror.ErrMissingId)
 		return nil, coreerror.ErrMissingId
 	}
 
-	soal,err := r.repo.GetSoalUjianByBankSoal(ctx,idBankSoal)
+	soal,acakSoal,err := r.repo.GetSoalUjianByBankSoalForSiswa(ctx,idJadwalUjian)
 	if err != nil {
 		logger.Error(ctx, "failed list soal ujian", "layer", "core.service", "op", "ujian.list_soal", "err", err)
 		return nil, err
 	}
 
-	
 	lastElement := len(soal)-1
  
 	if acakSoal && len(soal) > 1 {
@@ -47,4 +46,5 @@ func(r *ListSoalUjianService)ListSoalUjian(ctx context.Context, idBankSoal ujian
 	}
 
 	return soal, nil
+
 }

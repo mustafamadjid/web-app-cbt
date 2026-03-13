@@ -6,7 +6,7 @@ import { resolveImageUrl } from "@/helper/MediaUrl/resolveMediaUrl";
 import SoalLayout from "@/layouts/BankSoalLayout/SoalLayout";
 import { paths } from "@/routes/paths";
 import { useGetBankSoalById } from "@/services/Api/features-api/BankSoal/banksoal.service";
-import { useGetSoalUjian } from "@/services/Api/features-api/BankSoal/soalUjian.service";
+import { useGetSoalUjian } from "@/services/Api/features-api/Ujian/soalUjian.service";
 import type { SoalPreviewItem } from "@/types/Ujian/SoalPreview";
 
 const OPTION_LABELS = ["A", "B", "C", "D", "E", "F", "G", "H"];

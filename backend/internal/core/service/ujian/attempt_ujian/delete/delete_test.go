@@ -8,23 +8,11 @@ import (
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	ujian "github.com/mustafamadjid/web-app-cbt/internal/core/domain/ujian_siswa"
 	attemptujian_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/attempt_ujian/delete"
+	fake_repo "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/attempt_ujian/delete/fake_repo"
 	"github.com/stretchr/testify/assert"
 )
 
-type fakeDeleteAttemptRepo struct {
-	deleteFn     func(ctx context.Context, idAttempt ujian.ID) error
-	deleteCalled bool
-}
-
-func (f *fakeDeleteAttemptRepo) DeleteAttemptUjian(ctx context.Context, idAttempt ujian.ID) error {
-	f.deleteCalled = true
-	if f.deleteFn != nil {
-		return f.deleteFn(ctx, idAttempt)
-	}
-	return nil
-}
-
-func TestDeleteAttemptUjianService(t *testing.T) {
+func TestDeleteAttemptUjianService_BranchCoverage(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -33,32 +21,28 @@ func TestDeleteAttemptUjianService(t *testing.T) {
 	tests := []struct {
 		name       string
 		idAttempt  ujian.ID
-		repo       *fakeDeleteAttemptRepo
+		repo       *fake_repo.FakeAttemptUjianRepo
 		wantErr    error
 		wantDelete bool
 	}{
 		{
-			name:       "branch 1 -> id attempt tidak valid",
+			name:       "Branch 1 -> idAttempt <= 0",
 			idAttempt:  0,
-			repo:       &fakeDeleteAttemptRepo{},
+			repo:       &fake_repo.FakeAttemptUjianRepo{},
 			wantErr:    coreerror.ErrMissingId,
 			wantDelete: false,
 		},
 		{
-			name:      "branch 2 -> repo error",
-			idAttempt: 10,
-			repo: &fakeDeleteAttemptRepo{
-				deleteFn: func(context.Context, ujian.ID) error {
-					return repoErr
-				},
-			},
+			name:       "Branch 2 -> repo DeleteAttemptUjian error",
+			idAttempt:  10,
+			repo:       &fake_repo.FakeAttemptUjianRepo{DeleteAttemptUjianErr: repoErr},
 			wantErr:    repoErr,
 			wantDelete: true,
 		},
 		{
-			name:       "happy path -> berhasil delete",
+			name:       "Branch 3 -> berhasil delete attempt ujian",
 			idAttempt:  10,
-			repo:       &fakeDeleteAttemptRepo{},
+			repo:       &fake_repo.FakeAttemptUjianRepo{},
 			wantDelete: true,
 		},
 	}
@@ -71,8 +55,16 @@ func TestDeleteAttemptUjianService(t *testing.T) {
 			svc := attemptujian_service.NewDeleteAttemptUjianService(tc.repo)
 			err := svc.DeleteAttemptUjian(ctx, tc.idAttempt)
 
-			assert.ErrorIs(t, err, tc.wantErr)
-			assert.Equal(t, tc.wantDelete, tc.repo.deleteCalled)
+			if tc.wantErr != nil {
+				assert.ErrorIs(t, err, tc.wantErr)
+			} else {
+				assert.NoError(t, err)
+			}
+
+			assert.Equal(t, tc.wantDelete, tc.repo.DeleteAttemptUjianCalled)
+			if tc.repo.DeleteAttemptUjianCalled {
+				assert.Equal(t, tc.idAttempt, tc.repo.GotDeleteAttemptID)
+			}
 		})
 	}
 }

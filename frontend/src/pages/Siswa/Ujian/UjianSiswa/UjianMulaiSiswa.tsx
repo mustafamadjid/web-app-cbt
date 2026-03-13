@@ -1,17 +1,24 @@
 import React from "react";
 import { useNavigate, useParams } from "react-router";
+import { resolveImageUrl } from "@/helper/MediaUrl/resolveMediaUrl";
 import SoalLayout from "@/layouts/BankSoalLayout/SoalLayout";
 import { paths } from "@/routes/paths";
-import { useGetMockSoalUjianSiswa } from "@/services/Api/features-api/Ujian/soalUjianSiswa.mock";
-import type { SoalPreviewData } from "@/types/Ujian/SoalPreview";
+import { useGetSoalUjianForSiswa } from "@/services/Api/features-api/Ujian/soalUjian.service";
+import type { SoalPreviewItem } from "@/types/Ujian/SoalPreview";
+
+const OPTION_LABELS = ["A", "B", "C", "D", "E", "F", "G", "H"];
 
 type SiswaSoalPreviewContentProps = {
-  soalData: SoalPreviewData;
+  title: string;
+  sisaWaktu: string;
+  soalPreview: SoalPreviewItem[];
   onBack: () => void;
 };
 
 const SiswaSoalPreviewContent: React.FC<SiswaSoalPreviewContentProps> = ({
-  soalData,
+  title,
+  sisaWaktu,
+  soalPreview,
   onBack,
 }) => {
   const [currentIndex, setCurrentIndex] = React.useState(0);
@@ -19,8 +26,8 @@ const SiswaSoalPreviewContent: React.FC<SiswaSoalPreviewContentProps> = ({
     Record<number, number>
   >({});
 
-  const totalSoal = soalData.soal.length;
-  const currentSoal = soalData.soal[currentIndex];
+  const totalSoal = soalPreview.length;
+  const currentSoal = soalPreview[currentIndex];
 
   const handleSelectOption = (soalId: number, optionId: number) => {
     setSelectedOptions((prev) => ({ ...prev, [soalId]: optionId }));
@@ -30,7 +37,7 @@ const SiswaSoalPreviewContent: React.FC<SiswaSoalPreviewContentProps> = ({
     <div className="space-y-3">
       <p className="text-xs font-semibold text-slate-400">Nomor Soal</p>
       <div className="flex flex-wrap gap-2">
-        {soalData.soal.map((soal, index) => {
+        {soalPreview.map((soal, index) => {
           const isActive = index === currentIndex;
           return (
             <button
@@ -55,10 +62,10 @@ const SiswaSoalPreviewContent: React.FC<SiswaSoalPreviewContentProps> = ({
 
   return (
     <SoalLayout
-      title={soalData.title}
+      title={title}
       currentNumber={currentIndex + 1}
       totalSoal={totalSoal}
-      sisaWaktu={soalData.sisa_waktu}
+      sisaWaktu={sisaWaktu}
       soal={currentSoal}
       questionNavigator={questionNavigator}
       selectedOptionId={selectedOptions[currentSoal.id]}
@@ -78,19 +85,37 @@ const SiswaSoalPreviewContent: React.FC<SiswaSoalPreviewContentProps> = ({
 
 const UjianMulaiSiswa: React.FC = () => {
   const navigate = useNavigate();
-  const { bankSoalId } = useParams();
+  const { idJadwalUjian } = useParams();
 
-  const parsedBankSoalId = Number(bankSoalId);
-  const isBankSoalIdValid =
-    Number.isInteger(parsedBankSoalId) && parsedBankSoalId > 0;
+  const parsedIdJadwalUjian = Number(idJadwalUjian);
+  const isIdJadwalUjianValid =
+    Number.isInteger(parsedIdJadwalUjian) && parsedIdJadwalUjian > 0;
   const {
-    data: soalData,
+    data: soalRows,
     loading,
     error,
-  } = useGetMockSoalUjianSiswa(parsedBankSoalId, isBankSoalIdValid);
+  } = useGetSoalUjianForSiswa(parsedIdJadwalUjian, isIdJadwalUjianValid);
+
+  const soalPreview = React.useMemo<SoalPreviewItem[]>(
+    () =>
+      (soalRows ?? []).map((soal) => ({
+        id: soal.id_soal,
+        nomor: soal.no_urut_soal,
+        tipe: soal.tipe_soal,
+        pertanyaan: soal.pertanyaan,
+        gambar_url: resolveImageUrl(soal.gambar) || undefined,
+        opsi: soal.opsi_jawaban.map((opsi, index) => ({
+          id: opsi.id_pilihan_ganda,
+          label: OPTION_LABELS[index] ?? String(index + 1),
+          text: opsi.isi_pilihan,
+        })),
+      })),
+    [soalRows],
+  );
 
   const errorMessage =
-    !bankSoalId || !isBankSoalIdValid ? "Bank soal tidak ditemukan." : error;
+    !idJadwalUjian || !isIdJadwalUjianValid ? "Jadwal ujian tidak ditemukan." : error;
+  const title = isIdJadwalUjianValid ? `Ujian #${parsedIdJadwalUjian}` : "Ujian";
 
   if (loading) {
     return (
@@ -100,7 +125,7 @@ const UjianMulaiSiswa: React.FC = () => {
     );
   }
 
-  if (errorMessage || !soalData || soalData.soal.length === 0) {
+  if (errorMessage || soalPreview.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-red-200 bg-white p-6 text-center text-sm text-red-500">
         {errorMessage ?? "Soal ujian tidak tersedia."}
@@ -110,8 +135,10 @@ const UjianMulaiSiswa: React.FC = () => {
 
   return (
     <SiswaSoalPreviewContent
-      key={parsedBankSoalId}
-      soalData={soalData}
+      key={parsedIdJadwalUjian}
+      title={title}
+      sisaWaktu="00:00:00"
+      soalPreview={soalPreview}
       onBack={() => navigate(paths.dashboard.ujian_siswa)}
     />
   );
