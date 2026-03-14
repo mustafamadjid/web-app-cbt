@@ -10,24 +10,6 @@ import {
 } from "lucide-react";
 import { Link } from "react-router";
 
-const statusConfig: Record<string, { label: string; color: string }> = {
-  belum_dimulai: {
-    label: "Belum Dimulai",
-    color: "bg-amber-50 text-amber-700 border-amber-200",
-  },
-  berlangsung: {
-    label: "Berlangsung",
-    color: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  },
-  selesai: {
-    label: "Selesai",
-    color: "bg-slate-50 text-slate-600 border-slate-200",
-  },
-  dibatalkan: {
-    label: "Dibatalkan",
-    color: "bg-rose-50 text-rose-700 border-rose-200",
-  },
-};
 
 type BoxJadwalUjianProps = JadwalUjianItem & {
   linkJadwal?: string;
@@ -43,7 +25,6 @@ const BoxJadwalUjian = ({
   waktu_mulai,
   sesi_ujian,
   ruang_ujian,
-  status_ujian,
   tingkat_kelas,
   nama_kelas,
   id_ujian,
@@ -53,10 +34,6 @@ const BoxJadwalUjian = ({
   deleting = false,
 }: BoxJadwalUjianProps) => {
   const idUjian = id_ujian ?? 0;
-  const status = status_ujian
-    ? statusConfig[status_ujian]
-    : { label: "Unknown", color: "bg-gray-100 text-gray-500" };
-
   const disableDelete = deleting || idUjian <= 0;
 
   return (
@@ -76,11 +53,7 @@ const BoxJadwalUjian = ({
               </h3>
             </div>
 
-            <span
-              className={`shrink-0 rounded-full border px-3 py-1 text-2xs font-black uppercase tracking-widest ${status.color}`}
-            >
-              {status.label}
-            </span>
+            
           </div>
 
           <div className="grid grid-cols-2 gap-4 rounded-xl border border-slate-50 bg-slate-50/50 p-4 sm:grid-cols-5">

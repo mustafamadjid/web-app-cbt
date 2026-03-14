@@ -1,4 +1,4 @@
-package ujianrepo
+package siswaujianrepo
 
 import (
 	"context"

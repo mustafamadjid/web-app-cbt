@@ -7,6 +7,7 @@ import type {
   BuatUjianSubmitResponse,
 } from "@/types/Ujian/BuatUjian";
 import type { DetailUjianItem } from "@/types/Ujian/DetailUjian";
+import type { WaktuSelesaiUjian } from "@/types/Ujian/ujianSiswa";
 
 
 
@@ -29,6 +30,15 @@ export async function getDetailUjianById(idUjian: number): Promise<DetailUjianIt
   });
 }
 
+export async function GetWaktuSelesaiUjian(idJadwalUjian: number): Promise<WaktuSelesaiUjian> {
+  return api<WaktuSelesaiUjian>(
+    `/siswa/ujian/waktu-selesai/${idJadwalUjian}`,
+    {
+      method : "GET"
+    },
+  );
+}
+
 // =====================
 // Hook Wrappers
 // =====================
@@ -45,5 +55,15 @@ export function useGetDetailUjianById(idUjian: number, enabled = true) {
         ? getDetailUjianById(idUjian)
         : Promise.resolve(null as DetailUjianItem | null),
     [idUjian, enabled],
+  );
+}
+
+export function useGetWaktuSelesaiUjian(idJadwalUjian: number, enabled = true) {
+  return useFetch(
+    () =>
+      enabled
+        ? GetWaktuSelesaiUjian(idJadwalUjian)
+        : Promise.resolve(null as WaktuSelesaiUjian | null),
+    [idJadwalUjian, enabled],
   );
 }

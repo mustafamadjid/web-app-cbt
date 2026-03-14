@@ -1,4 +1,4 @@
-package ujianrepo
+package attemptrepo
 
 import (
 	"context"
@@ -9,12 +9,27 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 
+	pg "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	ujian "github.com/mustafamadjid/web-app-cbt/internal/core/domain/ujian_siswa"
+	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 	updatepatch "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/update_patch"
 )
 
-func (r *UjianRepo) GetAttemptUjianById(ctx context.Context, idAttempt ujian.ID) (ujian.AttemptUjian, error) {
+type AttemptUjianRepo struct {
+	q      pg.Executor
+	logger corelog.Logger
+}
+
+func NewAttemptUjianRepo(q pg.Executor, logger corelog.Logger) *AttemptUjianRepo {
+	return &AttemptUjianRepo{q: q, logger: logger}
+}
+
+func (r *AttemptUjianRepo) loggerFor(ctx context.Context) corelog.Logger {
+	return corelog.FromContextOr(ctx, r.logger)
+}
+
+func (r *AttemptUjianRepo) GetAttemptUjianById(ctx context.Context, idAttempt ujian.ID) (ujian.AttemptUjian, error) {
 	const query = `
 		SELECT
 			id_attempt,
@@ -59,7 +74,7 @@ func (r *UjianRepo) GetAttemptUjianById(ctx context.Context, idAttempt ujian.ID)
 	return item, nil
 }
 
-func (r *UjianRepo) CreateAttemptUjian(ctx context.Context, data ujian.AttemptUjian) error {
+func (r *AttemptUjianRepo) CreateAttemptUjian(ctx context.Context, data ujian.AttemptUjian) error {
 	const query = `
 		INSERT INTO attempt_ujian (
 			id_peserta_ujian,
@@ -97,7 +112,7 @@ func (r *UjianRepo) CreateAttemptUjian(ctx context.Context, data ujian.AttemptUj
 	return nil
 }
 
-func (r *UjianRepo) UpdateAttemptUjian(ctx context.Context, idAttempt ujian.ID, data updatepatch.UpdateAttemptUjianPatch) error {
+func (r *AttemptUjianRepo) UpdateAttemptUjian(ctx context.Context, idAttempt ujian.ID, data updatepatch.UpdateAttemptUjianPatch) error {
 	const query = `
 		UPDATE attempt_ujian
 		SET
@@ -137,7 +152,7 @@ func (r *UjianRepo) UpdateAttemptUjian(ctx context.Context, idAttempt ujian.ID, 
 	return nil
 }
 
-func (r *UjianRepo) DeleteAttemptUjian(ctx context.Context, idAttempt ujian.ID) error {
+func (r *AttemptUjianRepo) DeleteAttemptUjian(ctx context.Context, idAttempt ujian.ID) error {
 	const query = `
 		DELETE FROM attempt_ujian
 		WHERE id_attempt = $1

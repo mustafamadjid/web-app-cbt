@@ -42,7 +42,7 @@ const UjianCard: React.FC<UjianCardProps> = ({
             </p>
           </div>
           <div className="rounded-full bg-[#397e50]/10 px-3 py-1 text-xs font-semibold text-[#397e50]">
-            {item.sesi_ujian ? `Sesi ${item.sesi_ujian}` : "Sesi"}
+            {item.nama_sesi ? `Sesi :  ${item.nama_sesi}` : "Sesi"}
           </div>
         </div>
 

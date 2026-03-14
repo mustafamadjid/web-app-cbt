@@ -108,7 +108,9 @@ const JadwalUjian = () => {
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-8">
       <div className="flex flex-col gap-8">
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h1 className="mb-6 text-2xl font-bold text-slate-800">Jadwal Ujian</h1>
+          <h1 className="mb-6 text-2xl font-bold text-slate-800">
+            Jadwal Ujian
+          </h1>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             <div className="space-y-2">
               <label className="flex items-center gap-2 text-sm font-semibold text-slate-600">
@@ -142,7 +144,9 @@ const JadwalUjian = () => {
               <select
                 value={selectedTahun ?? ""}
                 onChange={(event) =>
-                  setSelectedTahun(event.target.value === "" ? null : event.target.value)
+                  setSelectedTahun(
+                    event.target.value === "" ? null : event.target.value,
+                  )
                 }
                 className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm transition-all focus:border-[#397e50] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#397e50]/10"
               >
@@ -163,14 +167,19 @@ const JadwalUjian = () => {
                 value={selectedTingkatId ?? ""}
                 onChange={(event) =>
                   setSelectedTingkatId(
-                    event.target.value === "" ? null : Number(event.target.value),
+                    event.target.value === ""
+                      ? null
+                      : Number(event.target.value),
                   )
                 }
                 className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm transition-all focus:border-[#397e50] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#397e50]/10"
               >
                 <option value="">Semua Kelas</option>
                 {tingkatKelasOptions.map((kelas) => (
-                  <option key={kelas.id_tingkat_kelas} value={kelas.id_tingkat_kelas}>
+                  <option
+                    key={kelas.id_tingkat_kelas}
+                    value={kelas.id_tingkat_kelas}
+                  >
                     Kelas {kelas.tingkat_kelas}
                   </option>
                 ))}
@@ -185,7 +194,9 @@ const JadwalUjian = () => {
                 value={selectedRuang ?? ""}
                 onChange={(event) =>
                   setSelectedRuang(
-                    event.target.value === "" ? null : Number(event.target.value),
+                    event.target.value === ""
+                      ? null
+                      : Number(event.target.value),
                   )
                 }
                 className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm transition-all focus:border-[#397e50] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#397e50]/10"
@@ -245,25 +256,34 @@ const JadwalUjian = () => {
           ) : (
             <div className="flex flex-col gap-5">
               {jadwalData.length > 0 ? (
-                jadwalData.map((item) => (
-                  <BoxJadwalUjian
-                    key={item.id}
-                    {...item}
-                    onDelete={() => setDeleteTarget(item)}
-                    canControl={canControlUjian(item)}
-                    deleting={
-                      item.id_ujian != null &&
-                      deleteTarget?.id_ujian === item.id_ujian &&
-                      deletingUjian
-                    }
-                    linkJadwal={detailPathTemplate.replace(":id", String(item.id_ujian ?? 0))}
-                  />
-                ))
+                jadwalData.map(
+                  (item) => (
+                    console.log(item.sesi_ujian),
+                    (
+                      <BoxJadwalUjian
+                        key={item.id}
+                        {...item}
+                        onDelete={() => setDeleteTarget(item)}
+                        canControl={canControlUjian(item)}
+                        deleting={
+                          item.id_ujian != null &&
+                          deleteTarget?.id_ujian === item.id_ujian &&
+                          deletingUjian
+                        }
+                        linkJadwal={detailPathTemplate.replace(
+                          ":id",
+                          String(item.id_ujian ?? 0),
+                        )}
+                      />
+                    )
+                  ),
+                )
               ) : (
                 <div className="flex h-40 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white text-slate-500">
                   <p className="font-medium">Tidak ada jadwal ujian</p>
                   <p className="text-xs">
-                    Ujian dengan status "{activeTab.replace("_", " ")}" tidak ditemukan.
+                    Ujian dengan status "{activeTab.replace("_", " ")}" tidak
+                    ditemukan.
                   </p>
                 </div>
               )}

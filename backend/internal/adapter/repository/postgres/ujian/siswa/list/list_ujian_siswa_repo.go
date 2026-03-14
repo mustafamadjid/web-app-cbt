@@ -1,4 +1,4 @@
-package ujianrepo
+package siswalistrepo
 
 import (
 	"context"
@@ -6,11 +6,26 @@ import (
 	"fmt"
 	"strings"
 
+	pg "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres"
 	ujian "github.com/mustafamadjid/web-app-cbt/internal/core/domain/ujian_siswa"
+	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 	query "github.com/mustafamadjid/web-app-cbt/internal/core/query/ujian"
 )
 
-func (r *SiswaUjianRepo) buildListUjianSiswaQuery(idSiswa int, filter query.ListUjianFilter) (string, []any) {
+type ListUjianSiswaRepo struct {
+	q      pg.Executor
+	logger corelog.Logger
+}
+
+func NewListUjianSiswaRepo(q pg.Executor, logger corelog.Logger) *ListUjianSiswaRepo {
+	return &ListUjianSiswaRepo{q: q, logger: logger}
+}
+
+func (r *ListUjianSiswaRepo) loggerFor(ctx context.Context) corelog.Logger {
+	return corelog.FromContextOr(ctx, r.logger)
+}
+
+func (r *ListUjianSiswaRepo) buildListUjianSiswaQuery(idSiswa int, filter query.ListUjianFilter) (string, []any) {
 	baseQuery := `
 		SELECT
 			u.id_ujian,
@@ -128,7 +143,7 @@ func (r *SiswaUjianRepo) buildListUjianSiswaQuery(idSiswa int, filter query.List
 	return baseQuery, args
 }
 
-func (r *SiswaUjianRepo) ListUjianSiswa(ctx context.Context, idSiswa int, filter query.ListUjianFilter) ([]ujian.ListUjian, error) {
+func (r *ListUjianSiswaRepo) ListUjianSiswa(ctx context.Context, idSiswa int, filter query.ListUjianFilter) ([]ujian.ListUjian, error) {
 	queryText, args := r.buildListUjianSiswaQuery(idSiswa, filter)
 
 	rows, err := r.q.Query(ctx, queryText, args...)
@@ -191,4 +206,28 @@ func (r *SiswaUjianRepo) ListUjianSiswa(ctx context.Context, idSiswa int, filter
 	}
 
 	return results, nil
+}
+
+func nullInt64ToUjianIDPtr(v sql.NullInt64) *ujian.ID {
+	if !v.Valid {
+		return nil
+	}
+	id := ujian.ID(v.Int64)
+	return &id
+}
+
+func nullStringToPtr(v sql.NullString) *string {
+	if !v.Valid {
+		return nil
+	}
+	s := v.String
+	return &s
+}
+
+func nullStringToStatusUjianPtr(v sql.NullString) *ujian.StatusUjian {
+	if !v.Valid {
+		return nil
+	}
+	status := ujian.StatusUjian(v.String)
+	return &status
 }

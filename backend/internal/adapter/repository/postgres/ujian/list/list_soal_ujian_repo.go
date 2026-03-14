@@ -1,4 +1,4 @@
-package ujianrepo
+package ujianlistrepo
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+
 	pg "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	ujian "github.com/mustafamadjid/web-app-cbt/internal/core/domain/ujian_siswa"
@@ -14,17 +15,17 @@ import (
 )
 
 type ListSoalUjianRepo struct {
-	q    pg.Executor
-	log  corelog.Logger
-	pool *pgxpool.Pool
+	q      pg.Executor
+	logger corelog.Logger
+	pool   *pgxpool.Pool
 }
 
 func NewListSoalUjianRepo(pool *pgxpool.Pool, logger corelog.Logger) *ListSoalUjianRepo {
-	return &ListSoalUjianRepo{q: pool, log: logger, pool: pool}
+	return &ListSoalUjianRepo{q: pool, logger: logger, pool: pool}
 }
 
 func (r *ListSoalUjianRepo) loggerFor(ctx context.Context) corelog.Logger {
-	return corelog.FromContextOr(ctx, r.log)
+	return corelog.FromContextOr(ctx, r.logger)
 }
 
 func (r *ListSoalUjianRepo) GetSoalUjianByBankSoal(ctx context.Context, idBankSoal ujian.ID) ([]ujian.SoalUjianSiswa, error) {

@@ -9,14 +9,14 @@ import (
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	ujian "github.com/mustafamadjid/web-app-cbt/internal/core/domain/ujian_siswa"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
-	ujian_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/soal_ujian/siswa"
+	siswaujian_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian/soal_ujian"
 )
 
 type ListSoalUjianSiswaHandler struct {
-	svc *ujian_service.ListSoalUjianSiswaService
+	svc *siswaujian_service.ListSoalUjianSiswaService
 }
 
-func NewListSoalUjianSiswaHandler(svc *ujian_service.ListSoalUjianSiswaService) *ListSoalUjianSiswaHandler {
+func NewListSoalUjianSiswaHandler(svc *siswaujian_service.ListSoalUjianSiswaService) *ListSoalUjianSiswaHandler {
 	return &ListSoalUjianSiswaHandler{svc: svc}
 }
 

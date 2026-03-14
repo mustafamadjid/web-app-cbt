@@ -5,6 +5,7 @@ import (
 	httpcreateujian "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/create/ujian"
 	httpdeleteujian "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/delete/ujian"
 	httpget "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/get"
+	httpgetwaktuujian "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/get/waktu_ujian"
 	httplist "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/list"
 	httplistsoal "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/list_soal_ujian"
 	httplistsoalsiswa "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/list_soal_ujian_for_siswa"
@@ -12,8 +13,9 @@ import (
 	httpupdateujian "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/update/ujian"
 	siswaujian_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian"
 	siswaujianlist_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian/list"
+	siswaujiansoal_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian/soal_ujian"
+	siswaujianwaktuselesai_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian/waktu_selesai"
 	ujian_soal_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/soal_ujian"
-	ujian_soal_siswa_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/soal_ujian/siswa"
 	ujian_create_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/ujian_penjadwalan/create"
 	ujian_delete_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/ujian_penjadwalan/delete"
 	ujian_get_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/ujian_penjadwalan/get"
@@ -26,19 +28,21 @@ type UjianModule struct {
 	ListUjianSiswaService     *siswaujianlist_service.ListUjianSiswaService
 	GetService                *ujian_get_service.GetUjianService
 	ListSoalUjianService      *ujian_soal_service.ListSoalUjianService
-	ListSoalUjianSiswaService *ujian_soal_siswa_service.ListSoalUjianSiswaService
+	ListSoalUjianSiswaService *siswaujiansoal_service.ListSoalUjianSiswaService
+	GetWaktuSelesaiService    *siswaujianwaktuselesai_service.GetWaktuSelesaiService
 	UpdateUjianService        *ujian_update_service.UpdateUjianService
 	DeleteUjianService        *ujian_delete_service.DeleteUjianService
 
-	AttemptUjianHandler       *httpcreateattemptujian.AttemptUjianHandler
-	CreateUjianHandler        *httpcreateujian.CreateRuangUjianHandler
-	ListHandler               *httplist.ListUjianHandler
-	ListUjianSiswaHandler     *httplistsiswa.ListUjianSiswaHandler
-	ListSoalUjianHandler      *httplistsoal.ListSoalUjianHandler
-	ListSoalUjianSiswaHandler *httplistsoalsiswa.ListSoalUjianSiswaHandler
-	GetHandler                *httpget.GetUjianHandler
-	UpdateUjianHandler        *httpupdateujian.UpdateUjianHandler
-	DeleteUjianHandler        *httpdeleteujian.DeleteUjianHandler
+	AttemptUjianHandler         *httpcreateattemptujian.AttemptUjianHandler
+	CreateUjianHandler          *httpcreateujian.CreateRuangUjianHandler
+	ListHandler                 *httplist.ListUjianHandler
+	ListUjianSiswaHandler       *httplistsiswa.ListUjianSiswaHandler
+	ListSoalUjianHandler        *httplistsoal.ListSoalUjianHandler
+	ListSoalUjianSiswaHandler   *httplistsoalsiswa.ListSoalUjianSiswaHandler
+	GetWaktuSelesaiUjianHandler *httpgetwaktuujian.GetWaktuSelesaiUjianHandler
+	GetHandler                  *httpget.GetUjianHandler
+	UpdateUjianHandler          *httpupdateujian.UpdateUjianHandler
+	DeleteUjianHandler          *httpdeleteujian.DeleteUjianHandler
 }
 
 func BuildUjianModule(infra *InfraModule) *UjianModule {
@@ -50,7 +54,8 @@ func BuildUjianModule(infra *InfraModule) *UjianModule {
 	listUjianSiswaSvc := siswaujianlist_service.NewListUjianSiswaService(infra.listUjianSiswaRepo)
 	getSvc := ujian_get_service.NewGetujianService(infra.listUjianRepo)
 	listSoalUjianSvc := ujian_soal_service.NewListSoalUjianService(infra.soalUjianRepo)
-	listSoalUjianSiswaSvc := ujian_soal_siswa_service.NewListSoalUjianSiswaService(infra.soalUjianRepo)
+	listSoalUjianSiswaSvc := siswaujiansoal_service.NewListSoalUjianSiswaService(infra.soalUjianRepo)
+	getWaktuSelesaiSvc := siswaujianwaktuselesai_service.NewGetWaktuSelesaiService(infra.waktuSelesaiUjianRepo)
 	updateUjianSvc := ujian_update_service.NewUpdateUjianService(infra.ujianRepo)
 	deleteUjianSvc := ujian_delete_service.NewDeleteUjianService(infra.ujianRepo)
 
@@ -60,27 +65,30 @@ func BuildUjianModule(infra *InfraModule) *UjianModule {
 	listUjianSiswaHandler := httplistsiswa.NewListUjianSiswaHandler(listUjianSiswaSvc)
 	listSoalUjianHandler := httplistsoal.NewListSoalUjianHandler(listSoalUjianSvc)
 	listSoalUjianSiswaHandler := httplistsoalsiswa.NewListSoalUjianSiswaHandler(listSoalUjianSiswaSvc)
+	getWaktuSelesaiHandler := httpgetwaktuujian.NewGetWaktuSelesaiUjianHandler(getWaktuSelesaiSvc)
 	getHandler := httpget.NewGetUjianHandler(getSvc)
 	updateUjianHandler := httpupdateujian.NewUpdateUjianHandler(updateUjianSvc)
 	deleteUjianHandler := httpdeleteujian.NewDeleteUjianHandler(deleteUjianSvc)
 
 	return &UjianModule{
-		AttemptUjianService:       attemptUjianSvc,
-		CreateUjianService:        createUjianSvc,
-		ListUjianSiswaService:     listUjianSiswaSvc,
-		GetService:                getSvc,
-		ListSoalUjianService:      listSoalUjianSvc,
-		ListSoalUjianSiswaService: listSoalUjianSiswaSvc,
-		UpdateUjianService:        updateUjianSvc,
-		DeleteUjianService:        deleteUjianSvc,
-		AttemptUjianHandler:       attemptUjianHandler,
-		CreateUjianHandler:        createUjianHandler,
-		ListHandler:               listHandler,
-		ListUjianSiswaHandler:     listUjianSiswaHandler,
-		ListSoalUjianHandler:      listSoalUjianHandler,
-		ListSoalUjianSiswaHandler: listSoalUjianSiswaHandler,
-		GetHandler:                getHandler,
-		UpdateUjianHandler:        updateUjianHandler,
-		DeleteUjianHandler:        deleteUjianHandler,
+		AttemptUjianService:         attemptUjianSvc,
+		CreateUjianService:          createUjianSvc,
+		ListUjianSiswaService:       listUjianSiswaSvc,
+		GetService:                  getSvc,
+		ListSoalUjianService:        listSoalUjianSvc,
+		ListSoalUjianSiswaService:   listSoalUjianSiswaSvc,
+		GetWaktuSelesaiService:      getWaktuSelesaiSvc,
+		UpdateUjianService:          updateUjianSvc,
+		DeleteUjianService:          deleteUjianSvc,
+		AttemptUjianHandler:         attemptUjianHandler,
+		CreateUjianHandler:          createUjianHandler,
+		ListHandler:                 listHandler,
+		ListUjianSiswaHandler:       listUjianSiswaHandler,
+		ListSoalUjianHandler:        listSoalUjianHandler,
+		ListSoalUjianSiswaHandler:   listSoalUjianSiswaHandler,
+		GetWaktuSelesaiUjianHandler: getWaktuSelesaiHandler,
+		GetHandler:                  getHandler,
+		UpdateUjianHandler:          updateUjianHandler,
+		DeleteUjianHandler:          deleteUjianHandler,
 	}
 }

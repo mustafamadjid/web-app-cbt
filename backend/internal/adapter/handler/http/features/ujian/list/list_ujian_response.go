@@ -11,7 +11,7 @@ type ListUjianResponse struct {
 	TanggalUjian     string `json:"tanggal_ujian"`
 	WaktuMulai       string `json:"waktu_mulai"`
 	WaktuSelesai     string `json:"waktu_selesai"`
-	SesiUjian        int    `json:"sesi_ujian"`
+	SesiUjian        string   `json:"sesi_ujian"`
 	RuangUjian       string `json:"ruang_ujian"`
 	IDRuang          int    `json:"id_ruang"`
 	StatusUjian      string `json:"status_ujian"`

@@ -18,3 +18,7 @@ type SiswaUjianChecker interface {
 type ListUjianSiswaRepository interface {
 	ListUjianSiswa(ctx context.Context, idSiswa int, filter query.ListUjianFilter) ([]ujian.ListUjian, error)
 }
+
+type WaktuSelesaiUjianRepository interface {
+	GetWaktuSelesaiUjian(ctx context.Context, idJadwalUjian int) (time.Time, error)
+}

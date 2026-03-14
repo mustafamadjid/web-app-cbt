@@ -5,6 +5,10 @@ import (
 
 	pg "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres"
 	pgujian "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/ujian"
+	pgujianattempt "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/ujian/attempt"
+	pgujianlist "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/ujian/list"
+	pgujiansiswa "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/ujian/siswa"
+	pgujiansiswalist "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/ujian/siswa/list"
 	out "github.com/mustafamadjid/web-app-cbt/internal/core/port/out"
 	outaktivitas "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/aktivitas_user"
 	outauth "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/auth_port_out"
@@ -39,18 +43,19 @@ type InfraModule struct {
 	profilSekolah outprofil.ProfilSekolahRepository
 	aktivitasUser outaktivitas.AktivitasUserRepository
 
-	kelasRepo          kelas_repo.KelasRepository
-	bankSoalRepo       bank_soal_repo.BankSoalRepository
-	mapelRepo          mapel_repo.MataPelajaranRepository
-	pengumumanRepo     pengumuman_repo.PengumumanRepo
-	ruangUjianRepo     ruangujian_repo.RuangUjianRepo
-	listUjianRepo      ujian_repo.ListUjianRepository
-	listUjianSiswaRepo ujian_repo.ListUjianSiswaRepository
-	soalUjianRepo      ujian_repo.SoalUjianRepository
-	ujianRepo          ujian_repo.UjianRepository
-	attemptUjianRepo   ujian_repo.AttemptUjianRepository
-	siswaUjianChecker  ujian_repo.SiswaUjianChecker
-	sesiRepo           sesi_repo.SesiRepository
+	kelasRepo             kelas_repo.KelasRepository
+	bankSoalRepo          bank_soal_repo.BankSoalRepository
+	mapelRepo             mapel_repo.MataPelajaranRepository
+	pengumumanRepo        pengumuman_repo.PengumumanRepo
+	ruangUjianRepo        ruangujian_repo.RuangUjianRepo
+	listUjianRepo         ujian_repo.ListUjianRepository
+	listUjianSiswaRepo    ujian_repo.ListUjianSiswaRepository
+	soalUjianRepo         ujian_repo.SoalUjianRepository
+	ujianRepo             ujian_repo.UjianRepository
+	attemptUjianRepo      ujian_repo.AttemptUjianRepository
+	siswaUjianChecker     ujian_repo.SiswaUjianChecker
+	waktuSelesaiUjianRepo ujian_repo.WaktuSelesaiUjianRepository
+	sesiRepo              sesi_repo.SesiRepository
 
 	importSoalJobRepo importsoal_repo.ImportSoalJobRepo
 	isiSoalBatchRepo  importsoal_repo.IsiSoalBatchRepo
@@ -62,7 +67,9 @@ func BuildInfraModule(pool *pgxpool.Pool, logger corelog.Logger) *InfraModule {
 	profilGuruRepo := pg.NewProfilgGuruRepo(pool, logger)
 	profilSiswaRepo := pg.NewProfilSiswaRepo(pool, logger)
 	ujianRepo := pgujian.NewUjianRepo(pool, logger, pool)
-	siswaUjianRepo := pgujian.NewSiswaUjianRepo(pool, logger)
+	siswaUjianRepo := pgujiansiswa.NewSiswaUjianRepo(pool, logger)
+	listUjianSiswaRepo := pgujiansiswalist.NewListUjianSiswaRepo(pool, logger)
+	attemptUjianRepo := pgujianattempt.NewAttemptUjianRepo(pool, logger)
 
 	return &InfraModule{
 		Pool:                  pool,
@@ -82,12 +89,13 @@ func BuildInfraModule(pool *pgxpool.Pool, logger corelog.Logger) *InfraModule {
 		mapelRepo:             pg.NewMapelRepo(pool, logger),
 		pengumumanRepo:        pg.NewPengumumanRepo(pool, logger),
 		ruangUjianRepo:        pg.NewRuangUjianRepo(pool, logger),
-		listUjianRepo:         pgujian.NewListUjianRepo(pool, logger),
-		listUjianSiswaRepo:    siswaUjianRepo,
-		soalUjianRepo:         pgujian.NewListSoalUjianRepo(pool, logger),
+		listUjianRepo:         pgujianlist.NewListUjianRepo(pool, logger),
+		listUjianSiswaRepo:    listUjianSiswaRepo,
+		soalUjianRepo:         pgujianlist.NewListSoalUjianRepo(pool, logger),
 		ujianRepo:             ujianRepo,
-		attemptUjianRepo:      ujianRepo,
+		attemptUjianRepo:      attemptUjianRepo,
 		siswaUjianChecker:     siswaUjianRepo,
+		waktuSelesaiUjianRepo: siswaUjianRepo,
 		sesiRepo:              pg.NewSesirepo(pool, logger),
 		importSoalJobRepo:     pg.NewImportSoalJobRepo(pool, logger),
 		isiSoalBatchRepo:      pg.NewIsiSoalBatchRepo(pool, logger),

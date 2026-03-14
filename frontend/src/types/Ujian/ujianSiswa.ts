@@ -24,3 +24,8 @@ export type UjianSiswaResponse = {
   completed: UjianSiswaResultItem[];
   mapelOptions: string[];
 };
+
+export type WaktuSelesaiUjian = {
+  id_jadwal_ujian : number,
+  waktu_selesai : string
+}

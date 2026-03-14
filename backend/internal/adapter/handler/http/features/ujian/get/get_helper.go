@@ -48,7 +48,7 @@ func ToUjianResponse(item ujian.ListUjian) ListUjianByIdResponse {
 		TanggalUjian:     httphelper.FormatDateOnly(item.TanggalUjian),
 		WaktuMulai:       httphelper.FormatTimeOnly(item.WaktuMulai),
 		WaktuSelesai:     httphelper.FormatTimeOnly(item.WaktuSelesai),
-		SesiUjian:        int(item.IdSesi),
+		SesiUjian:        item.NamaSesi,
 		RuangUjian:       item.NamaRuangan,
 		IDRuang:          int(item.IdRuangan),
 		StatusUjian:      status,
