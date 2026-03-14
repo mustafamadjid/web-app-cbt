@@ -6,7 +6,6 @@ import {
   BookOpen,
   Calendar,
   GraduationCap,
-  Hash,
   MapPin,
 } from "lucide-react";
 
