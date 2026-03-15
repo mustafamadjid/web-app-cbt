@@ -67,4 +67,6 @@ var (
 	ErrTokenUjianInvalid = errors.New("Invalid token ujian")
 	ErrPesertaNotAllowedToAttemptJadwal = errors.New("Peserta ujian is not allowed to attempt this ujian")
 	ErrMissingTokenUjian = errors.New("Missing token ujian")
+
+	ErrMissingJawabanEssayAndPilgan = errors.New("Missing jawaban essay and pilgan")
 )

@@ -42,7 +42,5 @@ type HasilUjianRepository interface {
 
 type JawabanUjianRepository interface {
 	GetJawabanUjianByAttemptId(ctx context.Context, idAttempt ujian.ID) ([]ujian.JawabanUjian, error)
-	CreateJawabanUjian(ctx context.Context, data ujian.JawabanUjian) error
-	UpdateJawabanUjian(ctx context.Context, idAttempt ujian.ID, data updatepatch.UpdateJawabanUjianPatch) error
-	DeleteJawabanUjian(ctx context.Context, idAttempt ujian.ID) error
+	SaveJawabanUjian(ctx context.Context,idAttempt ujian.ID, jawaban []ujian.JawabanUjian) error
 }

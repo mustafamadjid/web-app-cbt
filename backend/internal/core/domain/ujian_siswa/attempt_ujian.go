@@ -43,13 +43,11 @@ type HasilUjian struct {
 }
 
 type JawabanUjian struct {
-	IdJawaban    ID
-	IdAttempt    ID
-	IdSoal       ID
-	IdPilihan    *ID
-	JawabanEssay *string
-	IsBenar      *bool
-	WaktuJawab   *time.Time
+	IdJawaban    ID `json:"id_jawaban"`
+	IdSoal       ID	`json:"id_soal"`
+	IdPilihan    *ID `json:"id_pilihan"`
+	JawabanEssay *string `json:"jawaban_essay"`
+	WaktuJawab   *time.Time `json:"waktu_jawab"`
 }
 
 func (status StatusAttempt) ValidStatus() bool {
