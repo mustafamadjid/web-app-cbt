@@ -30,6 +30,15 @@ const buildExpireAttemptPayload = () =>
     { nullishToEmptyString: false },
   );
 
+const buildSubmitAttemptPayload = () =>
+  buildJsonData(
+    {
+      status_attempt: "submitted",
+      waktu_submit: new Date().toISOString(),
+    },
+    { nullishToEmptyString: false },
+  );
+
 
 export async function submitBuatUjian(values: BuatUjianFormValues) {
   const data = buildJsonData(values);
@@ -91,6 +100,13 @@ export async function expireAttemptUjianSiswa(idAttempt: number): Promise<boolea
   return api<boolean>(`${SISWA_ATTEMPT_UJIAN_ENDPOINT}/${idAttempt}`, {
     method: "PATCH",
     data: buildExpireAttemptPayload(),
+  });
+}
+
+export async function submitAttemptUjianSiswa(idAttempt: number): Promise<boolean> {
+  return api<boolean>(`${SISWA_ATTEMPT_UJIAN_ENDPOINT}/${idAttempt}`, {
+    method: "PATCH",
+    data: buildSubmitAttemptPayload(),
   });
 }
 
@@ -174,4 +190,8 @@ export function useSaveJawabanUjianSiswa() {
 
 export function useExpireAttemptUjianSiswa() {
   return usePost((idAttempt: number) => expireAttemptUjianSiswa(idAttempt));
+}
+
+export function useSubmitAttemptUjianSiswa() {
+  return usePost((idAttempt: number) => submitAttemptUjianSiswa(idAttempt));
 }

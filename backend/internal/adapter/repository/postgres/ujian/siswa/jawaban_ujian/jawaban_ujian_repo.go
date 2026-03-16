@@ -5,21 +5,29 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"strings"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgxpool"
 	pg "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	ujian "github.com/mustafamadjid/web-app-cbt/internal/core/domain/ujian_siswa"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 )
 
+type txBeginner interface {
+	BeginTx(ctx context.Context, txOptions pgx.TxOptions) (pgx.Tx, error)
+}
+
 type JawabanUjianRepo struct {
 	q      pg.Executor
 	logger corelog.Logger
+	pool   txBeginner
 }
 
-func NewJawabanUjianRepo(q pg.Executor, logger corelog.Logger) *JawabanUjianRepo {
-	return &JawabanUjianRepo{q: q, logger: logger}
+func NewJawabanUjianRepo(q pg.Executor, logger corelog.Logger, pool *pgxpool.Pool) *JawabanUjianRepo {
+	return &JawabanUjianRepo{q: q, logger: logger, pool: pool}
 }
 
 func (r *JawabanUjianRepo) loggerFor(ctx context.Context) corelog.Logger {
@@ -27,6 +35,53 @@ func (r *JawabanUjianRepo) loggerFor(ctx context.Context) corelog.Logger {
 }
 
 func (r *JawabanUjianRepo) SaveJawabanUjian(ctx context.Context, idAttempt ujian.ID, jawaban []ujian.JawabanUjian) error {
+	upsertItems, clearSoalIDs := splitSaveJawabanItems(jawaban)
+	if len(upsertItems) == 0 && len(clearSoalIDs) == 0 {
+		return nil
+	}
+
+	tx, err := r.pool.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		r.loggerFor(ctx).Error(ctx, "failed begin tx save jawaban ujian", "layer", "adapter.repository", "op", "ujian.jawaban.save.begin_tx", "err", err)
+		return err
+	}
+
+	committed := false
+	defer func() {
+		if !committed {
+			_ = tx.Rollback(ctx)
+		}
+	}()
+
+	if len(clearSoalIDs) > 0 {
+		if _, err := tx.Exec(
+			ctx,
+			`DELETE FROM jawaban_ujian_siswa
+			WHERE id_attempt = $1 AND id_soal = ANY($2)`,
+			idAttempt,
+			clearSoalIDs,
+		); err != nil {
+			r.loggerFor(ctx).Error(ctx, "failed clear jawaban ujian", "layer", "adapter.repository", "op", "ujian.jawaban.clear", "err", err)
+			return err
+		}
+	}
+
+	if len(upsertItems) > 0 {
+		if err := r.upsertJawabanUjian(ctx, tx, idAttempt, upsertItems); err != nil {
+			return err
+		}
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		r.loggerFor(ctx).Error(ctx, "failed commit save jawaban ujian", "layer", "adapter.repository", "op", "ujian.jawaban.save.commit", "err", err)
+		return err
+	}
+
+	committed = true
+	return nil
+}
+
+func (r *JawabanUjianRepo) upsertJawabanUjian(ctx context.Context, q pg.Executor, idAttempt ujian.ID, jawaban []ujian.JawabanUjian) error {
 	query := `
 		INSERT INTO jawaban_ujian_siswa (
 			id_attempt,
@@ -53,14 +108,14 @@ func (r *JawabanUjianRepo) SaveJawabanUjian(ctx context.Context, idAttempt ujian
 			jawaban_essay = EXCLUDED.jawaban_essay,
 			waktu_jawab = EXCLUDED.waktu_jawab
 		`
-	// Marshalling
+
 	payloadJson, err := json.Marshal(jawaban)
 	if err != nil {
 		r.loggerFor(ctx).Error(ctx, "failed marshal jawaban ujian", "layer", "adapter.repository", "op", "ujian.jawaban.save", "err", err)
 		return err
 	}
 
-	_, err = r.q.Exec(ctx, query, idAttempt, payloadJson)
+	_, err = q.Exec(ctx, query, idAttempt, payloadJson)
 	if err != nil {
 		if mappedErr := mapJawabanConstraintError(err); mappedErr != nil {
 			return mappedErr
@@ -124,6 +179,32 @@ func (r *JawabanUjianRepo) GetJawabanUjianByAttemptId(ctx context.Context, idAtt
 	}
 
 	return jawaban, nil
+}
+
+func splitSaveJawabanItems(jawaban []ujian.JawabanUjian) ([]ujian.JawabanUjian, []int64) {
+	upsertItems := make([]ujian.JawabanUjian, 0, len(jawaban))
+	clearSoalIDs := make([]int64, 0, len(jawaban))
+
+	for _, item := range jawaban {
+		normalizedItem := item
+		if normalizedItem.JawabanEssay != nil {
+			trimmedEssay := strings.TrimSpace(*normalizedItem.JawabanEssay)
+			if trimmedEssay == "" {
+				normalizedItem.JawabanEssay = nil
+			} else {
+				normalizedItem.JawabanEssay = &trimmedEssay
+			}
+		}
+
+		if normalizedItem.IdPilihan == nil && normalizedItem.JawabanEssay == nil {
+			clearSoalIDs = append(clearSoalIDs, int64(normalizedItem.IdSoal))
+			continue
+		}
+
+		upsertItems = append(upsertItems, normalizedItem)
+	}
+
+	return upsertItems, clearSoalIDs
 }
 
 func nullInt64ToUjianIDPtr(v sql.NullInt64) *ujian.ID {

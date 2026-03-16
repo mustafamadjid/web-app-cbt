@@ -3,6 +3,7 @@ import toast from "react-hot-toast";
 import { useNavigate, useParams } from "react-router";
 
 import ConfirmAlert from "@/components/ui/ConfirmAlert/ConfirmAlert";
+import SiswaSubmitPreviewContent from "@/components/features/Ujian/SiswaSubmitPreviewContent";
 import SiswaSoalPreviewContent, {
   type EssayAnswersMap,
   type SelectedOptionsMap,
@@ -17,10 +18,14 @@ import { useExamSessionExit } from "@/hooks/Ujian/useExamSessionExit";
 import { paths } from "@/routes/paths";
 import {
   useGetJawabanUjianSiswaByAttemptId,
+  useSubmitAttemptUjianSiswa,
   useGetWaktuSelesaiUjian,
   useSaveJawabanUjianSiswa,
 } from "@/services/Api/features-api/Ujian/ujian.service";
-import type { SaveJawabanUjianSiswaRequest } from "@/types/Ujian/ujianSiswa";
+import type {
+  JawabanUjianSiswaResponse,
+  SaveJawabanUjianSiswaRequest,
+} from "@/types/Ujian/ujianSiswa";
 
 const EXAM_LIST_PATH = paths.dashboard.ujian_siswa;
 
@@ -42,18 +47,12 @@ const createJawabanDraft = (idSoal: number): JawabanDraft => ({
   isDirty: false,
 });
 
-const hasSavableJawaban = (jawaban?: JawabanDraft) =>
-  Boolean(
-    jawaban &&
-      (jawaban.id_pilihan !== null || jawaban.jawaban_essay.trim() !== ""),
-  );
-
 const buildSaveJawabanPayload = (
   idAttempt: number,
   jawaban: JawabanDraft,
-): SaveJawabanUjianSiswaRequest | null => {
+): SaveJawabanUjianSiswaRequest => {
   const normalizedEssay = jawaban.jawaban_essay.trim();
-  const payload: SaveJawabanUjianSiswaRequest = {
+  return {
     id_attempt: idAttempt,
     jawaban: [
       {
@@ -64,13 +63,6 @@ const buildSaveJawabanPayload = (
       },
     ],
   };
-
-  const [item] = payload.jawaban;
-  if (item.id_pilihan === null && item.jawaban_essay === null) {
-    return null;
-  }
-
-  return payload;
 };
 
 const UjianMulaiSiswa: React.FC = () => {
@@ -79,6 +71,12 @@ const UjianMulaiSiswa: React.FC = () => {
   const { idJadwalUjian } = useParams();
   const [currentIndex, setCurrentIndex] = React.useState(0);
   const [draftAnswers, setDraftAnswers] = React.useState<JawabanDraftMap>({});
+  const [viewMode, setViewMode] = React.useState<"question" | "submit_preview">(
+    "question",
+  );
+  const [preparingPreview, setPreparingPreview] = React.useState(false);
+  const [previewJawabanData, setPreviewJawabanData] =
+    React.useState<JawabanUjianSiswaResponse | null>(null);
 
   const parsedIdJadwalUjian = Number(idJadwalUjian);
   const parsedIdSiswa = user?.id_pengguna ?? 0;
@@ -119,7 +117,9 @@ const UjianMulaiSiswa: React.FC = () => {
     isIdSiswaValid;
   const {
     data: jawabanUjianData,
+    loading: loadingJawabanUjian,
     error: jawabanUjianError,
+    refetch: refetchJawabanUjian,
   } = useGetJawabanUjianSiswaByAttemptId(
     attemptId ?? 0,
     shouldSyncJawaban,
@@ -131,6 +131,12 @@ const UjianMulaiSiswa: React.FC = () => {
     error: saveJawabanError,
     reset: resetSaveJawabanState,
   } = useSaveJawabanUjianSiswa();
+  const {
+    execute: executeSubmitAttempt,
+    loading: submittingAttempt,
+    error: submitAttemptError,
+    reset: resetSubmitAttemptState,
+  } = useSubmitAttemptUjianSiswa();
 
   const soalPreview = React.useMemo(() => buildSoalPreview(soalRows), [soalRows]);
   const currentSoal = soalPreview[currentIndex] ?? null;
@@ -159,13 +165,25 @@ const UjianMulaiSiswa: React.FC = () => {
 
     return mapped;
   }, [draftAnswers]);
+  const previewJawabanItems = React.useMemo(
+    () => (previewJawabanData ?? jawabanUjianData)?.jawaban ?? [],
+    [jawabanUjianData, previewJawabanData],
+  );
   const jawabanSyncError = saveJawabanError ?? jawabanUjianError;
 
   React.useEffect(() => {
     setCurrentIndex(0);
     setDraftAnswers({});
+    setViewMode("question");
+    setPreparingPreview(false);
+    setPreviewJawabanData(null);
     resetSaveJawabanState();
-  }, [parsedIdJadwalUjian, resetSaveJawabanState]);
+    resetSubmitAttemptState();
+  }, [
+    parsedIdJadwalUjian,
+    resetSaveJawabanState,
+    resetSubmitAttemptState,
+  ]);
 
   React.useEffect(() => {
     if (currentIndex < soalPreview.length) {
@@ -370,9 +388,6 @@ const UjianMulaiSiswa: React.FC = () => {
       }
 
       const payload = buildSaveJawabanPayload(attemptId, currentJawaban);
-      if (!payload || !hasSavableJawaban(currentJawaban)) {
-        return true;
-      }
 
       try {
         await executeSaveJawaban(payload);
@@ -385,6 +400,15 @@ const UjianMulaiSiswa: React.FC = () => {
           }
 
           const [savedItem] = payload.jawaban;
+          const shouldClearAnswer =
+            savedItem.id_pilihan === null && savedItem.jawaban_essay === null;
+
+          if (shouldClearAnswer) {
+            const rest = { ...prev };
+            delete rest[soalId];
+            return rest;
+          }
+
           return {
             ...prev,
             [soalId]: {
@@ -404,6 +428,97 @@ const UjianMulaiSiswa: React.FC = () => {
     },
     [attemptId, draftAnswers, executeSaveJawaban],
   );
+
+  const handleOpenSubmitPreview = React.useCallback(() => {
+    if (
+      preparingPreview ||
+      savingJawaban ||
+      submittingAttempt ||
+      expiringAttempt
+    ) {
+      return;
+    }
+
+    void (async () => {
+      setPreparingPreview(true);
+
+      try {
+        const saved = await saveCurrentJawaban(currentSoal?.id ?? null);
+        if (!saved) {
+          return;
+        }
+
+        const latestJawaban = await refetchJawabanUjian();
+        if (latestJawaban === null) {
+          toast.error("Gagal memuat preview jawaban ujian.");
+          return;
+        }
+
+        if (submitAttemptError) {
+          resetSubmitAttemptState();
+        }
+
+        setPreviewJawabanData(latestJawaban);
+        setViewMode("submit_preview");
+      } finally {
+        setPreparingPreview(false);
+      }
+    })();
+  }, [
+    currentSoal?.id,
+    expiringAttempt,
+    preparingPreview,
+    refetchJawabanUjian,
+    resetSubmitAttemptState,
+    saveCurrentJawaban,
+    savingJawaban,
+    submitAttemptError,
+    submittingAttempt,
+  ]);
+
+  const handleBackToQuestionMode = React.useCallback(() => {
+    if (preparingPreview || submittingAttempt || expiringAttempt) {
+      return;
+    }
+
+    setPreviewJawabanData(null);
+    setViewMode("question");
+  }, [expiringAttempt, preparingPreview, submittingAttempt]);
+
+  const handleFinalSubmit = React.useCallback(() => {
+    if (
+      attemptId === null ||
+      attemptId <= 0 ||
+      submittingAttempt ||
+      preparingPreview ||
+      expiringAttempt
+    ) {
+      return;
+    }
+
+    void (async () => {
+      try {
+        await executeSubmitAttempt(attemptId);
+        toast.success("Ujian berhasil disubmit");
+        allowNavigation();
+        clearAttemptCache();
+        clearSoalCache();
+        navigate(paths.dashboard.hasil_ujian_siswa, { replace: true });
+      } catch {
+        return;
+      }
+    })();
+  }, [
+    allowNavigation,
+    attemptId,
+    clearAttemptCache,
+    clearSoalCache,
+    executeSubmitAttempt,
+    expiringAttempt,
+    navigate,
+    preparingPreview,
+    submittingAttempt,
+  ]);
 
   const handleNavigateQuestion = React.useCallback(
     (nextIndex: number) => {
@@ -446,6 +561,14 @@ const UjianMulaiSiswa: React.FC = () => {
     );
   }
 
+  const isSubmitPreviewMode = viewMode === "submit_preview";
+  const isManualSubmitBusy =
+    preparingPreview ||
+    savingJawaban ||
+    submittingAttempt ||
+    expiringAttempt ||
+    loadingJawabanUjian;
+
   return (
     <>
       {sessionExitError && (
@@ -460,19 +583,42 @@ const UjianMulaiSiswa: React.FC = () => {
         </div>
       )}
 
-      <SiswaSoalPreviewContent
-        key={parsedIdJadwalUjian}
-        title={title}
-        sisaWaktu={sisaWaktu}
-        soalPreview={soalPreview}
-        currentIndex={currentIndex}
-        selectedOptions={selectedOptions}
-        essayAnswers={essayAnswers}
-        onSelectOption={handleSelectOption}
-        onEssayAnswerChange={handleEssayAnswerChange}
-        onNavigateQuestion={handleNavigateQuestion}
-        onBack={handleBack}
-      />
+      {submitAttemptError && (
+        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+          Submit ujian gagal
+        </div>
+      )}
+
+      {isSubmitPreviewMode ? (
+        <SiswaSubmitPreviewContent
+          title={title}
+          sisaWaktu={sisaWaktu}
+          soalPreview={soalPreview}
+          jawabanItems={previewJawabanItems}
+          onBackToQuestionMode={handleBackToQuestionMode}
+          onSubmitFinal={handleFinalSubmit}
+          backDisabled={isManualSubmitBusy}
+          submitDisabled={isManualSubmitBusy}
+          submitLoading={submittingAttempt}
+        />
+      ) : (
+        <SiswaSoalPreviewContent
+          key={parsedIdJadwalUjian}
+          title={title}
+          sisaWaktu={sisaWaktu}
+          soalPreview={soalPreview}
+          currentIndex={currentIndex}
+          selectedOptions={selectedOptions}
+          essayAnswers={essayAnswers}
+          onSelectOption={handleSelectOption}
+          onEssayAnswerChange={handleEssayAnswerChange}
+          onNavigateQuestion={handleNavigateQuestion}
+          onBack={handleBack}
+          onSubmitExam={handleOpenSubmitPreview}
+          submitDisabled={isManualSubmitBusy}
+          submitLoading={preparingPreview}
+        />
+      )}
 
       <ConfirmAlert
         isOpen={isLeaveConfirmOpen}

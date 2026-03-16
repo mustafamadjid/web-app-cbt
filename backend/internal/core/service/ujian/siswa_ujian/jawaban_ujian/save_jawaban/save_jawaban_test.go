@@ -77,14 +77,21 @@ func TestSaveJawabanUjianService(t *testing.T) {
 			wantSave: false,
 		},
 		{
-			name:      "missing pilihan and essay",
+			name:      "clear answer payload allowed",
 			idAttempt: 7,
 			jawaban: []ujian.JawabanUjian{
 				{IdSoal: 10},
 			},
 			repo:     &fakeJawabanUjianRepo{},
-			wantErr:  coreerror.ErrMissingJawabanEssayAndPilgan,
-			wantSave: false,
+			wantSave: true,
+			assertData: func(t *testing.T, repo *fakeJawabanUjianRepo) {
+				t.Helper()
+				assert.Equal(t, ujian.ID(7), repo.gotAttempt)
+				assert.Len(t, repo.gotJawaban, 1)
+				assert.Equal(t, ujian.ID(10), repo.gotJawaban[0].IdSoal)
+				assert.Nil(t, repo.gotJawaban[0].IdPilihan)
+				assert.Nil(t, repo.gotJawaban[0].JawabanEssay)
+			},
 		},
 		{
 			name:      "pilihan and essay both filled",

@@ -17,6 +17,9 @@ type SiswaSoalPreviewContentProps = {
   onEssayAnswerChange: (soalId: number, value: string) => void;
   onNavigateQuestion: (nextIndex: number) => void;
   onBack: () => void;
+  onSubmitExam: () => void;
+  submitDisabled?: boolean;
+  submitLoading?: boolean;
 };
 
 const SiswaSoalPreviewContent: React.FC<SiswaSoalPreviewContentProps> = ({
@@ -30,14 +33,26 @@ const SiswaSoalPreviewContent: React.FC<SiswaSoalPreviewContentProps> = ({
   onEssayAnswerChange,
   onNavigateQuestion,
   onBack,
+  onSubmitExam,
+  submitDisabled = false,
+  submitLoading = false,
 }) => {
   const totalSoal = soalPreview.length;
   const currentSoal = soalPreview[currentIndex];
 
   const questionNavigator = (
-    <div className="space-y-3">
-      <p className="text-xs font-semibold text-slate-400">Nomor Soal</p>
-      <div className="flex flex-wrap gap-2">
+    <div className="space-y-4">
+      <div className="space-y-1 border-b border-slate-100 pb-3">
+        <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+          Navigasi
+        </p>
+        <p className="text-sm font-semibold text-slate-700">Nomor Soal</p>
+        <p className="text-xs text-slate-500">
+          Pilih nomor soal dari panel kanan.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-4 gap-2 sm:grid-cols-5 lg:grid-cols-4">
         {soalPreview.map((soal, index) => {
           const isActive = index === currentIndex;
           return (
@@ -46,11 +61,11 @@ const SiswaSoalPreviewContent: React.FC<SiswaSoalPreviewContentProps> = ({
               type="button"
               onClick={() => onNavigateQuestion(index)}
               className={[
-                "flex cursor-pointer h-10 w-10 items-center justify-center rounded-lg border text-sm font-semibold transition",
+                "flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border text-xs font-semibold transition",
                 isActive
                   ? "border-[#397e50] bg-[#397e50] text-white"
                   : "border-slate-200 text-slate-500 hover:border-[#397e50] hover:text-[#397e50]",
-              ].join(" ")}
+                ].join(" ")}
               aria-label={`Soal nomor ${soal.nomor}`}
             >
               {soal.nomor}
@@ -69,11 +84,27 @@ const SiswaSoalPreviewContent: React.FC<SiswaSoalPreviewContentProps> = ({
       sisaWaktu={sisaWaktu}
       soal={currentSoal}
       questionNavigator={questionNavigator}
+      compactSplitLayout
       selectedOptionId={selectedOptions[currentSoal.id]}
       onSelectOption={(optionId) => onSelectOption(currentSoal.id, optionId)}
       essayAnswer={essayAnswers[currentSoal.id] ?? ""}
       onEssayAnswerChange={(value) =>
         onEssayAnswerChange(currentSoal.id, value)
+      }
+      footerActions={
+        <button
+          type="button"
+          onClick={onSubmitExam}
+          disabled={submitDisabled}
+          className={[
+            "rounded-lg px-4 py-2 text-sm font-semibold text-white transition",
+            submitDisabled
+              ? "cursor-not-allowed bg-slate-300"
+              : "cursor-pointer bg-amber-500 hover:bg-amber-600",
+          ].join(" ")}
+        >
+          {submitLoading ? "Menyiapkan..." : "Submit Ujian"}
+        </button>
       }
       onPrev={
         currentIndex > 0

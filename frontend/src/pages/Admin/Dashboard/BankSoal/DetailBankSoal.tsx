@@ -46,29 +46,27 @@ const BankSoalPreviewContent = ({
 
   const questionNavigator = (
     <div className="space-y-4">
-      <div className="grid gap-4 md:grid-cols-[220px_1fr] md:items-end">
-        <div>
-          <label
-            htmlFor="acak_soal_preview"
-            className="text-xs font-medium text-slate-600"
-          >
-            Acak Soal
-          </label>
-          <select
-            id="acak_soal_preview"
-            value={acakSoal ? "ya" : "tidak"}
-            onChange={(event) => onChangeAcakSoal(event.target.value === "ya")}
-            className={selectBaseClass}
-          >
-            <option value="tidak">Tidak, urutan tetap</option>
-            <option value="ya">Ya, acak soal</option>
-          </select>
-        </div>
+      <div className="space-y-2">
+        <label
+          htmlFor="acak_soal_preview"
+          className="text-xs font-medium text-slate-600"
+        >
+          Acak Soal
+        </label>
+        <select
+          id="acak_soal_preview"
+          value={acakSoal ? "ya" : "tidak"}
+          onChange={(event) => onChangeAcakSoal(event.target.value === "ya")}
+          className={selectBaseClass}
+        >
+          <option value="tidak">Tidak, urutan tetap</option>
+          <option value="ya">Ya, acak soal</option>
+        </select>
       </div>
 
       <div className="space-y-3">
         <p className="text-xs font-semibold text-slate-400">Nomor Urut Soal</p>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-1.5">
           {soalPreview.map((soal, index) => {
             const isActive = index === currentIndex;
             return (
@@ -77,7 +75,7 @@ const BankSoalPreviewContent = ({
                 type="button"
                 onClick={() => setCurrentIndex(index)}
                 className={[
-                  "flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border text-sm font-semibold transition",
+                  "flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border text-xs font-semibold transition",
                   isActive
                     ? "border-[#397e50] bg-[#397e50] text-white"
                     : "border-slate-200 text-slate-500 hover:border-[#397e50] hover:text-[#397e50]",

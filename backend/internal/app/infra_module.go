@@ -75,7 +75,7 @@ func BuildInfraModule(pool *pgxpool.Pool, logger corelog.Logger) *InfraModule {
 	listUjianSiswaRepo := pgujiansiswalist.NewListUjianSiswaRepo(pool, logger)
 	attemptUjianRepo := pgujianattempt.NewAttemptUjianRepo(pool, logger)
 	activeAttemptUjianRepo := pgujiansiswaactiveattempt.NewActiveAttemptRepo(pool, logger)
-	jawabanUjianRepo := pgujiansiswajawaban.NewJawabanUjianRepo(pool, logger)
+	jawabanUjianRepo := pgujiansiswajawaban.NewJawabanUjianRepo(pool, logger, pool)
 
 	return &InfraModule{
 		Pool:                   pool,

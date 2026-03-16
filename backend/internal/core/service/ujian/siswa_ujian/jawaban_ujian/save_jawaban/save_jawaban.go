@@ -43,9 +43,6 @@ func (r *JawabanUjianService) SaveJawabanUjian(ctx context.Context, idAttempt uj
 		}
 
 		switch {
-		case !hasPilihan && !hasEssay:
-			logger.Error(ctx, "failed save jawaban ujian", "layer", "core.service", "op", "ujian.jawaban.save", "err", coreerror.ErrMissingJawabanEssayAndPilgan)
-			return coreerror.ErrMissingJawabanEssayAndPilgan
 		case hasPilihan && hasEssay:
 			logger.Error(ctx, "failed save jawaban ujian", "layer", "core.service", "op", "ujian.jawaban.save", "err", coreerror.ErrInvalidInput)
 			return coreerror.ErrInvalidInput

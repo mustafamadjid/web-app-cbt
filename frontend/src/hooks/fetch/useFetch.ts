@@ -13,7 +13,7 @@ export type UseFetchState<T> = {
   /** true selama proses fetching berlangsung. */
   loading: boolean;
   /** Panggil untuk memicu re-fetch manual. */
-  refetch: () => Promise<void>;
+  refetch: () => Promise<T | null>;
 };
 
 /**
@@ -44,7 +44,7 @@ export default function useFetch<T>(
   // Untuk mencegah state update setelah unmount
   const mountedRef = useRef(true);
 
-  const run = useCallback(async () => {
+  const run = useCallback(async (): Promise<T | null> => {
     const requestId = ++requestIdRef.current;
 
     setLoading(true);
@@ -54,11 +54,16 @@ export default function useFetch<T>(
       const result = await fetcher();
 
       // Abaikan response jika sudah ada request baru atau komponen unmount
-      if (requestId !== requestIdRef.current || !mountedRef.current) return;
+      if (requestId !== requestIdRef.current || !mountedRef.current) {
+        return null;
+      }
 
       setData(result);
+      return result;
     } catch (e: unknown) {
-      if (requestId !== requestIdRef.current || !mountedRef.current) return;
+      if (requestId !== requestIdRef.current || !mountedRef.current) {
+        return null;
+      }
 
       if (e instanceof ApiError) {
         setError(e.message);
@@ -69,6 +74,7 @@ export default function useFetch<T>(
       }
 
       setData(null);
+      return null;
     } finally {
       if (requestId === requestIdRef.current && mountedRef.current) {
         setLoading(false);

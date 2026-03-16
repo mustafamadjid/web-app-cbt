@@ -101,6 +101,24 @@ func TestSaveJawabanUjianHandler(t *testing.T) {
 			repo:        &fakeJawabanRepo{},
 		},
 		{
+			name:        "blank essay clears saved answer",
+			method:      http.MethodPost,
+			contentType: "application/json",
+			body:        `{"id_attempt":3,"jawaban":[{"id_soal":11,"jawaban_essay":"   "}]}`,
+			wantStatus:  http.StatusOK,
+			wantMessage: "Success",
+			wantSave:    true,
+			repo:        &fakeJawabanRepo{},
+			assertPayload: func(t *testing.T, repo *fakeJawabanRepo) {
+				t.Helper()
+				require.Len(t, repo.gotJawaban, 1)
+				assert.Equal(t, ujian.ID(3), repo.gotAttempt)
+				assert.Equal(t, ujian.ID(11), repo.gotJawaban[0].IdSoal)
+				assert.Nil(t, repo.gotJawaban[0].IdPilihan)
+				assert.Nil(t, repo.gotJawaban[0].JawabanEssay)
+			},
+		},
+		{
 			name:        "success",
 			method:      http.MethodPost,
 			contentType: "application/json",
