@@ -11,6 +11,7 @@ func RegisterUjianRoutes(router *httprouter.Router, handlers UjianHandlers, mw M
 
 	// Router siswa
 	router.POST("/siswa/ujian/attempt", requireSiswa(mw.RateLimitStandard(handlers.AttemptUjianHandler.AttemptUjian)))
+	router.POST("/siswa/ujian/jawaban", requireSiswa(mw.RateLimitStandard(handlers.SaveJawabanUjianHandler.SaveJawabanUjian)))
 	router.GET("/siswa/ujian/list", requireSiswa(mw.RateLimitStandard(handlers.ListUjianSiswaHandler.ListUjianSiswa)))
 	router.GET("/siswa/ujian/waktu-selesai/:idJadwalUjian", requireSiswa(mw.RateLimitStandard(handlers.GetWaktuSelesaiUjianHandler.GetWaktuSelesaiUjian)))
 	router.GET("/siswa/soal-ujian/:idJadwalUjian", requireSiswa(mw.RateLimitStandard(handlers.ListSoalUjianSiswaHandler.ListSoalUjianSiswa)))

@@ -6,12 +6,14 @@ import (
 	httpdeleteujian "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/delete/ujian"
 	httpget "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/get"
 	httpgetwaktuujian "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/get/waktu_ujian"
+	httpsavejawaban "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/jawaban_ujian/save_jawaban"
 	httplist "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/list"
 	httplistsoal "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/list_soal_ujian"
 	httplistsoalsiswa "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/list_soal_ujian_for_siswa"
 	httplistsiswa "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/list_ujian_siswa"
 	httpupdateujian "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/update/ujian"
 	siswaujian_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian"
+	savejawaban_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian/jawaban_ujian/save_jawaban"
 	siswaujianlist_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian/list"
 	siswaujiansoal_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian/soal_ujian"
 	siswaujianwaktuselesai_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian/waktu_selesai"
@@ -25,6 +27,7 @@ import (
 type UjianModule struct {
 	CreateUjianService        *ujian_create_service.CreateUjianService
 	AttemptUjianService       *siswaujian_service.AttemptUjianService
+	SaveJawabanService        *savejawaban_service.JawabanUjianService
 	ListUjianSiswaService     *siswaujianlist_service.ListUjianSiswaService
 	GetService                *ujian_get_service.GetUjianService
 	ListSoalUjianService      *ujian_soal_service.ListSoalUjianService
@@ -34,6 +37,7 @@ type UjianModule struct {
 	DeleteUjianService        *ujian_delete_service.DeleteUjianService
 
 	AttemptUjianHandler         *httpcreateattemptujian.AttemptUjianHandler
+	SaveJawabanUjianHandler     *httpsavejawaban.SaveJawabanUjianHandler
 	CreateUjianHandler          *httpcreateujian.CreateRuangUjianHandler
 	ListHandler                 *httplist.ListUjianHandler
 	ListUjianSiswaHandler       *httplistsiswa.ListUjianSiswaHandler
@@ -51,6 +55,7 @@ func BuildUjianModule(infra *InfraModule) *UjianModule {
 		infra.siswaUjianChecker,
 		infra.attemptUjianRepo,
 	)
+	saveJawabanSvc := savejawaban_service.NewJawabanUjianService(infra.jawabanUjianRepo)
 	listUjianSiswaSvc := siswaujianlist_service.NewListUjianSiswaService(infra.listUjianSiswaRepo)
 	getSvc := ujian_get_service.NewGetujianService(infra.listUjianRepo)
 	listSoalUjianSvc := ujian_soal_service.NewListSoalUjianService(infra.soalUjianRepo)
@@ -60,6 +65,7 @@ func BuildUjianModule(infra *InfraModule) *UjianModule {
 	deleteUjianSvc := ujian_delete_service.NewDeleteUjianService(infra.ujianRepo)
 
 	attemptUjianHandler := httpcreateattemptujian.NewAttemptUjianHandler(attemptUjianSvc)
+	saveJawabanHandler := httpsavejawaban.NewSaveJawabanUjianHandler(saveJawabanSvc)
 	createUjianHandler := httpcreateujian.NewCreateUjianHandler(createUjianSvc)
 	listHandler := httplist.NewListUjianHandler(getSvc)
 	listUjianSiswaHandler := httplistsiswa.NewListUjianSiswaHandler(listUjianSiswaSvc)
@@ -72,6 +78,7 @@ func BuildUjianModule(infra *InfraModule) *UjianModule {
 
 	return &UjianModule{
 		AttemptUjianService:         attemptUjianSvc,
+		SaveJawabanService:          saveJawabanSvc,
 		CreateUjianService:          createUjianSvc,
 		ListUjianSiswaService:       listUjianSiswaSvc,
 		GetService:                  getSvc,
@@ -81,6 +88,7 @@ func BuildUjianModule(infra *InfraModule) *UjianModule {
 		UpdateUjianService:          updateUjianSvc,
 		DeleteUjianService:          deleteUjianSvc,
 		AttemptUjianHandler:         attemptUjianHandler,
+		SaveJawabanUjianHandler:     saveJawabanHandler,
 		CreateUjianHandler:          createUjianHandler,
 		ListHandler:                 listHandler,
 		ListUjianSiswaHandler:       listUjianSiswaHandler,

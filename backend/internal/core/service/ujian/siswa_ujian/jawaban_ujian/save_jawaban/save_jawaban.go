@@ -2,6 +2,7 @@ package siswaujian_service
 
 import (
 	"context"
+	"strings"
 
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	ujian "github.com/mustafamadjid/web-app-cbt/internal/core/domain/ujian_siswa"
@@ -19,7 +20,7 @@ func NewJawabanUjianService(repo ujian_repo.JawabanUjianRepository) *JawabanUjia
 	}
 }
 
-func(r *JawabanUjianService) SaveJawabanUjian(ctx context.Context, idAttempt ujian.ID, jawaban []ujian.JawabanUjian) error {
+func (r *JawabanUjianService) SaveJawabanUjian(ctx context.Context, idAttempt ujian.ID, jawaban []ujian.JawabanUjian) error {
 	logger := corelog.FromContext(ctx)
 
 	if idAttempt <= 0 {
@@ -27,15 +28,27 @@ func(r *JawabanUjianService) SaveJawabanUjian(ctx context.Context, idAttempt uji
 		return coreerror.ErrMissingId
 	}
 
-	for _,item := range jawaban{
-		if item.IdJawaban <= 0 {
+	for _, item := range jawaban {
+		if item.IdSoal <= 0 {
 			logger.Error(ctx, "failed save jawaban ujian", "layer", "core.service", "op", "ujian.jawaban.save", "err", coreerror.ErrMissingId)
 			return coreerror.ErrMissingId
 		}
 
-		if item.IdPilihan == nil && item.JawabanEssay == nil {
+		hasPilihan := item.IdPilihan != nil
+		hasEssay := item.JawabanEssay != nil && strings.TrimSpace(*item.JawabanEssay) != ""
+
+		if hasPilihan && *item.IdPilihan <= 0 {
+			logger.Error(ctx, "failed save jawaban ujian", "layer", "core.service", "op", "ujian.jawaban.save", "err", coreerror.ErrMissingId)
+			return coreerror.ErrMissingId
+		}
+
+		switch {
+		case !hasPilihan && !hasEssay:
 			logger.Error(ctx, "failed save jawaban ujian", "layer", "core.service", "op", "ujian.jawaban.save", "err", coreerror.ErrMissingJawabanEssayAndPilgan)
 			return coreerror.ErrMissingJawabanEssayAndPilgan
+		case hasPilihan && hasEssay:
+			logger.Error(ctx, "failed save jawaban ujian", "layer", "core.service", "op", "ujian.jawaban.save", "err", coreerror.ErrInvalidInput)
+			return coreerror.ErrInvalidInput
 		}
 	}
 

@@ -8,6 +8,7 @@ import (
 	pgujianattempt "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/ujian/attempt"
 	pgujianlist "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/ujian/list"
 	pgujiansiswa "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/ujian/siswa"
+	pgujiansiswajawaban "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/ujian/siswa/jawaban_ujian"
 	pgujiansiswalist "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/ujian/siswa/list"
 	out "github.com/mustafamadjid/web-app-cbt/internal/core/port/out"
 	outaktivitas "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/aktivitas_user"
@@ -53,6 +54,7 @@ type InfraModule struct {
 	soalUjianRepo         ujian_repo.SoalUjianRepository
 	ujianRepo             ujian_repo.UjianRepository
 	attemptUjianRepo      ujian_repo.AttemptUjianRepository
+	jawabanUjianRepo      ujian_repo.JawabanUjianRepository
 	siswaUjianChecker     ujian_repo.SiswaUjianChecker
 	waktuSelesaiUjianRepo ujian_repo.WaktuSelesaiUjianRepository
 	sesiRepo              sesi_repo.SesiRepository
@@ -70,6 +72,7 @@ func BuildInfraModule(pool *pgxpool.Pool, logger corelog.Logger) *InfraModule {
 	siswaUjianRepo := pgujiansiswa.NewSiswaUjianRepo(pool, logger)
 	listUjianSiswaRepo := pgujiansiswalist.NewListUjianSiswaRepo(pool, logger)
 	attemptUjianRepo := pgujianattempt.NewAttemptUjianRepo(pool, logger)
+	jawabanUjianRepo := pgujiansiswajawaban.NewJawabanUjianRepo(pool, logger)
 
 	return &InfraModule{
 		Pool:                  pool,
@@ -94,6 +97,7 @@ func BuildInfraModule(pool *pgxpool.Pool, logger corelog.Logger) *InfraModule {
 		soalUjianRepo:         pgujianlist.NewListSoalUjianRepo(pool, logger),
 		ujianRepo:             ujianRepo,
 		attemptUjianRepo:      attemptUjianRepo,
+		jawabanUjianRepo:      jawabanUjianRepo,
 		siswaUjianChecker:     siswaUjianRepo,
 		waktuSelesaiUjianRepo: siswaUjianRepo,
 		sesiRepo:              pg.NewSesirepo(pool, logger),

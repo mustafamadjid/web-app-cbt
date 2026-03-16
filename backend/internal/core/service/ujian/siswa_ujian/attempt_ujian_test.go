@@ -14,11 +14,12 @@ import (
 
 type fakeSiswaUjianChecker struct {
 	checkFn        func(ctx context.Context, idSiswa int, idJadwalUjian int) (bool, int, error)
-	tokenFn        func(ctx context.Context, token string) (bool, error)
+	tokenFn        func(ctx context.Context, token string, idJadwalUjian int) (bool, error)
 	deadlineFn     func(ctx context.Context, idJadwalUjian int) (time.Time, error)
 	gotCheckSiswa  int
 	gotCheckJadwal int
 	gotToken       string
+	gotTokenID     int
 	gotDeadlineID  int
 }
 
@@ -31,10 +32,11 @@ func (f *fakeSiswaUjianChecker) CheckValidSiswaInPesertaUjianById(ctx context.Co
 	return false, 0, nil
 }
 
-func (f *fakeSiswaUjianChecker) CheckTokenUjian(ctx context.Context, token string) (bool, error) {
+func (f *fakeSiswaUjianChecker) CheckTokenUjian(ctx context.Context, token string, idJadwalUjian int) (bool, error) {
 	f.gotToken = token
+	f.gotTokenID = idJadwalUjian
 	if f.tokenFn != nil {
-		return f.tokenFn(ctx, token)
+		return f.tokenFn(ctx, token, idJadwalUjian)
 	}
 	return false, nil
 }
@@ -126,7 +128,7 @@ func TestAttemptUjianService(t *testing.T) {
 				deadlineFn: func(context.Context, int) (time.Time, error) {
 					return deadline, nil
 				},
-				tokenFn: func(context.Context, string) (bool, error) {
+				tokenFn: func(context.Context, string, int) (bool, error) {
 					return true, nil
 				},
 			},
@@ -135,6 +137,7 @@ func TestAttemptUjianService(t *testing.T) {
 			assertResult: func(t *testing.T, checker *fakeSiswaUjianChecker, attemptRepo *fakeAttemptUjianRepo) {
 				t.Helper()
 				assert.Equal(t, "TOKEN-123", checker.gotToken)
+				assert.Equal(t, 21, checker.gotTokenID)
 				assert.Equal(t, 21, checker.gotDeadlineID)
 				assert.Equal(t, ujian.ID(17), attemptRepo.gotData.IdPesertaUjian)
 				assert.Equal(t, waktuAttempt, *attemptRepo.gotData.WaktuMulai)
