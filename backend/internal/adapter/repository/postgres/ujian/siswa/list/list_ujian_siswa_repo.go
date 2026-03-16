@@ -32,7 +32,6 @@ func (r *ListUjianSiswaRepo) buildListUjianSiswaQuery(idSiswa int, filter query.
 			u.id_bank_soal,
 			u.id_guru,
 			u.nama_ujian,
-	
 			u.id_kelas,
 			u.id_nama_kelas,
 			k.tingkat_kelas,
@@ -78,6 +77,15 @@ func (r *ListUjianSiswaRepo) buildListUjianSiswaQuery(idSiswa int, filter query.
 
 	args = append(args, idSiswa)
 	where = append(where, fmt.Sprintf("pu.id_siswa = $%d", len(args)))
+
+	where = append(where, `
+	NOT EXISTS (
+		SELECT 1
+		FROM attempt_ujian au
+		WHERE au.id_peserta_ujian = pu.id_peserta_ujian
+		  AND au.status_attempt = 'submitted'
+	)
+`)
 
 	if filter.Search != "" {
 		args = append(args, "%"+filter.Search+"%")
