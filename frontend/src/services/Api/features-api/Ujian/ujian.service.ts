@@ -9,6 +9,8 @@ import type {
 import type { DetailUjianItem } from "@/types/Ujian/DetailUjian";
 import type {
   ActiveAttemptUjian,
+  JawabanUjianSiswaResponse,
+  SaveJawabanUjianSiswaRequest,
   WaktuSelesaiUjian,
 } from "@/types/Ujian/ujianSiswa";
 
@@ -17,6 +19,7 @@ import type {
 const UJIAN_DETAIL_ENDPOINT = "/ujian/detail";
 const ACTIVE_ATTEMPT_UJIAN_ENDPOINT = "/siswa/ujian/attempt/active";
 const SISWA_ATTEMPT_UJIAN_ENDPOINT = "/siswa/ujian/attempt";
+const SISWA_JAWABAN_UJIAN_ENDPOINT = "/siswa/ujian/jawaban";
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
 
 const buildExpireAttemptPayload = () =>
@@ -61,6 +64,26 @@ export async function getActiveAttemptUjian(
     params: {
       id_jadwal_ujian: idJadwalUjian,
     },
+  });
+}
+
+export async function getJawabanUjianSiswaByAttemptId(
+  idAttempt: number,
+): Promise<JawabanUjianSiswaResponse> {
+  return api<JawabanUjianSiswaResponse>(
+    `${SISWA_JAWABAN_UJIAN_ENDPOINT}/${idAttempt}`,
+    {
+      method: "GET",
+    },
+  );
+}
+
+export async function saveJawabanUjianSiswa(
+  payload: SaveJawabanUjianSiswaRequest,
+): Promise<boolean> {
+  return api<boolean>(SISWA_JAWABAN_UJIAN_ENDPOINT, {
+    method: "POST",
+    data: payload,
   });
 }
 
@@ -126,6 +149,26 @@ export function useGetActiveAttemptUjian(
         ? getActiveAttemptUjian(idJadwalUjian)
         : Promise.resolve(null as ActiveAttemptUjian | null),
     [idJadwalUjian, enabled],
+  );
+}
+
+export function useGetJawabanUjianSiswaByAttemptId(
+  idAttempt: number,
+  enabled = true,
+  deps: readonly unknown[] = [],
+) {
+  return useFetch(
+    () =>
+      enabled
+        ? getJawabanUjianSiswaByAttemptId(idAttempt)
+        : Promise.resolve(null as JawabanUjianSiswaResponse | null),
+    [idAttempt, enabled, ...deps],
+  );
+}
+
+export function useSaveJawabanUjianSiswa() {
+  return usePost((payload: SaveJawabanUjianSiswaRequest) =>
+    saveJawabanUjianSiswa(payload),
   );
 }
 

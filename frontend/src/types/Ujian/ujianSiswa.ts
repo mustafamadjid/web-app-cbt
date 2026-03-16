@@ -38,3 +38,28 @@ export type ActiveAttemptUjian = {
   waktu_submit: string | null;
   deadline_at: string | null;
 };
+
+export type JawabanUjianSiswaItem = {
+  id_jawaban: number;
+  id_soal: number;
+  id_pilihan: number | null;
+  jawaban_essay: string | null;
+  waktu_jawab: string | null;
+};
+
+export type JawabanUjianSiswaResponse = {
+  id_attempt: number;
+  jawaban: JawabanUjianSiswaItem[];
+};
+
+export type SaveJawabanUjianSiswaItemRequest = {
+  id_soal: number;
+  id_pilihan: number | null;
+  jawaban_essay: string | null;
+  waktu_jawab: string | null;
+};
+
+export type SaveJawabanUjianSiswaRequest = {
+  id_attempt: number;
+  jawaban: SaveJawabanUjianSiswaItemRequest[];
+};

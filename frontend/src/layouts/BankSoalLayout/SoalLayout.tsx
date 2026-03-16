@@ -18,6 +18,8 @@ type SoalLayoutProps = {
   questionNavigator?: React.ReactNode;
   selectedOptionId?: number;
   onSelectOption?: (optionId: number) => void;
+  essayAnswer?: string;
+  onEssayAnswerChange?: (value: string) => void;
   onPrev?: () => void;
   onNext?: () => void;
   onBack?: () => void;
@@ -46,6 +48,8 @@ const SoalLayout: React.FC<SoalLayoutProps> = ({
   questionNavigator,
   selectedOptionId,
   onSelectOption,
+  essayAnswer = "",
+  onEssayAnswerChange,
   onPrev,
   onNext,
   onBack,
@@ -54,7 +58,8 @@ const SoalLayout: React.FC<SoalLayoutProps> = ({
   const canBack = Boolean(onBack);
   const canPrev = Boolean(onPrev);
   const canNext = Boolean(onNext);
-  const hasOptions = soal.opsi.length > 0;
+  const isEssay = soal.tipe === "ESSAY";
+  const hasOptions = !isEssay && soal.opsi.length > 0;
 
   return (
     <div className={["min-h-screen w-full bg-slate-50", className].join(" ")}>
@@ -188,6 +193,28 @@ const SoalLayout: React.FC<SoalLayoutProps> = ({
                       );
                     })}
                   </div>
+                </div>
+              )}
+
+              {isEssay && (
+                <div className="space-y-3">
+                  <label
+                    htmlFor={`essay-answer-${soal.id}`}
+                    className="block text-xs font-semibold text-slate-400"
+                  >
+                    Jawaban Essay
+                  </label>
+
+                  <textarea
+                    id={`essay-answer-${soal.id}`}
+                    value={essayAnswer}
+                    onChange={(event) =>
+                      onEssayAnswerChange?.(event.target.value)
+                    }
+                    rows={8}
+                    className="w-full resize-y rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-600 outline-none transition focus:border-[#397e50] focus:ring-2 focus:ring-[#397e50]/20"
+                    placeholder="Tulis jawaban essay di sini..."
+                  />
                 </div>
               )}
             </div>

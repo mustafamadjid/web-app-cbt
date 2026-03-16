@@ -1,130 +1,88 @@
 import React from "react";
-import { useBeforeUnload, useBlocker, useNavigate, useParams } from "react-router";
-import type { BlockerFunction } from "react-router";
+import toast from "react-hot-toast";
+import { useNavigate, useParams } from "react-router";
+
 import ConfirmAlert from "@/components/ui/ConfirmAlert/ConfirmAlert";
+import SiswaSoalPreviewContent, {
+  type EssayAnswersMap,
+  type SelectedOptionsMap,
+} from "@/components/features/Ujian/SiswaSoalPreviewContent";
 import { useAuth } from "@/contexts/AuthContext";
-import { getRemainingExamTime } from "@/helper/Countdown/getRemainingExamTime";
-import { resolveImageUrl } from "@/helper/MediaUrl/resolveMediaUrl";
+import { buildSoalPreview } from "@/helper/Ujian/buildSoalPreview";
+import { deriveUjianMulaiSiswaState } from "@/helper/Ujian/deriveUjianMulaiSiswaState";
 import { useCachedActiveAttemptId } from "@/hooks/Ujian/useCachedActiveAttemptId";
 import { useCachedSoalUjianForSiswa } from "@/hooks/Ujian/useCachedSoalUjianForSiswa";
-import SoalLayout from "@/layouts/BankSoalLayout/SoalLayout";
+import { useExamCountdown } from "@/hooks/Ujian/useExamCountdown";
+import { useExamSessionExit } from "@/hooks/Ujian/useExamSessionExit";
 import { paths } from "@/routes/paths";
-import { ApiError } from "@/services/Api/api";
 import {
-  expireAttemptUjianSiswaOnPageLeave,
-  useExpireAttemptUjianSiswa,
+  useGetJawabanUjianSiswaByAttemptId,
   useGetWaktuSelesaiUjian,
+  useSaveJawabanUjianSiswa,
 } from "@/services/Api/features-api/Ujian/ujian.service";
-import type { SoalPreviewItem } from "@/types/Ujian/SoalPreview";
+import type { SaveJawabanUjianSiswaRequest } from "@/types/Ujian/ujianSiswa";
 
-const OPTION_LABELS = ["A", "B", "C", "D", "E", "F", "G", "H"];
-const DEFAULT_TIMER_LABEL = "00:00:00";
-const EXPIRE_ATTEMPT_ERROR_MESSAGE =
-  "Gagal mengakhiri sesi ujian. Silakan coba lagi.";
+const EXAM_LIST_PATH = paths.dashboard.ujian_siswa;
 
-type SelectedOptionsMap = Record<number, number>;
-
-type SiswaSoalPreviewContentProps = {
-  title: string;
-  sisaWaktu: string;
-  soalPreview: SoalPreviewItem[];
-  selectedOptions: SelectedOptionsMap;
-  onSelectOption: (soalId: number, optionId: number) => void;
-  onBack: () => void;
+type JawabanDraft = {
+  id_soal: number;
+  id_pilihan: number | null;
+  jawaban_essay: string;
+  waktu_jawab: string | null;
+  isDirty: boolean;
 };
 
-const SiswaSoalPreviewContent: React.FC<SiswaSoalPreviewContentProps> = ({
-  title,
-  sisaWaktu,
-  soalPreview,
-  selectedOptions,
-  onSelectOption,
-  onBack,
-}) => {
-  const [currentIndex, setCurrentIndex] = React.useState(0);
+type JawabanDraftMap = Record<number, JawabanDraft>;
 
-  const totalSoal = soalPreview.length;
-  const currentSoal = soalPreview[currentIndex];
+const createJawabanDraft = (idSoal: number): JawabanDraft => ({
+  id_soal: idSoal,
+  id_pilihan: null,
+  jawaban_essay: "",
+  waktu_jawab: null,
+  isDirty: false,
+});
 
-  const questionNavigator = (
-    <div className="space-y-3">
-      <p className="text-xs font-semibold text-slate-400">Nomor Soal</p>
-      <div className="flex flex-wrap gap-2">
-        {soalPreview.map((soal, index) => {
-          const isActive = index === currentIndex;
-          return (
-            <button
-              key={soal.id}
-              type="button"
-              onClick={() => setCurrentIndex(index)}
-              className={[
-                "flex cursor-pointer h-10 w-10 items-center justify-center rounded-lg border text-sm font-semibold transition",
-                isActive
-                  ? "border-[#397e50] bg-[#397e50] text-white"
-                  : "border-slate-200 text-slate-500 hover:border-[#397e50] hover:text-[#397e50]",
-              ].join(" ")}
-              aria-label={`Soal nomor ${soal.nomor}`}
-            >
-              {soal.nomor}
-            </button>
-          );
-        })}
-      </div>
-    </div>
+const hasSavableJawaban = (jawaban?: JawabanDraft) =>
+  Boolean(
+    jawaban &&
+      (jawaban.id_pilihan !== null || jawaban.jawaban_essay.trim() !== ""),
   );
 
-  return (
-    <SoalLayout
-      title={title}
-      currentNumber={currentIndex + 1}
-      totalSoal={totalSoal}
-      sisaWaktu={sisaWaktu}
-      soal={currentSoal}
-      questionNavigator={questionNavigator}
-      selectedOptionId={selectedOptions[currentSoal.id]}
-      onSelectOption={(optionId) => onSelectOption(currentSoal.id, optionId)}
-      onPrev={
-        currentIndex > 0 ? () => setCurrentIndex((prev) => prev - 1) : undefined
-      }
-      onNext={
-        currentIndex < totalSoal - 1
-          ? () => setCurrentIndex((prev) => prev + 1)
-          : undefined
-      }
-      onBack={onBack}
-    />
-  );
-};
+const buildSaveJawabanPayload = (
+  idAttempt: number,
+  jawaban: JawabanDraft,
+): SaveJawabanUjianSiswaRequest | null => {
+  const normalizedEssay = jawaban.jawaban_essay.trim();
+  const payload: SaveJawabanUjianSiswaRequest = {
+    id_attempt: idAttempt,
+    jawaban: [
+      {
+        id_soal: jawaban.id_soal,
+        id_pilihan: jawaban.id_pilihan,
+        jawaban_essay: jawaban.id_pilihan === null ? normalizedEssay || null : null,
+        waktu_jawab: jawaban.waktu_jawab ?? new Date().toISOString(),
+      },
+    ],
+  };
 
-const mapExpireAttemptErrorMessage = (error: unknown): string => {
-  if (error instanceof ApiError && error.message) {
-    return error.message;
+  const [item] = payload.jawaban;
+  if (item.id_pilihan === null && item.jawaban_essay === null) {
+    return null;
   }
 
-  if (error instanceof Error && error.message) {
-    return error.message;
-  }
-
-  return EXPIRE_ATTEMPT_ERROR_MESSAGE;
+  return payload;
 };
 
 const UjianMulaiSiswa: React.FC = () => {
   const navigate = useNavigate();
   const { user, status } = useAuth();
   const { idJadwalUjian } = useParams();
-  const [selectedOptions, setSelectedOptions] =
-    React.useState<SelectedOptionsMap>({});
-  const [sisaWaktu, setSisaWaktu] = React.useState(DEFAULT_TIMER_LABEL);
-  const [isTimeExpired, setIsTimeExpired] = React.useState(false);
-  const [isLeaveConfirmOpen, setIsLeaveConfirmOpen] = React.useState(false);
-  const [sessionExitError, setSessionExitError] = React.useState<string | null>(null);
-  const allowNavigationRef = React.useRef(false);
-  const expireTriggeredRef = React.useRef(false);
-  const { execute: executeExpireAttempt, loading: expiringAttempt } =
-    useExpireAttemptUjianSiswa();
+  const [currentIndex, setCurrentIndex] = React.useState(0);
+  const [draftAnswers, setDraftAnswers] = React.useState<JawabanDraftMap>({});
 
   const parsedIdJadwalUjian = Number(idJadwalUjian);
   const parsedIdSiswa = user?.id_pengguna ?? 0;
+  const hasIdJadwalUjianParam = Boolean(idJadwalUjian);
   const isIdJadwalUjianValid =
     Number.isInteger(parsedIdJadwalUjian) && parsedIdJadwalUjian > 0;
   const isIdSiswaValid = Number.isInteger(parsedIdSiswa) && parsedIdSiswa > 0;
@@ -154,44 +112,175 @@ const UjianMulaiSiswa: React.FC = () => {
     loading: loadingWaktuSelesai,
     error: waktuSelesaiError,
   } = useGetWaktuSelesaiUjian(parsedIdJadwalUjian, isIdJadwalUjianValid);
-
-  const soalPreview = React.useMemo<SoalPreviewItem[]>(
-    () =>
-      (soalRows ?? []).map((soal, index) => ({
-        id: soal.id_soal,
-        nomor: index + 1,
-        tipe: soal.tipe_soal,
-        pertanyaan: soal.pertanyaan,
-        gambar_url: resolveImageUrl(soal.gambar) || undefined,
-        opsi: soal.opsi_jawaban.map((opsi, index) => ({
-          id: opsi.id_pilihan_ganda,
-          label: OPTION_LABELS[index] ?? String(index + 1),
-          text: opsi.isi_pilihan,
-        })),
-      })),
-    [soalRows],
+  const shouldSyncJawaban =
+    attemptId !== null &&
+    attemptId > 0 &&
+    isIdJadwalUjianValid &&
+    isIdSiswaValid;
+  const {
+    data: jawabanUjianData,
+    error: jawabanUjianError,
+  } = useGetJawabanUjianSiswaByAttemptId(
+    attemptId ?? 0,
+    shouldSyncJawaban,
+    [currentIndex],
   );
+  const {
+    execute: executeSaveJawaban,
+    loading: savingJawaban,
+    error: saveJawabanError,
+    reset: resetSaveJawabanState,
+  } = useSaveJawabanUjianSiswa();
 
+  const soalPreview = React.useMemo(() => buildSoalPreview(soalRows), [soalRows]);
+  const currentSoal = soalPreview[currentIndex] ?? null;
   const waktuSelesai = waktuSelesaiData?.waktu_selesai ?? "";
-  const initialRemainingTime = React.useMemo(() => {
-    if (!waktuSelesai) return null;
-    return getRemainingExamTime(waktuSelesai);
-  }, [waktuSelesai]);
+  const { sisaWaktu, isTimeExpired, hasValidWaktuSelesai } =
+    useExamCountdown(waktuSelesai);
+  const selectedOptions = React.useMemo<SelectedOptionsMap>(() => {
+    const mapped: SelectedOptionsMap = {};
+
+    for (const jawaban of Object.values(draftAnswers)) {
+      if (jawaban.id_pilihan !== null) {
+        mapped[jawaban.id_soal] = jawaban.id_pilihan;
+      }
+    }
+
+    return mapped;
+  }, [draftAnswers]);
+  const essayAnswers = React.useMemo<EssayAnswersMap>(() => {
+    const mapped: EssayAnswersMap = {};
+
+    for (const jawaban of Object.values(draftAnswers)) {
+      if (jawaban.jawaban_essay !== "") {
+        mapped[jawaban.id_soal] = jawaban.jawaban_essay;
+      }
+    }
+
+    return mapped;
+  }, [draftAnswers]);
+  const jawabanSyncError = saveJawabanError ?? jawabanUjianError;
 
   React.useEffect(() => {
-    setSelectedOptions({});
-    setIsLeaveConfirmOpen(false);
-    setSessionExitError(null);
-    allowNavigationRef.current = false;
-    expireTriggeredRef.current = false;
-  }, [parsedIdJadwalUjian]);
+    setCurrentIndex(0);
+    setDraftAnswers({});
+    resetSaveJawabanState();
+  }, [parsedIdJadwalUjian, resetSaveJawabanState]);
+
+  React.useEffect(() => {
+    if (currentIndex < soalPreview.length) {
+      return;
+    }
+
+    setCurrentIndex(0);
+  }, [currentIndex, soalPreview.length]);
+
+  React.useEffect(() => {
+    if (!jawabanUjianData) {
+      return;
+    }
+
+    setDraftAnswers((prev) => {
+      const next = { ...prev };
+      const serverJawabanBySoal = new Map(
+        jawabanUjianData.jawaban.map((item) => [item.id_soal, item]),
+      );
+
+      for (const soal of soalPreview) {
+        const existing = prev[soal.id];
+        if (existing?.isDirty) {
+          continue;
+        }
+
+        const serverJawaban = serverJawabanBySoal.get(soal.id);
+        if (!serverJawaban) {
+          delete next[soal.id];
+          continue;
+        }
+
+        next[soal.id] = {
+          id_soal: serverJawaban.id_soal,
+          id_pilihan: serverJawaban.id_pilihan,
+          jawaban_essay: serverJawaban.jawaban_essay ?? "",
+          waktu_jawab: serverJawaban.waktu_jawab,
+          isDirty: false,
+        };
+      }
+
+      return next;
+    });
+  }, [jawabanUjianData, soalPreview]);
+
+  const handleBack = React.useCallback(() => {
+    navigate(EXAM_LIST_PATH);
+  }, [navigate]);
+
+  const { loading, errorMessage } = React.useMemo(
+    () =>
+      deriveUjianMulaiSiswaState({
+        hasIdJadwalUjianParam,
+        isIdJadwalUjianValid,
+        isIdSiswaValid,
+        isAuthLoading: status === "loading",
+        loadingActiveAttempt,
+        loadingSoal,
+        loadingWaktuSelesai,
+        activeAttemptError,
+        activeAttemptErrorCode,
+        soalError,
+        waktuSelesaiError,
+        waktuSelesai,
+        hasValidWaktuSelesai,
+      }),
+    [
+      activeAttemptError,
+      activeAttemptErrorCode,
+      hasIdJadwalUjianParam,
+      hasValidWaktuSelesai,
+      isIdJadwalUjianValid,
+      isIdSiswaValid,
+      loadingActiveAttempt,
+      loadingSoal,
+      loadingWaktuSelesai,
+      soalError,
+      status,
+      waktuSelesai,
+      waktuSelesaiError,
+    ],
+  );
+  const title = isIdJadwalUjianValid ? `Ujian ` : "Ujian";
+  const hasActiveExamSession =
+    !loading &&
+    !errorMessage &&
+    attemptId !== null &&
+    soalPreview.length > 0 &&
+    !isTimeExpired;
+
+  const {
+    isLeaveConfirmOpen,
+    sessionExitError,
+    expiringAttempt,
+    allowNavigation,
+    clearSessionExitError,
+    handleExpiredSubmit,
+    handleLeaveConfirm,
+    handleLeaveCancel,
+  } = useExamSessionExit({
+    attemptId,
+    hasActiveExamSession,
+    isTimeExpired,
+    resetKey: parsedIdJadwalUjian,
+    clearAttemptCache,
+    clearSoalCache,
+    onFallbackLeave: handleBack,
+  });
 
   React.useEffect(() => {
     if (!isIdJadwalUjianValid || activeAttemptErrorCode !== "NOT_FOUND") {
       return;
     }
 
-    allowNavigationRef.current = true;
+    allowNavigation();
     clearAttemptCache();
     navigate(
       paths.dashboard.ujian_siswa_token.replace(
@@ -202,217 +291,144 @@ const UjianMulaiSiswa: React.FC = () => {
     );
   }, [
     activeAttemptErrorCode,
+    allowNavigation,
     clearAttemptCache,
     isIdJadwalUjianValid,
     navigate,
     parsedIdJadwalUjian,
   ]);
 
-  React.useEffect(() => {
-    if (!waktuSelesai) {
-      setSisaWaktu(DEFAULT_TIMER_LABEL);
-      setIsTimeExpired(false);
-      return;
-    }
-
-    const currentRemainingTime = getRemainingExamTime(waktuSelesai);
-    if (!currentRemainingTime) {
-      setSisaWaktu(DEFAULT_TIMER_LABEL);
-      setIsTimeExpired(false);
-      return;
-    }
-
-    setSisaWaktu(currentRemainingTime.formattedTime);
-    setIsTimeExpired(currentRemainingTime.isExpired);
-
-    if (currentRemainingTime.isExpired) return;
-
-    const timerId = window.setInterval(() => {
-      const nextRemainingTime = getRemainingExamTime(waktuSelesai);
-      if (!nextRemainingTime) {
-        window.clearInterval(timerId);
-        setSisaWaktu(DEFAULT_TIMER_LABEL);
-        setIsTimeExpired(false);
-        return;
-      }
-
-      setSisaWaktu(nextRemainingTime.formattedTime);
-
-      if (nextRemainingTime.isExpired) {
-        setIsTimeExpired(true);
-        window.clearInterval(timerId);
-      }
-    }, 1000);
-
-    return () => {
-      window.clearInterval(timerId);
-    };
-  }, [waktuSelesai]);
-
   const handleSelectOption = React.useCallback(
     (soalId: number, optionId: number) => {
       if (sessionExitError) {
-        setSessionExitError(null);
+        clearSessionExitError();
       }
-      setSelectedOptions((prev) => ({ ...prev, [soalId]: optionId }));
+
+      if (saveJawabanError) {
+        resetSaveJawabanState();
+      }
+
+      setDraftAnswers((prev) => ({
+        ...prev,
+        [soalId]: {
+          ...(prev[soalId] ?? createJawabanDraft(soalId)),
+          id_soal: soalId,
+          id_pilihan: optionId,
+          jawaban_essay: "",
+          waktu_jawab: new Date().toISOString(),
+          isDirty: true,
+        },
+      }));
     },
-    [sessionExitError],
+    [
+      clearSessionExitError,
+      resetSaveJawabanState,
+      saveJawabanError,
+      sessionExitError,
+    ],
   );
 
-  const shouldRedirectToToken =
-    isIdJadwalUjianValid && activeAttemptErrorCode === "NOT_FOUND";
-  const loading =
-    status === "loading" ||
-    loadingActiveAttempt ||
-    loadingSoal ||
-    loadingWaktuSelesai ||
-    shouldRedirectToToken;
-  const waktuSelesaiStateError =
-    !loadingWaktuSelesai && !waktuSelesai
-      ? "Waktu selesai ujian tidak tersedia."
-      : waktuSelesai && !initialRemainingTime
-        ? "Format waktu selesai ujian tidak valid."
-        : null;
-  const errorMessage =
-    !idJadwalUjian || !isIdJadwalUjianValid
-      ? "Jadwal ujian tidak ditemukan."
-      : status !== "loading" && !isIdSiswaValid
-        ? "Akun siswa tidak valid. Silakan login ulang."
-        : activeAttemptErrorCode !== "NOT_FOUND"
-          ? activeAttemptError ?? soalError ?? waktuSelesaiError ?? waktuSelesaiStateError
-          : soalError ?? waktuSelesaiError ?? waktuSelesaiStateError;
-  const title = isIdJadwalUjianValid ? `Ujian ` : "Ujian";
-  const hasActiveExamSession =
-    !loading &&
-    !errorMessage &&
-    attemptId !== null &&
-    soalPreview.length > 0 &&
-    !isTimeExpired;
-  const shouldBlockNavigation = React.useCallback<BlockerFunction>(
-    ({ currentLocation, nextLocation }) => {
-      if (allowNavigationRef.current || !hasActiveExamSession) {
+  const handleEssayAnswerChange = React.useCallback(
+    (soalId: number, value: string) => {
+      if (sessionExitError) {
+        clearSessionExitError();
+      }
+
+      if (saveJawabanError) {
+        resetSaveJawabanState();
+      }
+
+      setDraftAnswers((prev) => ({
+        ...prev,
+        [soalId]: {
+          ...(prev[soalId] ?? createJawabanDraft(soalId)),
+          id_soal: soalId,
+          id_pilihan: null,
+          jawaban_essay: value,
+          waktu_jawab: new Date().toISOString(),
+          isDirty: true,
+        },
+      }));
+    },
+    [
+      clearSessionExitError,
+      resetSaveJawabanState,
+      saveJawabanError,
+      sessionExitError,
+    ],
+  );
+
+  const saveCurrentJawaban = React.useCallback(
+    async (soalId: number | null): Promise<boolean> => {
+      if (soalId === null || attemptId === null || attemptId <= 0) {
+        return true;
+      }
+
+      const currentJawaban = draftAnswers[soalId];
+      if (!currentJawaban?.isDirty) {
+        return true;
+      }
+
+      const payload = buildSaveJawabanPayload(attemptId, currentJawaban);
+      if (!payload || !hasSavableJawaban(currentJawaban)) {
+        return true;
+      }
+
+      try {
+        await executeSaveJawaban(payload);
+        toast.success("Jawaban berhasil disimpan");
+
+        setDraftAnswers((prev) => {
+          const latestJawaban = prev[soalId];
+          if (!latestJawaban) {
+            return prev;
+          }
+
+          const [savedItem] = payload.jawaban;
+          return {
+            ...prev,
+            [soalId]: {
+              ...latestJawaban,
+              id_pilihan: savedItem.id_pilihan,
+              jawaban_essay: savedItem.jawaban_essay ?? "",
+              waktu_jawab: savedItem.waktu_jawab,
+              isDirty: false,
+            },
+          };
+        });
+
+        return true;
+      } catch {
         return false;
       }
-
-      return (
-        currentLocation.pathname !== nextLocation.pathname ||
-        currentLocation.search !== nextLocation.search ||
-        currentLocation.hash !== nextLocation.hash
-      );
     },
-    [hasActiveExamSession],
-  );
-  const navigationBlocker = useBlocker(shouldBlockNavigation);
-
-  const expireAttemptBeforeLeave = React.useCallback(async () => {
-    if (attemptId === null || expireTriggeredRef.current) {
-      return true;
-    }
-
-    setSessionExitError(null);
-    expireTriggeredRef.current = true;
-
-    try {
-      await executeExpireAttempt(attemptId);
-      clearAttemptCache();
-      clearSoalCache();
-      return true;
-    } catch (error) {
-      expireTriggeredRef.current = false;
-      setSessionExitError(mapExpireAttemptErrorMessage(error));
-      return false;
-    }
-  }, [
-    attemptId,
-    clearAttemptCache,
-    clearSoalCache,
-    executeExpireAttempt,
-  ]);
-
-  useBeforeUnload(
-    React.useCallback(
-      (event) => {
-        if (allowNavigationRef.current || !hasActiveExamSession) {
-          return;
-        }
-
-        event.preventDefault();
-        event.returnValue = "";
-      },
-      [hasActiveExamSession],
-    ),
+    [attemptId, draftAnswers, executeSaveJawaban],
   );
 
-  React.useEffect(() => {
-    if (attemptId === null) {
-      return;
-    }
-
-    const handlePageHide = () => {
-      if (allowNavigationRef.current || expireTriggeredRef.current) {
+  const handleNavigateQuestion = React.useCallback(
+    (nextIndex: number) => {
+      if (
+        savingJawaban ||
+        nextIndex === currentIndex ||
+        nextIndex < 0 ||
+        nextIndex >= soalPreview.length
+      ) {
         return;
       }
 
-      expireTriggeredRef.current = true;
-      clearAttemptCache();
-      clearSoalCache();
-      expireAttemptUjianSiswaOnPageLeave(attemptId);
-    };
-
-    window.addEventListener("pagehide", handlePageHide);
-    return () => {
-      window.removeEventListener("pagehide", handlePageHide);
-    };
-  }, [attemptId, clearAttemptCache, clearSoalCache]);
-
-  React.useEffect(() => {
-    if (isTimeExpired && navigationBlocker.state === "blocked") {
-      navigationBlocker.reset();
-    }
-  }, [isTimeExpired, navigationBlocker]);
-
-  React.useEffect(() => {
-    if (navigationBlocker.state === "blocked") {
-      setIsLeaveConfirmOpen(true);
-      return;
-    }
-
-    setIsLeaveConfirmOpen(false);
-  }, [navigationBlocker.state]);
-
-  const handleExpiredSubmit = React.useCallback(async () => {
-    const expired = await expireAttemptBeforeLeave();
-    if (!expired) {
-      return;
-    }
-
-    allowNavigationRef.current = true;
-    navigate(paths.dashboard.ujian_siswa);
-  }, [expireAttemptBeforeLeave, navigate]);
-
-  const handleLeaveConfirm = React.useCallback(async () => {
-    const expired = await expireAttemptBeforeLeave();
-    if (!expired) {
-      return;
-    }
-
-    allowNavigationRef.current = true;
-    setIsLeaveConfirmOpen(false);
-    if (navigationBlocker.state === "blocked") {
-      navigationBlocker.proceed();
-      return;
-    }
-
-    navigate(paths.dashboard.ujian_siswa);
-  }, [expireAttemptBeforeLeave, navigate, navigationBlocker]);
-
-  const handleLeaveCancel = React.useCallback(() => {
-    setIsLeaveConfirmOpen(false);
-
-    if (navigationBlocker.state === "blocked") {
-      navigationBlocker.reset();
-    }
-  }, [navigationBlocker]);
+      void (async () => {
+        await saveCurrentJawaban(currentSoal?.id ?? null);
+        setCurrentIndex(nextIndex);
+      })();
+    },
+    [
+      currentIndex,
+      currentSoal?.id,
+      saveCurrentJawaban,
+      savingJawaban,
+      soalPreview.length,
+    ],
+  );
 
   if (loading) {
     return (
@@ -438,14 +454,24 @@ const UjianMulaiSiswa: React.FC = () => {
         </div>
       )}
 
+      {jawabanSyncError && (
+        <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+          Sinkronisasi jawaban gagal. {jawabanSyncError}
+        </div>
+      )}
+
       <SiswaSoalPreviewContent
         key={parsedIdJadwalUjian}
         title={title}
         sisaWaktu={sisaWaktu}
         soalPreview={soalPreview}
+        currentIndex={currentIndex}
         selectedOptions={selectedOptions}
+        essayAnswers={essayAnswers}
         onSelectOption={handleSelectOption}
-        onBack={() => navigate(paths.dashboard.ujian_siswa)}
+        onEssayAnswerChange={handleEssayAnswerChange}
+        onNavigateQuestion={handleNavigateQuestion}
+        onBack={handleBack}
       />
 
       <ConfirmAlert
@@ -454,7 +480,10 @@ const UjianMulaiSiswa: React.FC = () => {
         message="Jawaban yang belum dikirim bisa hilang. Yakin ingin meninggalkan halaman ujian ini?"
         onClose={handleLeaveCancel}
         onConfirm={() => {
-          void handleLeaveConfirm();
+          void (async () => {
+            await saveCurrentJawaban(currentSoal?.id ?? null);
+            await handleLeaveConfirm();
+          })();
         }}
         confirmLabel="Ya, Keluar"
         cancelLabel="Lanjut Ujian"
@@ -468,7 +497,10 @@ const UjianMulaiSiswa: React.FC = () => {
         message="Waktu pengerjaan ujian telah mencapai batas akhir. Tekan Submit untuk mengakhiri sesi ujian ini."
         onClose={() => undefined}
         onConfirm={() => {
-          void handleExpiredSubmit();
+          void (async () => {
+            await saveCurrentJawaban(currentSoal?.id ?? null);
+            await handleExpiredSubmit();
+          })();
         }}
         confirmLabel="Submit"
         loadingLabel="Submit..."
