@@ -7,11 +7,25 @@ import type {
   BuatUjianSubmitResponse,
 } from "@/types/Ujian/BuatUjian";
 import type { DetailUjianItem } from "@/types/Ujian/DetailUjian";
-import type { WaktuSelesaiUjian } from "@/types/Ujian/ujianSiswa";
+import type {
+  ActiveAttemptUjian,
+  WaktuSelesaiUjian,
+} from "@/types/Ujian/ujianSiswa";
 
 
 
 const UJIAN_DETAIL_ENDPOINT = "/ujian/detail";
+const ACTIVE_ATTEMPT_UJIAN_ENDPOINT = "/siswa/ujian/attempt/active";
+const SISWA_ATTEMPT_UJIAN_ENDPOINT = "/siswa/ujian/attempt";
+const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
+
+const buildExpireAttemptPayload = () =>
+  buildJsonData(
+    {
+      status_attempt: "expired",
+    },
+    { nullishToEmptyString: false },
+  );
 
 
 export async function submitBuatUjian(values: BuatUjianFormValues) {
@@ -37,6 +51,40 @@ export async function GetWaktuSelesaiUjian(idJadwalUjian: number): Promise<Waktu
       method : "GET"
     },
   );
+}
+
+export async function getActiveAttemptUjian(
+  idJadwalUjian: number,
+): Promise<ActiveAttemptUjian> {
+  return api<ActiveAttemptUjian>(ACTIVE_ATTEMPT_UJIAN_ENDPOINT, {
+    method: "GET",
+    params: {
+      id_jadwal_ujian: idJadwalUjian,
+    },
+  });
+}
+
+export async function expireAttemptUjianSiswa(idAttempt: number): Promise<boolean> {
+  return api<boolean>(`${SISWA_ATTEMPT_UJIAN_ENDPOINT}/${idAttempt}`, {
+    method: "PATCH",
+    data: buildExpireAttemptPayload(),
+  });
+}
+
+export function expireAttemptUjianSiswaOnPageLeave(idAttempt: number): void {
+  if (!Number.isInteger(idAttempt) || idAttempt <= 0) {
+    return;
+  }
+
+  void fetch(`${API_BASE_URL}${SISWA_ATTEMPT_UJIAN_ENDPOINT}/${idAttempt}`, {
+    method: "PATCH",
+    credentials: "include",
+    keepalive: true,
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(buildExpireAttemptPayload()),
+  });
 }
 
 // =====================
@@ -66,4 +114,21 @@ export function useGetWaktuSelesaiUjian(idJadwalUjian: number, enabled = true) {
         : Promise.resolve(null as WaktuSelesaiUjian | null),
     [idJadwalUjian, enabled],
   );
+}
+
+export function useGetActiveAttemptUjian(
+  idJadwalUjian: number,
+  enabled = true,
+) {
+  return useFetch(
+    () =>
+      enabled
+        ? getActiveAttemptUjian(idJadwalUjian)
+        : Promise.resolve(null as ActiveAttemptUjian | null),
+    [idJadwalUjian, enabled],
+  );
+}
+
+export function useExpireAttemptUjianSiswa() {
+  return usePost((idAttempt: number) => expireAttemptUjianSiswa(idAttempt));
 }

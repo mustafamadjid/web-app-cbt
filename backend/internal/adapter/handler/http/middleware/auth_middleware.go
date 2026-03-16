@@ -21,7 +21,11 @@ func ActorFromContext(ctx context.Context) (user.Actor, bool) {
 	return actor, ok
 }
 
-func RequireValidTokenAndSession(next http.Handler, access out.AccessTokenService,refresh out.RefreshTokenService,session out.SessionRepository, cookies cookie.CookieConfig) http.Handler {
+func WithActor(ctx context.Context, actor user.Actor) context.Context {
+	return context.WithValue(ctx, actorKey, actor)
+}
+
+func RequireValidTokenAndSession(next http.Handler, access out.AccessTokenService, refresh out.RefreshTokenService, session out.SessionRepository, cookies cookie.CookieConfig) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		c, err := r.Cookie(cookies.AccessName)
 		if err != nil || c.Value == "" {
@@ -43,7 +47,7 @@ func RequireValidTokenAndSession(next http.Handler, access out.AccessTokenServic
 		// 	return
 		// }
 
-		activeSession, err := session.HasActiveSession(r.Context(),uid)
+		activeSession, err := session.HasActiveSession(r.Context(), uid)
 		if err != nil || !activeSession {
 			cookie.ClearAuthCookies(w, cookies)
 			httpResponse.WriteErr(w, http.StatusUnauthorized, "UNAUTHORIZED", "unauthorized")

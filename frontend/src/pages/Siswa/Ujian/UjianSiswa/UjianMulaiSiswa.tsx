@@ -5,14 +5,22 @@ import ConfirmAlert from "@/components/ui/ConfirmAlert/ConfirmAlert";
 import { useAuth } from "@/contexts/AuthContext";
 import { getRemainingExamTime } from "@/helper/Countdown/getRemainingExamTime";
 import { resolveImageUrl } from "@/helper/MediaUrl/resolveMediaUrl";
+import { useCachedActiveAttemptId } from "@/hooks/Ujian/useCachedActiveAttemptId";
 import { useCachedSoalUjianForSiswa } from "@/hooks/Ujian/useCachedSoalUjianForSiswa";
 import SoalLayout from "@/layouts/BankSoalLayout/SoalLayout";
 import { paths } from "@/routes/paths";
-import { useGetWaktuSelesaiUjian } from "@/services/Api/features-api/Ujian/ujian.service";
+import { ApiError } from "@/services/Api/api";
+import {
+  expireAttemptUjianSiswaOnPageLeave,
+  useExpireAttemptUjianSiswa,
+  useGetWaktuSelesaiUjian,
+} from "@/services/Api/features-api/Ujian/ujian.service";
 import type { SoalPreviewItem } from "@/types/Ujian/SoalPreview";
 
 const OPTION_LABELS = ["A", "B", "C", "D", "E", "F", "G", "H"];
 const DEFAULT_TIMER_LABEL = "00:00:00";
+const EXPIRE_ATTEMPT_ERROR_MESSAGE =
+  "Gagal mengakhiri sesi ujian. Silakan coba lagi.";
 
 type SelectedOptionsMap = Record<number, number>;
 
@@ -88,6 +96,18 @@ const SiswaSoalPreviewContent: React.FC<SiswaSoalPreviewContentProps> = ({
   );
 };
 
+const mapExpireAttemptErrorMessage = (error: unknown): string => {
+  if (error instanceof ApiError && error.message) {
+    return error.message;
+  }
+
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  return EXPIRE_ATTEMPT_ERROR_MESSAGE;
+};
+
 const UjianMulaiSiswa: React.FC = () => {
   const navigate = useNavigate();
   const { user, status } = useAuth();
@@ -97,13 +117,28 @@ const UjianMulaiSiswa: React.FC = () => {
   const [sisaWaktu, setSisaWaktu] = React.useState(DEFAULT_TIMER_LABEL);
   const [isTimeExpired, setIsTimeExpired] = React.useState(false);
   const [isLeaveConfirmOpen, setIsLeaveConfirmOpen] = React.useState(false);
+  const [sessionExitError, setSessionExitError] = React.useState<string | null>(null);
   const allowNavigationRef = React.useRef(false);
+  const expireTriggeredRef = React.useRef(false);
+  const { execute: executeExpireAttempt, loading: expiringAttempt } =
+    useExpireAttemptUjianSiswa();
 
   const parsedIdJadwalUjian = Number(idJadwalUjian);
   const parsedIdSiswa = user?.id_pengguna ?? 0;
   const isIdJadwalUjianValid =
     Number.isInteger(parsedIdJadwalUjian) && parsedIdJadwalUjian > 0;
   const isIdSiswaValid = Number.isInteger(parsedIdSiswa) && parsedIdSiswa > 0;
+  const {
+    attemptId,
+    loading: loadingActiveAttempt,
+    error: activeAttemptError,
+    errorCode: activeAttemptErrorCode,
+    clearCache: clearAttemptCache,
+  } = useCachedActiveAttemptId(
+    parsedIdJadwalUjian,
+    parsedIdSiswa,
+    isIdJadwalUjianValid && isIdSiswaValid,
+  );
   const {
     data: soalRows,
     loading: loadingSoal,
@@ -146,8 +181,32 @@ const UjianMulaiSiswa: React.FC = () => {
   React.useEffect(() => {
     setSelectedOptions({});
     setIsLeaveConfirmOpen(false);
+    setSessionExitError(null);
     allowNavigationRef.current = false;
+    expireTriggeredRef.current = false;
   }, [parsedIdJadwalUjian]);
+
+  React.useEffect(() => {
+    if (!isIdJadwalUjianValid || activeAttemptErrorCode !== "NOT_FOUND") {
+      return;
+    }
+
+    allowNavigationRef.current = true;
+    clearAttemptCache();
+    navigate(
+      paths.dashboard.ujian_siswa_token.replace(
+        ":idJadwalUjian",
+        String(parsedIdJadwalUjian),
+      ),
+      { replace: true },
+    );
+  }, [
+    activeAttemptErrorCode,
+    clearAttemptCache,
+    isIdJadwalUjianValid,
+    navigate,
+    parsedIdJadwalUjian,
+  ]);
 
   React.useEffect(() => {
     if (!waktuSelesai) {
@@ -192,18 +251,22 @@ const UjianMulaiSiswa: React.FC = () => {
 
   const handleSelectOption = React.useCallback(
     (soalId: number, optionId: number) => {
+      if (sessionExitError) {
+        setSessionExitError(null);
+      }
       setSelectedOptions((prev) => ({ ...prev, [soalId]: optionId }));
     },
-    [],
+    [sessionExitError],
   );
 
-  const handleExpiredSubmit = React.useCallback(() => {
-    allowNavigationRef.current = true;
-    clearSoalCache();
-    navigate(paths.dashboard.ujian_siswa);
-  }, [clearSoalCache, navigate]);
-
-  const loading = status === "loading" || loadingSoal || loadingWaktuSelesai;
+  const shouldRedirectToToken =
+    isIdJadwalUjianValid && activeAttemptErrorCode === "NOT_FOUND";
+  const loading =
+    status === "loading" ||
+    loadingActiveAttempt ||
+    loadingSoal ||
+    loadingWaktuSelesai ||
+    shouldRedirectToToken;
   const waktuSelesaiStateError =
     !loadingWaktuSelesai && !waktuSelesai
       ? "Waktu selesai ujian tidak tersedia."
@@ -215,10 +278,16 @@ const UjianMulaiSiswa: React.FC = () => {
       ? "Jadwal ujian tidak ditemukan."
       : status !== "loading" && !isIdSiswaValid
         ? "Akun siswa tidak valid. Silakan login ulang."
-      : soalError ?? waktuSelesaiError ?? waktuSelesaiStateError;
+        : activeAttemptErrorCode !== "NOT_FOUND"
+          ? activeAttemptError ?? soalError ?? waktuSelesaiError ?? waktuSelesaiStateError
+          : soalError ?? waktuSelesaiError ?? waktuSelesaiStateError;
   const title = isIdJadwalUjianValid ? `Ujian ` : "Ujian";
   const hasActiveExamSession =
-    !loading && !errorMessage && soalPreview.length > 0 && !isTimeExpired;
+    !loading &&
+    !errorMessage &&
+    attemptId !== null &&
+    soalPreview.length > 0 &&
+    !isTimeExpired;
   const shouldBlockNavigation = React.useCallback<BlockerFunction>(
     ({ currentLocation, nextLocation }) => {
       if (allowNavigationRef.current || !hasActiveExamSession) {
@@ -235,6 +304,31 @@ const UjianMulaiSiswa: React.FC = () => {
   );
   const navigationBlocker = useBlocker(shouldBlockNavigation);
 
+  const expireAttemptBeforeLeave = React.useCallback(async () => {
+    if (attemptId === null || expireTriggeredRef.current) {
+      return true;
+    }
+
+    setSessionExitError(null);
+    expireTriggeredRef.current = true;
+
+    try {
+      await executeExpireAttempt(attemptId);
+      clearAttemptCache();
+      clearSoalCache();
+      return true;
+    } catch (error) {
+      expireTriggeredRef.current = false;
+      setSessionExitError(mapExpireAttemptErrorMessage(error));
+      return false;
+    }
+  }, [
+    attemptId,
+    clearAttemptCache,
+    clearSoalCache,
+    executeExpireAttempt,
+  ]);
+
   useBeforeUnload(
     React.useCallback(
       (event) => {
@@ -248,6 +342,28 @@ const UjianMulaiSiswa: React.FC = () => {
       [hasActiveExamSession],
     ),
   );
+
+  React.useEffect(() => {
+    if (attemptId === null) {
+      return;
+    }
+
+    const handlePageHide = () => {
+      if (allowNavigationRef.current || expireTriggeredRef.current) {
+        return;
+      }
+
+      expireTriggeredRef.current = true;
+      clearAttemptCache();
+      clearSoalCache();
+      expireAttemptUjianSiswaOnPageLeave(attemptId);
+    };
+
+    window.addEventListener("pagehide", handlePageHide);
+    return () => {
+      window.removeEventListener("pagehide", handlePageHide);
+    };
+  }, [attemptId, clearAttemptCache, clearSoalCache]);
 
   React.useEffect(() => {
     if (isTimeExpired && navigationBlocker.state === "blocked") {
@@ -264,18 +380,31 @@ const UjianMulaiSiswa: React.FC = () => {
     setIsLeaveConfirmOpen(false);
   }, [navigationBlocker.state]);
 
-  const handleLeaveConfirm = React.useCallback(() => {
+  const handleExpiredSubmit = React.useCallback(async () => {
+    const expired = await expireAttemptBeforeLeave();
+    if (!expired) {
+      return;
+    }
+
+    allowNavigationRef.current = true;
+    navigate(paths.dashboard.ujian_siswa);
+  }, [expireAttemptBeforeLeave, navigate]);
+
+  const handleLeaveConfirm = React.useCallback(async () => {
+    const expired = await expireAttemptBeforeLeave();
+    if (!expired) {
+      return;
+    }
+
     allowNavigationRef.current = true;
     setIsLeaveConfirmOpen(false);
-    clearSoalCache();
-
     if (navigationBlocker.state === "blocked") {
       navigationBlocker.proceed();
       return;
     }
 
     navigate(paths.dashboard.ujian_siswa);
-  }, [clearSoalCache, navigate, navigationBlocker]);
+  }, [expireAttemptBeforeLeave, navigate, navigationBlocker]);
 
   const handleLeaveCancel = React.useCallback(() => {
     setIsLeaveConfirmOpen(false);
@@ -303,6 +432,12 @@ const UjianMulaiSiswa: React.FC = () => {
 
   return (
     <>
+      {sessionExitError && (
+        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+          {sessionExitError}
+        </div>
+      )}
+
       <SiswaSoalPreviewContent
         key={parsedIdJadwalUjian}
         title={title}
@@ -318,10 +453,13 @@ const UjianMulaiSiswa: React.FC = () => {
         title="Keluar dari Ujian?"
         message="Jawaban yang belum dikirim bisa hilang. Yakin ingin meninggalkan halaman ujian ini?"
         onClose={handleLeaveCancel}
-        onConfirm={handleLeaveConfirm}
+        onConfirm={() => {
+          void handleLeaveConfirm();
+        }}
         confirmLabel="Ya, Keluar"
         cancelLabel="Lanjut Ujian"
         loadingLabel="Keluar..."
+        isLoading={expiringAttempt}
       />
 
       <ConfirmAlert
@@ -334,6 +472,7 @@ const UjianMulaiSiswa: React.FC = () => {
         }}
         confirmLabel="Submit"
         loadingLabel="Submit..."
+        isLoading={expiringAttempt}
         hideCancel
         dismissible={false}
         confirmClassName="bg-[#397e50] hover:bg-[#326f45]"

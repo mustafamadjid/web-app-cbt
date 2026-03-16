@@ -62,11 +62,12 @@ var (
 
 	ErrTimeEmpty = errors.New("time is empty")
 
-	ErrPesertaInvalid = errors.New("Siswa not found in peserta ujian")
-	ErrWaktuAttemptPesertaInvalid = errors.New("Expired attempt time (waktu attempt lewat dari waktu selesai ujian)")
-	ErrTokenUjianInvalid = errors.New("Invalid token ujian")
+	ErrPesertaInvalid                   = errors.New("Siswa not found in peserta ujian")
+	ErrWaktuAttemptPesertaInvalid       = errors.New("Expired attempt time (waktu attempt lewat dari waktu selesai ujian)")
+	ErrTokenUjianInvalid                = errors.New("Invalid token ujian")
 	ErrPesertaNotAllowedToAttemptJadwal = errors.New("Peserta ujian is not allowed to attempt this ujian")
-	ErrMissingTokenUjian = errors.New("Missing token ujian")
+	ErrMissingTokenUjian                = errors.New("Missing token ujian")
+	ErrSiswaHasActiveAttempt            = errors.New("siswa has active attempt")
 
 	ErrMissingJawabanEssayAndPilgan = errors.New("Missing jawaban essay and pilgan")
 )

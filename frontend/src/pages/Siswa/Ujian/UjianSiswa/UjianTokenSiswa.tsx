@@ -11,6 +11,7 @@ const ATTEMPT_ERROR_MESSAGES: Record<string, string> = {
   INVALID_TOKEN_UJIAN: "Token ujian salah",
   SISWA_NOT_ALLOWED: "Anda tidak diizinkan mengikuti ujian ini",
   UJIAN_ATTEMPT_TIME_EXPIRED: "Ujian telah selesai",
+  DOUBLE_ATTEMPT_NOT_ALLOWED : "Anda telah mengikuti ujian ini",
 };
 
 const mapAttemptErrorMessage = (error: unknown): string => {

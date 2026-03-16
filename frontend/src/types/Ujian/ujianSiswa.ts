@@ -29,3 +29,12 @@ export type WaktuSelesaiUjian = {
   id_jadwal_ujian : number,
   waktu_selesai : string
 }
+
+export type ActiveAttemptUjian = {
+  id_attempt: number;
+  id_peserta_ujian: number;
+  status_attempt: string;
+  waktu_mulai: string | null;
+  waktu_submit: string | null;
+  deadline_at: string | null;
+};

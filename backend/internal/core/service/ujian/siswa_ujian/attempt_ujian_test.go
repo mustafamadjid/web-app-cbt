@@ -15,6 +15,7 @@ import (
 type fakeSiswaUjianChecker struct {
 	checkFn        func(ctx context.Context, idSiswa int, idJadwalUjian int) (bool, int, error)
 	tokenFn        func(ctx context.Context, token string, idJadwalUjian int) (bool, error)
+	ownershipFn    func(ctx context.Context, idSiswa int, idAttempt ujian.ID) (bool, error)
 	deadlineFn     func(ctx context.Context, idJadwalUjian int) (time.Time, error)
 	gotCheckSiswa  int
 	gotCheckJadwal int
@@ -37,6 +38,13 @@ func (f *fakeSiswaUjianChecker) CheckTokenUjian(ctx context.Context, token strin
 	f.gotTokenID = idJadwalUjian
 	if f.tokenFn != nil {
 		return f.tokenFn(ctx, token, idJadwalUjian)
+	}
+	return false, nil
+}
+
+func (f *fakeSiswaUjianChecker) CheckAttemptOwnershipBySiswa(ctx context.Context, idSiswa int, idAttempt ujian.ID) (bool, error) {
+	if f.ownershipFn != nil {
+		return f.ownershipFn(ctx, idSiswa, idAttempt)
 	}
 	return false, nil
 }
@@ -118,6 +126,27 @@ func TestAttemptUjianService(t *testing.T) {
 			attemptRepo: &fakeAttemptUjianRepo{},
 			wantErr:     repoErr,
 			wantCreate:  false,
+		},
+		{
+			name: "siswa sudah punya active attempt",
+			checker: &fakeSiswaUjianChecker{
+				checkFn: func(context.Context, int, int) (bool, int, error) {
+					return true, 17, nil
+				},
+				deadlineFn: func(context.Context, int) (time.Time, error) {
+					return deadline, nil
+				},
+				tokenFn: func(context.Context, string, int) (bool, error) {
+					return true, nil
+				},
+			},
+			attemptRepo: &fakeAttemptUjianRepo{
+				createFn: func(context.Context, ujian.AttemptUjian) error {
+					return coreerror.ErrSiswaHasActiveAttempt
+				},
+			},
+			wantErr:    coreerror.ErrSiswaHasActiveAttempt,
+			wantCreate: true,
 		},
 		{
 			name: "happy path",

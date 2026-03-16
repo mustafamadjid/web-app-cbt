@@ -66,6 +66,8 @@ func (h *AttemptUjianHandler) AttemptUjian(w http.ResponseWriter, r *http.Reques
 			httpResponse.WriteErr(w, http.StatusBadRequest, "INVALID_TOKEN_UJIAN", "bad request: invalid token ujian")
 		case errors.Is(err, coreerror.ErrWaktuAttemptPesertaInvalid):
 			httpResponse.WriteErr(w, http.StatusBadRequest, "UJIAN_ATTEMPT_TIME_EXPIRED", "bad request: expired attempt time")
+		case errors.Is(err, coreerror.ErrSiswaHasActiveAttempt):
+			httpResponse.WriteErr(w, http.StatusConflict, "DOUBLE_ATTEMPT_NOT_ALLOWED", "double attempt not allowed")
 		case errors.Is(err, coreerror.ErrNotFound):
 			httpResponse.WriteErr(w, http.StatusNotFound, "NOT_FOUND", "data not found")
 		case errors.Is(err, coreerror.ErrConflict):

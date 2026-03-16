@@ -9,6 +9,7 @@ import (
 
 	pg "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
+	ujian "github.com/mustafamadjid/web-app-cbt/internal/core/domain/ujian_siswa"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 )
 
@@ -61,6 +62,26 @@ func (r *SiswaUjianRepo) CheckTokenUjian(ctx context.Context, token string, idJa
 	var exists bool
 	if err := r.q.QueryRow(ctx, query, token, idJadwalUjian).Scan(&exists); err != nil {
 		r.loggerFor(ctx).Error(ctx, "failed checking token ujian", "layer", "repo.db", "op", "siswa_ujian.check_token", "err", err)
+		return false, err
+	}
+
+	return exists, nil
+}
+
+func (r *SiswaUjianRepo) CheckAttemptOwnershipBySiswa(ctx context.Context, idSiswa int, idAttempt ujian.ID) (bool, error) {
+	const query = `
+		SELECT EXISTS(
+			SELECT 1
+			FROM attempt_ujian au
+			INNER JOIN peserta_ujian pu ON pu.id_peserta_ujian = au.id_peserta_ujian
+			WHERE pu.id_siswa = $1
+				AND au.id_attempt = $2
+		)
+	`
+
+	var exists bool
+	if err := r.q.QueryRow(ctx, query, idSiswa, idAttempt).Scan(&exists); err != nil {
+		r.loggerFor(ctx).Error(ctx, "failed checking attempt ownership by siswa", "layer", "repo.db", "op", "siswa_ujian.check_attempt_ownership", "err", err)
 		return false, err
 	}
 

@@ -177,6 +177,10 @@ func mapAttemptUniqueViolation(err error) error {
 		return nil
 	}
 
+	if pgErr.ConstraintName == "uq_attempt_active" {
+		return coreerror.ErrSiswaHasActiveAttempt
+	}
+
 	return coreerror.ErrConflict
 }
 
