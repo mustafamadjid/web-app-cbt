@@ -4,7 +4,6 @@ import { getActiveAttemptUjian } from "@/services/Api/features-api/Ujian/ujian.s
 
 const CACHE_VERSION = 1;
 const STORAGE_PREFIX = `ujian_active_attempt:v${CACHE_VERSION}`;
-const pendingCacheCleanupTimers = new Map<string, number>();
 
 type CachedActiveAttemptPayload = {
   version: number;
@@ -24,47 +23,14 @@ export type UseCachedActiveAttemptIdState = {
 const buildCacheKey = (siswaId: number, idJadwalUjian: number) =>
   `${STORAGE_PREFIX}:${siswaId}:${idJadwalUjian}`;
 
-const cancelScheduledCacheCleanup = (
-  siswaId: number,
-  idJadwalUjian: number,
-) => {
-  if (typeof window === "undefined") return;
-
-  const cacheKey = buildCacheKey(siswaId, idJadwalUjian);
-  const timerId = pendingCacheCleanupTimers.get(cacheKey);
-  if (timerId === undefined) return;
-
-  window.clearTimeout(timerId);
-  pendingCacheCleanupTimers.delete(cacheKey);
-};
-
 const clearCachedActiveAttemptId = (siswaId: number, idJadwalUjian: number) => {
   if (typeof window === "undefined") return;
-
-  cancelScheduledCacheCleanup(siswaId, idJadwalUjian);
 
   try {
     window.localStorage.removeItem(buildCacheKey(siswaId, idJadwalUjian));
   } catch {
     // Ignore storage access errors.
   }
-};
-
-const scheduleCachedActiveAttemptCleanup = (
-  siswaId: number,
-  idJadwalUjian: number,
-) => {
-  if (typeof window === "undefined") return;
-
-  cancelScheduledCacheCleanup(siswaId, idJadwalUjian);
-
-  const cacheKey = buildCacheKey(siswaId, idJadwalUjian);
-  const timerId = window.setTimeout(() => {
-    pendingCacheCleanupTimers.delete(cacheKey);
-    clearCachedActiveAttemptId(siswaId, idJadwalUjian);
-  }, 0);
-
-  pendingCacheCleanupTimers.set(cacheKey, timerId);
 };
 
 const isValidCachePayload = (
@@ -201,8 +167,6 @@ export function useCachedActiveAttemptId(
       return;
     }
 
-    cancelScheduledCacheCleanup(siswaId, idJadwalUjian);
-
     const cachedAttemptId = readCachedActiveAttemptId(siswaId, idJadwalUjian);
     if (cachedAttemptId !== null) {
       setAttemptId(cachedAttemptId);
@@ -252,7 +216,6 @@ export function useCachedActiveAttemptId(
 
     return () => {
       cancelled = true;
-      scheduleCachedActiveAttemptCleanup(siswaId, idJadwalUjian);
     };
   }, [hasValidContext, siswaId, idJadwalUjian]);
 

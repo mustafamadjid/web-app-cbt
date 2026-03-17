@@ -1,12 +1,9 @@
 import React from "react";
-import { useBeforeUnload, useBlocker } from "react-router";
+import { useBlocker } from "react-router";
 import type { BlockerFunction } from "react-router";
 
 import { ApiError } from "@/services/Api/api";
-import {
-  expireAttemptUjianSiswaOnPageLeave,
-  useExpireAttemptUjianSiswa,
-} from "@/services/Api/features-api/Ujian/ujian.service";
+import { useExpireAttemptUjianSiswa } from "@/services/Api/features-api/Ujian/ujian.service";
 
 const EXPIRE_ATTEMPT_ERROR_MESSAGE =
   "Gagal mengakhiri sesi ujian. Silakan coba lagi.";
@@ -117,42 +114,6 @@ export function useExamSessionExit({
   const clearSessionExitError = React.useCallback(() => {
     setSessionExitError(null);
   }, []);
-
-  useBeforeUnload(
-    React.useCallback(
-      (event) => {
-        if (allowNavigationRef.current || !hasActiveExamSession) {
-          return;
-        }
-
-        event.preventDefault();
-        event.returnValue = "";
-      },
-      [hasActiveExamSession],
-    ),
-  );
-
-  React.useEffect(() => {
-    if (attemptId === null) {
-      return;
-    }
-
-    const handlePageHide = () => {
-      if (allowNavigationRef.current || expireTriggeredRef.current) {
-        return;
-      }
-
-      expireTriggeredRef.current = true;
-      clearAttemptCache();
-      clearSoalCache();
-      expireAttemptUjianSiswaOnPageLeave(attemptId);
-    };
-
-    window.addEventListener("pagehide", handlePageHide);
-    return () => {
-      window.removeEventListener("pagehide", handlePageHide);
-    };
-  }, [attemptId, clearAttemptCache, clearSoalCache]);
 
   React.useEffect(() => {
     if (isTimeExpired && navigationBlocker.state === "blocked") {

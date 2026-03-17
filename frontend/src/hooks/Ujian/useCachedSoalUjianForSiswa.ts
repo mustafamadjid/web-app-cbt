@@ -8,7 +8,6 @@ import type {
 
 const CACHE_VERSION = 1;
 const STORAGE_PREFIX = `ujian_soal_siswa:v${CACHE_VERSION}`;
-const pendingCacheCleanupTimers = new Map<string, number>();
 
 type CachedSoalUjianPayload = {
   version: number;
@@ -53,47 +52,14 @@ const isValidSoalRow = (value: unknown): value is SoalUjianSiswa => {
 const buildCacheKey = (siswaId: number, idJadwalUjian: number) =>
   `${STORAGE_PREFIX}:${siswaId}:${idJadwalUjian}`;
 
-const cancelScheduledCacheCleanup = (
-  siswaId: number,
-  idJadwalUjian: number,
-) => {
-  if (typeof window === "undefined") return;
-
-  const cacheKey = buildCacheKey(siswaId, idJadwalUjian);
-  const timerId = pendingCacheCleanupTimers.get(cacheKey);
-  if (timerId === undefined) return;
-
-  window.clearTimeout(timerId);
-  pendingCacheCleanupTimers.delete(cacheKey);
-};
-
 const clearCachedSoalUjian = (siswaId: number, idJadwalUjian: number) => {
   if (typeof window === "undefined") return;
-
-  cancelScheduledCacheCleanup(siswaId, idJadwalUjian);
 
   try {
     window.localStorage.removeItem(buildCacheKey(siswaId, idJadwalUjian));
   } catch {
     // Ignore storage access errors.
   }
-};
-
-const scheduleCachedSoalUjianCleanup = (
-  siswaId: number,
-  idJadwalUjian: number,
-) => {
-  if (typeof window === "undefined") return;
-
-  cancelScheduledCacheCleanup(siswaId, idJadwalUjian);
-
-  const cacheKey = buildCacheKey(siswaId, idJadwalUjian);
-  const timerId = window.setTimeout(() => {
-    pendingCacheCleanupTimers.delete(cacheKey);
-    clearCachedSoalUjian(siswaId, idJadwalUjian);
-  }, 0);
-
-  pendingCacheCleanupTimers.set(cacheKey, timerId);
 };
 
 const isValidCachePayload = (
@@ -216,8 +182,6 @@ export function useCachedSoalUjianForSiswa(
       return;
     }
 
-    cancelScheduledCacheCleanup(siswaId, idJadwalUjian);
-
     const cachedRows = readCachedSoalUjian(siswaId, idJadwalUjian);
     if (cachedRows !== null) {
       setData(cachedRows);
@@ -253,7 +217,6 @@ export function useCachedSoalUjianForSiswa(
 
     return () => {
       cancelled = true;
-      scheduleCachedSoalUjianCleanup(siswaId, idJadwalUjian);
     };
   }, [hasValidContext, siswaId, idJadwalUjian]);
 
