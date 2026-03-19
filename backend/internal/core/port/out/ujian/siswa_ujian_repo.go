@@ -9,11 +9,16 @@ import (
 )
 
 type SiswaUjianChecker interface {
+	SiswaAttemptOwnershipChecker
+
 	CheckValidSiswaInPesertaUjianById(ctx context.Context, idSiswa int, idJadwalUjian int) (bool, int, error)
 	CheckTokenUjian(ctx context.Context, token string, idJadwalUjian int) (bool, error)
-	CheckAttemptOwnershipBySiswa(ctx context.Context, idSiswa int, idAttempt ujian.ID) (bool, error)
 
 	GetDeadlineUjian(ctx context.Context, idJadwalUjian int) (time.Time, error)
+}
+
+type SiswaAttemptOwnershipChecker interface {
+	CheckAttemptOwnershipBySiswa(ctx context.Context, idSiswa int, idAttempt ujian.ID) (bool, error)
 }
 
 type ListUjianSiswaRepository interface {

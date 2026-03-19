@@ -68,6 +68,7 @@ var (
 	ErrPesertaNotAllowedToAttemptJadwal = errors.New("Peserta ujian is not allowed to attempt this ujian")
 	ErrMissingTokenUjian                = errors.New("Missing token ujian")
 	ErrSiswaHasActiveAttempt            = errors.New("siswa has active attempt")
+	ErrDoubleSubmit                     = errors.New("peserta ujian already submit")
 
 	ErrMissingJawabanEssayAndPilgan = errors.New("Missing jawaban essay and pilgan")
 )

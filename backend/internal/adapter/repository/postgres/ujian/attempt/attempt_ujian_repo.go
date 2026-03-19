@@ -8,6 +8,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	pg "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
@@ -19,6 +20,7 @@ import (
 type AttemptUjianRepo struct {
 	q      pg.Executor
 	logger corelog.Logger
+	pool   *pgxpool.Pool
 }
 
 func NewAttemptUjianRepo(q pg.Executor, logger corelog.Logger) *AttemptUjianRepo {
@@ -171,6 +173,66 @@ func (r *AttemptUjianRepo) DeleteAttemptUjian(ctx context.Context, idAttempt uji
 	return nil
 }
 
+func (r *AttemptUjianRepo) SubmitAttemptUjian(ctx context.Context, idAttempt ujian.ID) error {
+	tx, err := r.pool.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		r.loggerFor(ctx).Error(ctx, "failed begin tx submit attempt ujian", "layer", "repo.db", "op", "attempt_ujian.submit.begin_tx", "err", err)
+		return err
+	}
+
+	committed := false
+	defer func() {
+		if !committed {
+			_ = tx.Rollback(ctx)
+		}
+	}()
+
+	const submitQuery = `
+		UPDATE attempt_ujian
+		SET
+			status_attempt = $1,
+			waktu_submit = NOW()
+		WHERE id_attempt = $2 AND status_attempt = $3
+	`
+
+	tag, err := tx.Exec(ctx, submitQuery,
+		ujian.ATTEMPT_SUBMITTED,
+		idAttempt,
+		ujian.ATTEMPT_IN_PROGRESS,
+	)
+	if err != nil {
+		if mappedErr := mapSubmitUniqueViolation(err); mappedErr != nil {
+			return mappedErr
+		}
+
+		r.loggerFor(ctx).Error(ctx, "failed update attempt ujian", "layer", "repo.db", "op", "attempt_ujian.submit.update", "err", err)
+		return err
+	}
+
+	if tag.RowsAffected() == 0 {
+		return coreerror.ErrNotFound // atau ErrInvalidState, tergantung kebutuhan
+	}
+
+	const gradingJobsQuery = `
+		INSERT INTO grading_jobs(id_attempt, status)
+		VALUES ($1, 'queued')
+		ON CONFLICT (id_attempt) DO NOTHING
+	`
+
+	_, err = tx.Exec(ctx, gradingJobsQuery, idAttempt)
+	if err != nil {
+		r.loggerFor(ctx).Error(ctx, "failed insert grading job", "layer", "repo.db", "op", "attempt_ujian.submit.insert_grading_job", "err", err)
+		return err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		r.loggerFor(ctx).Error(ctx, "failed commit tx submit attempt ujian", "layer", "repo.db", "op", "attempt_ujian.submit.commit_tx", "err", err)
+		return err
+	}
+	committed = true
+
+	return nil
+}
 func mapAttemptUniqueViolation(err error) error {
 	var pgErr *pgconn.PgError
 	if !errors.As(err, &pgErr) || pgErr.Code != "23505" {
@@ -179,6 +241,19 @@ func mapAttemptUniqueViolation(err error) error {
 
 	if pgErr.ConstraintName == "uq_attempt_active" {
 		return coreerror.ErrSiswaHasActiveAttempt
+	}
+
+	return coreerror.ErrConflict
+}
+
+func mapSubmitUniqueViolation(err error) error {
+	var pgErr *pgconn.PgError
+	if !errors.As(err, &pgErr) || pgErr.Code != "23505" {
+		return nil
+	}
+
+	if pgErr.ConstraintName == "uq_attempt_ujian_one_submitted_per_peserta" {
+		return coreerror.ErrDoubleSubmit
 	}
 
 	return coreerror.ErrConflict

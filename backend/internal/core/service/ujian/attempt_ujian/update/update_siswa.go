@@ -6,19 +6,16 @@ import (
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	ujian "github.com/mustafamadjid/web-app-cbt/internal/core/domain/ujian_siswa"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
+	ujian_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/ujian"
 	updatepatch "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/update_patch"
 )
 
-type siswaAttemptOwnershipChecker interface {
-	CheckAttemptOwnershipBySiswa(ctx context.Context, idSiswa int, idAttempt ujian.ID) (bool, error)
-}
-
 type SiswaUpdateAttemptUjianService struct {
-	checker siswaAttemptOwnershipChecker
+	checker ujian_repo.SiswaAttemptOwnershipChecker
 	updater *UpdateAttemptUjianService
 }
 
-func NewSiswaUpdateAttemptUjianService(checker siswaAttemptOwnershipChecker, updater *UpdateAttemptUjianService) *SiswaUpdateAttemptUjianService {
+func NewSiswaUpdateAttemptUjianService(checker ujian_repo.SiswaAttemptOwnershipChecker, updater *UpdateAttemptUjianService) *SiswaUpdateAttemptUjianService {
 	return &SiswaUpdateAttemptUjianService{
 		checker: checker,
 		updater: updater,

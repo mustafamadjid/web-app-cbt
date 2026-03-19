@@ -31,6 +31,8 @@ type AttemptUjianRepository interface {
 	CreateAttemptUjian(ctx context.Context, data ujian.AttemptUjian) error
 	UpdateAttemptUjian(ctx context.Context, idAttempt ujian.ID, data updatepatch.UpdateAttemptUjianPatch) error
 	DeleteAttemptUjian(ctx context.Context, idAttempt ujian.ID) error
+
+	SubmitAttemptUjian(ctx context.Context, idAttempt ujian.ID) error
 }
 
 type HasilUjianRepository interface {
