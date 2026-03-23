@@ -132,7 +132,7 @@ const UjianMulaiSiswa: React.FC = () => {
     reset: resetSaveJawabanState,
   } = useSaveJawabanUjianSiswa();
   const {
-    execute: executeSubmitAttempt,
+    execute: executeSubmitUjian,
     loading: submittingAttempt,
     error: submitAttemptError,
     reset: resetSubmitAttemptState,
@@ -489,6 +489,7 @@ const UjianMulaiSiswa: React.FC = () => {
     if (
       attemptId === null ||
       attemptId <= 0 ||
+      viewMode !== "submit_preview" ||
       submittingAttempt ||
       preparingPreview ||
       expiringAttempt
@@ -498,13 +499,14 @@ const UjianMulaiSiswa: React.FC = () => {
 
     void (async () => {
       try {
-        await executeSubmitAttempt(attemptId);
+        await executeSubmitUjian(attemptId);
         toast.success("Ujian berhasil disubmit");
         allowNavigation();
         clearAttemptCache();
         clearSoalCache();
         navigate(paths.dashboard.hasil_ujian_siswa, { replace: true });
       } catch {
+        toast.error("Submit ujian gagal. Silakan coba lagi.");
         return;
       }
     })();
@@ -513,11 +515,12 @@ const UjianMulaiSiswa: React.FC = () => {
     attemptId,
     clearAttemptCache,
     clearSoalCache,
-    executeSubmitAttempt,
+    executeSubmitUjian,
     expiringAttempt,
     navigate,
     preparingPreview,
     submittingAttempt,
+    viewMode,
   ]);
 
   const handleNavigateQuestion = React.useCallback(
@@ -585,7 +588,7 @@ const UjianMulaiSiswa: React.FC = () => {
 
       {submitAttemptError && (
         <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-          Submit ujian gagal
+          Submit ujian gagal. {submitAttemptError}
         </div>
       )}
 

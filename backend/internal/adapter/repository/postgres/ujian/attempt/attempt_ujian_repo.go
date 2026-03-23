@@ -24,7 +24,12 @@ type AttemptUjianRepo struct {
 }
 
 func NewAttemptUjianRepo(q pg.Executor, logger corelog.Logger) *AttemptUjianRepo {
-	return &AttemptUjianRepo{q: q, logger: logger}
+	repo := &AttemptUjianRepo{q: q, logger: logger}
+	if pool, ok := q.(*pgxpool.Pool); ok {
+		repo.pool = pool
+	}
+
+	return repo
 }
 
 func (r *AttemptUjianRepo) loggerFor(ctx context.Context) corelog.Logger {
@@ -174,6 +179,12 @@ func (r *AttemptUjianRepo) DeleteAttemptUjian(ctx context.Context, idAttempt uji
 }
 
 func (r *AttemptUjianRepo) SubmitAttemptUjian(ctx context.Context, idAttempt ujian.ID) error {
+	if r.pool == nil {
+		err := errors.New("attempt ujian repo requires pgx pool for submit transaction")
+		r.loggerFor(ctx).Error(ctx, "failed submit attempt ujian", "layer", "repo.db", "op", "attempt_ujian.submit.precondition", "err", err)
+		return err
+	}
+
 	tx, err := r.pool.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		r.loggerFor(ctx).Error(ctx, "failed begin tx submit attempt ujian", "layer", "repo.db", "op", "attempt_ujian.submit.begin_tx", "err", err)

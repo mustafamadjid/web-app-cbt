@@ -40,6 +40,7 @@ import (
 	ujianlistsoal "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/list_soal_ujian"
 	ujianlistsoalsiswa "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/list_soal_ujian_for_siswa"
 	ujianlistsiswa "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/list_ujian_siswa"
+	ujiansubmit "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/submit_ujian"
 	ujiancreate "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/ujian_siswa/create"
 	ujiandeleteujian "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/ujian_siswa/delete"
 	ujianget "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/ujian_siswa/get"
@@ -103,6 +104,7 @@ type UjianHandlers struct {
 	GetActiveAttemptUjianHandler *ujianactiveattempt.GetActiveAttemptUjianHandler
 	UpdateAttemptUjianHandler    *ujianupdateattempt.UpdateAttemptUjianHandler
 	ExpireAttemptUjianHandler    *ujianexpireattempt.ExpireAttemptUjianHandler
+	SubmitUjianHandler           *ujiansubmit.SubmitUjianHandler
 	GetJawabanUjianHandler       *ujiangetjawaban.GetJawabanUjianHandler
 	SaveJawabanUjianHandler      *ujiansavejawaban.SaveJawabanUjianHandler
 	CreateUjianHandler           *ujiancreate.CreateRuangUjianHandler

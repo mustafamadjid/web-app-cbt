@@ -19,6 +19,7 @@ import type {
 const UJIAN_DETAIL_ENDPOINT = "/ujian/detail";
 const ACTIVE_ATTEMPT_UJIAN_ENDPOINT = "/siswa/ujian/attempt/active";
 const SISWA_ATTEMPT_UJIAN_ENDPOINT = "/siswa/ujian/attempt";
+const SISWA_SUBMIT_UJIAN_ENDPOINT = "/siswa/uijan/submit";
 const SISWA_JAWABAN_UJIAN_ENDPOINT = "/siswa/ujian/jawaban";
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
 
@@ -26,15 +27,6 @@ const buildExpireAttemptPayload = () =>
   buildJsonData(
     {
       status_attempt: "expired",
-    },
-    { nullishToEmptyString: false },
-  );
-
-const buildSubmitAttemptPayload = () =>
-  buildJsonData(
-    {
-      status_attempt: "submitted",
-      waktu_submit: new Date().toISOString(),
     },
     { nullishToEmptyString: false },
   );
@@ -104,9 +96,8 @@ export async function expireAttemptUjianSiswa(idAttempt: number): Promise<boolea
 }
 
 export async function submitAttemptUjianSiswa(idAttempt: number): Promise<boolean> {
-  return api<boolean>(`${SISWA_ATTEMPT_UJIAN_ENDPOINT}/${idAttempt}`, {
+  return api<boolean>(`${SISWA_SUBMIT_UJIAN_ENDPOINT}/${idAttempt}`, {
     method: "PATCH",
-    data: buildSubmitAttemptPayload(),
   });
 }
 
