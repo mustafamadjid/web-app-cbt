@@ -5,7 +5,7 @@ type ListSoalUjianSiswaResponse struct {
 	TipeSoal    string                                  `json:"tipe_soal"`
 	Pertanyaan  string                                  `json:"pertanyaan"`
 	Gambar      string                                  `json:"gambar"`
-	BobotSoal   int                                     `json:"bobot_soal"`
+	BobotSoal   float64                                 `json:"bobot_soal"`
 	NoUrutSoal  int                                     `json:"no_urut_soal"`
 	OpsiJawaban []ListSoalUjianSiswaOpsiJawabanResponse `json:"opsi_jawaban"`
 }
