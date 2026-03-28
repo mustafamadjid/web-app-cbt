@@ -86,7 +86,7 @@ type SoalUjianSiswa struct {
 	TipeSoal          string
 	Pertanyaan        string
 	Gambar            string
-	BobotSoal         int
+	BobotSoal         float64
 	NoUrutSoal        int
 
 	OpsiJawaban []OpsiPilganUjian

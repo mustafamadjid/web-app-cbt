@@ -73,7 +73,7 @@ func (r *ListSoalUjianRepo) GetSoalUjianByBankSoal(ctx context.Context, idBankSo
 			idBankSoalVersion ujian.ID
 			tipeSoal          string
 			pertanyaan        string
-			bobotSoal         int
+			bobotSoal         float64
 			noUrutSoal        int
 		)
 
@@ -220,7 +220,7 @@ func (r *ListSoalUjianRepo) GetSoalUjianByBankSoalForSiswa(ctx context.Context, 
 			idSoal     ujian.ID
 			tipeSoal   string
 			pertanyaan string
-			bobotSoal  int
+			bobotSoal  float64
 			noUrutSoal int
 		)
 

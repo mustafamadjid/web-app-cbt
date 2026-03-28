@@ -1,4 +1,4 @@
-package ujian_repo
+package grading_repo
 
 import (
 	"context"

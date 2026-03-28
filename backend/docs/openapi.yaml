@@ -2652,7 +2652,8 @@ components:
         gambar:
           type: string
         bobot_soal:
-          type: integer
+          type: number
+          format: float
         no_urut_soal:
           type: integer
         opsi_jawaban:
