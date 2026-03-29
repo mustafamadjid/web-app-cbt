@@ -71,4 +71,6 @@ var (
 	ErrDoubleSubmit                     = errors.New("peserta ujian already submit")
 
 	ErrMissingJawabanEssayAndPilgan = errors.New("Missing jawaban essay and pilgan")
+
+	ErrArrayHasNoElement = errors.New("array has no element")
 )

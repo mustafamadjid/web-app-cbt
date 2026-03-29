@@ -1,5 +1,9 @@
 import React from "react";
 
+import {
+  formatSoalTypeLabel,
+  isEssaySoal,
+} from "@/helper/Ujian/soalType";
 import type { SoalPreviewItem } from "@/types/Ujian/SoalPreview";
 
 type SoalLayoutUser = {
@@ -16,6 +20,7 @@ type SoalLayoutProps = {
   soal: SoalPreviewItem;
   user?: SoalLayoutUser;
   questionNavigator?: React.ReactNode;
+  questionContent?: React.ReactNode;
   selectedOptionId?: number;
   onSelectOption?: (optionId: number) => void;
   essayAnswer?: string;
@@ -28,18 +33,6 @@ type SoalLayoutProps = {
   className?: string;
 };
 
-const formatTipeSoal = (label: string) => {
-  if (label === "PILIHAN_GANDA") {
-    return "Pilihan Ganda";
-  }
-
-  if (label === "ESSAY") {
-    return "Essay";
-  }
-
-  return label.replaceAll("_", " ");
-};
-
 const SoalLayout: React.FC<SoalLayoutProps> = ({
   title,
   currentNumber,
@@ -48,6 +41,7 @@ const SoalLayout: React.FC<SoalLayoutProps> = ({
   soal,
   user,
   questionNavigator,
+  questionContent,
   selectedOptionId,
   onSelectOption,
   essayAnswer = "",
@@ -62,7 +56,7 @@ const SoalLayout: React.FC<SoalLayoutProps> = ({
   const canBack = Boolean(onBack);
   const canPrev = Boolean(onPrev);
   const canNext = Boolean(onNext);
-  const isEssay = soal.tipe === "ESSAY";
+  const isEssay = isEssaySoal(soal.tipe);
   const hasOptions = !isEssay && soal.opsi.length > 0;
   const containerClassName = compactSplitLayout ? "max-w-6xl" : "max-w-7xl";
   const contentLayoutClassName = questionNavigator
@@ -153,90 +147,94 @@ const SoalLayout: React.FC<SoalLayoutProps> = ({
               </div>
 
               <div className="space-y-4">
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-slate-400">
-                    {formatTipeSoal(soal.tipe)}
-                  </p>
-                  <p className="mt-2 text-sm leading-relaxed text-slate-600">
-                    {soal.pertanyaan}
-                  </p>
-                </div>
-
-                {soal.gambar_url && (
-                  <div className="overflow-hidden rounded-xl border border-slate-200">
-                    <img
-                      src={soal.gambar_url}
-                      alt="Ilustrasi soal"
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                )}
-
-                {hasOptions && (
-                  <div className="space-y-3">
-                    <p className="text-xs font-semibold text-slate-400">
-                      Pilihan Jawaban
-                    </p>
-
-                    <div className="space-y-2">
-                      {soal.opsi.map((option) => {
-                        const isSelected = selectedOptionId === option.id;
-                        const isClickable = Boolean(onSelectOption);
-
-                        return (
-                          <button
-                            key={option.id}
-                            type="button"
-                            onClick={() => onSelectOption?.(option.id)}
-                            disabled={!isClickable}
-                            className={[
-                              "flex w-full items-start gap-3 rounded-xl border px-4 py-3 text-left text-sm transition",
-                              isSelected
-                                ? "border-[#397e50] bg-[#397e50]/10 text-[#397e50]"
-                                : "border-slate-200 text-slate-600 hover:border-[#397e50]",
-                              isClickable
-                                ? "cursor-pointer"
-                                : "cursor-not-allowed opacity-50",
-                            ].join(" ")}
-                          >
-                            <span
-                              className={[
-                                "mt-0.5 flex h-6 w-6 items-center justify-center rounded-full border text-xs font-semibold",
-                                isSelected
-                                  ? "border-[#397e50] bg-[#397e50] text-white"
-                                  : "border-slate-200 text-slate-500",
-                              ].join(" ")}
-                            >
-                              {option.label}
-                            </span>
-                            <span className="flex-1">{option.text}</span>
-                          </button>
-                        );
-                      })}
+                {questionContent ?? (
+                  <>
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-slate-400">
+                        {formatSoalTypeLabel(soal.tipe)}
+                      </p>
+                      <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-slate-600">
+                        {soal.pertanyaan}
+                      </p>
                     </div>
-                  </div>
-                )}
 
-                {isEssay && (
-                  <div className="space-y-3">
-                    <label
-                      htmlFor={`essay-answer-${soal.id}`}
-                      className="block text-xs font-semibold text-slate-400"
-                    >
-                      Jawaban Essay
-                    </label>
+                    {soal.gambar_url && (
+                      <div className="overflow-hidden rounded-xl border border-slate-200">
+                        <img
+                          src={soal.gambar_url}
+                          alt="Ilustrasi soal"
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                    )}
 
-                    <textarea
-                      id={`essay-answer-${soal.id}`}
-                      value={essayAnswer}
-                      onChange={(event) =>
-                        onEssayAnswerChange?.(event.target.value)
-                      }
-                      rows={8}
-                      className="w-full resize-y rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-600 outline-none transition focus:border-[#397e50] focus:ring-2 focus:ring-[#397e50]/20"
-                      placeholder="Tulis jawaban essay di sini..."
-                    />
-                  </div>
+                    {hasOptions && (
+                      <div className="space-y-3">
+                        <p className="text-xs font-semibold text-slate-400">
+                          Pilihan Jawaban
+                        </p>
+
+                        <div className="space-y-2">
+                          {soal.opsi.map((option) => {
+                            const isSelected = selectedOptionId === option.id;
+                            const isClickable = Boolean(onSelectOption);
+
+                            return (
+                              <button
+                                key={option.id}
+                                type="button"
+                                onClick={() => onSelectOption?.(option.id)}
+                                disabled={!isClickable}
+                                className={[
+                                  "flex w-full items-start gap-3 rounded-xl border px-4 py-3 text-left text-sm transition",
+                                  isSelected
+                                    ? "border-[#397e50] bg-[#397e50]/10 text-[#397e50]"
+                                    : "border-slate-200 text-slate-600 hover:border-[#397e50]",
+                                  isClickable
+                                    ? "cursor-pointer"
+                                    : "cursor-not-allowed opacity-50",
+                                ].join(" ")}
+                              >
+                                <span
+                                  className={[
+                                    "mt-0.5 flex h-6 w-6 items-center justify-center rounded-full border text-xs font-semibold",
+                                    isSelected
+                                      ? "border-[#397e50] bg-[#397e50] text-white"
+                                      : "border-slate-200 text-slate-500",
+                                  ].join(" ")}
+                                >
+                                  {option.label}
+                                </span>
+                                <span className="flex-1">{option.text}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {isEssay && (
+                      <div className="space-y-3">
+                        <label
+                          htmlFor={`essay-answer-${soal.id}`}
+                          className="block text-xs font-semibold text-slate-400"
+                        >
+                          Jawaban Essay
+                        </label>
+
+                        <textarea
+                          id={`essay-answer-${soal.id}`}
+                          value={essayAnswer}
+                          onChange={(event) =>
+                            onEssayAnswerChange?.(event.target.value)
+                          }
+                          rows={8}
+                          className="w-full resize-y rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-600 outline-none transition focus:border-[#397e50] focus:ring-2 focus:ring-[#397e50]/20"
+                          placeholder="Tulis jawaban essay di sini..."
+                        />
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             </div>

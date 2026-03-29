@@ -1,5 +1,7 @@
 import React from "react";
 
+import SiswaEssayQuestionContent from "@/components/features/Ujian/SiswaEssayQuestionContent";
+import { isEssaySoal } from "@/helper/Ujian/soalType";
 import SoalLayout from "@/layouts/BankSoalLayout/SoalLayout";
 import type { SoalPreviewItem } from "@/types/Ujian/SoalPreview";
 
@@ -39,6 +41,7 @@ const SiswaSoalPreviewContent: React.FC<SiswaSoalPreviewContentProps> = ({
 }) => {
   const totalSoal = soalPreview.length;
   const currentSoal = soalPreview[currentIndex];
+  const isCurrentSoalEssay = isEssaySoal(currentSoal.tipe);
 
   const questionNavigator = (
     <div className="space-y-4">
@@ -84,13 +87,18 @@ const SiswaSoalPreviewContent: React.FC<SiswaSoalPreviewContentProps> = ({
       sisaWaktu={sisaWaktu}
       soal={currentSoal}
       questionNavigator={questionNavigator}
+      questionContent={
+        isCurrentSoalEssay ? (
+          <SiswaEssayQuestionContent
+            soal={currentSoal}
+            value={essayAnswers[currentSoal.id] ?? ""}
+            onChange={(value) => onEssayAnswerChange(currentSoal.id, value)}
+          />
+        ) : undefined
+      }
       compactSplitLayout
       selectedOptionId={selectedOptions[currentSoal.id]}
       onSelectOption={(optionId) => onSelectOption(currentSoal.id, optionId)}
-      essayAnswer={essayAnswers[currentSoal.id] ?? ""}
-      onEssayAnswerChange={(value) =>
-        onEssayAnswerChange(currentSoal.id, value)
-      }
       footerActions={
         <button
           type="button"

@@ -69,6 +69,7 @@ const UjianMulaiSiswa: React.FC = () => {
   const navigate = useNavigate();
   const { user, status } = useAuth();
   const { idJadwalUjian } = useParams();
+  const pendingBrowserExitRef = React.useRef(false);
   const [currentIndex, setCurrentIndex] = React.useState(0);
   const [draftAnswers, setDraftAnswers] = React.useState<JawabanDraftMap>({});
   const [viewMode, setViewMode] = React.useState<"question" | "submit_preview">(
@@ -233,6 +234,18 @@ const UjianMulaiSiswa: React.FC = () => {
     navigate(EXAM_LIST_PATH);
   }, [navigate]);
 
+  const clearBrowserStorageCache = React.useCallback(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    try {
+      window.localStorage.clear();
+    } catch {
+      // Ignore storage cleanup errors.
+    }
+  }, []);
+
   const { loading, errorMessage } = React.useMemo(
     () =>
       deriveUjianMulaiSiswaState({
@@ -292,6 +305,44 @@ const UjianMulaiSiswa: React.FC = () => {
     clearSoalCache,
     onFallbackLeave: handleBack,
   });
+
+  React.useEffect(() => {
+    if (!hasActiveExamSession) {
+      pendingBrowserExitRef.current = false;
+      return;
+    }
+
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      pendingBrowserExitRef.current = true;
+      event.preventDefault();
+      event.returnValue = "";
+    };
+
+    const handlePageHide = () => {
+      if (!pendingBrowserExitRef.current) {
+        return;
+      }
+
+      clearBrowserStorageCache();
+    };
+
+    const resetPendingBrowserExit = () => {
+      pendingBrowserExitRef.current = false;
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("pagehide", handlePageHide);
+    window.addEventListener("focus", resetPendingBrowserExit);
+    window.addEventListener("pageshow", resetPendingBrowserExit);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("pagehide", handlePageHide);
+      window.removeEventListener("focus", resetPendingBrowserExit);
+      window.removeEventListener("pageshow", resetPendingBrowserExit);
+      pendingBrowserExitRef.current = false;
+    };
+  }, [clearBrowserStorageCache, hasActiveExamSession]);
 
   React.useEffect(() => {
     if (!isIdJadwalUjianValid || activeAttemptErrorCode !== "NOT_FOUND") {

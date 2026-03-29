@@ -1,5 +1,9 @@
 import React from "react";
 
+import {
+  formatSoalTypeLabel,
+  isPilihanGandaSoal,
+} from "@/helper/Ujian/soalType";
 import type { SoalPreviewItem } from "@/types/Ujian/SoalPreview";
 import type { JawabanUjianSiswaItem } from "@/types/Ujian/ujianSiswa";
 
@@ -91,11 +95,11 @@ const SiswaSubmitPreviewContent: React.FC<SiswaSubmitPreviewContentProps> = ({
         <div className="grid gap-6 lg:grid-cols-[minmax(0,820px)_240px] lg:justify-center lg:items-start">
           <section className="space-y-4">
             {soalPreview.map((soal) => {
-              console.log(soal);
               const jawaban = getJawabanBySoalId(soal.id);
               const selectedOptionId = jawaban?.id_pilihan ?? null;
               const essayAnswer = jawaban?.jawaban_essay?.trim() ?? "";
               const soalAnswered = isAnswered(soal.id);
+              const isPilihanGanda = isPilihanGandaSoal(soal.tipe);
 
               return (
                 <article
@@ -106,7 +110,7 @@ const SiswaSubmitPreviewContent: React.FC<SiswaSubmitPreviewContentProps> = ({
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <p className="text-xs uppercase tracking-wide text-slate-400">
-                        {soal.tipe === "PILIHAN_GANDA" ? "Pilihan Ganda" : "Essay"}
+                        {formatSoalTypeLabel(soal.tipe)}
                       </p>
                       <h2 className="mt-1 text-lg font-semibold text-slate-900">
                         Soal {soal.nomor}
@@ -125,21 +129,21 @@ const SiswaSubmitPreviewContent: React.FC<SiswaSubmitPreviewContentProps> = ({
                     </span>
                   </div>
 
-                  <p className="mt-4 text-sm leading-relaxed text-slate-600">
+                  <p className="mt-4 whitespace-pre-wrap text-sm leading-relaxed text-slate-600">
                     {soal.pertanyaan}
                   </p>
 
                   {soal.gambar_url && (
-                    <div className="mt-4 overflow-hidden rounded-xl border border-slate-200">
+                    <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
                       <img
                         src={soal.gambar_url}
                         alt={`Ilustrasi soal ${soal.nomor}`}
-                        className="h-full w-full object-cover"
+                        className="max-h-[420px] w-full object-contain"
                       />
                     </div>
                   )}
 
-                  {soal.tipe === "pilihan_ganda" ? (
+                  {isPilihanGanda ? (
                     <div className="mt-5 space-y-2">
                       {soal.opsi.map((option) => {
                         const isSelected = selectedOptionId === option.id;
@@ -175,7 +179,7 @@ const SiswaSubmitPreviewContent: React.FC<SiswaSubmitPreviewContentProps> = ({
                       )}
                     </div>
                   ) : (
-                    <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                    <div className="mt-5 whitespace-pre-wrap rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-relaxed text-slate-600">
                       {essayAnswer !== "" ? essayAnswer : "Belum dijawab."}
                     </div>
                   )}
