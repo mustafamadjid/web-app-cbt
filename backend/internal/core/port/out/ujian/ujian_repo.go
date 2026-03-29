@@ -14,6 +14,8 @@ type ListUjianRepository interface {
 }
 
 type UjianRepository interface {
+	GetIdUjianByAttempt(ctx context.Context, idAttempt ujian.ID) (ujian.ID, error)
+
 	CreateUjian(ctx context.Context, ujian ujian.PenjadwalanUjian) error
 
 	UpdateUjian(ctx context.Context, id ujian.ID, payload updatepatch.UpdatePenjadwalanUjian) error
@@ -28,6 +30,7 @@ type SoalUjianRepository interface {
 
 type AttemptUjianRepository interface {
 	GetAttemptUjianById(ctx context.Context, idAttempt ujian.ID) (ujian.AttemptUjian, error)
+
 	CreateAttemptUjian(ctx context.Context, data ujian.AttemptUjian) error
 	UpdateAttemptUjian(ctx context.Context, idAttempt ujian.ID, data updatepatch.UpdateAttemptUjianPatch) error
 	DeleteAttemptUjian(ctx context.Context, idAttempt ujian.ID) error

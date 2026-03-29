@@ -9,6 +9,7 @@ import (
 	pg "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/bank_soal"
+	ujian "github.com/mustafamadjid/web-app-cbt/internal/core/domain/ujian_siswa"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 	updatepatch "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/update_patch"
 	query "github.com/mustafamadjid/web-app-cbt/internal/core/query/bank_soal"
@@ -149,7 +150,7 @@ func (r *BankSoalRepo) GetBankSoalById(ctx context.Context, idBankSoal bank_soal
 	return item, nil
 }
 
-func (r *BankSoalRepo) GetIdBankSoalByAttemptId(ctx context.Context, idAttempt int) (int, error) {
+func (r *BankSoalRepo) GetIdBankSoalByAttemptId(ctx context.Context, idAttempt ujian.ID) (ujian.ID, error) {
 	const queryText = `
 		SELECT u.id_bank_soal
 		FROM attempt_ujian au
@@ -167,7 +168,7 @@ func (r *BankSoalRepo) GetIdBankSoalByAttemptId(ctx context.Context, idAttempt i
 		return 0, err
 	}
 
-	return idBankSoal,nil
+	return ujian.ID(idBankSoal), nil
 }
 
 

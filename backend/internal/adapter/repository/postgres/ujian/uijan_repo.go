@@ -29,6 +29,33 @@ func (r *UjianRepo) loggerFor(ctx context.Context) corelog.Logger {
 	return corelog.FromContextOr(ctx, r.logger)
 }
 
+func(r *UjianRepo) GetIdUjianByAttempt(ctx context.Context, idAttempt ujian.ID) (ujian.ID, error) {
+	query := `
+		SELECT 
+			ju.id_ujian
+		FROM attempt_ujian au
+		JOIN peserta_ujian pu 
+			ON pu.id_peserta_ujian = au.id_peserta_ujian
+		JOIN jadwal_ujian ju 
+			ON ju.id_jadwal_ujian = pu.id_jadwal_ujian
+		WHERE au.id_attempt = $1;
+	`
+
+	var idUjian ujian.ID
+
+	err := r.q.QueryRow(ctx, query, idAttempt).Scan(&idUjian)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return 0, coreerror.ErrNotFound
+		}
+		r.loggerFor(ctx).Error(ctx, "failed get ujian id by attempt id", "layer", "repo.db", "op", "ujian.get_id_by_attempt_id", "attempt_id", idAttempt, "err", err)
+		return 0, err
+	}
+	return idUjian, nil
+
+}
+
+
 func (r *UjianRepo) CreateUjian(ctx context.Context, data ujian.PenjadwalanUjian) error {
 	tx, err := r.pool.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {

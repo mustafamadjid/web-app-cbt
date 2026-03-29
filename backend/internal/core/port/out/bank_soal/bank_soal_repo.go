@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/bank_soal"
+	ujian "github.com/mustafamadjid/web-app-cbt/internal/core/domain/ujian_siswa"
 	updatepatch "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/update_patch"
 	query "github.com/mustafamadjid/web-app-cbt/internal/core/query/bank_soal"
 )
@@ -18,5 +19,5 @@ type BankSoalRepository interface {
 	UpdateBankSoal(ctx context.Context, idBankSoal bank_soal.ID, bankSoal updatepatch.UpdateBankSoalPatch) error
 	DeleteBankSoal(ctx context.Context, idBankSoal bank_soal.ID) error
 
-	GetIdBankSoalByAttemptId(ctx context.Context,idAttempt int) (int,error)
+	GetIdBankSoalByAttemptId(ctx context.Context,idAttempt ujian.ID) (ujian.ID,error)
 }

@@ -14,20 +14,23 @@ type GradingUjianService struct {
 	jawabanrepo ujian_repo.JawabanUjianRepository
 	soalUjianRepo  ujian_repo.SoalUjianRepository
 	bankSoalRepo bank_soal_repo.BankSoalRepository
+	ujianRepo ujian_repo.UjianRepository
 }
 
 func NewGradingUjianService(
 	jawabanRepo ujian_repo.JawabanUjianRepository, 
 	soalUjianRepo ujian_repo.SoalUjianRepository, 
-	bankSoalRepo bank_soal_repo.BankSoalRepository) *GradingUjianService {
+	bankSoalRepo bank_soal_repo.BankSoalRepository,
+	ujianRepo ujian_repo.UjianRepository) *GradingUjianService {
 	return &GradingUjianService{
 		jawabanrepo: jawabanRepo,
 		soalUjianRepo: soalUjianRepo,
 		bankSoalRepo: bankSoalRepo,
+		ujianRepo: ujianRepo,
 	}
 }
 
-func(r *GradingUjianService) GradingUjian(ctx context.Context,idAttempt int) {
+func(r *GradingUjianService) GradingUjianPilgan(ctx context.Context,idAttempt int) {
 	logger := corelog.FromContext(ctx)
 
 	if idAttempt <= 0 {
@@ -43,7 +46,7 @@ func(r *GradingUjianService) GradingUjian(ctx context.Context,idAttempt int) {
 	}
 
 	// Retrieve id bank soal by attempt id
-	idBankSoalAktif,err := r.bankSoalRepo.GetIdBankSoalByAttemptId(ctx,idAttempt)
+	idBankSoalAktif,err := r.bankSoalRepo.GetIdBankSoalByAttemptId(ctx,ujian.ID(idAttempt))
 	if err != nil {
 		logger.Error(ctx,"failed grading ujian","layer","core.service","op","ujian.grading","err",err)
 		return
@@ -55,9 +58,20 @@ func(r *GradingUjianService) GradingUjian(ctx context.Context,idAttempt int) {
 		logger.Error(ctx,"failed grading ujian","layer","core.service","op","ujian.grading","err",err)
 		return
 	}
-	
 
+	// Retrieve id ujian by attempt id
+	idUjian, err := r.ujianRepo.GetIdUjianByAttempt()(ctx,ujian.ID(idAttempt))
+	if err != nil {
+		logger.Error(ctx,"failed grading ujian","layer","core.service","op","ujian.grading","err",err)
+		return
+	}
 	// Grading process
+
+	// Calculate total score
+	totalNilai := r.TotalScore(jawabanSiswa,soalUjian)
+
+	// Update score to hasil ujian table
+
 
 	
 }
