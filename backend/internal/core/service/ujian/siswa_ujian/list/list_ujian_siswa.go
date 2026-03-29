@@ -11,10 +11,10 @@ import (
 )
 
 type ListUjianSiswaService struct {
-	repo ujian_repo.ListUjianSiswaRepository
+	repo ujian_repo.UjianSiswaRepository
 }
 
-func NewListUjianSiswaService(repo ujian_repo.ListUjianSiswaRepository) *ListUjianSiswaService {
+func NewListUjianSiswaService(repo ujian_repo.UjianSiswaRepository) *ListUjianSiswaService {
 	return &ListUjianSiswaService{
 		repo: repo,
 	}
@@ -43,4 +43,3 @@ func (s *ListUjianSiswaService) ListUjianSiswa(ctx context.Context, idSiswa int,
 
 	return items, nil
 }
-

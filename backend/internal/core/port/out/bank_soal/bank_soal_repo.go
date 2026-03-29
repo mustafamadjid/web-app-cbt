@@ -17,4 +17,6 @@ type BankSoalRepository interface {
 	CreateBankSoal(ctx context.Context, bankSoal bank_soal.BankSoal) error
 	UpdateBankSoal(ctx context.Context, idBankSoal bank_soal.ID, bankSoal updatepatch.UpdateBankSoalPatch) error
 	DeleteBankSoal(ctx context.Context, idBankSoal bank_soal.ID) error
+
+	GetIdBankSoalByAttemptId(ctx context.Context,idAttempt int) (int,error)
 }

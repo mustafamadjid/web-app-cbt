@@ -36,6 +36,18 @@ func (f *fakeGetJawabanOwnershipChecker) CheckAttemptOwnershipBySiswa(ctx contex
 	return false, nil
 }
 
+func (*fakeGetJawabanOwnershipChecker) CheckValidSiswaInPesertaUjianById(context.Context, int, int) (bool, int, error) {
+	return false, 0, nil
+}
+
+func (*fakeGetJawabanOwnershipChecker) CheckTokenUjian(context.Context, string, int) (bool, error) {
+	return false, nil
+}
+
+func (*fakeGetJawabanOwnershipChecker) GetDeadlineUjian(context.Context, int) (time.Time, error) {
+	return time.Time{}, nil
+}
+
 type fakeGetJawabanRepo struct {
 	getFn        func(ctx context.Context, idAttempt ujian.ID) ([]ujian.JawabanUjian, error)
 	getCalled    bool

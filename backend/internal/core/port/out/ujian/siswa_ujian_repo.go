@@ -9,7 +9,7 @@ import (
 )
 
 type SiswaUjianChecker interface {
-	SiswaAttemptOwnershipChecker
+	CheckAttemptOwnershipBySiswa(ctx context.Context, idSiswa int, idAttempt ujian.ID) (bool, error)
 
 	CheckValidSiswaInPesertaUjianById(ctx context.Context, idSiswa int, idJadwalUjian int) (bool, int, error)
 	CheckTokenUjian(ctx context.Context, token string, idJadwalUjian int) (bool, error)
@@ -17,18 +17,9 @@ type SiswaUjianChecker interface {
 	GetDeadlineUjian(ctx context.Context, idJadwalUjian int) (time.Time, error)
 }
 
-type SiswaAttemptOwnershipChecker interface {
-	CheckAttemptOwnershipBySiswa(ctx context.Context, idSiswa int, idAttempt ujian.ID) (bool, error)
-}
-
-type ListUjianSiswaRepository interface {
+type UjianSiswaRepository interface {
 	ListUjianSiswa(ctx context.Context, idSiswa int, filter query.ListUjianFilter) ([]ujian.ListUjian, error)
-}
-
-type WaktuSelesaiUjianRepository interface {
 	GetWaktuSelesaiUjian(ctx context.Context, idJadwalUjian int) (time.Time, error)
-}
-
-type ActiveUjianAttemptRepository interface {
 	GetActiveUjianAttemptBySiswa(ctx context.Context, idSiswa int, idJadwalUjian int) (ujian.AttemptUjian, error)
 }
+

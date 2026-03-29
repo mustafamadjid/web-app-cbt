@@ -6,7 +6,9 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io"
+	"math"
 	"path"
+	"strconv"
 	"strings"
 
 	importsoal "github.com/mustafamadjid/web-app-cbt/internal/core/domain/import_soal"
@@ -354,10 +356,13 @@ func ParseMarkers(paragraphs []string, docxDataForAutoImg []byte) ([]importsoal.
 		return nil
 	}
 
-	parseWeight := func(raw string) (int, error) {
+	parseWeight := func(raw string) (float64, error) {
 		raw = strings.TrimSpace(raw)
-		var bobot int
-		if _, err := fmt.Sscanf(raw, "%d", &bobot); err != nil {
+		bobot, err := strconv.ParseFloat(raw, 64)
+		if err != nil {
+			return 0, fmt.Errorf("bobot bukan angka: %q", raw)
+		}
+		if math.IsNaN(bobot) || math.IsInf(bobot, 0) {
 			return 0, fmt.Errorf("bobot bukan angka: %q", raw)
 		}
 		if bobot <= 0 {

@@ -43,3 +43,7 @@ func (f *FakeBankSoalRepo) UpdateBankSoal(_ context.Context, _ bank_soal.ID, _ u
 func (f *FakeBankSoalRepo) DeleteBankSoal(_ context.Context, _ bank_soal.ID) error {
 	panic("not used in this test")
 }
+
+func (f *FakeBankSoalRepo) GetIdBankSoalByAttemptId(_ context.Context, _ int) int {
+	panic("not used in this test")
+}

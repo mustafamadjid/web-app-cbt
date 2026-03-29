@@ -54,6 +54,18 @@ func (f *fakeUpdateAttemptOwnershipChecker) CheckAttemptOwnershipBySiswa(ctx con
 	return false, nil
 }
 
+func (*fakeUpdateAttemptOwnershipChecker) CheckValidSiswaInPesertaUjianById(context.Context, int, int) (bool, int, error) {
+	return false, 0, nil
+}
+
+func (*fakeUpdateAttemptOwnershipChecker) CheckTokenUjian(context.Context, string, int) (bool, error) {
+	return false, nil
+}
+
+func (*fakeUpdateAttemptOwnershipChecker) GetDeadlineUjian(context.Context, int) (time.Time, error) {
+	return time.Time{}, nil
+}
+
 type updateAttemptAPIResp struct {
 	Data    any    `json:"data"`
 	Message string `json:"message"`

@@ -10,18 +10,18 @@ import (
 )
 
 type GetActiveAttemptUjianService struct {
-	repo ujian_repo.ActiveUjianAttemptRepository
+	repo ujian_repo.UjianSiswaRepository
 }
 
-func NewGetActiveAttemptUjianService(repo ujian_repo.ActiveUjianAttemptRepository) *GetActiveAttemptUjianService {
+func NewGetActiveAttemptUjianService(repo ujian_repo.UjianSiswaRepository) *GetActiveAttemptUjianService {
 	return &GetActiveAttemptUjianService{
 		repo: repo,
 	}
-} 
+}
 
-func(r *GetActiveAttemptUjianService) GetActiveAttemptUjian(ctx context.Context, idSiswa int, idJadwalUjian int) (ujian.AttemptUjian, error) {
+func (r *GetActiveAttemptUjianService) GetActiveAttemptUjian(ctx context.Context, idSiswa int, idJadwalUjian int) (ujian.AttemptUjian, error) {
 	logger := corelog.FromContext(ctx)
-	
+
 	if idJadwalUjian <= 0 {
 		logger.Error(ctx, "failed attempt ujian", "layer", "core.service", "op", "ujian.attempt.create", "err", coreerror.ErrMissingId)
 		return ujian.AttemptUjian{}, coreerror.ErrMissingId

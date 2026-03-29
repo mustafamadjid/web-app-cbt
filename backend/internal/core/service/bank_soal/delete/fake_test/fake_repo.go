@@ -43,3 +43,7 @@ func (f *FakeBankSoalRepo) DeleteBankSoal(_ context.Context, idBankSoal bank_soa
 	f.GotDeleteID = idBankSoal
 	return f.DeleteErr
 }
+
+func (f *FakeBankSoalRepo) GetIdBankSoalByAttemptId(_ context.Context, _ int) int {
+	panic("not used in this test")
+}

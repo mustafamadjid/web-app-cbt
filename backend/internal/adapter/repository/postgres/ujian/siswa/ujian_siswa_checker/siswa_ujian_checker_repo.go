@@ -1,4 +1,4 @@
-package siswaujianrepo
+package siswaujiancheckerrepo
 
 import (
 	"context"
@@ -13,20 +13,20 @@ import (
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 )
 
-type SiswaUjianRepo struct {
+type SiswaUjianCheckerRepo struct {
 	q      pg.Executor
 	logger corelog.Logger
 }
 
-func NewSiswaUjianRepo(q pg.Executor, logger corelog.Logger) *SiswaUjianRepo {
-	return &SiswaUjianRepo{q: q, logger: logger}
+func NewSiswaUjianCheckerRepo(q pg.Executor, logger corelog.Logger) *SiswaUjianCheckerRepo {
+	return &SiswaUjianCheckerRepo{q: q, logger: logger}
 }
 
-func (r *SiswaUjianRepo) loggerFor(ctx context.Context) corelog.Logger {
+func (r *SiswaUjianCheckerRepo) loggerFor(ctx context.Context) corelog.Logger {
 	return corelog.FromContextOr(ctx, r.logger)
 }
 
-func (r *SiswaUjianRepo) CheckValidSiswaInPesertaUjianById(ctx context.Context, idSiswa int, idJadwalUjian int) (bool, int, error) {
+func (r *SiswaUjianCheckerRepo) CheckValidSiswaInPesertaUjianById(ctx context.Context, idSiswa int, idJadwalUjian int) (bool, int, error) {
 	const query = `
 		SELECT
 			pu.id_peserta_ujian
@@ -50,7 +50,7 @@ func (r *SiswaUjianRepo) CheckValidSiswaInPesertaUjianById(ctx context.Context, 
 	return true, idPesertaUjian, nil
 }
 
-func (r *SiswaUjianRepo) CheckTokenUjian(ctx context.Context, token string, idJadwalUjian int) (bool, error) {
+func (r *SiswaUjianCheckerRepo) CheckTokenUjian(ctx context.Context, token string, idJadwalUjian int) (bool, error) {
 	const query = `
 		SELECT EXISTS(
 			SELECT 1
@@ -68,7 +68,7 @@ func (r *SiswaUjianRepo) CheckTokenUjian(ctx context.Context, token string, idJa
 	return exists, nil
 }
 
-func (r *SiswaUjianRepo) CheckAttemptOwnershipBySiswa(ctx context.Context, idSiswa int, idAttempt ujian.ID) (bool, error) {
+func (r *SiswaUjianCheckerRepo) CheckAttemptOwnershipBySiswa(ctx context.Context, idSiswa int, idAttempt ujian.ID) (bool, error) {
 	const query = `
 		SELECT EXISTS(
 			SELECT 1
@@ -88,7 +88,7 @@ func (r *SiswaUjianRepo) CheckAttemptOwnershipBySiswa(ctx context.Context, idSis
 	return exists, nil
 }
 
-func (r *SiswaUjianRepo) GetDeadlineUjian(ctx context.Context, idJadwalUjian int) (time.Time, error) {
+func (r *SiswaUjianCheckerRepo) GetDeadlineUjian(ctx context.Context, idJadwalUjian int) (time.Time, error) {
 	const query = `
 		SELECT waktu_selesai
 		FROM jadwal_ujian

@@ -11,10 +11,10 @@ import (
 
 type SubmitUjianService struct {
 	repo    ujian_repo.AttemptUjianRepository
-	checker ujian_repo.SiswaAttemptOwnershipChecker
+	checker ujian_repo.SiswaUjianChecker
 }
 
-func NewSubmitUjianService(repo ujian_repo.AttemptUjianRepository, checker ujian_repo.SiswaAttemptOwnershipChecker) *SubmitUjianService {
+func NewSubmitUjianService(repo ujian_repo.AttemptUjianRepository, checker ujian_repo.SiswaUjianChecker) *SubmitUjianService {
 	return &SubmitUjianService{
 		repo:    repo,
 		checker: checker,

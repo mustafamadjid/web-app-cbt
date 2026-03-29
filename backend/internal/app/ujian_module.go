@@ -74,15 +74,15 @@ func BuildUjianModule(infra *InfraModule) *UjianModule {
 		infra.siswaUjianChecker,
 		infra.attemptUjianRepo,
 	)
-	getActiveAttemptSvc := activeattempt_service.NewGetActiveAttemptUjianService(infra.activeAttemptUjianRepo)
+	getActiveAttemptSvc := activeattempt_service.NewGetActiveAttemptUjianService(infra.ujianSiswaRepo)
 	getJawabanSvc := getjawaban_service.NewGetJawabanUjianService(infra.jawabanUjianRepo)
 	siswaGetJawabanSvc := getjawaban_service.NewSiswaGetJawabanUjianService(infra.siswaUjianChecker, getJawabanSvc)
 	saveJawabanSvc := savejawaban_service.NewJawabanUjianService(infra.jawabanUjianRepo)
-	listUjianSiswaSvc := siswaujianlist_service.NewListUjianSiswaService(infra.listUjianSiswaRepo)
+	listUjianSiswaSvc := siswaujianlist_service.NewListUjianSiswaService(infra.ujianSiswaRepo)
 	getSvc := ujian_get_service.NewGetujianService(infra.listUjianRepo)
 	listSoalUjianSvc := ujian_soal_service.NewListSoalUjianService(infra.soalUjianRepo)
 	listSoalUjianSiswaSvc := siswaujiansoal_service.NewListSoalUjianSiswaService(infra.soalUjianRepo)
-	getWaktuSelesaiSvc := siswaujianwaktuselesai_service.NewGetWaktuSelesaiService(infra.waktuSelesaiUjianRepo)
+	getWaktuSelesaiSvc := siswaujianwaktuselesai_service.NewGetWaktuSelesaiService(infra.ujianSiswaRepo)
 	updateAttemptUjianSvc := attempt_update_service.NewUpdateAttemptUjianService(infra.attemptUjianRepo)
 	siswaUpdateAttemptUjianSvc := attempt_update_service.NewSiswaUpdateAttemptUjianService(infra.siswaUjianChecker, updateAttemptUjianSvc)
 	expireAttemptUjianSvc := attempt_update_service.NewExpireAttemptUjianService(updateAttemptUjianSvc)

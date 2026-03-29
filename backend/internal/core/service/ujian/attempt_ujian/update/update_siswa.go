@@ -11,11 +11,11 @@ import (
 )
 
 type SiswaUpdateAttemptUjianService struct {
-	checker ujian_repo.SiswaAttemptOwnershipChecker
+	checker ujian_repo.SiswaUjianChecker
 	updater *UpdateAttemptUjianService
 }
 
-func NewSiswaUpdateAttemptUjianService(checker ujian_repo.SiswaAttemptOwnershipChecker, updater *UpdateAttemptUjianService) *SiswaUpdateAttemptUjianService {
+func NewSiswaUpdateAttemptUjianService(checker ujian_repo.SiswaUjianChecker, updater *UpdateAttemptUjianService) *SiswaUpdateAttemptUjianService {
 	return &SiswaUpdateAttemptUjianService{
 		checker: checker,
 		updater: updater,

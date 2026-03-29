@@ -10,14 +10,14 @@ import (
 )
 
 type GetWaktuSelesaiService struct {
-	repo ujian_repo.WaktuSelesaiUjianRepository
+	repo ujian_repo.UjianSiswaRepository
 }
 
-func NewGetWaktuSelesaiService(repo ujian_repo.WaktuSelesaiUjianRepository) *GetWaktuSelesaiService {
+func NewGetWaktuSelesaiService(repo ujian_repo.UjianSiswaRepository) *GetWaktuSelesaiService {
 	return &GetWaktuSelesaiService{repo: repo}
 }
 
-func(r *GetWaktuSelesaiService) GetWaktuSelesai(ctx context.Context, idJadwalUjian int) (time.Time, error) {
+func (r *GetWaktuSelesaiService) GetWaktuSelesai(ctx context.Context, idJadwalUjian int) (time.Time, error) {
 	logger := corelog.FromContext(ctx)
 
 	if idJadwalUjian <= 0 {
@@ -25,7 +25,7 @@ func(r *GetWaktuSelesaiService) GetWaktuSelesai(ctx context.Context, idJadwalUji
 		return time.Time{}, coreerror.ErrMissingId
 	}
 
-	waktuSelesai,err := r.repo.GetWaktuSelesaiUjian(ctx,idJadwalUjian)
+	waktuSelesai, err := r.repo.GetWaktuSelesaiUjian(ctx, idJadwalUjian)
 	if err != nil {
 		logger.Error(ctx, "failed get waktu selesai", "layer", "service", "op", "get_waktu_selesai", "err", err)
 		return time.Time{}, err

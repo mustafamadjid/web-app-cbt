@@ -14,6 +14,7 @@ import (
 	ujian "github.com/mustafamadjid/web-app-cbt/internal/core/domain/ujian_siswa"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 	ujian_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/ujian"
+	query "github.com/mustafamadjid/web-app-cbt/internal/core/query/ujian"
 	activeattempt_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian/active_attempt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -30,7 +31,15 @@ func (f *fakeActiveAttemptRepo) GetActiveUjianAttemptBySiswa(ctx context.Context
 	return ujian.AttemptUjian{}, nil
 }
 
-var _ ujian_repo.ActiveUjianAttemptRepository = (*fakeActiveAttemptRepo)(nil)
+func (*fakeActiveAttemptRepo) ListUjianSiswa(context.Context, int, query.ListUjianFilter) ([]ujian.ListUjian, error) {
+	return nil, nil
+}
+
+func (*fakeActiveAttemptRepo) GetWaktuSelesaiUjian(context.Context, int) (time.Time, error) {
+	return time.Time{}, nil
+}
+
+var _ ujian_repo.UjianSiswaRepository = (*fakeActiveAttemptRepo)(nil)
 
 type activeAttemptAPIResp struct {
 	Data    json.RawMessage `json:"data"`
