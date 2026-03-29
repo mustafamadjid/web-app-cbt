@@ -6,7 +6,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
-	pg "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres"
+	pg "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/contract"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/bank_soal"
 	ujian "github.com/mustafamadjid/web-app-cbt/internal/core/domain/ujian_siswa"
@@ -27,7 +27,6 @@ func NewBankSoalRepo(q pg.Executor, logger corelog.Logger) *BankSoalRepo {
 func (r *BankSoalRepo) loggerFor(ctx context.Context) corelog.Logger {
 	return corelog.FromContextOr(ctx, r.logger)
 }
-
 
 func (r *BankSoalRepo) GetBankSoal(ctx context.Context, filter query.BankSoalFilter) ([]bank_soal.BankSoal, error) {
 	queryText, args := r.buildListBankSoalQuery(filter, false)
@@ -125,21 +124,8 @@ func (r *BankSoalRepo) GetBankSoalById(ctx context.Context, idBankSoal bank_soal
 		WHERE b.id_bank_soal = $1
 	`
 
-	var item bank_soal.BankSoal
-	if err := r.q.QueryRow(ctx, queryText, idBankSoal).Scan(
-		&item.IdBankSoal,
-		&item.IdMapel,
-		&item.IdKelas,
-		&item.IdPengguna,
-		&item.NamaBankSoal,
-		&item.Deskripsi,
-		&item.Materi,
-		&item.CreatedAt,
-		&item.SoalUploaded,
-		&item.TingkatKelas,
-		&item.Mapel,
-		&item.GuruPembuat,
-	); err != nil {
+	item, err := scanBankSoalRow(r.q.QueryRow(ctx, queryText, idBankSoal))
+	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return bank_soal.BankSoal{}, coreerror.ErrNotFound
 		}
@@ -170,8 +156,6 @@ func (r *BankSoalRepo) GetIdBankSoalByAttemptId(ctx context.Context, idAttempt u
 
 	return ujian.ID(idBankSoal), nil
 }
-
-
 
 func (r *BankSoalRepo) CreateBankSoal(ctx context.Context, bankSoal bank_soal.BankSoal) error {
 	const query = `

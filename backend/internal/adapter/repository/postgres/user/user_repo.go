@@ -1,8 +1,7 @@
-package postgres
+package userrepo
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"strconv"
@@ -11,6 +10,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 
+	pg "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/contract"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
@@ -18,11 +18,11 @@ import (
 )
 
 type UserRepo struct {
-	q      Executor
+	q      pg.Executor
 	logger corelog.Logger
 }
 
-func NewUserRepo(q Executor, logger corelog.Logger) *UserRepo {
+func NewUserRepo(q pg.Executor, logger corelog.Logger) *UserRepo {
 	return &UserRepo{q: q, logger: logger}
 }
 
@@ -47,46 +47,13 @@ func (r *UserRepo) FindUserByID(ctx context.Context, id user.ID) (user.Pengguna,
 		WHERE p.id_pengguna = $1
 	`
 
-	var result user.Pengguna
-	var jenisKelamin int16
-	var roleName string
-	var status string
-	var email sql.NullString
-	var noHp sql.NullString
-	var foto sql.NullString
-
-	err := r.q.QueryRow(ctx, query, id).Scan(
-		&result.ID,
-		&result.Username,
-		&email,
-		&result.PasswordHashed,
-		&result.NamaLengkap,
-		&jenisKelamin,
-		&noHp,
-		&roleName,
-		&status,
-		&foto,
-	)
+	result, err := scanPenggunaRow(r.q.QueryRow(ctx, query, id))
 	if errors.Is(err, pgx.ErrNoRows) {
 		return user.Pengguna{}, coreerror.ErrNotFound
 	}
 	if err != nil {
 		r.loggerFor(ctx).Error(ctx, "failed finding user", "op", "user_repo.find_by_id", "user_id", id, "err", err)
 		return user.Pengguna{}, err
-	}
-
-	jenisKelaminValue, err := formatJenisKelamin(jenisKelamin)
-	if err != nil {
-		return user.Pengguna{}, err
-	}
-
-	result.Email = nullStringToUserEmailPtr(email)
-	result.JenisKelamin = jenisKelaminValue
-	result.Role = user.Role(roleName)
-	result.StatusAkun = user.StatusAkun(status)
-	result.NoHp = nullStringToPtr(noHp)
-	if foto.Valid {
-		result.Foto = foto.String
 	}
 
 	return result, nil
@@ -278,55 +245,7 @@ func (r *UserRepo) ListUser(ctx context.Context) ([]user.Pengguna, error) {
 	}
 	defer rows.Close()
 
-	var results []user.Pengguna
-	for rows.Next() {
-		var item user.Pengguna
-		var jenisKelamin int16
-		var roleName string
-		var status string
-		var email sql.NullString
-		var noHp sql.NullString
-		var foto sql.NullString
-
-		if err := rows.Scan(
-			&item.ID,
-			&item.Username,
-			&email,
-			&item.PasswordHashed,
-			&item.NamaLengkap,
-			&jenisKelamin,
-			&noHp,
-			&roleName,
-			&status,
-			&foto,
-		); err != nil {
-			r.loggerFor(ctx).Error(ctx, "failed scanning users", "op", "user_repo.list_scan", "err", err)
-			return nil, err
-		}
-
-		jenisKelaminValue, err := formatJenisKelamin(jenisKelamin)
-		if err != nil {
-			return nil, err
-		}
-
-		item.Email = nullStringToUserEmailPtr(email)
-		item.JenisKelamin = jenisKelaminValue
-		item.Role = user.Role(roleName)
-		item.StatusAkun = user.StatusAkun(status)
-		item.NoHp = nullStringToPtr(noHp)
-		if foto.Valid {
-			item.Foto = foto.String
-		}
-
-		results = append(results, item)
-	}
-
-	if err := rows.Err(); err != nil {
-		r.loggerFor(ctx).Error(ctx, "failed iterating users", "op", "user_repo.list_iter", "err", err)
-		return nil, err
-	}
-
-	return results, nil
+	return r.scanPenggunaRows(ctx, "user_repo.list", rows)
 }
 
 func parseJenisKelamin(value string) (int16, error) {
@@ -394,7 +313,7 @@ func stringPtrToDB(value *string) any {
 	return *value
 }
 
-func nullStringToPtr(value sql.NullString) *string {
+func nullStringToPtr(value nullString) *string {
 	if !value.Valid {
 		return nil
 	}
@@ -402,7 +321,7 @@ func nullStringToPtr(value sql.NullString) *string {
 	return &v
 }
 
-func nullStringToUserEmailPtr(value sql.NullString) *user.Email {
+func nullStringToUserEmailPtr(value nullString) *user.Email {
 	if !value.Valid {
 		return nil
 	}

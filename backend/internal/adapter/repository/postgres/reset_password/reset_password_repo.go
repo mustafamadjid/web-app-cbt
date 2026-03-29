@@ -1,19 +1,20 @@
-package postgres
+package resetpasswordrepo
 
 import (
 	"context"
 
+	pg "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/contract"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 )
 
 type ResetPasswordRepo struct {
-	q      Executor
+	q      pg.Executor
 	logger corelog.Logger
 }
 
-func NewResetPasswordRepo(q Executor, logger corelog.Logger) *ResetPasswordRepo {
+func NewResetPasswordRepo(q pg.Executor, logger corelog.Logger) *ResetPasswordRepo {
 	return &ResetPasswordRepo{q: q, logger: logger}
 }
 

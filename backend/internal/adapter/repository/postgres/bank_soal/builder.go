@@ -75,21 +75,8 @@ func (r *BankSoalRepo) buildListBankSoalQuery(filter query.BankSoalFilter, uploa
 func (r *BankSoalRepo) scanBankSoalRows(ctx context.Context, op string, rows pgx.Rows) ([]bank_soal.BankSoal, error) {
 	var results []bank_soal.BankSoal
 	for rows.Next() {
-		var item bank_soal.BankSoal
-		if err := rows.Scan(
-			&item.IdBankSoal,
-			&item.IdMapel,
-			&item.IdKelas,
-			&item.IdPengguna,
-			&item.NamaBankSoal,
-			&item.Deskripsi,
-			&item.Materi,
-			&item.CreatedAt,
-			&item.SoalUploaded,
-			&item.TingkatKelas,
-			&item.Mapel,
-			&item.GuruPembuat,
-		); err != nil {
+		item, err := scanBankSoalRow(rows)
+		if err != nil {
 			r.loggerFor(ctx).Error(ctx, "failed scan bank soal", "layer", "repo.db", "op", op, "err", err)
 			return nil, err
 		}
@@ -102,4 +89,26 @@ func (r *BankSoalRepo) scanBankSoalRows(ctx context.Context, op string, rows pgx
 	}
 
 	return results, nil
+}
+
+func scanBankSoalRow(row pgx.Row) (bank_soal.BankSoal, error) {
+	var item bank_soal.BankSoal
+	if err := row.Scan(
+		&item.IdBankSoal,
+		&item.IdMapel,
+		&item.IdKelas,
+		&item.IdPengguna,
+		&item.NamaBankSoal,
+		&item.Deskripsi,
+		&item.Materi,
+		&item.CreatedAt,
+		&item.SoalUploaded,
+		&item.TingkatKelas,
+		&item.Mapel,
+		&item.GuruPembuat,
+	); err != nil {
+		return bank_soal.BankSoal{}, err
+	}
+
+	return item, nil
 }

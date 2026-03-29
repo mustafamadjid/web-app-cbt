@@ -2,15 +2,13 @@ package jawabanujian_repo
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"errors"
-	"strings"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
-	pg "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres"
+	pg "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/contract"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	ujian "github.com/mustafamadjid/web-app-cbt/internal/core/domain/ujian_siswa"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
@@ -143,84 +141,9 @@ func (r *JawabanUjianRepo) GetJawabanUjianByAttemptId(ctx context.Context, idAtt
 		r.loggerFor(ctx).Error(ctx, "failed get jawaban ujian by attempt id", "layer", "adapter.repository", "op", "ujian.jawaban.get_by_attempt_id", "err", err)
 		return nil, err
 	}
+	defer rows.Close()
 
-	var jawaban []ujian.JawabanUjian
-	for rows.Next() {
-		var (
-			itemJawaban  ujian.JawabanUjian
-			IdPilihan    sql.NullInt64
-			JawabanEssay sql.NullString
-			WaktuJawab   sql.NullTime
-		)
-
-		if err := rows.Scan(
-			&itemJawaban.IdJawaban,
-			&itemJawaban.IdSoal,
-			&IdPilihan,
-			&JawabanEssay,
-			&WaktuJawab,
-		); err != nil {
-			r.loggerFor(ctx).Error(ctx, "failed scan jawaban ujian by attempt id", "layer", "adapter.repository", "op", "ujian.jawaban.get_by_attempt_id", "err", err)
-			return nil, err
-		}
-
-		itemJawaban.IdPilihan = nullInt64ToUjianIDPtr(IdPilihan)
-		itemJawaban.JawabanEssay = nullStringToPtr(JawabanEssay)
-
-		if WaktuJawab.Valid {
-			itemJawaban.WaktuJawab = &WaktuJawab.Time
-		}
-
-		jawaban = append(jawaban, itemJawaban)
-	}
-	if err := rows.Err(); err != nil {
-		r.loggerFor(ctx).Error(ctx, "failed get jawaban ujian by attempt id", "layer", "adapter.repository", "op", "ujian.jawaban.get_by_attempt_id", "err", err)
-		return nil, err
-	}
-
-	return jawaban, nil
-}
-
-func splitSaveJawabanItems(jawaban []ujian.JawabanUjian) ([]ujian.JawabanUjian, []int64) {
-	upsertItems := make([]ujian.JawabanUjian, 0, len(jawaban))
-	clearSoalIDs := make([]int64, 0, len(jawaban))
-
-	for _, item := range jawaban {
-		normalizedItem := item
-		if normalizedItem.JawabanEssay != nil {
-			trimmedEssay := strings.TrimSpace(*normalizedItem.JawabanEssay)
-			if trimmedEssay == "" {
-				normalizedItem.JawabanEssay = nil
-			} else {
-				normalizedItem.JawabanEssay = &trimmedEssay
-			}
-		}
-
-		if normalizedItem.IdPilihan == nil && normalizedItem.JawabanEssay == nil {
-			clearSoalIDs = append(clearSoalIDs, int64(normalizedItem.IdSoal))
-			continue
-		}
-
-		upsertItems = append(upsertItems, normalizedItem)
-	}
-
-	return upsertItems, clearSoalIDs
-}
-
-func nullInt64ToUjianIDPtr(v sql.NullInt64) *ujian.ID {
-	if !v.Valid {
-		return nil
-	}
-	id := ujian.ID(v.Int64)
-	return &id
-}
-
-func nullStringToPtr(v sql.NullString) *string {
-	if !v.Valid {
-		return nil
-	}
-	s := v.String
-	return &s
+	return r.scanJawabanUjianRows(ctx, "ujian.jawaban.get_by_attempt_id", rows)
 }
 
 func mapJawabanConstraintError(err error) error {

@@ -1,12 +1,12 @@
-package postgres
+package profilsekolahrepo
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 
 	"github.com/jackc/pgx/v5"
 
+	pg "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/contract"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/profil_sekolah"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
@@ -14,11 +14,11 @@ import (
 )
 
 type ProfilSekolahRepo struct {
-	q      Executor
+	q      pg.Executor
 	logger corelog.Logger
 }
 
-func NewProfilSekolahRepo(q Executor, logger corelog.Logger) *ProfilSekolahRepo {
+func NewProfilSekolahRepo(q pg.Executor, logger corelog.Logger) *ProfilSekolahRepo {
 	return &ProfilSekolahRepo{q: q, logger: logger}
 }
 
@@ -87,49 +87,13 @@ func (r *ProfilSekolahRepo) GetProfilSekolah(ctx context.Context) (profil_sekola
 		WHERE id_profil = 1
 	`
 
-	var profil profil_sekolah.ProfilSekolah
-	var emailSekolah sql.NullString
-	var noTelpSekolah sql.NullString
-	var kepalaSekolah sql.NullString
-	var wakaSekolah sql.NullString
-	var namaSekolah sql.NullString
-	var alamatSekolah sql.NullString
-	err := r.q.QueryRow(ctx, query).Scan(
-		&profil.IDProfil,
-		&emailSekolah,
-		&noTelpSekolah,
-		&kepalaSekolah,
-		&wakaSekolah,
-		&namaSekolah,
-		&alamatSekolah,
-		&profil.LogoSekolah,
-		&profil.CreatedAt,
-		&profil.UpdatedAt,
-	)
+	profil, err := scanProfilSekolahRow(r.q.QueryRow(ctx, query))
 	if errors.Is(err, pgx.ErrNoRows) {
 		return profil_sekolah.ProfilSekolah{}, coreerror.ErrNotFound
 	}
 	if err != nil {
 		r.loggerFor(ctx).Error(ctx, "failed getting profil sekolah", "op", "profil_sekolah_repo.get", "err", err)
 		return profil_sekolah.ProfilSekolah{}, err
-	}
-	if emailSekolah.Valid {
-		profil.EmailSekolah = emailSekolah.String
-	}
-	if noTelpSekolah.Valid {
-		profil.NoTelpSekolah = noTelpSekolah.String
-	}
-	if kepalaSekolah.Valid {
-		profil.KepalaSekolah = kepalaSekolah.String
-	}
-	if wakaSekolah.Valid {
-		profil.WakaSekolah = wakaSekolah.String
-	}
-	if namaSekolah.Valid {
-		profil.NamaSekolah = namaSekolah.String
-	}
-	if alamatSekolah.Valid {
-		profil.AlamatSekolah = alamatSekolah.String
 	}
 
 	return profil, nil

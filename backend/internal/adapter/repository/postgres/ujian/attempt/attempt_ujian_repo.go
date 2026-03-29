@@ -2,15 +2,13 @@ package attemptrepo
 
 import (
 	"context"
-	"database/sql"
 	"errors"
-	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	pg "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres"
+	pg "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/contract"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	ujian "github.com/mustafamadjid/web-app-cbt/internal/core/domain/ujian_siswa"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
@@ -49,22 +47,7 @@ func (r *AttemptUjianRepo) GetAttemptUjianById(ctx context.Context, idAttempt uj
 		WHERE id_attempt = $1
 	`
 
-	var (
-		item        ujian.AttemptUjian
-		status      string
-		waktuMulai  sql.NullTime
-		waktuSubmit sql.NullTime
-		deadlineAt  sql.NullTime
-	)
-
-	err := r.q.QueryRow(ctx, query, idAttempt).Scan(
-		&item.IdAttempt,
-		&item.IdPesertaUjian,
-		&status,
-		&waktuMulai,
-		&waktuSubmit,
-		&deadlineAt,
-	)
+	item, err := scanAttemptUjianRow(r.q.QueryRow(ctx, query, idAttempt))
 	if errors.Is(err, pgx.ErrNoRows) {
 		return ujian.AttemptUjian{}, coreerror.ErrNotFound
 	}
@@ -72,11 +55,6 @@ func (r *AttemptUjianRepo) GetAttemptUjianById(ctx context.Context, idAttempt uj
 		r.loggerFor(ctx).Error(ctx, "failed get attempt ujian by id", "layer", "repo.db", "op", "attempt_ujian.get_by_id", "err", err)
 		return ujian.AttemptUjian{}, err
 	}
-
-	item.StatusAttempt = ujian.StatusAttempt(status)
-	item.WaktuMulai = nullTimeToPtr(waktuMulai)
-	item.WaktuSubmit = nullTimeToPtr(waktuSubmit)
-	item.DeadlineAt = nullTimeToPtr(deadlineAt)
 
 	return item, nil
 }
@@ -268,21 +246,4 @@ func mapSubmitUniqueViolation(err error) error {
 	}
 
 	return coreerror.ErrConflict
-}
-
-func nullTimeToPtr(value sql.NullTime) *time.Time {
-	if !value.Valid {
-		return nil
-	}
-
-	v := value.Time
-	return &v
-}
-
-func timePtrToDB(value *time.Time) any {
-	if value == nil {
-		return nil
-	}
-
-	return *value
 }

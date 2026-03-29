@@ -2,13 +2,12 @@ package ujianlistrepo
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	pg "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres"
+	pg "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/contract"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	ujian "github.com/mustafamadjid/web-app-cbt/internal/core/domain/ujian_siswa"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
@@ -50,15 +49,6 @@ func (r *ListSoalUjianRepo) GetSoalUjianByBankSoal(ctx context.Context, idBankSo
 		ORDER BY s.no_urut_soal, op.id_pilihan_ganda;
 	`
 
-	var (
-		itemSoalResult []ujian.SoalUjianSiswa
-		orderedSoalIDs []ujian.ID
-		gambar         sql.NullString
-		idPilgan       sql.NullInt64
-		isiPilgan      sql.NullString
-		isBenar        sql.NullBool
-	)
-
 	rows, err := r.q.Query(ctx, query, idBankSoal)
 	if err != nil {
 		r.loggerFor(ctx).Error(ctx, "failed listing soal ujian", "op", "soal_ujian.list", "err", err)
@@ -66,80 +56,7 @@ func (r *ListSoalUjianRepo) GetSoalUjianByBankSoal(ctx context.Context, idBankSo
 	}
 	defer rows.Close()
 
-	itemsBySoalID := make(map[ujian.ID]*ujian.SoalUjianSiswa)
-	for rows.Next() {
-		var (
-			idSoal            ujian.ID
-			idBankSoalVersion ujian.ID
-			tipeSoal          string
-			pertanyaan        string
-			bobotSoal         float64
-			noUrutSoal        int
-		)
-
-		if err := rows.Scan(
-			&idSoal,
-			&idBankSoalVersion,
-			&tipeSoal,
-			&pertanyaan,
-			&gambar,
-			&bobotSoal,
-			&noUrutSoal,
-			&idPilgan,
-			&isiPilgan,
-			&isBenar,
-		); err != nil {
-			r.loggerFor(ctx).Error(ctx, "failed scanning soal ujian", "op", "soal_ujian.list", "err", err)
-			return nil, err
-		}
-
-		item, exists := itemsBySoalID[idSoal]
-		if !exists {
-			item = &ujian.SoalUjianSiswa{
-				IdSoal:            idSoal,
-				IdBankSoalVersion: idBankSoalVersion,
-				TipeSoal:          tipeSoal,
-				Pertanyaan:        pertanyaan,
-				BobotSoal:         bobotSoal,
-				NoUrutSoal:        noUrutSoal,
-			}
-
-			if gambar.Valid {
-				item.Gambar = gambar.String
-			}
-
-			itemsBySoalID[idSoal] = item
-			orderedSoalIDs = append(orderedSoalIDs, idSoal)
-		}
-
-		if idPilgan.Valid {
-			opsi := ujian.OpsiPilganUjian{
-				IdPilihanGanda: ujian.ID(idPilgan.Int64),
-				IdSoal:         item.IdSoal,
-			}
-
-			if isiPilgan.Valid {
-				opsi.IsiPilihan = isiPilgan.String
-			}
-
-			if isBenar.Valid {
-				opsi.IsBenar = isBenar.Bool
-			}
-
-			item.OpsiJawaban = append(item.OpsiJawaban, opsi)
-		}
-	}
-
-	if err := rows.Err(); err != nil {
-		r.loggerFor(ctx).Error(ctx, "failed iterating soal ujian rows", "op", "soal_ujian.list", "err", err)
-		return nil, err
-	}
-
-	for _, idSoal := range orderedSoalIDs {
-		itemSoalResult = append(itemSoalResult, *itemsBySoalID[idSoal])
-	}
-
-	return itemSoalResult, nil
+	return r.scanSoalUjianRows(ctx, "soal_ujian.list", rows)
 }
 
 func (r *ListSoalUjianRepo) GetSoalUjianByBankSoalForSiswa(ctx context.Context, idJadwalUjian ujian.ID) ([]ujian.SoalUjianSiswa, bool, error) {
@@ -200,13 +117,6 @@ func (r *ListSoalUjianRepo) GetSoalUjianByBankSoalForSiswa(ctx context.Context, 
 		WHERE bs.id_bank_soal = $1
 		ORDER BY s.no_urut_soal, op.id_pilihan_ganda;
 	`
-	var (
-		itemSoalResult []ujian.SoalUjianSiswa
-		orderedSoalIDs []ujian.ID
-		gambar         sql.NullString
-		idPilgan       sql.NullInt64
-		isiPilgan      sql.NullString
-	)
 	rows, err := tx.Query(ctx, query, idBankSoal)
 	if err != nil {
 		r.loggerFor(ctx).Error(ctx, "failed listing soal ujian", "op", "soal_ujian.list", "err", err)
@@ -214,68 +124,9 @@ func (r *ListSoalUjianRepo) GetSoalUjianByBankSoalForSiswa(ctx context.Context, 
 	}
 	defer rows.Close()
 
-	itemsBySoalID := make(map[ujian.ID]*ujian.SoalUjianSiswa)
-	for rows.Next() {
-		var (
-			idSoal     ujian.ID
-			tipeSoal   string
-			pertanyaan string
-			bobotSoal  float64
-			noUrutSoal int
-		)
-
-		if err := rows.Scan(
-			&idSoal,
-			&tipeSoal,
-			&pertanyaan,
-			&gambar,
-			&bobotSoal,
-			&noUrutSoal,
-			&idPilgan,
-			&isiPilgan,
-		); err != nil {
-			r.loggerFor(ctx).Error(ctx, "failed scanning soal ujian", "op", "soal_ujian.list", "err", err)
-			return nil, false, err
-		}
-
-		item, exists := itemsBySoalID[idSoal]
-		if !exists {
-			item = &ujian.SoalUjianSiswa{
-				IdSoal:     idSoal,
-				TipeSoal:   tipeSoal,
-				Pertanyaan: pertanyaan,
-				BobotSoal:  bobotSoal,
-				NoUrutSoal: noUrutSoal,
-			}
-
-			if gambar.Valid {
-				item.Gambar = gambar.String
-			}
-
-			itemsBySoalID[idSoal] = item
-			orderedSoalIDs = append(orderedSoalIDs, idSoal)
-		}
-
-		if idPilgan.Valid {
-			opsi := ujian.OpsiPilganUjian{
-				IdPilihanGanda: ujian.ID(idPilgan.Int64),
-			}
-
-			if isiPilgan.Valid {
-				opsi.IsiPilihan = isiPilgan.String
-			}
-
-			item.OpsiJawaban = append(item.OpsiJawaban, opsi)
-		}
-	}
-
-	if err := rows.Err(); err != nil {
-		r.loggerFor(ctx).Error(ctx, "failed iterating soal ujian rows", "op", "soal_ujian.list", "err", err)
+	itemSoalResult, err := r.scanSoalUjianSiswaRows(ctx, "soal_ujian.list", rows)
+	if err != nil {
 		return nil, false, err
-	}
-
-	for _, idSoal := range orderedSoalIDs {
-		itemSoalResult = append(itemSoalResult, *itemsBySoalID[idSoal])
 	}
 
 	if err := tx.Commit(ctx); err != nil {

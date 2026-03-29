@@ -8,7 +8,7 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	pg "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres"
+	pg "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/contract"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	ujian "github.com/mustafamadjid/web-app-cbt/internal/core/domain/ujian_siswa"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
@@ -29,7 +29,7 @@ func (r *UjianRepo) loggerFor(ctx context.Context) corelog.Logger {
 	return corelog.FromContextOr(ctx, r.logger)
 }
 
-func(r *UjianRepo) GetIdUjianByAttempt(ctx context.Context, idAttempt ujian.ID) (ujian.ID, error) {
+func (r *UjianRepo) GetIdUjianByAttempt(ctx context.Context, idAttempt ujian.ID) (ujian.ID, error) {
 	query := `
 		SELECT 
 			ju.id_ujian
@@ -54,7 +54,6 @@ func(r *UjianRepo) GetIdUjianByAttempt(ctx context.Context, idAttempt ujian.ID) 
 	return idUjian, nil
 
 }
-
 
 func (r *UjianRepo) CreateUjian(ctx context.Context, data ujian.PenjadwalanUjian) error {
 	tx, err := r.pool.BeginTx(ctx, pgx.TxOptions{})

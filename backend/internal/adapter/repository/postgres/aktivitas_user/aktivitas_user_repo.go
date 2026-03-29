@@ -1,20 +1,19 @@
-package postgres
+package aktivitasuserrepo
 
 import (
 	"context"
-	"database/sql"
 
+	pg "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/contract"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/aktivitas_user"
-	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 )
 
 type AktivitasUserRepo struct {
-	q      Executor
+	q      pg.Executor
 	logger corelog.Logger
 }
 
-func NewAktivitasUserRepo(q Executor, logger corelog.Logger) *AktivitasUserRepo {
+func NewAktivitasUserRepo(q pg.Executor, logger corelog.Logger) *AktivitasUserRepo {
 	return &AktivitasUserRepo{q: q, logger: logger}
 }
 
@@ -60,34 +59,5 @@ func (r *AktivitasUserRepo) GetAktivitasUser(ctx context.Context) ([]aktivitas_u
 	}
 	defer rows.Close()
 
-	var results []aktivitas_user.AktivitasUser
-	for rows.Next() {
-		var item aktivitas_user.AktivitasUser
-		var description sql.NullString
-		var ipAddress sql.NullString
-		var roleName string
-		if err := rows.Scan(
-			&item.IdAktivitas,
-			&item.IdPengguna,
-			&item.Username,
-			&roleName,
-			&item.Action,
-			&description,
-			&ipAddress,
-			&item.CreatedAt,
-		); err != nil {
-			r.loggerFor(ctx).Error(ctx, "Failed scanning aktivitas user", "op", "aktivitas_user_repo.list_scan", "err", err)
-			return nil, err
-		}
-		if description.Valid {
-			item.Description = description.String
-		}
-		if ipAddress.Valid {
-			item.IpAddress = ipAddress.String
-		}
-		item.Role = user.Role(roleName)
-		results = append(results, item)
-	}
-
-	return results, nil
+	return r.scanAktivitasUserRows(ctx, "aktivitas_user_repo.list_scan", rows)
 }

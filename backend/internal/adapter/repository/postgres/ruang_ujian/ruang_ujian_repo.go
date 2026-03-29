@@ -1,13 +1,12 @@
-package postgres
+package ruangujianrepo
 
 import (
 	"context"
 	"errors"
-	"fmt"
-	"strings"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+	pg "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/contract"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	ruangujian "github.com/mustafamadjid/web-app-cbt/internal/core/domain/ruang_ujian"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
@@ -16,11 +15,11 @@ import (
 )
 
 type RuangUjianRepo struct {
-	q      Executor
+	q      pg.Executor
 	logger corelog.Logger
 }
 
-func NewRuangUjianRepo(q Executor, logger corelog.Logger) *RuangUjianRepo {
+func NewRuangUjianRepo(q pg.Executor, logger corelog.Logger) *RuangUjianRepo {
 	return &RuangUjianRepo{q: q, logger: logger}
 }
 
@@ -29,64 +28,16 @@ func (r *RuangUjianRepo) loggerFor(ctx context.Context) corelog.Logger {
 }
 
 func (r *RuangUjianRepo) GetRuangUjian(ctx context.Context, filter query.ListRuangUjianFilter) ([]ruangujian.RuangUjian, error) {
-	baseQuery := `
-		SELECT
-			id_ruangan,
-			nama_ruangan,
-			kode_ruang
-		FROM ruang_ujian
-	`
+	queryText, args := r.buildListRuangUjianQuery(filter)
 
-	where := make([]string, 0, 1)
-	args := make([]any, 0, 3)
-
-	if filter.Search != "" {
-		args = append(args, "%"+filter.Search+"%")
-		idx := len(args)
-		where = append(where, fmt.Sprintf("(nama_ruangan ILIKE $%d OR kode_ruang ILIKE $%d)", idx, idx))
-	}
-
-	if len(where) > 0 {
-		baseQuery = fmt.Sprintf("%s WHERE %s", baseQuery, strings.Join(where, " AND "))
-	}
-
-	baseQuery = fmt.Sprintf("%s ORDER BY id_ruangan ASC", baseQuery)
-
-	if filter.Limit > 0 {
-		args = append(args, filter.Limit)
-		limitIndex := len(args)
-		args = append(args, filter.Offset)
-		offsetIndex := len(args)
-		baseQuery = fmt.Sprintf("%s LIMIT $%d OFFSET $%d", baseQuery, limitIndex, offsetIndex)
-	}
-
-	rows, err := r.q.Query(ctx, baseQuery, args...)
+	rows, err := r.q.Query(ctx, queryText, args...)
 	if err != nil {
 		r.loggerFor(ctx).Error(ctx, "failed get ruang ujian", "layer", "repo.db", "op", "ruang_ujian.get", "err", err)
 		return nil, err
 	}
 	defer rows.Close()
 
-	var results []ruangujian.RuangUjian
-	for rows.Next() {
-		var item ruangujian.RuangUjian
-		if err := rows.Scan(
-			&item.IdRuangan,
-			&item.NamaRuangan,
-			&item.KodeRuang,
-		); err != nil {
-			r.loggerFor(ctx).Error(ctx, "failed scanning ruang ujian", "layer", "repo.db", "op", "ruang_ujian.get", "err", err)
-			return nil, err
-		}
-		results = append(results, item)
-	}
-
-	if err := rows.Err(); err != nil {
-		r.loggerFor(ctx).Error(ctx, "failed iterating ruang ujian", "layer", "repo.db", "op", "ruang_ujian.get", "err", err)
-		return nil, err
-	}
-
-	return results, nil
+	return r.scanRuangUjianRows(ctx, "ruang_ujian.get", rows)
 }
 
 func (r *RuangUjianRepo) GetRuangUjianById(ctx context.Context, idRuangan int) (ruangujian.RuangUjian, error) {
@@ -99,14 +50,8 @@ func (r *RuangUjianRepo) GetRuangUjianById(ctx context.Context, idRuangan int) (
 		WHERE id_ruangan = $1
 	`
 
-	rows := r.q.QueryRow(ctx, query, idRuangan)
-
-	var item ruangujian.RuangUjian
-	if err := rows.Scan(
-		&item.IdRuangan,
-		&item.NamaRuangan,
-		&item.KodeRuang,
-	); err != nil {
+	item, err := scanRuangUjianRow(r.q.QueryRow(ctx, query, idRuangan))
+	if err != nil {
 		r.loggerFor(ctx).Error(ctx, "failed scanning ruang ujian", "layer", "repo.db", "op", "ruang_ujian.get_by_id", "err", err)
 		if errors.Is(err, pgx.ErrNoRows) {
 			return ruangujian.RuangUjian{}, coreerror.ErrNotFound
@@ -127,14 +72,8 @@ func (r *RuangUjianRepo) GetRuangUjianByKode(ctx context.Context, kodeRuang stri
 		WHERE kode_ruang = $1
 	`
 
-	rows := r.q.QueryRow(ctx, query, kodeRuang)
-
-	var item ruangujian.RuangUjian
-	if err := rows.Scan(
-		&item.IdRuangan,
-		&item.NamaRuangan,
-		&item.KodeRuang,
-	); err != nil {
+	item, err := scanRuangUjianRow(r.q.QueryRow(ctx, query, kodeRuang))
+	if err != nil {
 		r.loggerFor(ctx).Error(ctx, "failed scanning ruang ujian", "layer", "repo.db", "op", "ruang_ujian.get_by_kode", "err", err)
 		if errors.Is(err, pgx.ErrNoRows) {
 			return ruangujian.RuangUjian{}, coreerror.ErrNotFound

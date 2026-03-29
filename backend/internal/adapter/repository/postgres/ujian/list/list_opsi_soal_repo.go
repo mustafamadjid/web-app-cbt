@@ -27,26 +27,5 @@ func (r *ListSoalUjianRepo) GetOpsiPilihanGandaByBankSoal(ctx context.Context, i
 	}
 	defer rows.Close()
 
-	var items []ujian.OpsiPilganUjian
-	for rows.Next() {
-		var item ujian.OpsiPilganUjian
-		if err := rows.Scan(
-			&item.IdPilihanGanda,
-			&item.IdSoal,
-			&item.IsiPilihan,
-			&item.IsBenar,
-		); err != nil {
-			r.loggerFor(ctx).Error(ctx, "failed scanning opsi pilihan ganda by bank soal", "layer", "repo.db", "op", "ujian.list_opsi_pilgan.scan", "err", err)
-			return nil, err
-		}
-
-		items = append(items, item)
-	}
-
-	if err := rows.Err(); err != nil {
-		r.loggerFor(ctx).Error(ctx, "failed iterating opsi pilihan ganda by bank soal", "layer", "repo.db", "op", "ujian.list_opsi_pilgan.iter", "err", err)
-		return nil, err
-	}
-
-	return items, nil
+	return r.scanOpsiPilganRows(ctx, "ujian.list_opsi_pilgan", rows)
 }

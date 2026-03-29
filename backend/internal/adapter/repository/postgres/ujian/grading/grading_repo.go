@@ -7,7 +7,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgconn"
 
-	pg "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres"
+	pg "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/contract"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	ujian "github.com/mustafamadjid/web-app-cbt/internal/core/domain/ujian_siswa"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
@@ -170,31 +170,6 @@ func (r *GradingRepo) upsertStatistikSoal(ctx context.Context, payload []statist
 	}
 
 	return nil
-}
-
-func buildStatistikSoalPayload(items []ujian.StatistikSoal, isBenar bool) []statistikSoalUpsertItem {
-	if len(items) == 0 {
-		return nil
-	}
-
-	payload := make([]statistikSoalUpsertItem, 0, len(items))
-
-	for _, item := range items {
-		entry := statistikSoalUpsertItem{
-			IDSoal:  item.IDSoal,
-			IDUjian: item.IDUjian,
-		}
-
-		if isBenar {
-			entry.JumlahJawabanBenar++
-		} else {
-			entry.JumlahJawabanSalah++
-		}
-
-		payload = append(payload, entry)
-	}
-
-	return payload
 }
 
 func mapGradingConstraintError(err error) error {

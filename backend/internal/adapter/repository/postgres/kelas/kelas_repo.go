@@ -1,14 +1,12 @@
-package postgres
+package kelasrepo
 
 import (
 	"context"
-	"database/sql"
 	"errors"
-	"fmt"
-	"strings"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+	pg "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/contract"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/kelas"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
@@ -17,11 +15,11 @@ import (
 )
 
 type KelasRepo struct {
-	q      Executor
+	q      pg.Executor
 	logger corelog.Logger
 }
 
-func NewKelasRepo(q Executor, logger corelog.Logger) *KelasRepo {
+func NewKelasRepo(q pg.Executor, logger corelog.Logger) *KelasRepo {
 	return &KelasRepo{q: q, logger: logger}
 }
 
@@ -30,97 +28,16 @@ func (r *KelasRepo) loggerFor(ctx context.Context) corelog.Logger {
 }
 
 func (r *KelasRepo) GetKelas(ctx context.Context, filter query.ListKelasFilter) ([]kelas.FullKelasData, error) {
-	baseQuery := `
-	SELECT 
-	tk.id_kelas,
-	tk.tingkat_kelas,
-	k.id_nama_kelas,
-	k.nama_kelas
-	FROM kelas tk
-	LEFT JOIN nama_kelas k ON tk.id_kelas = k.id_kelas
-	`
+	queryText, args := r.buildListKelasQuery(filter)
 
-	where := make([]string, 0, 2)
-	args := make([]any, 0, 4)
-
-	if filter.Search != "" {
-		args = append(args, "%"+filter.Search+"%")
-		idx := len(args)
-		where = append(where, fmt.Sprintf("(k.nama_kelas ILIKE $%d OR tk.tingkat_kelas::text ILIKE $%d)", idx, idx))
-	}
-
-	if filter.TingkatKelas != nil {
-		args = append(args, *filter.TingkatKelas)
-		where = append(where, fmt.Sprintf("tk.tingkat_kelas = $%d", len(args)))
-	}
-
-	if len(where) > 0 {
-		baseQuery = fmt.Sprintf("%s WHERE %s", baseQuery, strings.Join(where, " AND "))
-	}
-
-	baseQuery = fmt.Sprintf("%s ORDER BY tk.tingkat_kelas ASC, k.nama_kelas ASC", baseQuery)
-
-	if filter.Limit > 0 {
-		args = append(args, filter.Limit)
-		limitIndex := len(args)
-		args = append(args, filter.Offset)
-		offsetIndex := len(args)
-		baseQuery = fmt.Sprintf("%s LIMIT $%d OFFSET $%d", baseQuery, limitIndex, offsetIndex)
-	}
-
-	rows, err := r.q.Query(ctx, baseQuery, args...)
+	rows, err := r.q.Query(ctx, queryText, args...)
 	if err != nil {
 		r.loggerFor(ctx).Error(ctx, "failed listing kelas", "op", "kelas_repo.list", "err", err)
 		return nil, err
 	}
 	defer rows.Close()
 
-	var (
-		itemsTingkat []kelas.TingkatKelas
-		itemsNama    []kelas.NamaKelas
-	)
-
-	seenTingkat := make(map[int]bool)
-	for rows.Next() {
-		var (
-			idTingkat int
-			tingkat   int
-			idNama    sql.NullInt64
-			namaKelas sql.NullString
-		)
-
-		if err := rows.Scan(&idTingkat, &tingkat, &idNama, &namaKelas); err != nil {
-			r.loggerFor(ctx).Error(ctx, "failed scanning kelas", "op", "kelas_repo.scan", "err", err)
-			return nil, err
-		}
-
-		if !seenTingkat[idTingkat] {
-			seenTingkat[idTingkat] = true
-			itemsTingkat = append(itemsTingkat, kelas.TingkatKelas{
-				IdTingkatKelas: kelas.ID(idTingkat),
-				TingkatKelas:   tingkat,
-			})
-		}
-
-		if idNama.Valid && namaKelas.Valid {
-			itemsNama = append(itemsNama, kelas.NamaKelas{
-				IdNamaKelas:    kelas.ID(idNama.Int64),
-				IdTingkatKelas: kelas.ID(idTingkat),
-				NamaKelas:      namaKelas.String,
-			})
-
-		}
-	}
-
-	if err := rows.Err(); err != nil {
-		r.loggerFor(ctx).Error(ctx, "failed iterating kelas", "op", "kelas_repo.iter", "err", err)
-		return nil, err
-	}
-
-	return []kelas.FullKelasData{{
-		ItemsTingkatKelas: itemsTingkat,
-		ItemsNamaKelas:    itemsNama,
-	}}, nil
+	return r.scanKelasRows(ctx, "kelas_repo.list", rows)
 }
 
 func (r *KelasRepo) GetKelasById(ctx context.Context, idTingkatKelas int, idNamaKelas int) (kelas.KelasData, error) {
@@ -135,14 +52,8 @@ func (r *KelasRepo) GetKelasById(ctx context.Context, idTingkatKelas int, idNama
 		WHERE tk.id_kelas = $1 AND k.id_nama_kelas = $2
 	`
 
-	rows := r.q.QueryRow(ctx, query, idTingkatKelas, idNamaKelas)
-
-	var (
-		itemsTingkatKelas kelas.TingkatKelas
-		itemsNamaKelas    kelas.NamaKelas
-	)
-
-	if err := rows.Scan(&itemsTingkatKelas.IdTingkatKelas, &itemsTingkatKelas.TingkatKelas, &itemsNamaKelas.IdNamaKelas, &itemsNamaKelas.NamaKelas); err != nil {
+	item, err := scanKelasRow(r.q.QueryRow(ctx, query, idTingkatKelas, idNamaKelas))
+	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return kelas.KelasData{}, coreerror.ErrNotFound
 		}
@@ -151,12 +62,7 @@ func (r *KelasRepo) GetKelasById(ctx context.Context, idTingkatKelas int, idNama
 		return kelas.KelasData{}, err
 	}
 
-	itemsNamaKelas.IdTingkatKelas = itemsTingkatKelas.IdTingkatKelas
-
-	return kelas.KelasData{
-		ItemsTingkatKelas: itemsTingkatKelas,
-		ItemsNamaKelas:    itemsNamaKelas,
-	}, nil
+	return item, nil
 }
 
 func (r *KelasRepo) CreateTingkatKelas(ctx context.Context, tingkatKelas int) error {
@@ -285,12 +191,12 @@ func (r *KelasRepo) DeleteNamaKelas(ctx context.Context, idNamaKelas int) error 
 	)
 	if err != nil {
 		var pgErr *pgconn.PgError
-		if errors.As(err,&pgErr){
+		if errors.As(err, &pgErr) {
 			if pgErr.Code == "23001" {
 				return coreerror.ErrDeleteRestricted
 			}
 		}
-			
+
 		r.loggerFor(ctx).Error(ctx, "failed deleting nama kelas", "op", "kelas_repo.delete", "err", err)
 		return err
 	}

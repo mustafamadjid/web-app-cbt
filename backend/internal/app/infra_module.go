@@ -4,13 +4,28 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	pg "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres"
+	pgaktivitasuser "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/aktivitas_user"
+	pgauthuser "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/auth_user"
 	pgbanksoal "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/bank_soal"
+	pgimportsoaljob "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/import_soal_job"
+	pgisisoalbatch "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/isi_soal_batch"
+	pgkelas "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/kelas"
+	pgmapel "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/mata_pelajaran"
+	pgpengumuman "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/pengumuman"
+	pgprofilguru "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/profil_guru"
+	pgprofilsekolah "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/profil_sekolah"
+	pgprofilsiswa "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/profil_siswa"
+	pgresetpassword "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/reset_password"
+	pgruangujian "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/ruang_ujian"
+	pgsesi "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/sesi"
+	pgsession "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/session"
 	pgujian "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/ujian"
 	pgujianattempt "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/ujian/attempt"
 	pgujianlist "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/ujian/list"
 	pgujiansiswajawaban "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/ujian/siswa/jawaban_ujian"
 	pgujiansiswa "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/ujian/siswa/ujian_siswa"
 	pgujiansiswachecker "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/ujian/siswa/ujian_siswa_checker"
+	pguser "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/user"
 	out "github.com/mustafamadjid/web-app-cbt/internal/core/port/out"
 	outaktivitas "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/aktivitas_user"
 	outauth "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/auth_port_out"
@@ -66,8 +81,8 @@ type InfraModule struct {
 func BuildInfraModule(pool *pgxpool.Pool, logger corelog.Logger) *InfraModule {
 	txm := pg.NewTxManager(pool, logger)
 
-	profilGuruRepo := pg.NewProfilgGuruRepo(pool, logger)
-	profilSiswaRepo := pg.NewProfilSiswaRepo(pool, logger)
+	profilGuruRepo := pgprofilguru.NewProfilgGuruRepo(pool, logger)
+	profilSiswaRepo := pgprofilsiswa.NewProfilSiswaRepo(pool, logger)
 	ujianRepo := pgujian.NewUjianRepo(pool, logger, pool)
 	ujianSiswaRepo := pgujiansiswa.NewUjianSiswaRepo(pool, logger)
 	siswaUjianChecker := pgujiansiswachecker.NewSiswaUjianCheckerRepo(pool, logger)
@@ -77,21 +92,21 @@ func BuildInfraModule(pool *pgxpool.Pool, logger corelog.Logger) *InfraModule {
 	return &InfraModule{
 		Pool:                  pool,
 		Txm:                   txm,
-		Sessions:              pg.NewSessionRepo(pool, logger),
-		AuthUsers:             pg.NewAuthUserRepo(pool, logger),
-		users:                 pg.NewUserRepo(pool, logger),
-		userResetPasswordRepo: pg.NewResetPasswordRepo(pool, logger),
+		Sessions:              pgsession.NewSessionRepo(pool, logger),
+		AuthUsers:             pgauthuser.NewAuthUserRepo(pool, logger),
+		users:                 pguser.NewUserRepo(pool, logger),
+		userResetPasswordRepo: pgresetpassword.NewResetPasswordRepo(pool, logger),
 		profilSiswa:           profilSiswaRepo,
 		profilSiswaRepo:       profilSiswaRepo,
 		profilGuru:            profilGuruRepo,
 		profilGuruRepo:        profilGuruRepo,
-		profilSekolah:         pg.NewProfilSekolahRepo(pool, logger),
-		aktivitasUser:         pg.NewAktivitasUserRepo(pool, logger),
-		kelasRepo:             pg.NewKelasRepo(pool, logger),
+		profilSekolah:         pgprofilsekolah.NewProfilSekolahRepo(pool, logger),
+		aktivitasUser:         pgaktivitasuser.NewAktivitasUserRepo(pool, logger),
+		kelasRepo:             pgkelas.NewKelasRepo(pool, logger),
 		bankSoalRepo:          pgbanksoal.NewBankSoalRepo(pool, logger),
-		mapelRepo:             pg.NewMapelRepo(pool, logger),
-		pengumumanRepo:        pg.NewPengumumanRepo(pool, logger),
-		ruangUjianRepo:        pg.NewRuangUjianRepo(pool, logger),
+		mapelRepo:             pgmapel.NewMapelRepo(pool, logger),
+		pengumumanRepo:        pgpengumuman.NewPengumumanRepo(pool, logger),
+		ruangUjianRepo:        pgruangujian.NewRuangUjianRepo(pool, logger),
 		listUjianRepo:         pgujianlist.NewListUjianRepo(pool, logger),
 		ujianSiswaRepo:        ujianSiswaRepo,
 		soalUjianRepo:         pgujianlist.NewListSoalUjianRepo(pool, logger),
@@ -99,8 +114,8 @@ func BuildInfraModule(pool *pgxpool.Pool, logger corelog.Logger) *InfraModule {
 		attemptUjianRepo:      attemptUjianRepo,
 		jawabanUjianRepo:      jawabanUjianRepo,
 		siswaUjianChecker:     siswaUjianChecker,
-		sesiRepo:              pg.NewSesirepo(pool, logger),
-		importSoalJobRepo:     pg.NewImportSoalJobRepo(pool, logger),
-		isiSoalBatchRepo:      pg.NewIsiSoalBatchRepo(pool, logger),
+		sesiRepo:              pgsesi.NewSesirepo(pool, logger),
+		importSoalJobRepo:     pgimportsoaljob.NewImportSoalJobRepo(pool, logger),
+		isiSoalBatchRepo:      pgisisoalbatch.NewIsiSoalBatchRepo(pool, logger),
 	}
 }

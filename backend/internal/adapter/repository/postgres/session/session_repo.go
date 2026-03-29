@@ -1,4 +1,4 @@
-package postgres
+package sessionrepo
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 
+	pg "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/contract"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/auth/session"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
@@ -15,11 +16,11 @@ import (
 )
 
 type SessionRepo struct {
-	q      Executor
+	q      pg.Executor
 	logger corelog.Logger
 }
 
-func NewSessionRepo(q Executor, logger corelog.Logger) *SessionRepo {
+func NewSessionRepo(q pg.Executor, logger corelog.Logger) *SessionRepo {
 	return &SessionRepo{q: q, logger: logger}
 }
 
@@ -60,14 +61,7 @@ func (r *SessionRepo) GetSession(ctx context.Context, sessionID string) (session
 		WHERE id = $1
 	`
 
-	var result session.Session
-	var revokedAt *time.Time
-	err := r.q.QueryRow(ctx, query, sessionID).Scan(
-		&result.SessionID,
-		&result.UserID,
-		&result.ExpiresAt,
-		&revokedAt,
-	)
+	result, err := scanSessionRow(r.q.QueryRow(ctx, query, sessionID))
 	if errors.Is(err, pgx.ErrNoRows) {
 		return session.Session{}, coreerror.ErrNotFound
 	}
@@ -75,8 +69,6 @@ func (r *SessionRepo) GetSession(ctx context.Context, sessionID string) (session
 		r.loggerFor(ctx).Error(ctx, "failed getting session", "op", "session_repo.get", "session_id", sessionID, "err", err)
 		return session.Session{}, err
 	}
-
-	result.Revoked = revokedAt != nil
 	return result, nil
 }
 
@@ -92,14 +84,7 @@ func (r *SessionRepo) GetSessionByUserId(ctx context.Context, userID user.ID) (s
 		AND expires_at > now()
 	`
 
-	var result session.Session
-	var revokedAt *time.Time
-	err := r.q.QueryRow(ctx, query, userID).Scan(
-		&result.SessionID,
-		&result.UserID,
-		&result.ExpiresAt,
-		&revokedAt,
-	)
+	result, err := scanSessionRow(r.q.QueryRow(ctx, query, userID))
 
 	if errors.Is(err, pgx.ErrNoRows) {
 		return session.Session{}, coreerror.ErrNotFound
@@ -109,7 +94,6 @@ func (r *SessionRepo) GetSessionByUserId(ctx context.Context, userID user.ID) (s
 		return session.Session{}, err
 	}
 
-	result.Revoked = revokedAt != nil
 	return result, nil
 }
 
@@ -132,28 +116,7 @@ func (r *SessionRepo) GetAllActiveSession(ctx context.Context) ([]session.Sessio
 
 	defer rows.Close()
 
-	var results []session.Session
-	for rows.Next() {
-		var item session.Session
-		var revokedAt *time.Time
-		if err := rows.Scan(
-			&item.SessionID,
-			&item.UserID,
-			&item.ExpiresAt,
-			&revokedAt,
-		); err != nil {
-			r.loggerFor(ctx).Error(ctx, "failed scanning sessions", "op", "session_repo.list_active_scan", "err", err)
-			return nil, err
-		}
-		item.Revoked = revokedAt != nil
-		results = append(results, item)
-	}
-
-	if err := rows.Err(); err != nil {
-		r.loggerFor(ctx).Error(ctx, "failed iterating sessions", "op", "session_repo.list_active_iter", "err", err)
-		return nil, err
-	}
-	return results, nil
+	return r.scanSessionRows(ctx, "session_repo.list_active", rows)
 }
 
 func (r *SessionRepo) HasActiveSession(ctx context.Context, userID user.ID) (bool, error) {
@@ -190,7 +153,6 @@ func (r *SessionRepo) RevokeExpiredSessions(ctx context.Context, userID user.ID)
 	}
 	return tag.RowsAffected() > 0, nil
 }
-
 
 func (r *SessionRepo) RevokeSession(ctx context.Context, sessionID string) error {
 	const query = `
