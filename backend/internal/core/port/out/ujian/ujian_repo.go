@@ -38,13 +38,6 @@ type AttemptUjianRepository interface {
 	SubmitAttemptUjian(ctx context.Context, idAttempt ujian.ID) error
 }
 
-type HasilUjianRepository interface {
-	GetHasilUjianByAttempId(ctx context.Context, idAttempt ujian.ID) (ujian.HasilUjian, error)
-	CreateHasilUjian(ctx context.Context, data ujian.HasilUjian) error
-	UpdateHasilUjian(ctx context.Context, idAttempt ujian.ID, data updatepatch.UpdateHasilUjianPatch) error
-	DeleteHasilUjian(ctx context.Context, idAttempt ujian.ID) error
-}
-
 type JawabanUjianRepository interface {
 	GetJawabanUjianByAttemptId(ctx context.Context, idAttempt ujian.ID) ([]ujian.JawabanUjian, error)
 	SaveJawabanUjian(ctx context.Context,idAttempt ujian.ID, jawaban []ujian.JawabanUjian) error

@@ -7,8 +7,7 @@ import (
 )
 
 type GradingUjianRepository interface {
-	InsertNilaiToHasilUjian(ctx context.Context, totalNilai float64, idAttempt ujian.ID) error
-	UpdateNilaiInHasilUjian(ctx context.Context, totalNilai float64, idAttempt ujian.ID) error
+	UpsertNilaiToHasilUjian(ctx context.Context, totalNilai float64, hasilUjian ujian.HasilUjian) error
 
 	UpsertJawabanBenarToStatistikSoal(ctx context.Context, soalBenar []ujian.StatistikSoal) error
 	UpsertJawabanSalahToStatistikSoal(ctx context.Context, soalSalah []ujian.StatistikSoal) error

@@ -33,72 +33,50 @@ func (r *GradingRepo) loggerFor(ctx context.Context) corelog.Logger {
 	return corelog.FromContextOr(ctx, r.logger)
 }
 
-func (r *GradingRepo) InsertNilaiToHasilUjian(ctx context.Context, totalNilai float64, idAttempt ujian.ID) error {
-	const updateQuery = `
-		UPDATE hasil_ujian
-		SET
-			nilai_akhir = $1,
-			graded_at = NOW()
-		WHERE id_attempt = $2
-	`
-
-	tag, err := r.q.Exec(ctx, updateQuery, totalNilai, idAttempt)
-	if err != nil {
-		if mappedErr := mapGradingConstraintError(err); mappedErr != nil {
-			return mappedErr
-		}
-
-		r.loggerFor(ctx).Error(ctx, "failed update nilai hasil ujian before insert", "layer", "repo.db", "op", "ujian.grading.insert_nilai.update_existing", "attempt_id", idAttempt, "err", err)
-		return err
-	}
-
-	if tag.RowsAffected() > 0 {
-		return nil
-	}
-
-	const insertQuery = `
+func (r *GradingRepo) UpsertNilaiToHasilUjian(ctx context.Context, totalNilai float64, hasilUjian ujian.HasilUjian) error {
+	const query = `
 		INSERT INTO hasil_ujian (
 			id_attempt,
+			graded_by,
 			nilai_akhir,
+			passed,
+			essay_graded,
 			graded_at
 		)
-		VALUES ($1, $2, NOW())
+		VALUES (
+			$1,
+			$2,
+			$3,
+			$4,
+			COALESCE($5, FALSE),
+			COALESCE($6, NOW())
+		)
+		ON CONFLICT (id_attempt)
+		DO UPDATE SET
+			graded_by = COALESCE($2, hasil_ujian.graded_by),
+			nilai_akhir = $3,
+			passed = COALESCE($4, hasil_ujian.passed),
+			essay_graded = COALESCE($5, hasil_ujian.essay_graded),
+			graded_at = COALESCE($6, NOW())
 	`
 
-	_, err = r.q.Exec(ctx, insertQuery, idAttempt, totalNilai)
+	_, err := r.q.Exec(
+		ctx,
+		query,
+		hasilUjian.IdAttempt,
+		hasilUjian.GradedBy,
+		totalNilai,
+		hasilUjian.Passed,
+		hasilUjian.EssayGraded,
+		hasilUjian.GradedAt,
+	)
 	if err != nil {
 		if mappedErr := mapGradingConstraintError(err); mappedErr != nil {
 			return mappedErr
 		}
 
-		r.loggerFor(ctx).Error(ctx, "failed insert nilai hasil ujian", "layer", "repo.db", "op", "ujian.grading.insert_nilai.insert", "attempt_id", idAttempt, "err", err)
+		r.loggerFor(ctx).Error(ctx, "failed upsert nilai hasil ujian", "layer", "repo.db", "op", "ujian.grading.upsert_nilai", "attempt_id", hasilUjian.IdAttempt, "err", err)
 		return err
-	}
-
-	return nil
-}
-
-func (r *GradingRepo) UpdateNilaiInHasilUjian(ctx context.Context, totalNilai float64, idAttempt ujian.ID) error {
-	const query = `
-		UPDATE hasil_ujian
-		SET
-			nilai_akhir = $1,
-			graded_at = NOW()
-		WHERE id_attempt = $2
-	`
-
-	tag, err := r.q.Exec(ctx, query, totalNilai, idAttempt)
-	if err != nil {
-		if mappedErr := mapGradingConstraintError(err); mappedErr != nil {
-			return mappedErr
-		}
-
-		r.loggerFor(ctx).Error(ctx, "failed update nilai hasil ujian", "layer", "repo.db", "op", "ujian.grading.update_nilai", "attempt_id", idAttempt, "err", err)
-		return err
-	}
-
-	if tag.RowsAffected() == 0 {
-		return coreerror.ErrNotFound
 	}
 
 	return nil

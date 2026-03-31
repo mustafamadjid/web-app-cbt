@@ -21,6 +21,7 @@ import (
 	attempt_update_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/attempt_ujian/update"
 	siswaujian_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian"
 	activeattempt_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian/active_attempt"
+	gradingujian_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian/grading_ujian/grading"
 	getjawaban_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian/jawaban_ujian/get_jawaban"
 	savejawaban_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian/jawaban_ujian/save_jawaban"
 	siswaujianlist_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian/list"
@@ -40,6 +41,7 @@ type UjianModule struct {
 	UpdateAttemptUjianService *attempt_update_service.SiswaUpdateAttemptUjianService
 	ExpireAttemptUjianService *attempt_update_service.ExpireAttemptUjianService
 	SubmitUjianService        *attempt_submit_service.SubmitUjianService
+	GradingUjianService       *gradingujian_service.GradingUjianService
 	GetJawabanService         *getjawaban_service.SiswaGetJawabanUjianService
 	SaveJawabanService        *savejawaban_service.JawabanUjianService
 	ListUjianSiswaService     *siswaujianlist_service.ListUjianSiswaService
@@ -87,6 +89,13 @@ func BuildUjianModule(infra *InfraModule) *UjianModule {
 	siswaUpdateAttemptUjianSvc := attempt_update_service.NewSiswaUpdateAttemptUjianService(infra.siswaUjianChecker, updateAttemptUjianSvc)
 	expireAttemptUjianSvc := attempt_update_service.NewExpireAttemptUjianService(updateAttemptUjianSvc)
 	submitUjianSvc := attempt_submit_service.NewSubmitUjianService(infra.attemptUjianRepo, infra.siswaUjianChecker)
+	gradingUjianSvc := gradingujian_service.NewGradingUjianService(
+		infra.jawabanUjianRepo,
+		infra.soalUjianRepo,
+		infra.bankSoalRepo,
+		infra.ujianRepo,
+		infra.gradingRepo,
+	)
 	updateUjianSvc := ujian_update_service.NewUpdateUjianService(infra.ujianRepo)
 	deleteUjianSvc := ujian_delete_service.NewDeleteUjianService(infra.ujianRepo)
 
@@ -118,6 +127,7 @@ func BuildUjianModule(infra *InfraModule) *UjianModule {
 		UpdateAttemptUjianService:    siswaUpdateAttemptUjianSvc,
 		ExpireAttemptUjianService:    expireAttemptUjianSvc,
 		SubmitUjianService:           submitUjianSvc,
+		GradingUjianService:          gradingUjianSvc,
 		ListSoalUjianService:         listSoalUjianSvc,
 		ListSoalUjianSiswaService:    listSoalUjianSiswaSvc,
 		GetWaktuSelesaiService:       getWaktuSelesaiSvc,

@@ -21,6 +21,7 @@ import (
 	pgsession "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/session"
 	pgujian "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/ujian"
 	pgujianattempt "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/ujian/attempt"
+	pgujiangrading "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/ujian/grading"
 	pgujianlist "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/ujian/list"
 	pgujiansiswajawaban "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/ujian/siswa/jawaban_ujian"
 	pgujiansiswa "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/ujian/siswa/ujian_siswa"
@@ -40,6 +41,7 @@ import (
 	sesi_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/sesi"
 	txout "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/tx"
 	ujian_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/ujian"
+	grading_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/ujian/grading"
 	outuser "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
 )
 
@@ -71,6 +73,7 @@ type InfraModule struct {
 	ujianRepo         ujian_repo.UjianRepository
 	attemptUjianRepo  ujian_repo.AttemptUjianRepository
 	jawabanUjianRepo  ujian_repo.JawabanUjianRepository
+	gradingRepo       grading_repo.GradingUjianRepository
 	siswaUjianChecker ujian_repo.SiswaUjianChecker
 	sesiRepo          sesi_repo.SesiRepository
 
@@ -88,6 +91,7 @@ func BuildInfraModule(pool *pgxpool.Pool, logger corelog.Logger) *InfraModule {
 	siswaUjianChecker := pgujiansiswachecker.NewSiswaUjianCheckerRepo(pool, logger)
 	attemptUjianRepo := pgujianattempt.NewAttemptUjianRepo(pool, logger)
 	jawabanUjianRepo := pgujiansiswajawaban.NewJawabanUjianRepo(pool, logger, pool)
+	gradingRepo := pgujiangrading.NewGradingRepo(pool, logger)
 
 	return &InfraModule{
 		Pool:                  pool,
@@ -113,6 +117,7 @@ func BuildInfraModule(pool *pgxpool.Pool, logger corelog.Logger) *InfraModule {
 		ujianRepo:             ujianRepo,
 		attemptUjianRepo:      attemptUjianRepo,
 		jawabanUjianRepo:      jawabanUjianRepo,
+		gradingRepo:           gradingRepo,
 		siswaUjianChecker:     siswaUjianChecker,
 		sesiRepo:              pgsesi.NewSesirepo(pool, logger),
 		importSoalJobRepo:     pgimportsoaljob.NewImportSoalJobRepo(pool, logger),

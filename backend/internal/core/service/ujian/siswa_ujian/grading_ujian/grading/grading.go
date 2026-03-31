@@ -77,8 +77,12 @@ func (r *GradingUjianService) GradingUjianPilgan(ctx context.Context, idAttempt 
 		return err
 	}
 
-	// Insert score to hasil ujian table
-	if err := r.gradingRepo.InsertNilaiToHasilUjian(ctx, totalNilai, ujian.ID(idAttempt)); err != nil {
+	hasilUjian := ujian.HasilUjian{
+		IdAttempt: ujian.ID(idAttempt),
+	}
+
+	// Upsert score to hasil ujian table
+	if err := r.gradingRepo.UpsertNilaiToHasilUjian(ctx, totalNilai, hasilUjian); err != nil {
 		logger.Error(ctx, "failed grading ujian", "layer", "core.service", "op", "ujian.grading", "err", err)
 		return err
 	}
