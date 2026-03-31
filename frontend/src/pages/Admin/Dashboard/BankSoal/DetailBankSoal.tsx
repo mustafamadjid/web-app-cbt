@@ -1,8 +1,10 @@
 import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 
+import SiswaEssayQuestionContent from "@/components/features/Ujian/SiswaEssayQuestionContent";
 import { useAuth } from "@/contexts/AuthContext";
 import { resolveImageUrl } from "@/helper/MediaUrl/resolveMediaUrl";
+import { isEssaySoal } from "@/helper/Ujian/soalType";
 import SoalLayout from "@/layouts/BankSoalLayout/SoalLayout";
 import { paths } from "@/routes/paths";
 import { useGetBankSoalById } from "@/services/Api/features-api/BankSoal/banksoal.service";
@@ -36,6 +38,7 @@ const BankSoalPreviewContent = ({
 
   const totalSoal = soalPreview.length;
   const currentSoal = soalPreview[currentIndex];
+  const isCurrentSoalEssay = isEssaySoal(currentSoal.tipe);
 
   const handleSelectOption = (soalId: number, optionId: number) => {
     setSelectedOptions((prev) => ({
@@ -99,6 +102,15 @@ const BankSoalPreviewContent = ({
       sisaWaktu="00:00:00"
       soal={currentSoal}
       questionNavigator={questionNavigator}
+      questionContent={
+        isCurrentSoalEssay ? (
+          <SiswaEssayQuestionContent
+            soal={currentSoal}
+            value=""
+            readOnly
+          />
+        ) : undefined
+      }
       selectedOptionId={selectedOptions[currentSoal.id]}
       onSelectOption={(optionId) => handleSelectOption(currentSoal.id, optionId)}
       onPrev={currentIndex > 0 ? () => setCurrentIndex((prev) => prev - 1) : undefined}

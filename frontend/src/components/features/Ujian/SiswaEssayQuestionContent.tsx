@@ -6,14 +6,22 @@ import type { SoalPreviewItem } from "@/types/Ujian/SoalPreview";
 type SiswaEssayQuestionContentProps = {
   soal: SoalPreviewItem;
   value: string;
-  onChange: (value: string) => void;
+  onChange?: (value: string) => void;
+  readOnly?: boolean;
+  placeholder?: string;
+  rows?: number;
 };
 
 const SiswaEssayQuestionContent: React.FC<SiswaEssayQuestionContentProps> = ({
   soal,
   value,
   onChange,
+  readOnly = false,
+  placeholder,
+  rows = 10,
 }) => {
+  const isReadOnly = readOnly || !onChange;
+
   return (
     <div className="space-y-5">
       <div>
@@ -46,10 +54,19 @@ const SiswaEssayQuestionContent: React.FC<SiswaEssayQuestionContentProps> = ({
         <textarea
           id={`essay-answer-${soal.id}`}
           value={value}
-          onChange={(event) => onChange(event.target.value)}
-          rows={10}
-          className="w-full resize-y rounded-xl border border-slate-200 px-4 py-3 text-sm leading-relaxed text-slate-600 outline-none transition focus:border-[#397e50] focus:ring-2 focus:ring-[#397e50]/20"
-          placeholder="Tulis jawaban essay di sini..."
+          onChange={(event) => onChange?.(event.target.value)}
+          readOnly={isReadOnly}
+          rows={rows}
+          className={[
+            "w-full resize-y rounded-xl border border-slate-200 px-4 py-3 text-sm leading-relaxed text-slate-600 outline-none transition focus:border-[#397e50] focus:ring-2 focus:ring-[#397e50]/20",
+            isReadOnly ? "bg-slate-50 text-slate-500" : "",
+          ].join(" ")}
+          placeholder={
+            placeholder ??
+            (isReadOnly
+              ? "Area jawaban essay siswa."
+              : "Tulis jawaban essay di sini...")
+          }
         />
       </div>
     </div>
