@@ -11,4 +11,6 @@ type GradingUjianRepository interface {
 
 	UpsertJawabanBenarToStatistikSoal(ctx context.Context, soalBenar []ujian.StatistikSoal) error
 	UpsertJawabanSalahToStatistikSoal(ctx context.Context, soalSalah []ujian.StatistikSoal) error
+
+	UpdateAndGradingEssayUjian(ctx context.Context,jawabanSiswa []ujian.JawabanUjian, gradedBy ujian.ID) error
 }

@@ -7,6 +7,7 @@ import (
 	httpupdateattemptujian "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/attempt_ujian/attempt/update"
 	httpgetjawaban "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/jawaban_ujian/get_jawaban"
 	httpsavejawaban "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/jawaban_ujian/save_jawaban"
+	httpkoreksiessay "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/koreksi_essay"
 	httplist "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/list"
 	httplistsoal "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/list_soal_ujian"
 	httplistsoalsiswa "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/list_soal_ujian_for_siswa"
@@ -22,6 +23,7 @@ import (
 	siswaujian_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian"
 	activeattempt_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian/active_attempt"
 	gradingujian_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian/grading_ujian/grading"
+	essaygrading_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian/grading_ujian/grading/essay_grading"
 	getjawaban_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian/jawaban_ujian/get_jawaban"
 	savejawaban_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian/jawaban_ujian/save_jawaban"
 	siswaujianlist_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian/list"
@@ -42,6 +44,7 @@ type UjianModule struct {
 	ExpireAttemptUjianService *attempt_update_service.ExpireAttemptUjianService
 	SubmitUjianService        *attempt_submit_service.SubmitUjianService
 	GradingUjianService       *gradingujian_service.GradingUjianService
+	EssayGradingService       *essaygrading_service.EssayGradingUjianService
 	GetJawabanService         *getjawaban_service.SiswaGetJawabanUjianService
 	SaveJawabanService        *savejawaban_service.JawabanUjianService
 	ListUjianSiswaService     *siswaujianlist_service.ListUjianSiswaService
@@ -59,6 +62,7 @@ type UjianModule struct {
 	SubmitUjianHandler           *httpsubmitujian.SubmitUjianHandler
 	GetJawabanUjianHandler       *httpgetjawaban.GetJawabanUjianHandler
 	SaveJawabanUjianHandler      *httpsavejawaban.SaveJawabanUjianHandler
+	KoreksiEssayHandler          *httpkoreksiessay.KoreksiEssayHandler
 	CreateUjianHandler           *httpcreateujian.CreateRuangUjianHandler
 	ListHandler                  *httplist.ListUjianHandler
 	ListUjianSiswaHandler        *httplistsiswa.ListUjianSiswaHandler
@@ -96,6 +100,7 @@ func BuildUjianModule(infra *InfraModule) *UjianModule {
 		infra.ujianRepo,
 		infra.gradingRepo,
 	)
+	essayGradingSvc := essaygrading_service.NewEssayGradingUjianService(infra.gradingRepo)
 	updateUjianSvc := ujian_update_service.NewUpdateUjianService(infra.ujianRepo)
 	deleteUjianSvc := ujian_delete_service.NewDeleteUjianService(infra.ujianRepo)
 
@@ -106,6 +111,7 @@ func BuildUjianModule(infra *InfraModule) *UjianModule {
 	submitUjianHandler := httpsubmitujian.NewSubmitUjianHandler(submitUjianSvc)
 	getJawabanHandler := httpgetjawaban.NewGetJawabanUjianHandler(siswaGetJawabanSvc)
 	saveJawabanHandler := httpsavejawaban.NewSaveJawabanUjianHandler(saveJawabanSvc)
+	koreksiEssayHandler := httpkoreksiessay.NewKoreksiEssayHandler(essayGradingSvc)
 	createUjianHandler := httpcreateujian.NewCreateUjianHandler(createUjianSvc)
 	listHandler := httplist.NewListUjianHandler(getSvc)
 	listUjianSiswaHandler := httplistsiswa.NewListUjianSiswaHandler(listUjianSiswaSvc)
@@ -128,6 +134,7 @@ func BuildUjianModule(infra *InfraModule) *UjianModule {
 		ExpireAttemptUjianService:    expireAttemptUjianSvc,
 		SubmitUjianService:           submitUjianSvc,
 		GradingUjianService:          gradingUjianSvc,
+		EssayGradingService:          essayGradingSvc,
 		ListSoalUjianService:         listSoalUjianSvc,
 		ListSoalUjianSiswaService:    listSoalUjianSiswaSvc,
 		GetWaktuSelesaiService:       getWaktuSelesaiSvc,
@@ -140,6 +147,7 @@ func BuildUjianModule(infra *InfraModule) *UjianModule {
 		SubmitUjianHandler:           submitUjianHandler,
 		GetJawabanUjianHandler:       getJawabanHandler,
 		SaveJawabanUjianHandler:      saveJawabanHandler,
+		KoreksiEssayHandler:          koreksiEssayHandler,
 		CreateUjianHandler:           createUjianHandler,
 		ListHandler:                  listHandler,
 		ListUjianSiswaHandler:        listUjianSiswaHandler,

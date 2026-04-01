@@ -6,6 +6,7 @@ import (
 	"errors"
 
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	pg "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/contract"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
@@ -16,6 +17,7 @@ import (
 type GradingRepo struct {
 	q      pg.Executor
 	logger corelog.Logger
+	pool   *pgxpool.Pool
 }
 
 type statistikSoalUpsertItem struct {
@@ -26,7 +28,12 @@ type statistikSoalUpsertItem struct {
 }
 
 func NewGradingRepo(q pg.Executor, logger corelog.Logger) *GradingRepo {
-	return &GradingRepo{q: q, logger: logger}
+	repo := &GradingRepo{q: q, logger: logger}
+	if pool, ok := q.(*pgxpool.Pool); ok {
+		repo.pool = pool
+	}
+
+	return repo
 }
 
 func (r *GradingRepo) loggerFor(ctx context.Context) corelog.Logger {
