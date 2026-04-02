@@ -22,6 +22,7 @@ import (
 	pgujian "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/ujian"
 	pgujianattempt "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/ujian/attempt"
 	pgujiangrading "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/ujian/grading"
+	pgujiangradinglist "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/ujian/grading/list"
 	pgujianlist "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/ujian/list"
 	pgujiansiswajawaban "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/ujian/siswa/jawaban_ujian"
 	pgujiansiswa "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/ujian/siswa/ujian_siswa"
@@ -74,6 +75,8 @@ type InfraModule struct {
 	attemptUjianRepo  ujian_repo.AttemptUjianRepository
 	jawabanUjianRepo  ujian_repo.JawabanUjianRepository
 	gradingRepo       grading_repo.GradingUjianRepository
+	listGradingRepo   grading_repo.ListGradingUjianRepository
+	gradingWorkerRepo grading_repo.GradingWorkerRepository
 	siswaUjianChecker ujian_repo.SiswaUjianChecker
 	sesiRepo          sesi_repo.SesiRepository
 
@@ -92,6 +95,7 @@ func BuildInfraModule(pool *pgxpool.Pool, logger corelog.Logger) *InfraModule {
 	attemptUjianRepo := pgujianattempt.NewAttemptUjianRepo(pool, logger)
 	jawabanUjianRepo := pgujiansiswajawaban.NewJawabanUjianRepo(pool, logger, pool)
 	gradingRepo := pgujiangrading.NewGradingRepo(pool, logger)
+	listGradingRepo := pgujiangradinglist.NewListGradingRepo(pool, logger)
 
 	return &InfraModule{
 		Pool:                  pool,
@@ -118,6 +122,8 @@ func BuildInfraModule(pool *pgxpool.Pool, logger corelog.Logger) *InfraModule {
 		attemptUjianRepo:      attemptUjianRepo,
 		jawabanUjianRepo:      jawabanUjianRepo,
 		gradingRepo:           gradingRepo,
+		listGradingRepo:       listGradingRepo,
+		gradingWorkerRepo:     gradingRepo,
 		siswaUjianChecker:     siswaUjianChecker,
 		sesiRepo:              pgsesi.NewSesirepo(pool, logger),
 		importSoalJobRepo:     pgimportsoaljob.NewImportSoalJobRepo(pool, logger),

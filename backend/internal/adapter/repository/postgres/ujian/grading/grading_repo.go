@@ -40,6 +40,76 @@ func (r *GradingRepo) loggerFor(ctx context.Context) corelog.Logger {
 	return corelog.FromContextOr(ctx, r.logger)
 }
 
+func (r *GradingRepo) GetQueuedJobs(ctx context.Context, limit int) ([]ujian.GradingJob, error) {
+	const query = `
+		SELECT
+			id_grading_jobs,
+			id_attempt,
+			status,
+			retry_count,
+			max_retries,
+			COALESCE(available_at::text, ''),
+			COALESCE(locked_at::text, ''),
+			COALESCE(error_code, ''),
+			COALESCE(error_message, '')
+		FROM grading_jobs
+		WHERE status = $1
+			AND available_at <= NOW()
+		ORDER BY available_at ASC, id_grading_jobs ASC
+		LIMIT $2
+	`
+
+	rows, err := r.q.Query(ctx, query, ujian.StatusQueued, limit)
+	if err != nil {
+		r.loggerFor(ctx).Error(ctx, "failed fetching queued grading jobs", "layer", "repo.db", "op", "ujian.grading.worker.get_queued_jobs", "err", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	return r.scanGradingJobRows(ctx, "ujian.grading.worker.get_queued_jobs", rows)
+}
+
+func (r *GradingRepo) UpdateStatusJob(ctx context.Context, jobID int, statusJob ujian.JobStatus, errorMsg string, errorCode string) error {
+	const query = `
+		UPDATE grading_jobs
+		SET
+			status = $1,
+			error_message = CASE
+				WHEN $1 IN ('processing', 'done') THEN NULL
+				WHEN NULLIF($2, '') IS NULL THEN NULL
+				ELSE $2
+			END,
+			error_code = CASE
+				WHEN $1 IN ('processing', 'done') THEN NULL
+				WHEN NULLIF($3, '') IS NULL THEN NULL
+				ELSE $3
+			END,
+			locked_at = CASE
+				WHEN $1 = 'processing' THEN NOW()
+				WHEN $1 IN ('done', 'failed') THEN NULL
+				ELSE locked_at
+			END,
+			updated_at = NOW()
+		WHERE id_grading_jobs = $4
+	`
+
+	tag, err := r.q.Exec(ctx, query, statusJob, errorMsg, errorCode, jobID)
+	if err != nil {
+		if mappedErr := mapGradingConstraintError(err); mappedErr != nil {
+			return mappedErr
+		}
+
+		r.loggerFor(ctx).Error(ctx, "failed updating grading job status", "layer", "repo.db", "op", "ujian.grading.worker.update_status", "job_id", jobID, "status", statusJob, "err", err)
+		return err
+	}
+
+	if tag.RowsAffected() == 0 {
+		return coreerror.ErrNotFound
+	}
+
+	return nil
+}
+
 func (r *GradingRepo) UpsertNilaiToHasilUjian(ctx context.Context, totalNilai float64, hasilUjian ujian.HasilUjian) error {
 	const query = `
 		INSERT INTO hasil_ujian (

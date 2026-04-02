@@ -4,6 +4,7 @@ import (
 	"context"
 
 	ujian "github.com/mustafamadjid/web-app-cbt/internal/core/domain/ujian_siswa"
+	query "github.com/mustafamadjid/web-app-cbt/internal/core/query/ujian"
 )
 
 type GradingUjianRepository interface {
@@ -13,4 +14,7 @@ type GradingUjianRepository interface {
 	UpsertJawabanSalahToStatistikSoal(ctx context.Context, soalSalah []ujian.StatistikSoal) error
 
 	UpdateAndGradingEssayUjian(ctx context.Context,jawabanSiswa []ujian.JawabanUjian, gradedBy ujian.ID) error
+}
+type ListGradingUjianRepository interface {
+	ListUjianEssayUngraded(ctx context.Context, filter query.ListUjianEssayUngradedFilter)([]ujian.ListUjian,error)
 }

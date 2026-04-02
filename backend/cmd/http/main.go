@@ -13,6 +13,7 @@ import (
 
 	"github.com/mustafamadjid/web-app-cbt/internal/adapter/security/bcrypt"
 	"github.com/mustafamadjid/web-app-cbt/internal/app"
+	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 	"github.com/mustafamadjid/web-app-cbt/internal/infra/db"
 	"github.com/mustafamadjid/web-app-cbt/internal/infra/logging"
 )
@@ -125,11 +126,17 @@ func main() {
 	})
 
 	// 3) Start worker
+	workerCtx := corelog.WithLogger(rootCtx, logger)
+
 	var wg sync.WaitGroup
-	wg.Add(1)
+	wg.Add(2)
 	go func() {
 		defer wg.Done()
-		importSoalMod.Worker.Start(rootCtx)
+		importSoalMod.Worker.Start(workerCtx)
+	}()
+	go func() {
+		defer wg.Done()
+		ujianMod.GradingWorker.Start(workerCtx)
 	}()
 
 	// 4) Start HTTP server
