@@ -7,6 +7,6 @@ import (
 )
 
 type GradingWorkerRepository interface {
-	GetQueuedJobs(ctx context.Context, limit int) ([]ujian.GradingJob, error)
-	UpdateStatusJob(ctx context.Context, jobID int, statusJob ujian.JobStatus,errorMsg string, errorCode string) error
+	ClaimQueuedJobs(ctx context.Context, limit int) ([]ujian.GradingJob, error)
+	UpdateStatusJob(ctx context.Context, jobID int, statusJob ujian.JobStatus, errorMsg string, errorCode string) error
 }

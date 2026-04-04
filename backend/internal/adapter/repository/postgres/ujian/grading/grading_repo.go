@@ -40,57 +40,71 @@ func (r *GradingRepo) loggerFor(ctx context.Context) corelog.Logger {
 	return corelog.FromContextOr(ctx, r.logger)
 }
 
-func (r *GradingRepo) GetQueuedJobs(ctx context.Context, limit int) ([]ujian.GradingJob, error) {
+func (r *GradingRepo) ClaimQueuedJobs(ctx context.Context, limit int) ([]ujian.GradingJob, error) {
 	const query = `
-		SELECT
-			id_grading_jobs,
-			id_attempt,
-			status,
-			retry_count,
-			max_retries,
-			COALESCE(available_at::text, ''),
-			COALESCE(locked_at::text, ''),
-			COALESCE(error_code, ''),
-			COALESCE(error_message, '')
-		FROM grading_jobs
-		WHERE status = $1
-			AND available_at <= NOW()
-		ORDER BY available_at ASC, id_grading_jobs ASC
-		LIMIT $2
+		UPDATE grading_jobs gj
+		SET
+			status = $1::varchar,
+			error_message = NULL,
+			error_code = NULL,
+			locked_at = NOW(),
+			updated_at = NOW()
+		FROM (
+			SELECT id_grading_jobs
+			FROM grading_jobs
+			WHERE status = $2
+				AND available_at <= NOW()
+			ORDER BY available_at ASC, id_grading_jobs ASC
+			FOR UPDATE SKIP LOCKED
+			LIMIT $3
+		) claimed
+		WHERE gj.id_grading_jobs = claimed.id_grading_jobs
+		RETURNING
+			gj.id_grading_jobs,
+			gj.id_attempt,
+			gj.status,
+			gj.retry_count,
+			gj.max_retries,
+			COALESCE(gj.available_at::text, ''),
+			COALESCE(gj.locked_at::text, ''),
+			COALESCE(gj.error_code, ''),
+			COALESCE(gj.error_message, '')
 	`
 
-	rows, err := r.q.Query(ctx, query, ujian.StatusQueued, limit)
+	rows, err := r.q.Query(ctx, query, ujian.StatusProcessing, ujian.StatusQueued, limit)
 	if err != nil {
-		r.loggerFor(ctx).Error(ctx, "failed fetching queued grading jobs", "layer", "repo.db", "op", "ujian.grading.worker.get_queued_jobs", "err", err)
+		r.loggerFor(ctx).Error(ctx, "failed claiming queued grading jobs", "layer", "repo.db", "op", "ujian.grading.worker.claim_jobs", "err", err)
 		return nil, err
 	}
 	defer rows.Close()
 
-	return r.scanGradingJobRows(ctx, "ujian.grading.worker.get_queued_jobs", rows)
+	return r.scanGradingJobRows(ctx, "ujian.grading.worker.claim_jobs", rows)
 }
 
 func (r *GradingRepo) UpdateStatusJob(ctx context.Context, jobID int, statusJob ujian.JobStatus, errorMsg string, errorCode string) error {
 	const query = `
 		UPDATE grading_jobs
 		SET
-			status = $1,
+			status = $1::varchar,
 			error_message = CASE
-				WHEN $1 IN ('processing', 'done') THEN NULL
-				WHEN NULLIF($2, '') IS NULL THEN NULL
-				ELSE $2
+				WHEN $1::varchar IN ('processing', 'done') THEN NULL
+				ELSE NULLIF($2::varchar, '')
 			END,
 			error_code = CASE
-				WHEN $1 IN ('processing', 'done') THEN NULL
-				WHEN NULLIF($3, '') IS NULL THEN NULL
-				ELSE $3
+				WHEN $1::varchar IN ('processing', 'done') THEN NULL
+				ELSE NULLIF($3::varchar, '')
 			END,
 			locked_at = CASE
-				WHEN $1 = 'processing' THEN NOW()
-				WHEN $1 IN ('done', 'failed') THEN NULL
+				WHEN $1::varchar = 'processing' THEN NOW()
+				WHEN $1::varchar IN ('done', 'failed') THEN NULL
 				ELSE locked_at
 			END,
 			updated_at = NOW()
 		WHERE id_grading_jobs = $4
+			AND (
+				($1::varchar IN ('done', 'failed') AND status = 'processing')
+				OR ($1::varchar NOT IN ('done', 'failed'))
+			)
 	`
 
 	tag, err := r.q.Exec(ctx, query, statusJob, errorMsg, errorCode, jobID)
@@ -112,29 +126,85 @@ func (r *GradingRepo) UpdateStatusJob(ctx context.Context, jobID int, statusJob 
 
 func (r *GradingRepo) UpsertNilaiToHasilUjian(ctx context.Context, totalNilai float64, hasilUjian ujian.HasilUjian) error {
 	const query = `
-		INSERT INTO hasil_ujian (
-			id_attempt,
-			graded_by,
-			nilai_akhir,
-			passed,
-			essay_graded,
-			graded_at
+		WITH data_ujian AS (
+			SELECT ju.id_jadwal_ujian
+			FROM attempt_ujian au
+			INNER JOIN peserta_ujian pu 
+				ON pu.id_peserta_ujian = au.id_peserta_ujian
+			INNER JOIN jadwal_ujian ju 
+				ON ju.id_jadwal_ujian = pu.id_jadwal_ujian
+			WHERE au.id_attempt = $1
+		), essay_score AS (
+			SELECT
+				COALESCE(SUM(CASE WHEN jus.essay_is_benar = true THEN s.bobot_soal ELSE 0 END), 0)::decimal(5,2) AS tambahan_nilai
+			FROM jawaban_ujian_siswa jus
+			INNER JOIN isi_soal s
+				ON s.id_soal = jus.id_soal
+			WHERE jus.id_attempt = $1
+		), hasil_upsert AS (
+			INSERT INTO hasil_ujian (
+				id_attempt,
+				graded_by,
+				nilai_akhir,
+				passed,
+				essay_graded,
+				graded_at,
+				id_jadwal_ujian
+			)
+			VALUES (
+				$1,
+				$2,
+				$3 + COALESCE((SELECT tambahan_nilai FROM essay_score), 0),
+				$4,
+				COALESCE($5, FALSE),
+				COALESCE($6, NOW()),
+				(SELECT id_jadwal_ujian FROM data_ujian)
+			)
+			ON CONFLICT (id_attempt)
+			DO UPDATE SET
+				graded_by = COALESCE($2, hasil_ujian.graded_by),
+				nilai_akhir = $3 + COALESCE((SELECT tambahan_nilai FROM essay_score), 0),
+				passed = COALESCE($4, hasil_ujian.passed),
+				essay_graded = COALESCE($5, hasil_ujian.essay_graded),
+				graded_at = COALESCE($6, hasil_ujian.graded_at),
+				id_jadwal_ujian = COALESCE(
+					(SELECT id_jadwal_ujian FROM data_ujian),
+					hasil_ujian.id_jadwal_ujian
+				)
+			RETURNING id_jadwal_ujian
+		), statistik_ujian_agg AS (
+			SELECT
+				hu.id_jadwal_ujian,
+				MAX(hu.nilai_akhir)::decimal(5,2) AS nilai_tertinggi,
+				MIN(hu.nilai_akhir)::decimal(5,2) AS nilai_terendah,
+				ROUND(AVG(hu.nilai_akhir)::numeric, 2)::decimal(5,2) AS nilai_rata_rata,
+				COUNT(*)::integer AS total_peserta_ujian
+			FROM hasil_ujian hu
+			WHERE hu.id_jadwal_ujian IN (SELECT id_jadwal_ujian FROM hasil_upsert)
+				AND hu.nilai_akhir IS NOT NULL
+			GROUP BY hu.id_jadwal_ujian
 		)
-		VALUES (
-			$1,
-			$2,
-			$3,
-			$4,
-			COALESCE($5, FALSE),
-			COALESCE($6, NOW())
+		INSERT INTO statistik_ujian (
+			id_jadwal_ujian,
+			nilai_tertinggi,
+			nilai_terendah,
+			nilai_rata_rata,
+			total_peserta_ujian
 		)
-		ON CONFLICT (id_attempt)
+		SELECT
+			sua.id_jadwal_ujian,
+			sua.nilai_tertinggi,
+			sua.nilai_terendah,
+			sua.nilai_rata_rata,
+			sua.total_peserta_ujian
+		FROM statistik_ujian_agg sua
+		ON CONFLICT (id_jadwal_ujian)
 		DO UPDATE SET
-			graded_by = COALESCE($2, hasil_ujian.graded_by),
-			nilai_akhir = $3,
-			passed = COALESCE($4, hasil_ujian.passed),
-			essay_graded = COALESCE($5, hasil_ujian.essay_graded),
-			graded_at = COALESCE($6, NOW())
+			nilai_tertinggi = EXCLUDED.nilai_tertinggi,
+			nilai_terendah = EXCLUDED.nilai_terendah,
+			nilai_rata_rata = EXCLUDED.nilai_rata_rata,
+			total_peserta_ujian = EXCLUDED.total_peserta_ujian,
+			updated_at = NOW();
 	`
 
 	_, err := r.q.Exec(

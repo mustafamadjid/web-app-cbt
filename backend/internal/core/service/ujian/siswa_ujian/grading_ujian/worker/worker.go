@@ -70,9 +70,9 @@ func (r *GradingUjianWorkerRepo) Start(ctx context.Context) {
 func (r *GradingUjianWorkerRepo) processJobs(ctx context.Context, limit int) {
 	logger := corelog.FromContext(ctx)
 
-	jobs, err := r.repo.GetQueuedJobs(ctx, limit)
+	jobs, err := r.repo.ClaimQueuedJobs(ctx, limit)
 	if err != nil {
-		logger.Error(ctx, "failed fetching pending jobs", "layer", "worker", "err", err)
+		logger.Error(ctx, "failed claiming pending jobs", "layer", "worker", "err", err)
 		return
 	}
 
@@ -83,11 +83,6 @@ func (r *GradingUjianWorkerRepo) processJobs(ctx context.Context, limit int) {
 
 func (r *GradingUjianWorkerRepo) processOneJob(ctx context.Context, job ujian.GradingJob) {
 	logger := corelog.FromContext(ctx).With("grading_job_id", job.IDgradingJob, "attempt_id", job.IDAttempt)
-
-	if err := r.repo.UpdateStatusJob(ctx, job.IDgradingJob, ujian.StatusProcessing, "", ""); err != nil {
-		logger.Error(ctx, "failed updating job to processing", "layer", "worker", "err", err)
-		return
-	}
 
 	if r.gradingSvc == nil {
 		err := errors.New("grading ujian service belum terpasang")

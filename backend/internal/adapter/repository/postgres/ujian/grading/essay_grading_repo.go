@@ -91,38 +91,80 @@ func (r *GradingRepo) UpdateAndGradingEssayUjian(ctx context.Context, jawabanSis
 		), score_agg AS (
 			SELECT
 				u.id_attempt,
+				ju.id_jadwal_ujian,
 				COALESCE(SUM(CASE WHEN u.essay_is_benar = true THEN s.bobot_soal ELSE 0 END), 0)::decimal(5,2) AS tambahan_nilai
 			FROM updated u
 			JOIN isi_soal s
 				ON s.id_soal = u.id_soal
-			GROUP BY u.id_attempt
+			JOIN attempt_ujian au
+				ON au.id_attempt = u.id_attempt
+			JOIN peserta_ujian pu
+				ON pu.id_peserta_ujian = au.id_peserta_ujian
+			JOIN jadwal_ujian ju
+				ON ju.id_jadwal_ujian = pu.id_jadwal_ujian
+			GROUP BY u.id_attempt, ju.id_jadwal_ujian
 		), hasil_upsert AS (
 			INSERT INTO hasil_ujian (
 				id_attempt,
 				graded_by,
 				nilai_akhir,
 				essay_graded,
-				graded_at
+				graded_at,
+				id_jadwal_ujian
 			)
 			SELECT
 				sa.id_attempt,
 				$2,
 				sa.tambahan_nilai,
 				TRUE,
-				NOW()
+				NOW(),
+				sa.id_jadwal_ujian
 			FROM score_agg sa
 			ON CONFLICT (id_attempt)
 			DO UPDATE SET
 				graded_by = EXCLUDED.graded_by,
 				nilai_akhir = COALESCE(hasil_ujian.nilai_akhir, 0) + EXCLUDED.nilai_akhir,
 				essay_graded = TRUE,
-				graded_at = EXCLUDED.graded_at
+				graded_at = EXCLUDED.graded_at,
+				id_jadwal_ujian = COALESCE(hasil_ujian.id_jadwal_ujian, EXCLUDED.id_jadwal_ujian)
+			RETURNING id_jadwal_ujian
+		), statistik_ujian_agg AS (
+			SELECT
+				hu.id_jadwal_ujian,
+				MAX(hu.nilai_akhir)::decimal(5,2) AS nilai_tertinggi,
+				MIN(hu.nilai_akhir)::decimal(5,2) AS nilai_terendah,
+				ROUND(AVG(hu.nilai_akhir)::numeric, 2)::decimal(5,2) AS nilai_rata_rata,
+				COUNT(*)::integer AS total_peserta_ujian
+			FROM hasil_ujian hu
+			WHERE hu.id_jadwal_ujian IN (SELECT id_jadwal_ujian FROM hasil_upsert)
+				AND hu.nilai_akhir IS NOT NULL
+			GROUP BY hu.id_jadwal_ujian
+		), statistik_ujian_upsert AS (
+			INSERT INTO statistik_ujian (
+				id_jadwal_ujian,
+				nilai_tertinggi,
+				nilai_terendah,
+				nilai_rata_rata,
+				total_peserta_ujian
+			)
+			SELECT
+				sua.id_jadwal_ujian,
+				sua.nilai_tertinggi,
+				sua.nilai_terendah,
+				sua.nilai_rata_rata,
+				sua.total_peserta_ujian
+			FROM statistik_ujian_agg sua
+			ON CONFLICT (id_jadwal_ujian)
+			DO UPDATE SET
+				nilai_tertinggi = EXCLUDED.nilai_tertinggi,
+				nilai_terendah = EXCLUDED.nilai_terendah,
+				nilai_rata_rata = EXCLUDED.nilai_rata_rata,
+				total_peserta_ujian = EXCLUDED.total_peserta_ujian,
+				updated_at = NOW()
 		)
 		SELECT COUNT(*)::bigint
 		FROM updated;
 	`
-
-	
 
 	var updatedCount int64
 
