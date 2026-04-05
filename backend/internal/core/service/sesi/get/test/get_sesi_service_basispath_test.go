@@ -4,9 +4,12 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
+	authsession "github.com/mustafamadjid/web-app-cbt/internal/core/domain/auth/session"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/sesi"
+	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 	query "github.com/mustafamadjid/web-app-cbt/internal/core/query/sesi"
 	sesi_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/sesi/get"
 	"github.com/stretchr/testify/assert"
@@ -55,7 +58,7 @@ func TestGetSesiService_BasisPath(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			svc := sesi_service.NewGetSesiService(tt.repo)
+			svc := sesi_service.NewGetSesiService(tt.repo, nil)
 			items, err := svc.GetSesiService(ctx, tt.filter)
 
 			if tt.wantErr != nil {
@@ -109,7 +112,7 @@ func TestGetSesiByIdService_BasisPath(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			svc := sesi_service.NewGetSesiService(tt.repo)
+			svc := sesi_service.NewGetSesiService(tt.repo, nil)
 			item, err := svc.GetSesiByIdService(ctx, tt.idSesi)
 
 			if tt.wantErr != nil {
@@ -162,7 +165,7 @@ func TestGetSesiByKodeService_BasisPath(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			svc := sesi_service.NewGetSesiService(tt.repo)
+			svc := sesi_service.NewGetSesiService(tt.repo, nil)
 			item, err := svc.GetSesiByKodeService(ctx, tt.kodeSesi)
 
 			if tt.wantErr != nil {
@@ -171,6 +174,77 @@ func TestGetSesiByKodeService_BasisPath(t *testing.T) {
 				assert.NoError(t, err)
 				assert.Equal(t, tt.wantItem, item)
 			}
+		})
+	}
+}
+
+func TestGetAllActiveSessionService_BasisPath(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	repoErr := errors.New("get all active session error")
+	email := user.Email("aktif@example.com")
+	noHp := "08123"
+	expectedItems := []authsession.SessionWithUser{
+		{
+			Session: authsession.Session{
+				SessionID: "session_1",
+				UserID:    10,
+				Role:      user.SISWA,
+				Revoked:   false,
+				ExpiresAt: time.Date(2026, time.April, 5, 12, 0, 0, 0, time.UTC),
+			},
+			Pengguna: user.Pengguna{
+				ID:             10,
+				Username:       "siswa_aktif",
+				Email:          &email,
+				NamaLengkap:    "Siswa Aktif",
+				JenisKelamin:   "LAKI_LAKI",
+				NoHp:           &noHp,
+				Role:           user.SISWA,
+				StatusAkun:     user.AKTIF,
+				Foto:           "foto.jpg",
+				PasswordHashed: "",
+			},
+		},
+	}
+
+	tests := []struct {
+		name      string
+		repo      *FakeSessionRepo
+		wantErr   error
+		wantItems []authsession.SessionWithUser
+	}{
+		{
+			name:    "Path 1 -> GetAllActiveSession repo error",
+			repo:    &FakeSessionRepo{GetAllActiveSessionErr: repoErr},
+			wantErr: repoErr,
+		},
+		{
+			name:      "Path 2 -> happy path",
+			repo:      &FakeSessionRepo{GetAllActiveSessionRet: expectedItems},
+			wantItems: expectedItems,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			svc := sesi_service.NewGetSesiService(&FakeSesiRepo{}, tt.repo)
+			items, err := svc.GetAllActiveSessionService(ctx)
+
+			assert.True(t, tt.repo.GetAllActiveSessionCalled)
+
+			if tt.wantErr != nil {
+				assert.ErrorIs(t, err, tt.wantErr)
+				assert.Nil(t, items)
+				return
+			}
+
+			assert.NoError(t, err)
+			assert.Equal(t, tt.wantItems, items)
 		})
 	}
 }

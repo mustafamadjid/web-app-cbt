@@ -24,7 +24,7 @@ type SesiModule struct {
 }
 
 func BuildSesiModule(infra *InfraModule) *SesiModule {
-	getSvc := sesi_get_service.NewGetSesiService(infra.sesiRepo)
+	getSvc := sesi_get_service.NewGetSesiService(infra.sesiRepo, infra.Sessions)
 	createSvc := sesi_create_service.NewCreateSesiService(infra.sesiRepo)
 	updateSvc := sesi_update_service.NewUpdateSesiService(infra.sesiRepo)
 	deleteSvc := sesi_delete_service.NewDeleteSesiService(infra.sesiRepo)

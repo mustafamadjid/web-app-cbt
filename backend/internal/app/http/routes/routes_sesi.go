@@ -8,6 +8,7 @@ import (
 func RegisterSesiRoutes(router *httprouter.Router, handlers SesiHandlers, mw MiddlewareContract) {
 	requireAdmin := mw.RequireAccessRole(user.ADMIN)
 
+	router.GET("/admin/sesi/login-aktif", requireAdmin(mw.RateLimitStandard(handlers.GetHandler.ListActiveLoginSession)))
 	router.GET("/admin/sesi", requireAdmin(mw.RateLimitStandard(handlers.GetHandler.ListSesi)))
 	router.GET("/admin/sesi/sesi-id/:idSesi", requireAdmin(mw.RateLimitStandard(handlers.GetHandler.GetSesiByID)))
 	router.GET("/admin/sesi/kode/:kodeSesi", requireAdmin(mw.RateLimitStandard(handlers.GetHandler.GetSesiByKode)))

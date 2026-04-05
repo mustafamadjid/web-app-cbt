@@ -99,16 +99,28 @@ func (r *SessionRepo) GetSessionByUserId(ctx context.Context, userID user.ID) (s
 	return result, nil
 }
 
-func (r *SessionRepo) GetAllActiveSession(ctx context.Context) ([]session.Session, error) {
+func (r *SessionRepo) GetAllActiveSession(ctx context.Context) ([]session.SessionWithUser, error) {
 	const query = `
-	SELECT id,
-		   id_pengguna,
-		   role,
-		   expires_at,
-		   revoked_at
-	FROM sessions
-	WHERE revoked_at IS NULL
-	AND expires_at > now()
+	SELECT s.id,
+		   s.id_pengguna,
+		   s.role,
+		   s.expires_at,
+		   s.revoked_at,
+		   p.id_pengguna,
+		   p.username,
+		   p.email,
+		   p.nama_lengkap,
+		   p.jenis_kelamin,
+		   p.no_hp,
+		   r.nama_role,
+		   p.status_akun,
+		   p.foto
+	FROM sessions s
+	JOIN pengguna p ON s.id_pengguna = p.id_pengguna
+	JOIN role r ON p.id_role = r.id_role
+	WHERE s.revoked_at IS NULL
+	AND s.expires_at > now()
+	ORDER BY s.expires_at DESC
 	`
 
 	rows, err := r.q.Query(ctx, query)
@@ -119,7 +131,7 @@ func (r *SessionRepo) GetAllActiveSession(ctx context.Context) ([]session.Sessio
 
 	defer rows.Close()
 
-	return r.scanSessionRows(ctx, "session_repo.list_active", rows)
+	return r.scanSessionWithUserRows(ctx, "session_repo.list_active", rows)
 }
 
 func (r *SessionRepo) HasActiveSession(ctx context.Context, userID user.ID) (bool, error) {

@@ -48,7 +48,7 @@ func main() {
 			AccessSecret:  os.Getenv("JWT_ACCESS_SECRET"),
 			RefreshSecret: os.Getenv("JWT_REFRESH_SECRET"),
 			AccessTTL:     15 * time.Minute,
-			RefreshTTL:    2 * 24 * time.Hour,
+			RefreshTTL:    1 * 24 * time.Hour,
 		},
 		Cookie: app.CookieConfig{
 			AccessName:  "access_token",

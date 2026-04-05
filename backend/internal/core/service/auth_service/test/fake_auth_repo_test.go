@@ -184,11 +184,11 @@ func (fakeSession *FakeSessionRepo) GetSessionByUserId(ctx context.Context, user
 	return session.Session{}, coreerror.ErrNotFound
 }
 
-func (fakeSession *FakeSessionRepo) GetAllActiveSession(ctx context.Context) ([]session.Session, error) {
-	var sessions []session.Session
+func (fakeSession *FakeSessionRepo) GetAllActiveSession(ctx context.Context) ([]session.SessionWithUser, error) {
+	var sessions []session.SessionWithUser
 	for _, sess := range fakeSession.Store {
 		if !sess.Revoked {
-			sessions = append(sessions, sess)
+			sessions = append(sessions, session.SessionWithUser{Session: sess})
 		}
 	}
 	return sessions, nil

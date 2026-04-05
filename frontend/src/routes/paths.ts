@@ -24,6 +24,7 @@ export const paths = {
 
     kelola_akun_siswa: djoinAdmin(join("kelola-akun", "/siswa")),
     kelola_akun_guru: djoinAdmin(join("kelola-akun", "/guru")),
+    kelola_sesi: djoinAdmin("kelola-sesi"),
     tambah_guru: djoinAdmin(join("kelola-akun", "/tambah-guru")),
     tambah_siswa: djoinAdmin(join("kelola-akun", "/tambah-siswa")),
     edit_guru: djoinAdmin(join("kelola-akun", "/guru/edit/:id")),

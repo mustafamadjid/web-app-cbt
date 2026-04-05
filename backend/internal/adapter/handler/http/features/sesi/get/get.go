@@ -106,3 +106,20 @@ func (h *GetSesiHandler) GetSesiByKode(w http.ResponseWriter, r *http.Request, p
 
 	httpResponse.WriteOK(w, http.StatusOK, toSesiResponse(item), "Success")
 }
+
+func (h *GetSesiHandler) ListActiveLoginSession(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	logger := corelog.FromContext(r.Context())
+	if r.Method != http.MethodGet {
+		httpResponse.WriteErr(w, http.StatusMethodNotAllowed, "METHOD_NOT_ALLOWED", "method not allowed")
+		return
+	}
+
+	items, err := h.svc.GetAllActiveSessionService(r.Context())
+	if err != nil {
+		logger.Error(r.Context(), "failed listing active login session", "layer", "adapter.http.handler", "op", "sesi.list_active_login_session", "err", err)
+		httpResponse.WriteErr(w, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error: failed get active login session")
+		return
+	}
+
+	httpResponse.WriteOK(w, http.StatusOK, toListActiveLoginSessionResponse(items), "Success")
+}

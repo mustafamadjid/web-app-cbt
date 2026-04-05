@@ -23,7 +23,7 @@ func (r *FakeSessionRepo) GetSessionByUserId(ctx context.Context, userID user.ID
 	return session.Session{}, nil
 }
 
-func (r *FakeSessionRepo) GetAllActiveSession(ctx context.Context) ([]session.Session, error) {
+func (r *FakeSessionRepo) GetAllActiveSession(ctx context.Context) ([]session.SessionWithUser, error) {
 	return nil, nil
 }
 

@@ -11,7 +11,7 @@ import (
 type SessionRepository interface {
 	GetSession(ctx context.Context, sessionID string) (session.Session, error)
 	GetSessionByUserId(ctx context.Context, userId user.ID) (session.Session, error)
-	GetAllActiveSession(ctx context.Context) ([]session.Session, error)
+	GetAllActiveSession(ctx context.Context) ([]session.SessionWithUser, error)
 
 	CreateSession(ctx context.Context, userID user.ID, role user.Role, expiresAt time.Time) (string, error)
 	RevokeSession(ctx context.Context, sessionID string) error

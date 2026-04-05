@@ -44,6 +44,15 @@ export const mainMenuItems: SidebarMenuItem[] = [
   },
   {
     id: 3,
+    type: "link",
+    label: "Kelola Sesi",
+    to: paths.dashboard.kelola_sesi,
+    end: true,
+    icon: SvgIcons.logout,
+    roles: ADMIN_ONLY,
+  },
+  {
+    id: 4,
     type: "group",
     label: "Data Master",
     icon: SvgIcons.book,
@@ -80,7 +89,7 @@ export const mainMenuItems: SidebarMenuItem[] = [
     ],
   },
   {
-    id: 4,
+    id: 5,
     type: "link",
     label: "Bank Soal",
     to: paths.dashboard.bank_soal,
@@ -89,7 +98,7 @@ export const mainMenuItems: SidebarMenuItem[] = [
     roles: ADMIN_ONLY,
   },
   {
-    id: 5,
+    id: 6,
     type: "group",
     label: "Ujian",
     icon: SvgIcons.book,
@@ -119,7 +128,7 @@ export const mainMenuItems: SidebarMenuItem[] = [
     ],
   },
   {
-    id: 6,
+    id: 7,
     type: "link",
     label: "Pengumuman",
     to: paths.dashboard.pengumuman_admin,
@@ -128,7 +137,7 @@ export const mainMenuItems: SidebarMenuItem[] = [
     roles: ADMIN_ONLY,
   },
   {
-    id: 7,
+    id: 8,
     type: "link",
     label: "Cetak",
     to: paths.dashboard.cetak,
