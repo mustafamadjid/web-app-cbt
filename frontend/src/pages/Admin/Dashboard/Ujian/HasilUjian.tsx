@@ -7,6 +7,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { tahunOption } from "@/helper/TahunOption/TahunOption";
 import { paths } from "@/routes/paths";
 import { useGetDataKelasFull } from "@/services/Api/features-api/DataMaster/kelas.service";
+import {
+  useGetUjianEssayUngradedList,
+} from "@/services/Api/features-api/Ujian/hasilUjian.service";
 import { useGetJadwalUjian } from "@/services/Api/features-api/Ujian/jadwalujian.service";
 import type { TingkatKelas } from "@/types/DataMaster/Kelas";
 import type { JadwalUjianItem } from "@/types/Ujian/jadwalUjian";
@@ -24,7 +27,14 @@ const MONTH_OPTIONS = [
   { value: 10, label: "Oktober" },
   { value: 11, label: "November" },
   { value: 12, label: "Desember" },
-];
+] as const;
+
+const HASIL_UJIAN_TABS = [
+  { key: "selesai", label: "Ujian Selesai" },
+  { key: "essay_belum_dinilai", label: "Essay Belum Dinilai" },
+] as const;
+
+type HasilUjianTabKey = (typeof HASIL_UJIAN_TABS)[number]["key"];
 
 const getMonthFromTanggalUjian = (value?: string) => {
   if (!value) return null;
@@ -42,6 +52,7 @@ const getMonthFromTanggalUjian = (value?: string) => {
 const HasilUjian = () => {
   const { user } = useAuth();
 
+  const [activeTab, setActiveTab] = useState<HasilUjianTabKey>("selesai");
   const [selectedTingkatId, setSelectedTingkatId] = useState<number | null>(
     null,
   );
@@ -64,9 +75,9 @@ const HasilUjian = () => {
 
   const {
     data: jadwalDataRaw,
-    loading,
-    error: errorMsg,
-    refetch,
+    loading: loadingSelesai,
+    error: errorSelesai,
+    refetch: refetchSelesai,
   } = useGetJadwalUjian({
     tanggal: selectedDate || undefined,
     tingkatKelasId: selectedTingkatId ?? undefined,
@@ -74,7 +85,20 @@ const HasilUjian = () => {
     kategoriUjian: "selesai",
   });
 
-  console.log("jadwalDataRaw", jadwalDataRaw);
+  const {
+    data: essayUngradedData,
+    loading: loadingEssayUngraded,
+    error: errorEssayUngraded,
+    refetch: refetchEssayUngraded,
+  } = useGetUjianEssayUngradedList(
+    {
+      tanggal: selectedDate || undefined,
+      tingkatKelasId: selectedTingkatId ?? undefined,
+      tahun: selectedTahun || undefined,
+      bulan: selectedMonth ?? undefined,
+    },
+    activeTab === "essay_belum_dinilai",
+  );
 
   const daftarSelesai = useMemo(
     () =>
@@ -86,7 +110,29 @@ const HasilUjian = () => {
     [jadwalDataRaw, selectedMonth],
   );
 
-  console.log("daftarSelesai", daftarSelesai);
+  const daftarEssayBelumDinilai = essayUngradedData ?? [];
+  const daftarAktif =
+    activeTab === "essay_belum_dinilai"
+      ? daftarEssayBelumDinilai
+      : daftarSelesai;
+  const loadingAktif =
+    activeTab === "essay_belum_dinilai"
+      ? loadingEssayUngraded
+      : loadingSelesai;
+  const errorAktif =
+    activeTab === "essay_belum_dinilai"
+      ? errorEssayUngraded
+      : errorSelesai;
+  const refetchAktif =
+    activeTab === "essay_belum_dinilai"
+      ? refetchEssayUngraded
+      : refetchSelesai;
+
+  const isEssayTab = activeTab === "essay_belum_dinilai";
+  const titleDescription = isEssayTab
+    ? "Daftar ujian dengan jawaban essay yang masih menunggu koreksi guru atau admin."
+    : "Daftar ujian yang sudah selesai beserta akses hasilnya.";
+  const totalLabel = isEssayTab ? "Perlu koreksi" : "Total selesai";
 
   const isFilterActive =
     selectedTingkatId != null ||
@@ -101,6 +147,18 @@ const HasilUjian = () => {
     setSelectedDate("");
   };
 
+  const getEmptyStateMessage = () => {
+    if (isEssayTab) {
+      return isFilterActive
+        ? "Tidak ada ujian essay yang cocok dengan filter yang dipilih."
+        : "Belum ada ujian essay yang menunggu penilaian.";
+    }
+
+    return isFilterActive
+      ? "Tidak ada ujian selesai yang cocok dengan filter yang dipilih."
+      : "Belum ada ujian selesai yang memiliki hasil.";
+  };
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-8">
       <div className="flex flex-col gap-6">
@@ -108,22 +166,23 @@ const HasilUjian = () => {
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
               <h1 className="text-2xl font-bold text-slate-800">Hasil Ujian</h1>
-              <p className="text-sm text-slate-500">
-                Daftar ujian yang sudah selesai beserta akses hasilnya.
-              </p>
+              <p className="text-sm text-slate-500">{titleDescription}</p>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
               <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-                Total selesai: {daftarSelesai.length}
+                {totalLabel}: {daftarAktif.length}
               </span>
               <button
                 type="button"
-                onClick={() => void refetch()}
-                disabled={loading}
+                onClick={() => void refetchAktif()}
+                disabled={loadingAktif}
                 className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 transition hover:border-[#397e50] hover:text-[#397e50] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
+                <RefreshCw
+                  size={14}
+                  className={loadingAktif ? "animate-spin" : ""}
+                />
                 Refresh
               </button>
               <button
@@ -136,6 +195,27 @@ const HasilUjian = () => {
                 Reset Filter
               </button>
             </div>
+          </div>
+
+          <div className="mt-6 flex flex-wrap items-center gap-2 rounded-2xl bg-slate-100 p-1.5 sm:w-fit">
+            {HASIL_UJIAN_TABS.map((tab) => {
+              const isActive = activeTab === tab.key;
+
+              return (
+                <button
+                  key={tab.key}
+                  type="button"
+                  onClick={() => setActiveTab(tab.key)}
+                  className={`rounded-xl px-6 py-2.5 text-sm font-bold transition-all ${
+                    isActive
+                      ? "bg-white text-[#397e50] shadow-sm"
+                      : "text-slate-500 hover:bg-slate-200 hover:text-slate-700"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
           </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -214,13 +294,13 @@ const HasilUjian = () => {
           </div>
         </div>
 
-        {errorMsg ? (
+        {errorAktif ? (
           <div className="rounded-2xl border border-rose-200 bg-rose-50 p-6 text-sm font-semibold text-rose-700">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <span>{errorMsg}</span>
+              <span>{errorAktif}</span>
               <button
                 type="button"
-                onClick={() => void refetch()}
+                onClick={() => void refetchAktif()}
                 className="inline-flex items-center gap-2 self-start rounded-xl border border-rose-200 bg-white px-4 py-2 text-xs font-semibold text-rose-700 transition hover:border-rose-300 hover:bg-rose-100"
               >
                 <RefreshCw size={14} />
@@ -230,27 +310,27 @@ const HasilUjian = () => {
           </div>
         ) : null}
 
-        {loading ? (
+        {loadingAktif ? (
           <div className="rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-500">
-            Memuat daftar hasil ujian...
+            {isEssayTab
+              ? "Memuat daftar ujian essay yang perlu dikoreksi..."
+              : "Memuat daftar hasil ujian..."}
           </div>
         ) : null}
 
-        {!loading && !errorMsg && daftarSelesai.length === 0 ? (
+        {!loadingAktif && !errorAktif && daftarAktif.length === 0 ? (
           <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center text-sm text-slate-500">
-            {isFilterActive
-              ? "Tidak ada ujian selesai yang cocok dengan filter yang dipilih."
-              : "Belum ada ujian selesai yang memiliki hasil."}
+            {getEmptyStateMessage()}
           </div>
         ) : null}
 
         <div className="grid gap-6 lg:grid-cols-2">
-          {daftarSelesai.map((ujian) => {
+          {daftarAktif.map((ujian) => {
             const hasilDetailId = ujian.id_ujian ?? ujian.id;
 
             return (
               <BoxHasilUjian
-                key={hasilDetailId}
+                key={`${activeTab}-${hasilDetailId}`}
                 {...ujian}
                 linkHasil={detailPathTemplate.replace(":id", String(hasilDetailId))}
               />

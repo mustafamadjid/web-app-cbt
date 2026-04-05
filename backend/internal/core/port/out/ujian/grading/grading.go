@@ -14,7 +14,11 @@ type GradingUjianRepository interface {
 	UpsertJawabanSalahToStatistikSoal(ctx context.Context, soalSalah []ujian.StatistikSoal) error
 
 	UpdateAndGradingEssayUjian(ctx context.Context,jawabanSiswa []ujian.JawabanUjian, gradedBy ujian.ID) error
+
+	UpsertToStatistikUjian(ctx context.Context, idAttempt ujian.ID) error
 }
 type ListGradingUjianRepository interface {
 	ListUjianEssayUngraded(ctx context.Context, filter query.ListUjianEssayUngradedFilter)([]ujian.ListUjian,error)
+
+	// ListStatistikUjianByIdJadwalUjian(ctx context.Context,idJadwalUjian ujian.ID)([]ujian.StatistikUjian,error)
 }
