@@ -70,7 +70,7 @@ func (authService *AuthService) Login(ctx context.Context, cmd LoginCmd) (LoginR
 	}
 
 	refreshExp := time.Now().Add(authService.refreshTTL)
-	sessionId, err := authService.sessions.CreateSession(ctx, u.ID, refreshExp)
+	sessionId, err := authService.sessions.CreateSession(ctx, u.ID, u.Role, refreshExp)
 	if err != nil {
 		logger.Error(ctx, "failed creating session", "layer", "core.service", "op", "auth.login", "user_id", u.ID, "err", err)
 		return LoginRes{}, err

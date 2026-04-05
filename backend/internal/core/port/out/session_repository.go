@@ -10,10 +10,10 @@ import (
 
 type SessionRepository interface {
 	GetSession(ctx context.Context, sessionID string) (session.Session, error)
-	GetSessionByUserId(ctx context.Context,userId user.ID) (session.Session, error)
+	GetSessionByUserId(ctx context.Context, userId user.ID) (session.Session, error)
 	GetAllActiveSession(ctx context.Context) ([]session.Session, error)
 
-	CreateSession(ctx context.Context, userID user.ID, expiresAt time.Time) (string, error)
+	CreateSession(ctx context.Context, userID user.ID, role user.Role, expiresAt time.Time) (string, error)
 	RevokeSession(ctx context.Context, sessionID string) error
 	RevokeSessionAllbyUser(ctx context.Context, userID user.ID) error
 	RevokeExpiredSessions(ctx context.Context, userID user.ID) (bool, error)

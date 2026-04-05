@@ -6,6 +6,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/auth/session"
+	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 )
 
 func scanSessionRow(row pgx.Row) (session.Session, error) {
@@ -17,12 +18,14 @@ func scanSessionRow(row pgx.Row) (session.Session, error) {
 	if err := row.Scan(
 		&item.SessionID,
 		&item.UserID,
+		&item.Role,
 		&item.ExpiresAt,
 		&revokedAt,
 	); err != nil {
 		return session.Session{}, err
 	}
 
+	item.Role = user.Role(string(item.Role))
 	item.Revoked = revokedAt != nil
 	return item, nil
 }

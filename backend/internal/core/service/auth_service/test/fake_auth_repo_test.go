@@ -121,7 +121,7 @@ func (fakeHash *FakeHasher) GenerateHash(plain string) (string, error) {
 	return "hashed password", nil
 }
 
-func (fakeSession *FakeSessionRepo) CreateSession(ctx context.Context, userID user.ID, expiresAt time.Time) (string, error) {
+func (fakeSession *FakeSessionRepo) CreateSession(ctx context.Context, userID user.ID, role user.Role, expiresAt time.Time) (string, error) {
 	fakeSession.CreateSessionCalled = true
 
 	if fakeSession.CreateSessionErr != nil {
@@ -137,6 +137,7 @@ func (fakeSession *FakeSessionRepo) CreateSession(ctx context.Context, userID us
 	fakeSession.Store[id] = session.Session{
 		SessionID: id,
 		UserID:    userID,
+		Role:      role,
 		Revoked:   false,
 		ExpiresAt: expiresAt,
 	}

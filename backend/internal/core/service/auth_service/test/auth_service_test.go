@@ -149,6 +149,7 @@ func TestAuthServiceLoginBasisPath(t *testing.T) {
 				sessionRepo.Store["existing_session"] = session.Session{
 					SessionID: "existing_session",
 					UserID:    nonAdminUser.ID,
+					Role:      nonAdminUser.Role,
 					Revoked:   false,
 					ExpiresAt: time.Now().Add(1 * time.Hour),
 				}
@@ -167,6 +168,7 @@ func TestAuthServiceLoginBasisPath(t *testing.T) {
 				sessionRepo.Store["existing_session"] = session.Session{
 					SessionID: "existing_session",
 					UserID:    baseUser.ID,
+					Role:      baseUser.Role,
 					Revoked:   false,
 					ExpiresAt: time.Now().Add(1 * time.Hour),
 				}
@@ -245,6 +247,7 @@ func TestAuthServiceLoginBasisPath(t *testing.T) {
 				sess, exists := sessionRepo.Store["session_user_1"]
 				assert.True(t, exists)
 				assert.Equal(t, baseUser.ID, sess.UserID)
+				assert.Equal(t, baseUser.Role, sess.Role)
 				assert.False(t, sess.Revoked)
 			},
 		},

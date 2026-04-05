@@ -27,7 +27,7 @@ func (r *FakeSessionRepo) GetAllActiveSession(ctx context.Context) ([]session.Se
 	return nil, nil
 }
 
-func (r *FakeSessionRepo) CreateSession(ctx context.Context, userID user.ID, expiresAt time.Time) (string, error) {
+func (r *FakeSessionRepo) CreateSession(ctx context.Context, userID user.ID, role user.Role, expiresAt time.Time) (string, error) {
 	return "", nil
 }
 

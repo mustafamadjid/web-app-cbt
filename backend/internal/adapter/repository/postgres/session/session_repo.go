@@ -28,15 +28,15 @@ func (r *SessionRepo) loggerFor(ctx context.Context) corelog.Logger {
 	return corelog.FromContextOr(ctx, r.logger)
 }
 
-func (r *SessionRepo) CreateSession(ctx context.Context, userID user.ID, expiresAt time.Time) (string, error) {
+func (r *SessionRepo) CreateSession(ctx context.Context, userID user.ID, role user.Role, expiresAt time.Time) (string, error) {
 	const query = `
-		INSERT INTO sessions (id_pengguna, expires_at)
-		VALUES ($1, $2)
+		INSERT INTO sessions (id_pengguna, role, expires_at)
+		VALUES ($1, $2, $3)
 		RETURNING id
 	`
 
 	var sessionID string
-	if err := r.q.QueryRow(ctx, query, userID, expiresAt).Scan(&sessionID); err != nil {
+	if err := r.q.QueryRow(ctx, query, userID, role, expiresAt).Scan(&sessionID); err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			if pgErr.Code == "23505" {
@@ -55,6 +55,7 @@ func (r *SessionRepo) GetSession(ctx context.Context, sessionID string) (session
 	const query = `
 		SELECT id,
 			id_pengguna,
+			role,
 			expires_at,
 			revoked_at
 		FROM sessions
@@ -76,6 +77,7 @@ func (r *SessionRepo) GetSessionByUserId(ctx context.Context, userID user.ID) (s
 	const query = `
 		SELECT id,
 			id_pengguna,
+			role,
 			expires_at,
 			revoked_at
 		FROM sessions
@@ -101,6 +103,7 @@ func (r *SessionRepo) GetAllActiveSession(ctx context.Context) ([]session.Sessio
 	const query = `
 	SELECT id,
 		   id_pengguna,
+		   role,
 		   expires_at,
 		   revoked_at
 	FROM sessions
