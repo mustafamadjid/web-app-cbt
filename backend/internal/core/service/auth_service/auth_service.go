@@ -57,14 +57,16 @@ func (authService *AuthService) Login(ctx context.Context, cmd LoginCmd) (LoginR
 		return LoginRes{}, err
 	}
 
-	checkSession, err := authService.sessions.HasActiveSession(ctx, u.ID)
-	if err != nil {
-		logger.Error(ctx, "failed checking active session", "layer", "core.service", "op", "auth.login", "user_id", u.ID, "err", err)
-		return LoginRes{}, err
-	}
+	if u.Role != user.ADMIN {
+		checkSession, err := authService.sessions.HasActiveSession(ctx, u.ID)
+		if err != nil {
+			logger.Error(ctx, "failed checking active session", "layer", "core.service", "op", "auth.login", "user_id", u.ID, "err", err)
+			return LoginRes{}, err
+		}
 
-	if checkSession {
-		return LoginRes{}, coreerror.ErrHasSession
+		if checkSession {
+			return LoginRes{}, coreerror.ErrHasSession
+		}
 	}
 
 	refreshExp := time.Now().Add(authService.refreshTTL)

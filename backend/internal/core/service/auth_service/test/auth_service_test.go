@@ -33,6 +33,8 @@ func TestAuthServiceLoginBasisPath(t *testing.T) {
 		Role:           user.ADMIN,
 		StatusAkun:     user.AKTIF,
 	}
+	nonAdminUser := baseUser
+	nonAdminUser.Role = user.GURU
 
 	testErr := errors.New("test error")
 
@@ -129,7 +131,7 @@ func TestAuthServiceLoginBasisPath(t *testing.T) {
 		{
 			name: "Path 6 -> Cek active session gagal",
 			setup: func(authRepo *FakeAuthUserRepo, hasher *FakeHasher, sessionRepo *FakeSessionRepo, accessToken *FakeAccessToken, refreshToken *FakeRefreshToken) {
-				authRepo.ByUsername[username] = baseUser
+				authRepo.ByUsername[username] = nonAdminUser
 				sessionRepo.HasActiveErr = testErr
 			},
 			wantErr: testErr,
@@ -143,10 +145,10 @@ func TestAuthServiceLoginBasisPath(t *testing.T) {
 		{
 			name: "Path 7 -> User masih memiliki session aktif",
 			setup: func(authRepo *FakeAuthUserRepo, hasher *FakeHasher, sessionRepo *FakeSessionRepo, accessToken *FakeAccessToken, refreshToken *FakeRefreshToken) {
-				authRepo.ByUsername[username] = baseUser
+				authRepo.ByUsername[username] = nonAdminUser
 				sessionRepo.Store["existing_session"] = session.Session{
 					SessionID: "existing_session",
-					UserID:    baseUser.ID,
+					UserID:    nonAdminUser.ID,
 					Revoked:   false,
 					ExpiresAt: time.Now().Add(1 * time.Hour),
 				}
@@ -156,6 +158,29 @@ func TestAuthServiceLoginBasisPath(t *testing.T) {
 				assert.Equal(t, auth_service.LoginRes{}, got)
 				assert.True(t, sessionRepo.HasActiveCalled)
 				assert.False(t, sessionRepo.CreateSessionCalled)
+			},
+		},
+		{
+			name: "Path 7A -> Admin boleh login walau masih memiliki session aktif",
+			setup: func(authRepo *FakeAuthUserRepo, hasher *FakeHasher, sessionRepo *FakeSessionRepo, accessToken *FakeAccessToken, refreshToken *FakeRefreshToken) {
+				authRepo.ByUsername[username] = baseUser
+				sessionRepo.Store["existing_session"] = session.Session{
+					SessionID: "existing_session",
+					UserID:    baseUser.ID,
+					Revoked:   false,
+					ExpiresAt: time.Now().Add(1 * time.Hour),
+				}
+			},
+			assertion: func(t *testing.T, got auth_service.LoginRes, authRepo *FakeAuthUserRepo, hasher *FakeHasher, sessionRepo *FakeSessionRepo, accessToken *FakeAccessToken, refreshToken *FakeRefreshToken) {
+				assert.Equal(t, baseUser.ID, got.IdPengguna)
+				assert.Equal(t, baseUser.Username, got.Username)
+				assert.Equal(t, "ACCESS TOKEN :|1|ADMIN|admin", got.AccessToken)
+				assert.Equal(t, "REFRESH TOKEN : session_user_1", got.RefreshToken)
+				assert.False(t, sessionRepo.HasActiveCalled)
+				assert.True(t, sessionRepo.CreateSessionCalled)
+				assert.True(t, accessToken.GenerateCalled)
+				assert.True(t, refreshToken.GenerateCalled)
+				assert.Len(t, sessionRepo.Store, 2)
 			},
 		},
 		{

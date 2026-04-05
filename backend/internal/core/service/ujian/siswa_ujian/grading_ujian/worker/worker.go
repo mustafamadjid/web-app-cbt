@@ -16,6 +16,7 @@ const gradingFailedErrorCode = "GRADING_FAILED"
 
 type GradingUjianExecutor interface {
 	GradingUjianPilgan(ctx context.Context, idAttempt int) error
+	StatistikUjian(ctx context.Context, idAttempt int) error
 }
 
 type GradingUjianWorkerRepo struct {
@@ -95,6 +96,15 @@ func (r *GradingUjianWorkerRepo) processOneJob(ctx context.Context, job ujian.Gr
 
 	if err := r.gradingSvc.GradingUjianPilgan(ctx, job.IDAttempt); err != nil {
 		errMsg := fmt.Sprintf("gagal grading ujian: %v", err)
+		logger.Error(ctx, errMsg, "layer", "worker", "err", err)
+		if updateErr := r.repo.UpdateStatusJob(ctx, job.IDgradingJob, ujian.StatusFailed, errMsg, gradingFailedErrorCode); updateErr != nil {
+			logger.Error(ctx, "failed updating job to failed", "layer", "worker", "err", updateErr)
+		}
+		return
+	}
+
+	if err := r.gradingSvc.StatistikUjian(ctx, job.IDAttempt); err != nil {
+		errMsg := fmt.Sprintf("gagal membuat statistik ujian: %v", err)
 		logger.Error(ctx, errMsg, "layer", "worker", "err", err)
 		if updateErr := r.repo.UpdateStatusJob(ctx, job.IDgradingJob, ujian.StatusFailed, errMsg, gradingFailedErrorCode); updateErr != nil {
 			logger.Error(ctx, "failed updating job to failed", "layer", "worker", "err", updateErr)

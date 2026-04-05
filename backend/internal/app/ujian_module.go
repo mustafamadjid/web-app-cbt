@@ -28,6 +28,7 @@ import (
 	gradingujian_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian/grading_ujian/grading"
 	essaygrading_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian/grading_ujian/grading/essay_grading"
 	listessayungraded_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian/grading_ujian/list/list_ujian_essay_ungraded"
+	statistikujian_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian/grading_ujian/statistik_ujian"
 	gradingworker_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian/grading_ujian/worker"
 	getjawaban_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian/jawaban_ujian/get_jawaban"
 	savejawaban_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian/jawaban_ujian/save_jawaban"
@@ -110,9 +111,10 @@ func BuildUjianModule(infra *InfraModule) *UjianModule {
 	)
 	essayGradingSvc := essaygrading_service.NewEssayGradingUjianService(infra.gradingRepo)
 	listEssayUngradedSvc := listessayungraded_service.NewListUjianEssayUngradedService(infra.listGradingRepo)
+	statistikUjianSvc := statistikujian_service.NewStatistikUjianService(infra.gradingRepo)
 	gradingWorker := gradingworker_service.NewGradingUjianWorkerService(
 		infra.gradingWorkerRepo,
-		gradingUjianSvc,
+		gradingworker_service.NewCompositeGradingUjianExecutor(gradingUjianSvc, statistikUjianSvc),
 		5*time.Second,
 	)
 	updateUjianSvc := ujian_update_service.NewUpdateUjianService(infra.ujianRepo)
