@@ -7,6 +7,7 @@ import (
 	httpcreateattemptujian "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/attempt_ujian/attempt/create"
 	httpexpireattemptujian "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/attempt_ujian/attempt/expire"
 	httpupdateattemptujian "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/attempt_ujian/attempt/update"
+	httplistpesertasubmitted "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/attempt_ujian/list_peserta_submitted"
 	httpgetjawaban "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/jawaban_ujian/get_jawaban"
 	httpsavejawaban "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/jawaban_ujian/save_jawaban"
 	httpkoreksiessay "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/koreksi_essay"
@@ -21,6 +22,7 @@ import (
 	httpget "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/ujian_siswa/get"
 	httpupdateujian "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/ujian_siswa/update"
 	httpgetwaktuujian "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/waktu_ujian"
+	attempt_list_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/attempt_ujian/list_peserta_submitted"
 	attempt_submit_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/attempt_ujian/submit_ujian"
 	attempt_update_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/attempt_ujian/update"
 	siswaujian_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian"
@@ -43,44 +45,46 @@ import (
 )
 
 type UjianModule struct {
-	CreateUjianService            *ujian_create_service.CreateUjianService
-	AttemptUjianService           *siswaujian_service.AttemptUjianService
-	GetActiveAttemptService       *activeattempt_service.GetActiveAttemptUjianService
-	UpdateAttemptUjianService     *attempt_update_service.SiswaUpdateAttemptUjianService
-	ExpireAttemptUjianService     *attempt_update_service.ExpireAttemptUjianService
-	SubmitUjianService            *attempt_submit_service.SubmitUjianService
-	GradingUjianService           *gradingujian_service.GradingUjianService
-	EssayGradingService           *essaygrading_service.EssayGradingUjianService
-	ListUjianEssayUngradedService *listessayungraded_service.ListUjianEssayUngradedService
-	GradingWorker                 *gradingworker_service.GradingUjianWorkerRepo
-	GetJawabanService             *getjawaban_service.SiswaGetJawabanUjianService
-	SaveJawabanService            *savejawaban_service.JawabanUjianService
-	ListUjianSiswaService         *siswaujianlist_service.ListUjianSiswaService
-	GetService                    *ujian_get_service.GetUjianService
-	ListSoalUjianService          *ujian_soal_service.ListSoalUjianService
-	ListSoalUjianSiswaService     *siswaujiansoal_service.ListSoalUjianSiswaService
-	GetWaktuSelesaiService        *siswaujianwaktuselesai_service.GetWaktuSelesaiService
-	UpdateUjianService            *ujian_update_service.UpdateUjianService
-	DeleteUjianService            *ujian_delete_service.DeleteUjianService
+	CreateUjianService               *ujian_create_service.CreateUjianService
+	AttemptUjianService              *siswaujian_service.AttemptUjianService
+	GetActiveAttemptService          *activeattempt_service.GetActiveAttemptUjianService
+	ListPesertaUjianSubmittedService *attempt_list_service.PesertaUjianSubmittedService
+	UpdateAttemptUjianService        *attempt_update_service.SiswaUpdateAttemptUjianService
+	ExpireAttemptUjianService        *attempt_update_service.ExpireAttemptUjianService
+	SubmitUjianService               *attempt_submit_service.SubmitUjianService
+	GradingUjianService              *gradingujian_service.GradingUjianService
+	EssayGradingService              *essaygrading_service.EssayGradingUjianService
+	ListUjianEssayUngradedService    *listessayungraded_service.ListUjianEssayUngradedService
+	GradingWorker                    *gradingworker_service.GradingUjianWorkerRepo
+	GetJawabanService                *getjawaban_service.SiswaGetJawabanUjianService
+	SaveJawabanService               *savejawaban_service.JawabanUjianService
+	ListUjianSiswaService            *siswaujianlist_service.ListUjianSiswaService
+	GetService                       *ujian_get_service.GetUjianService
+	ListSoalUjianService             *ujian_soal_service.ListSoalUjianService
+	ListSoalUjianSiswaService        *siswaujiansoal_service.ListSoalUjianSiswaService
+	GetWaktuSelesaiService           *siswaujianwaktuselesai_service.GetWaktuSelesaiService
+	UpdateUjianService               *ujian_update_service.UpdateUjianService
+	DeleteUjianService               *ujian_delete_service.DeleteUjianService
 
-	AttemptUjianHandler           *httpcreateattemptujian.AttemptUjianHandler
-	GetActiveAttemptUjianHandler  *httpactiveattemptujian.GetActiveAttemptUjianHandler
-	UpdateAttemptUjianHandler     *httpupdateattemptujian.UpdateAttemptUjianHandler
-	ExpireAttemptUjianHandler     *httpexpireattemptujian.ExpireAttemptUjianHandler
-	SubmitUjianHandler            *httpsubmitujian.SubmitUjianHandler
-	GetJawabanUjianHandler        *httpgetjawaban.GetJawabanUjianHandler
-	SaveJawabanUjianHandler       *httpsavejawaban.SaveJawabanUjianHandler
-	KoreksiEssayHandler           *httpkoreksiessay.KoreksiEssayHandler
-	ListUjianEssayUngradedHandler *httplistessayungraded.ListUjianEssayUngradedHandler
-	CreateUjianHandler            *httpcreateujian.CreateRuangUjianHandler
-	ListHandler                   *httplist.ListUjianHandler
-	ListUjianSiswaHandler         *httplistsiswa.ListUjianSiswaHandler
-	ListSoalUjianHandler          *httplistsoal.ListSoalUjianHandler
-	ListSoalUjianSiswaHandler     *httplistsoalsiswa.ListSoalUjianSiswaHandler
-	GetWaktuSelesaiUjianHandler   *httpgetwaktuujian.GetWaktuSelesaiUjianHandler
-	GetHandler                    *httpget.GetUjianHandler
-	UpdateUjianHandler            *httpupdateujian.UpdateUjianHandler
-	DeleteUjianHandler            *httpdeleteujian.DeleteUjianHandler
+	AttemptUjianHandler              *httpcreateattemptujian.AttemptUjianHandler
+	GetActiveAttemptUjianHandler     *httpactiveattemptujian.GetActiveAttemptUjianHandler
+	ListPesertaUjianSubmittedHandler *httplistpesertasubmitted.ListPesertaUjianSubmittedHandler
+	UpdateAttemptUjianHandler        *httpupdateattemptujian.UpdateAttemptUjianHandler
+	ExpireAttemptUjianHandler        *httpexpireattemptujian.ExpireAttemptUjianHandler
+	SubmitUjianHandler               *httpsubmitujian.SubmitUjianHandler
+	GetJawabanUjianHandler           *httpgetjawaban.GetJawabanUjianHandler
+	SaveJawabanUjianHandler          *httpsavejawaban.SaveJawabanUjianHandler
+	KoreksiEssayHandler              *httpkoreksiessay.KoreksiEssayHandler
+	ListUjianEssayUngradedHandler    *httplistessayungraded.ListUjianEssayUngradedHandler
+	CreateUjianHandler               *httpcreateujian.CreateRuangUjianHandler
+	ListHandler                      *httplist.ListUjianHandler
+	ListUjianSiswaHandler            *httplistsiswa.ListUjianSiswaHandler
+	ListSoalUjianHandler             *httplistsoal.ListSoalUjianHandler
+	ListSoalUjianSiswaHandler        *httplistsoalsiswa.ListSoalUjianSiswaHandler
+	GetWaktuSelesaiUjianHandler      *httpgetwaktuujian.GetWaktuSelesaiUjianHandler
+	GetHandler                       *httpget.GetUjianHandler
+	UpdateUjianHandler               *httpupdateujian.UpdateUjianHandler
+	DeleteUjianHandler               *httpdeleteujian.DeleteUjianHandler
 }
 
 func BuildUjianModule(infra *InfraModule) *UjianModule {
@@ -90,6 +94,7 @@ func BuildUjianModule(infra *InfraModule) *UjianModule {
 		infra.attemptUjianRepo,
 	)
 	getActiveAttemptSvc := activeattempt_service.NewGetActiveAttemptUjianService(infra.ujianSiswaRepo)
+	listPesertaUjianSubmittedSvc := attempt_list_service.NewPesertaUjianSubmittedService(infra.attemptUjianRepo)
 	getJawabanSvc := getjawaban_service.NewGetJawabanUjianService(infra.jawabanUjianRepo)
 	siswaGetJawabanSvc := getjawaban_service.NewSiswaGetJawabanUjianService(infra.siswaUjianChecker, getJawabanSvc)
 	saveJawabanSvc := savejawaban_service.NewJawabanUjianService(infra.jawabanUjianRepo)
@@ -122,6 +127,7 @@ func BuildUjianModule(infra *InfraModule) *UjianModule {
 
 	attemptUjianHandler := httpcreateattemptujian.NewAttemptUjianHandler(attemptUjianSvc)
 	getActiveAttemptHandler := httpactiveattemptujian.NewGetActiveAttemptUjianHandler(getActiveAttemptSvc)
+	listPesertaUjianSubmittedHandler := httplistpesertasubmitted.NewListPesertaUjianSubmittedHandler(listPesertaUjianSubmittedSvc)
 	updateAttemptUjianHandler := httpupdateattemptujian.NewUpdateAttemptUjianHandler(siswaUpdateAttemptUjianSvc)
 	expireAttemptUjianHandler := httpexpireattemptujian.NewExpireAttemptUjianHandler(expireAttemptUjianSvc)
 	submitUjianHandler := httpsubmitujian.NewSubmitUjianHandler(submitUjianSvc)
@@ -140,42 +146,44 @@ func BuildUjianModule(infra *InfraModule) *UjianModule {
 	deleteUjianHandler := httpdeleteujian.NewDeleteUjianHandler(deleteUjianSvc)
 
 	return &UjianModule{
-		AttemptUjianService:           attemptUjianSvc,
-		GetActiveAttemptService:       getActiveAttemptSvc,
-		GetJawabanService:             siswaGetJawabanSvc,
-		SaveJawabanService:            saveJawabanSvc,
-		CreateUjianService:            createUjianSvc,
-		ListUjianSiswaService:         listUjianSiswaSvc,
-		GetService:                    getSvc,
-		UpdateAttemptUjianService:     siswaUpdateAttemptUjianSvc,
-		ExpireAttemptUjianService:     expireAttemptUjianSvc,
-		SubmitUjianService:            submitUjianSvc,
-		GradingUjianService:           gradingUjianSvc,
-		EssayGradingService:           essayGradingSvc,
-		ListUjianEssayUngradedService: listEssayUngradedSvc,
-		GradingWorker:                 gradingWorker,
-		ListSoalUjianService:          listSoalUjianSvc,
-		ListSoalUjianSiswaService:     listSoalUjianSiswaSvc,
-		GetWaktuSelesaiService:        getWaktuSelesaiSvc,
-		UpdateUjianService:            updateUjianSvc,
-		DeleteUjianService:            deleteUjianSvc,
-		AttemptUjianHandler:           attemptUjianHandler,
-		GetActiveAttemptUjianHandler:  getActiveAttemptHandler,
-		UpdateAttemptUjianHandler:     updateAttemptUjianHandler,
-		ExpireAttemptUjianHandler:     expireAttemptUjianHandler,
-		SubmitUjianHandler:            submitUjianHandler,
-		GetJawabanUjianHandler:        getJawabanHandler,
-		SaveJawabanUjianHandler:       saveJawabanHandler,
-		KoreksiEssayHandler:           koreksiEssayHandler,
-		ListUjianEssayUngradedHandler: listEssayUngradedHandler,
-		CreateUjianHandler:            createUjianHandler,
-		ListHandler:                   listHandler,
-		ListUjianSiswaHandler:         listUjianSiswaHandler,
-		ListSoalUjianHandler:          listSoalUjianHandler,
-		ListSoalUjianSiswaHandler:     listSoalUjianSiswaHandler,
-		GetWaktuSelesaiUjianHandler:   getWaktuSelesaiHandler,
-		GetHandler:                    getHandler,
-		UpdateUjianHandler:            updateUjianHandler,
-		DeleteUjianHandler:            deleteUjianHandler,
+		AttemptUjianService:              attemptUjianSvc,
+		GetActiveAttemptService:          getActiveAttemptSvc,
+		ListPesertaUjianSubmittedService: listPesertaUjianSubmittedSvc,
+		GetJawabanService:                siswaGetJawabanSvc,
+		SaveJawabanService:               saveJawabanSvc,
+		CreateUjianService:               createUjianSvc,
+		ListUjianSiswaService:            listUjianSiswaSvc,
+		GetService:                       getSvc,
+		UpdateAttemptUjianService:        siswaUpdateAttemptUjianSvc,
+		ExpireAttemptUjianService:        expireAttemptUjianSvc,
+		SubmitUjianService:               submitUjianSvc,
+		GradingUjianService:              gradingUjianSvc,
+		EssayGradingService:              essayGradingSvc,
+		ListUjianEssayUngradedService:    listEssayUngradedSvc,
+		GradingWorker:                    gradingWorker,
+		ListSoalUjianService:             listSoalUjianSvc,
+		ListSoalUjianSiswaService:        listSoalUjianSiswaSvc,
+		GetWaktuSelesaiService:           getWaktuSelesaiSvc,
+		UpdateUjianService:               updateUjianSvc,
+		DeleteUjianService:               deleteUjianSvc,
+		AttemptUjianHandler:              attemptUjianHandler,
+		GetActiveAttemptUjianHandler:     getActiveAttemptHandler,
+		ListPesertaUjianSubmittedHandler: listPesertaUjianSubmittedHandler,
+		UpdateAttemptUjianHandler:        updateAttemptUjianHandler,
+		ExpireAttemptUjianHandler:        expireAttemptUjianHandler,
+		SubmitUjianHandler:               submitUjianHandler,
+		GetJawabanUjianHandler:           getJawabanHandler,
+		SaveJawabanUjianHandler:          saveJawabanHandler,
+		KoreksiEssayHandler:              koreksiEssayHandler,
+		ListUjianEssayUngradedHandler:    listEssayUngradedHandler,
+		CreateUjianHandler:               createUjianHandler,
+		ListHandler:                      listHandler,
+		ListUjianSiswaHandler:            listUjianSiswaHandler,
+		ListSoalUjianHandler:             listSoalUjianHandler,
+		ListSoalUjianSiswaHandler:        listSoalUjianSiswaHandler,
+		GetWaktuSelesaiUjianHandler:      getWaktuSelesaiHandler,
+		GetHandler:                       getHandler,
+		UpdateUjianHandler:               updateUjianHandler,
+		DeleteUjianHandler:               deleteUjianHandler,
 	}
 }

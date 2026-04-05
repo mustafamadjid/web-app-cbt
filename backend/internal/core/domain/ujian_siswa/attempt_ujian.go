@@ -33,6 +33,19 @@ type PesertaUjian struct {
 	UpdatedAt      *time.Time
 }
 
+type PesertaUjianSubmitted struct {
+	IdPesertaUjian ID
+	IdAttempt      ID
+	IdSiswa        ID
+	TingkatKelas   int
+	NamaKelas 	   string
+	NamaLengkap    string
+	NoAbsen        int
+	NilaiAkhir     *float64
+	WaktuMulai     *time.Time
+	WaktuSubmit    *time.Time
+}
+
 
 type JawabanUjian struct {
 	IdJawaban    ID `json:"id_jawaban"`

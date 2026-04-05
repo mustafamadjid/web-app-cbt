@@ -1,7 +1,7 @@
 package httpx
 
 type ListUjianEssayUngradedResponse struct {
-	ID               int    `json:"id"`
+	IDJadwalUjian             int    `json:"id_jadwal_ujian"`
 	IDUjian          int    `json:"id_ujian"`
 	IDBankSoal       int    `json:"id_bank_soal"`
 	IDGuru           int    `json:"id_guru"`

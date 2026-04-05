@@ -118,7 +118,7 @@ func toListUjianEssayUngradedResponse(item ujian.ListUjian) ListUjianEssayUngrad
 	status, started := mapStatusUjian(item.StatusUjian)
 
 	return ListUjianEssayUngradedResponse{
-		ID:               int(item.IdJadwalUjian),
+		IDJadwalUjian:    int(item.IdJadwalUjian),
 		IDUjian:          int(item.IdUjian),
 		IDBankSoal:       int(item.IdBankSoal),
 		IDGuru:           int(item.IdGuru),

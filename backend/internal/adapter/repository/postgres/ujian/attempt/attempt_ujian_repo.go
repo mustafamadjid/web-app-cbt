@@ -34,6 +34,52 @@ func (r *AttemptUjianRepo) loggerFor(ctx context.Context) corelog.Logger {
 	return corelog.FromContextOr(ctx, r.logger)
 }
 
+func (r *AttemptUjianRepo) ListPesertaUjianAttemptSubmittedByIdJadwalUjian(ctx context.Context, idJadwalUjian ujian.ID) ([]ujian.PesertaUjianSubmitted, error) {
+	const query = `
+		SELECT
+			pu.id_peserta_ujian,
+			au.id_attempt,
+			pu.id_siswa,
+			k.tingkat_kelas,
+			nk.nama_kelas,
+			p.nama_lengkap,
+			ps.no_absen,
+			hu.nilai_akhir,
+			au.waktu_mulai,
+			au.waktu_submit
+		FROM peserta_ujian pu
+		JOIN attempt_ujian au
+			ON au.id_peserta_ujian = pu.id_peserta_ujian
+		JOIN pengguna p
+			ON p.id_pengguna = pu.id_siswa
+		JOIN profil_siswa ps
+			ON ps.id_pengguna = pu.id_siswa
+		JOIN nama_kelas nk
+			ON nk.id_nama_kelas = ps.id_nama_kelas
+		JOIN kelas k
+			ON k.id_kelas = nk.id_kelas
+		LEFT JOIN hasil_ujian hu
+			ON hu.id_attempt = au.id_attempt
+		WHERE pu.id_jadwal_ujian = $1
+			AND au.status_attempt = $2
+		ORDER BY
+			k.tingkat_kelas ASC,
+			nk.nama_kelas ASC,
+			ps.no_absen ASC,
+			p.nama_lengkap ASC,
+			au.id_attempt ASC
+	`
+
+	rows, err := r.q.Query(ctx, query, idJadwalUjian, ujian.ATTEMPT_SUBMITTED)
+	if err != nil {
+		r.loggerFor(ctx).Error(ctx, "failed list peserta ujian submitted", "layer", "repo.db", "op", "attempt_ujian.list_peserta_submitted", "id_jadwal_ujian", idJadwalUjian, "err", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	return r.scanPesertaUjianSubmittedRows(ctx, "attempt_ujian.list_peserta_submitted", rows)
+}
+
 func (r *AttemptUjianRepo) GetAttemptUjianById(ctx context.Context, idAttempt ujian.ID) (ujian.AttemptUjian, error) {
 	const query = `
 		SELECT

@@ -36,6 +36,8 @@ type AttemptUjianRepository interface {
 	DeleteAttemptUjian(ctx context.Context, idAttempt ujian.ID) error
 
 	SubmitAttemptUjian(ctx context.Context, idAttempt ujian.ID) error
+
+	ListPesertaUjianAttemptSubmittedByIdJadwalUjian(ctx context.Context, idJadwalUjian ujian.ID) ([]ujian.PesertaUjianSubmitted, error)
 }
 
 type JawabanUjianRepository interface {

@@ -34,6 +34,7 @@ import (
 	ujiancreateattempt "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/attempt_ujian/attempt/create"
 	ujianexpireattempt "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/attempt_ujian/attempt/expire"
 	ujianupdateattempt "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/attempt_ujian/attempt/update"
+	ujianlistpesertasubmitted "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/attempt_ujian/list_peserta_submitted"
 	ujiangetjawaban "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/jawaban_ujian/get_jawaban"
 	ujiansavejawaban "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/jawaban_ujian/save_jawaban"
 	ujiankoreksiessay "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/koreksi_essay"
@@ -102,24 +103,25 @@ type RuangUjianHandlers struct {
 }
 
 type UjianHandlers struct {
-	AttemptUjianHandler           *ujiancreateattempt.AttemptUjianHandler
-	GetActiveAttemptUjianHandler  *ujianactiveattempt.GetActiveAttemptUjianHandler
-	UpdateAttemptUjianHandler     *ujianupdateattempt.UpdateAttemptUjianHandler
-	ExpireAttemptUjianHandler     *ujianexpireattempt.ExpireAttemptUjianHandler
-	SubmitUjianHandler            *ujiansubmit.SubmitUjianHandler
-	GetJawabanUjianHandler        *ujiangetjawaban.GetJawabanUjianHandler
-	SaveJawabanUjianHandler       *ujiansavejawaban.SaveJawabanUjianHandler
-	KoreksiEssayHandler           *ujiankoreksiessay.KoreksiEssayHandler
-	ListUjianEssayUngradedHandler *ujianlistessayungraded.ListUjianEssayUngradedHandler
-	CreateUjianHandler            *ujiancreate.CreateRuangUjianHandler
-	ListHandler                   *ujianlist.ListUjianHandler
-	ListUjianSiswaHandler         *ujianlistsiswa.ListUjianSiswaHandler
-	ListSoalUjianHandler          *ujianlistsoal.ListSoalUjianHandler
-	ListSoalUjianSiswaHandler     *ujianlistsoalsiswa.ListSoalUjianSiswaHandler
-	GetWaktuSelesaiUjianHandler   *ujiangetwaktuujian.GetWaktuSelesaiUjianHandler
-	GetHandler                    *ujianget.GetUjianHandler
-	UpdateUjianHandler            *ujianupdateujian.UpdateUjianHandler
-	DeleteUjianHandler            *ujiandeleteujian.DeleteUjianHandler
+	AttemptUjianHandler              *ujiancreateattempt.AttemptUjianHandler
+	GetActiveAttemptUjianHandler     *ujianactiveattempt.GetActiveAttemptUjianHandler
+	ListPesertaUjianSubmittedHandler *ujianlistpesertasubmitted.ListPesertaUjianSubmittedHandler
+	UpdateAttemptUjianHandler        *ujianupdateattempt.UpdateAttemptUjianHandler
+	ExpireAttemptUjianHandler        *ujianexpireattempt.ExpireAttemptUjianHandler
+	SubmitUjianHandler               *ujiansubmit.SubmitUjianHandler
+	GetJawabanUjianHandler           *ujiangetjawaban.GetJawabanUjianHandler
+	SaveJawabanUjianHandler          *ujiansavejawaban.SaveJawabanUjianHandler
+	KoreksiEssayHandler              *ujiankoreksiessay.KoreksiEssayHandler
+	ListUjianEssayUngradedHandler    *ujianlistessayungraded.ListUjianEssayUngradedHandler
+	CreateUjianHandler               *ujiancreate.CreateRuangUjianHandler
+	ListHandler                      *ujianlist.ListUjianHandler
+	ListUjianSiswaHandler            *ujianlistsiswa.ListUjianSiswaHandler
+	ListSoalUjianHandler             *ujianlistsoal.ListSoalUjianHandler
+	ListSoalUjianSiswaHandler        *ujianlistsoalsiswa.ListSoalUjianSiswaHandler
+	GetWaktuSelesaiUjianHandler      *ujiangetwaktuujian.GetWaktuSelesaiUjianHandler
+	GetHandler                       *ujianget.GetUjianHandler
+	UpdateUjianHandler               *ujianupdateujian.UpdateUjianHandler
+	DeleteUjianHandler               *ujiandeleteujian.DeleteUjianHandler
 }
 
 type SesiHandlers struct {
