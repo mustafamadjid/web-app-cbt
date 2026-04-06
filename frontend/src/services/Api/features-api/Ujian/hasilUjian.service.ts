@@ -199,6 +199,9 @@ export function useGetUjianEssayUngradedList(
   );
 }
 
-export function useGetHasilUjianDetail(ujianId: number) {
-  return useFetch(() => getHasilUjianDetail(ujianId), [ujianId]);
+export function useGetHasilUjianDetail(ujianId: number, enabled = true) {
+  return useFetch(
+    () => (enabled ? getHasilUjianDetail(ujianId) : Promise.resolve(null)),
+    [ujianId, enabled],
+  );
 }

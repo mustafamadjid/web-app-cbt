@@ -6,23 +6,18 @@ import {
   Trophy,
   TrendingUp,
   TrendingDown,
-  CheckCircle2,
-  XCircle,
-  MinusCircle,
-  ChevronRight,
   GraduationCap,
   Hash,
-  Calendar,
   Medal,
+  type LucideIcon,
 } from "lucide-react";
 import {
   useGetHasilUjianDetail,
-  type HasilUjianDetailResponse,
 } from "@/services/Api/features-api/Ujian/hasilUjian.service";
-import type { HasilUjianSiswa } from "@/types/Ujian/HasilUjian";
-import { resolveImageUrl } from "@/helper/MediaUrl/resolveMediaUrl";
-import { paths } from "@/routes/paths";
+import { useGetListPesertaUjianSubmitted } from "@/services/Api/features-api/Ujian/attemptUjian.service";
+import type { PesertaUjianSubmittedItem } from "@/types/Ujian/AttemptUjian";
 import { useAuth } from "@/contexts/AuthContext";
+import { paths } from "@/routes/paths";
 
 // --- KOMPONEN WIDGET FLAT (NO SHADOW, NO BG DECOR) ---
 const StatWidget = ({
@@ -33,7 +28,7 @@ const StatWidget = ({
 }: {
   title: string;
   value: number | string;
-  icon: any;
+  icon: LucideIcon;
   colorTheme: string;
 }) => {
   // Mapping warna simpel (Background soft + Text color)
@@ -63,20 +58,54 @@ const StatWidget = ({
 
 const HasilUjianDetail = () => {
   const { user } = useAuth();
-
   const { id } = useParams();
-  const ujianId = useMemo(() => Number(id), [id]);
-  const isUjianIdValid = Number.isFinite(ujianId);
+  const jadwalUjianId = useMemo(() => Number(id), [id]);
+  const isJadwalUjianIdValid =
+    Number.isInteger(jadwalUjianId) && jadwalUjianId > 0;
   const {
     data: hasilDetail,
-    loading,
-    error,
-  } = useGetHasilUjianDetail(isUjianIdValid ? ujianId : -1);
+    error: statistikError,
+  } = useGetHasilUjianDetail(jadwalUjianId, isJadwalUjianIdValid);
+  const {
+    data: pesertaSubmitted,
+    loading: pesertaLoading,
+    error: pesertaError,
+  } = useGetListPesertaUjianSubmitted(
+    jadwalUjianId,
+    isJadwalUjianIdValid,
+  );
 
-  const statistik: HasilUjianDetailResponse["statistik"] | null =
-    hasilDetail?.statistik ?? null;
-  const daftarSiswa: HasilUjianSiswa[] = hasilDetail?.siswa ?? [];
-  const errorMsg = !isUjianIdValid ? "ID ujian tidak valid." : (error ?? "");
+  const statistik = hasilDetail?.statistik ?? null;
+  const daftarPeserta: PesertaUjianSubmittedItem[] = pesertaSubmitted ?? [];
+  const invalidIdMessage = !isJadwalUjianIdValid
+    ? "ID jadwal ujian tidak valid."
+    : "";
+
+    console.log(jadwalUjianId);
+
+  const formatDateTime = (value: string | null) => {
+    if (!value) return "-";
+
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return "-";
+
+    return parsed.toLocaleString("id-ID", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const formatNilaiAkhir = (value: number | null) => {
+    if (typeof value !== "number") return "-";
+
+    return value.toLocaleString("id-ID", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  };
 
   const widgetData = [
     {
@@ -104,13 +133,17 @@ const HasilUjianDetail = () => {
       colorTheme: "emerald",
     },
   ];
+  const backPath =
+    user?.role === "GURU"
+      ? paths.dashboard.hasil_ujian_guru
+      : paths.dashboard.hasil_ujian;
 
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-8 px-4 py-8 sm:px-6 lg:px-8">
       {/* --- HEADER --- */}
       <div className="flex flex-col gap-2">
         <Link
-          to={paths.dashboard.hasil_ujian}
+          to={backPath}
           className="group inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition-colors hover:text-[#397e50]"
         >
           <ArrowLeft
@@ -128,15 +161,27 @@ const HasilUjianDetail = () => {
               Detail Hasil Ujian
             </h1>
             <p className="text-sm text-slate-500">
-              Analisis statistik dan peringkat siswa.
+              Analisis statistik dan daftar peserta yang telah submit ujian.
             </p>
           </div>
         </div>
       </div>
 
-      {errorMsg && (
+      {invalidIdMessage && (
         <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm font-medium text-rose-700">
-          {errorMsg}
+          {invalidIdMessage}
+        </div>
+      )}
+
+      {statistikError && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm font-medium text-amber-700">
+          Gagal memuat statistik ujian: {statistikError}
+        </div>
+      )}
+
+      {pesertaError && (
+        <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm font-medium text-rose-700">
+          Gagal memuat daftar peserta: {pesertaError}
         </div>
       )}
 
@@ -157,10 +202,10 @@ const HasilUjianDetail = () => {
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="border-b border-slate-100 p-5 bg-white">
           <h2 className="text-lg font-bold text-slate-800">
-            Daftar Peserta & Nilai
+            Daftar Peserta Submit
           </h2>
           <p className="text-sm text-slate-500">
-            Total {daftarSiswa.length} siswa.
+            Total {daftarPeserta.length} peserta.
           </p>
         </div>
 
@@ -170,60 +215,56 @@ const HasilUjianDetail = () => {
             <thead className="sticky top-0 z-10 bg-slate-50 shadow-sm">
               <tr>
                 <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">
-                  Siswa
+                  Peserta
                 </th>
                 <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">
-                  Info Akademik
+                  Kelas & Absen
                 </th>
                 <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">
-                  Analisis Jawaban
+                  Waktu Mulai
+                </th>
+                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Waktu Submit
                 </th>
                 <th className="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-500">
-                  Nilai
-                </th>
-                <th className="px-6 py-4 text-right text-xs font-bold uppercase tracking-wider text-slate-500">
-                  Opsi
+                  Nilai Akhir
                 </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 bg-white">
-              {loading ? (
+              {pesertaLoading ? (
                 <tr>
                   <td colSpan={5} className="py-20 text-center text-slate-500">
                     <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-[#397e50]" />
                     <p className="mt-2 text-sm">Memuat data...</p>
                   </td>
                 </tr>
-              ) : daftarSiswa.length === 0 ? (
+              ) : !isJadwalUjianIdValid ? (
                 <tr>
                   <td colSpan={5} className="py-12 text-center text-slate-500">
-                    Belum ada data siswa.
+                    ID jadwal ujian tidak valid.
+                  </td>
+                </tr>
+              ) : daftarPeserta.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="py-12 text-center text-slate-500">
+                    Belum ada peserta yang submit attempt.
                   </td>
                 </tr>
               ) : (
-                daftarSiswa.map((siswa) => (
+                daftarPeserta.map((peserta) => (
                   <tr
-                    key={siswa.id_pengguna}
+                    key={peserta.id_attempt}
                     className="group transition-colors hover:bg-slate-50"
                   >
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <img
-                          src={
-                            resolveImageUrl(siswa.foto_profil) ||
-                            `https://ui-avatars.com/api/?name=${siswa.nama_lengkap}&background=random`
-                          }
-                          alt={siswa.nama_lengkap}
-                          className="h-9 w-9 rounded-full bg-slate-200 object-cover ring-2 ring-white"
-                        />
-                        <div>
-                          <p className="font-semibold text-slate-800">
-                            {siswa.nama_lengkap}
-                          </p>
-                          <p className="text-xs text-slate-500 capitalize">
-                            {siswa.role}
-                          </p>
-                        </div>
+                      <div>
+                        <p className="font-semibold text-slate-800">
+                          {peserta.nama_lengkap}
+                        </p>
+                        <p className="text-xs text-slate-500">
+                          ID Siswa: {peserta.id_siswa}
+                        </p>
                       </div>
                     </td>
 
@@ -231,83 +272,37 @@ const HasilUjianDetail = () => {
                       <div className="flex flex-col gap-1 text-sm text-slate-600">
                         <div className="flex items-center gap-1.5 font-medium">
                           <GraduationCap size={14} className="text-slate-400" />
-                          {siswa.tingkat_kelas} - {siswa.nama_kelas}
+                          Kelas {peserta.tingkat_kelas} - {peserta.nama_kelas}
                         </div>
-                        <div className="flex items-center gap-3 text-xs text-slate-400">
+                        <div className="flex items-center gap-1 text-xs text-slate-400">
                           <span className="flex items-center gap-1">
-                            <Hash size={12} /> {siswa.no_absen}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Calendar size={12} /> {siswa.angkatan}
+                            <Hash size={12} /> No. {peserta.no_absen}
                           </span>
                         </div>
                       </div>
                     </td>
 
-                    <td className="px-6 py-4">
-                      <div className="flex w-fit items-center gap-3 rounded-lg border border-slate-100 bg-slate-50 px-3 py-1.5">
-                        <div
-                          className="flex items-center gap-1 text-emerald-600"
-                          title="Benar"
-                        >
-                          <CheckCircle2 size={14} />
-                          <span className="text-sm font-semibold">
-                            {siswa.jumlah_benar}
-                          </span>
-                        </div>
-                        <div className="h-4 w-px bg-slate-200"></div>
-                        <div
-                          className="flex items-center gap-1 text-rose-500"
-                          title="Salah"
-                        >
-                          <XCircle size={14} />
-                          <span className="text-sm font-semibold">
-                            {siswa.jumlah_salah}
-                          </span>
-                        </div>
-                        <div className="h-4 w-px bg-slate-200"></div>
-                        <div
-                          className="flex items-center gap-1 text-slate-400"
-                          title="Kosong"
-                        >
-                          <MinusCircle size={14} />
-                          <span className="text-sm font-semibold">
-                            {siswa.jumlah_kosong}
-                          </span>
-                        </div>
-                      </div>
+                    <td className="px-6 py-4 text-sm text-slate-600">
+                      {formatDateTime(peserta.waktu_mulai)}
+                    </td>
+
+                    <td className="px-6 py-4 text-sm text-slate-600">
+                      {formatDateTime(peserta.waktu_submit)}
                     </td>
 
                     <td className="px-6 py-4 text-center">
                       <span
-                        className={`inline-block min-w-12 rounded-md px-2 py-1 text-center font-bold ${
-                          Number(siswa.nilai) >= 75
+                        className={`inline-block min-w-16 rounded-md px-2 py-1 text-center font-bold ${
+                          typeof peserta.nilai_akhir === "number" &&
+                          peserta.nilai_akhir >= 75
                             ? "bg-emerald-100 text-emerald-700"
-                            : "bg-slate-100 text-slate-700"
+                            : typeof peserta.nilai_akhir === "number"
+                              ? "bg-slate-100 text-slate-700"
+                              : "bg-slate-50 text-slate-400"
                         }`}
                       >
-                        {siswa.nilai ?? 0}
+                        {formatNilaiAkhir(peserta.nilai_akhir)}
                       </span>
-                    </td>
-
-                    <td className="px-6 py-4 text-right">
-                      <Link
-                        to={
-                          user?.role === "ADMIN"
-                            ? paths.dashboard.hasil_ujian_detail.replace(
-                                ":id",
-                                String(ujianId),
-                              )
-                            : paths.dashboard.hasil_ujian_detail_guru.replace(
-                                ":id",
-                                String(ujianId),
-                              )
-                        }
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-400 transition-colors hover:border-[#397e50] hover:bg-[#397e50] hover:text-white"
-                        title="Lihat Detail"
-                      >
-                        <ChevronRight size={16} />
-                      </Link>
                     </td>
                   </tr>
                 ))

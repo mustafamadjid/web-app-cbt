@@ -326,7 +326,8 @@ const HasilUjian = () => {
 
         <div className="grid gap-6 lg:grid-cols-2">
           {daftarAktif.map((ujian) => {
-            const hasilDetailId = ujian.id_ujian ?? ujian.id;
+            const hasilDetailId = ujian.id;
+            
 
             return (
               <BoxHasilUjian
