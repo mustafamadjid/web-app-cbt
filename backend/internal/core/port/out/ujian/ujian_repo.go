@@ -43,4 +43,6 @@ type AttemptUjianRepository interface {
 type JawabanUjianRepository interface {
 	GetJawabanUjianByAttemptId(ctx context.Context, idAttempt ujian.ID) ([]ujian.JawabanUjian, error)
 	SaveJawabanUjian(ctx context.Context,idAttempt ujian.ID, jawaban []ujian.JawabanUjian) error
+
+	ListHasilJawabanUjianByIdAttempt(ctx context.Context, idAttempt ujian.ID) ([]ujian.HasilJawabanUjian, error)
 }

@@ -14,14 +14,12 @@ import (
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 )
 
-type txBeginner interface {
-	BeginTx(ctx context.Context, txOptions pgx.TxOptions) (pgx.Tx, error)
-}
+
 
 type JawabanUjianRepo struct {
 	q      pg.Executor
 	logger corelog.Logger
-	pool   txBeginner
+	pool   *pgxpool.Pool
 }
 
 func NewJawabanUjianRepo(q pg.Executor, logger corelog.Logger, pool *pgxpool.Pool) *JawabanUjianRepo {
