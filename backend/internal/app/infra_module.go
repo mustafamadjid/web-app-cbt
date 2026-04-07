@@ -93,7 +93,7 @@ func BuildInfraModule(pool *pgxpool.Pool, logger corelog.Logger) *InfraModule {
 	ujianSiswaRepo := pgujiansiswa.NewUjianSiswaRepo(pool, logger)
 	siswaUjianChecker := pgujiansiswachecker.NewSiswaUjianCheckerRepo(pool, logger)
 	attemptUjianRepo := pgujianattempt.NewAttemptUjianRepo(pool, logger)
-	jawabanUjianRepo := pgujiansiswajawaban.NewJawabanUjianRepo(pool, logger, pool)
+	jawabanUjianRepo := pgujiansiswajawaban.NewJawabanUjianRepo(pool, logger)
 	gradingRepo := pgujiangrading.NewGradingRepo(pool, logger)
 	listGradingRepo := pgujiangradinglist.NewListGradingRepo(pool, logger)
 

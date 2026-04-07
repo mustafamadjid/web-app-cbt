@@ -14,16 +14,19 @@ import (
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
 )
 
-
-
 type JawabanUjianRepo struct {
 	q      pg.Executor
 	logger corelog.Logger
 	pool   *pgxpool.Pool
 }
 
-func NewJawabanUjianRepo(q pg.Executor, logger corelog.Logger, pool *pgxpool.Pool) *JawabanUjianRepo {
-	return &JawabanUjianRepo{q: q, logger: logger, pool: pool}
+func NewJawabanUjianRepo(q pg.Executor, logger corelog.Logger) *JawabanUjianRepo {
+	repo := &JawabanUjianRepo{q: q, logger: logger}
+	if pool, ok := q.(*pgxpool.Pool); ok {
+		repo.pool = pool
+	}
+
+	return repo
 }
 
 func (r *JawabanUjianRepo) loggerFor(ctx context.Context) corelog.Logger {
@@ -34,6 +37,12 @@ func (r *JawabanUjianRepo) SaveJawabanUjian(ctx context.Context, idAttempt ujian
 	upsertItems, clearSoalIDs := splitSaveJawabanItems(jawaban)
 	if len(upsertItems) == 0 && len(clearSoalIDs) == 0 {
 		return nil
+	}
+
+	if r.pool == nil {
+		err := errors.New("jawaban ujian repo requires pgx pool for save transaction")
+		r.loggerFor(ctx).Error(ctx, "failed save jawaban ujian", "layer", "adapter.repository", "op", "ujian.jawaban.save.precondition", "err", err)
+		return err
 	}
 
 	tx, err := r.pool.BeginTx(ctx, pgx.TxOptions{})

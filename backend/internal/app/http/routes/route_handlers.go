@@ -36,6 +36,7 @@ import (
 	ujianupdateattempt "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/attempt_ujian/attempt/update"
 	ujianlistpesertasubmitted "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/attempt_ujian/list_peserta_submitted"
 	ujiangetjawaban "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/jawaban_ujian/get_jawaban"
+	ujianhasiljawaban "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/jawaban_ujian/hasil_jawaban"
 	ujiansavejawaban "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/jawaban_ujian/save_jawaban"
 	ujiankoreksiessay "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/koreksi_essay"
 	ujianlist "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/list"
@@ -110,6 +111,7 @@ type UjianHandlers struct {
 	ExpireAttemptUjianHandler        *ujianexpireattempt.ExpireAttemptUjianHandler
 	SubmitUjianHandler               *ujiansubmit.SubmitUjianHandler
 	GetJawabanUjianHandler           *ujiangetjawaban.GetJawabanUjianHandler
+	HasilJawabanUjianHandler         *ujianhasiljawaban.HasilJawabanUjianHandler
 	SaveJawabanUjianHandler          *ujiansavejawaban.SaveJawabanUjianHandler
 	KoreksiEssayHandler              *ujiankoreksiessay.KoreksiEssayHandler
 	ListUjianEssayUngradedHandler    *ujianlistessayungraded.ListUjianEssayUngradedHandler

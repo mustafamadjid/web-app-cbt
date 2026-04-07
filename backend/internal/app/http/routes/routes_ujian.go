@@ -25,6 +25,7 @@ func RegisterUjianRoutes(router *httprouter.Router, handlers UjianHandlers, mw M
 	router.PATCH("/admin/ujian/attempt/:idAttempt/expire", requireAdmin(mw.RateLimitStandard(handlers.ExpireAttemptUjianHandler.ExpireAttemptUjian)))
 	router.POST("/ujian", requireAdminGuru(mw.RateLimitStandard(handlers.CreateUjianHandler.CreateUjian)))
 	router.GET("/ujian/peserta-submitted/:idJadwalUjian", requireAdminGuru(mw.RateLimitStandard(handlers.ListPesertaUjianSubmittedHandler.ListPesertaUjianSubmitted)))
+	router.GET("/ujian/jawaban/hasil/:idAttempt", requireAdminGuru(mw.RateLimitStandard(handlers.HasilJawabanUjianHandler.ListHasilJawabanUjianByAttempt)))
 	router.GET("/ujian/koreksi-essay/list", requireAdminGuru(mw.RateLimitStandard(handlers.ListUjianEssayUngradedHandler.ListUjianEssayUngraded)))
 	router.PATCH("/ujian/koreksi-essay", requireAdminGuru(mw.RateLimitStandard(handlers.KoreksiEssayHandler.KoreksiEssay)))
 	router.GET("/jadwal-ujian", requireAdminGuru(mw.RateLimitStandard(handlers.ListHandler.ListUjian)))

@@ -1,6 +1,7 @@
 package jawabanujian_repo
 
 import (
+	"context"
 	"testing"
 
 	ujian "github.com/mustafamadjid/web-app-cbt/internal/core/domain/ujian_siswa"
@@ -50,4 +51,20 @@ func TestSplitSaveJawabanItems(t *testing.T) {
 	require.NotNil(t, upsertItems[1].IdPilihan)
 	assert.Equal(t, ujian.ID(33), *upsertItems[1].IdPilihan)
 	assert.Nil(t, upsertItems[1].JawabanEssay)
+}
+
+func TestSaveJawabanUjianRequiresPoolForTransaction(t *testing.T) {
+	t.Parallel()
+
+	repo := NewJawabanUjianRepo(nil, nil)
+
+	err := repo.SaveJawabanUjian(context.Background(), 1, []ujian.JawabanUjian{
+		{
+			IdSoal:    10,
+			IdPilihan: toIDPointer(20),
+		},
+	})
+
+	require.Error(t, err)
+	assert.Equal(t, "jawaban ujian repo requires pgx pool for save transaction", err.Error())
 }
