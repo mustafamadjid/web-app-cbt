@@ -2,6 +2,7 @@ package httpx
 
 type HasilJawabanUjianResponse struct {
 	IDAttempt    int                             `json:"id_attempt"`
+	NilaiAkhir   *float64                        `json:"nilai_akhir"`
 	HasilJawaban []HasilJawabanUjianItemResponse `json:"hasil_jawaban"`
 }
 
@@ -18,10 +19,10 @@ type HasilJawabanUjianItemResponse struct {
 }
 
 type HasilJawabanUjianOpsiJawabanResponse struct {
-	IDPilihanGanda int    `json:"id_pilihan_ganda"`
-	IDSoal         int    `json:"id_soal"`
-	IsiPilihan     string `json:"isi_pilihan"`
-	IsBenar        bool   `json:"is_benar"`
+	IDPilihanGanda int `json:"id_pilihan_ganda"`
+	// IDSoal         int    `json:"id_soal"`
+	IsiPilihan string `json:"isi_pilihan"`
+	IsBenar    bool   `json:"is_benar"`
 }
 
 type HasilJawabanUjianJawabanSiswaResponse struct {

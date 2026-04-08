@@ -56,7 +56,7 @@ export const paths = {
     hasil_ujian: djoinAdmin(join("ujian", "/hasil")),
     hasil_ujian_detail: djoinAdmin(join("ujian", "/hasil/:id")),
     hasil_ujian_siswa_detail: djoinAdmin(
-      join("ujian", "/hasil/:id/siswa/:siswaId")
+      join("ujian", "/hasil/:id/attempt/:attemptId")
     ),
 
     pengumuman_admin: djoinAdmin("pengumuman"),
@@ -74,7 +74,7 @@ export const paths = {
     hasil_ujian_guru: djoinGuru(join("ujian", "/hasil")),
     hasil_ujian_detail_guru: djoinGuru(join("ujian", "/hasil/:id")),
     hasil_ujian_siswa_detail_guru: djoinGuru(
-      join("ujian", "/hasil/:id/siswa/:siswaId")
+      join("ujian", "/hasil/:id/attempt/:attemptId")
     ),
 
     pengumuman_guru: djoinGuru("pengumuman"),

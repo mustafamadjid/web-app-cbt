@@ -1,0 +1,24 @@
+export type UjianEssayUngradedApiItem = {
+  id: number;
+  id_ujian: number;
+  id_bank_soal: number;
+  id_guru: number;
+  id_pengawas: number;
+  nama_ujian: string;
+  pengawas_ujian: string;
+  tgl_ujian: string;
+  tanggal_ujian: string;
+  waktu_mulai: string;
+  waktu_selesai: string;
+  id_sesi: number;
+  nama_sesi: string;
+  ruang_ujian: string;
+  id_ruang: number;
+  status_ujian: string;
+  started: number;
+  tingkat_kelas: number;
+  tingkat_kelas_id: number;
+  nama_kelas: string;
+  pembuat_username: string;
+  pengawas_username: string;
+};

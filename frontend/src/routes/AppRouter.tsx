@@ -48,7 +48,7 @@ import TemplateLayout from "@/layouts/MainLayout/TemplateLayout/TemplateLayout";
 import PengaturanProfil from "@/pages/Admin/Dashboard/Pengaturan/Pengaturan";
 import HasilUjian from "@/pages/Admin/Dashboard/Ujian/HasilUjian";
 import HasilUjianDetail from "@/pages/Admin/Dashboard/Ujian/DetailHasilUjian/HasilUjianDetail";
-import HasilUjianSiswaDetail from "@/pages/Admin/Dashboard/Ujian/DetailHasilUjian/HasilUjianSiswaDetail";
+import KoreksiHasilUjian from "@/pages/Admin/Dashboard/Ujian/KoreksiHasilUjian/KoreksiHasilUjian";
 import PengumumanManagement from "@/pages/Admin/Dashboard/Pengumuman/PengumumanManagement";
 import TambahPengumuman from "@/pages/Admin/Dashboard/Pengumuman/TambahPengumuman";
 import EditPengumuman from "@/pages/Admin/Dashboard/Pengumuman/EditPengumuman";
@@ -134,7 +134,7 @@ export const router = createBrowserRouter([
               },
               {
                 path: paths.dashboard.hasil_ujian_siswa_detail,
-                element: <HasilUjianSiswaDetail />,
+                element: <KoreksiHasilUjian />,
               },
               {
                 path: paths.dashboard.pengumuman_admin,
@@ -234,7 +234,7 @@ export const router = createBrowserRouter([
               },
               {
                 path: paths.dashboard.hasil_ujian_siswa_detail_guru,
-                element: <HasilUjianSiswaDetail />,
+                element: <KoreksiHasilUjian />,
               },
               {
                 path: paths.dashboard.pengumuman_guru,

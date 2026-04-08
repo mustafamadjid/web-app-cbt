@@ -81,8 +81,6 @@ const HasilUjianDetail = () => {
     ? "ID jadwal ujian tidak valid."
     : "";
 
-    console.log(jadwalUjianId);
-
   const formatDateTime = (value: string | null) => {
     if (!value) return "-";
 
@@ -137,6 +135,10 @@ const HasilUjianDetail = () => {
     user?.role === "GURU"
       ? paths.dashboard.hasil_ujian_guru
       : paths.dashboard.hasil_ujian;
+  const pesertaDetailPathTemplate =
+    user?.role === "GURU"
+      ? paths.dashboard.hasil_ujian_siswa_detail_guru
+      : paths.dashboard.hasil_ujian_siswa_detail;
 
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-8 px-4 py-8 sm:px-6 lg:px-8">
@@ -144,7 +146,7 @@ const HasilUjianDetail = () => {
       <div className="flex flex-col gap-2">
         <Link
           to={backPath}
-          className="group inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition-colors hover:text-[#397e50]"
+          className="group inline-flex cursor-pointer items-center gap-2 text-sm font-medium text-slate-500 transition-colors hover:text-[#397e50]"
         >
           <ArrowLeft
             size={16}
@@ -229,25 +231,28 @@ const HasilUjianDetail = () => {
                 <th className="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-500">
                   Nilai Akhir
                 </th>
+                <th className="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Aksi
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 bg-white">
               {pesertaLoading ? (
                 <tr>
-                  <td colSpan={5} className="py-20 text-center text-slate-500">
+                  <td colSpan={6} className="py-20 text-center text-slate-500">
                     <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-[#397e50]" />
                     <p className="mt-2 text-sm">Memuat data...</p>
                   </td>
                 </tr>
               ) : !isJadwalUjianIdValid ? (
                 <tr>
-                  <td colSpan={5} className="py-12 text-center text-slate-500">
+                  <td colSpan={6} className="py-12 text-center text-slate-500">
                     ID jadwal ujian tidak valid.
                   </td>
                 </tr>
               ) : daftarPeserta.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="py-12 text-center text-slate-500">
+                  <td colSpan={6} className="py-12 text-center text-slate-500">
                     Belum ada peserta yang submit attempt.
                   </td>
                 </tr>
@@ -303,6 +308,17 @@ const HasilUjianDetail = () => {
                       >
                         {formatNilaiAkhir(peserta.nilai_akhir)}
                       </span>
+                    </td>
+
+                    <td className="px-6 py-4 text-center">
+                      <Link
+                        to={pesertaDetailPathTemplate
+                          .replace(":id", String(jadwalUjianId))
+                          .replace(":attemptId", String(peserta.id_attempt))}
+                        className="inline-flex cursor-pointer items-center justify-center rounded-lg border border-[#397e50]/20 bg-[#397e50]/10 px-3 py-2 text-xs font-semibold text-[#397e50] transition hover:border-[#397e50] hover:bg-[#397e50] hover:text-white"
+                      >
+                        Lihat Jawaban
+                      </Link>
                     </td>
                   </tr>
                 ))

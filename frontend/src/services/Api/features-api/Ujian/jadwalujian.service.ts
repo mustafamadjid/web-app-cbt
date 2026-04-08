@@ -1,6 +1,8 @@
 import { buildJsonData } from "@/helper/FormData/BuildJsonData";
 import { useDelete, useFetch, usePost } from "@/hooks/fetch";
 import { api } from "@/services/Api/api";
+import type { JadwalUjianApiItem } from "@/types/Api-Item/Ujian/JadwalUjianApiItem";
+import type { JadwalUjianSiswaApiItem } from "@/types/Api-Item/Ujian/JadwalUjianSiswaApiItem";
 import type { CreatePenjadwalanUjianPayload } from "@/types/Ujian/BuatUjian";
 import type {
   JadwalUjianFilterParams,
@@ -13,37 +15,6 @@ import type {
 const JADWAL_UJIAN_ENDPOINT = "/jadwal-ujian";
 const SISWA_JADWAL_UJIAN_ENDPOINT = "/siswa/ujian/list";
 const UJIAN_DETAIL_ENDPOINT = "/ujian/detail";
-
-type JadwalUjianApiItem = {
-  id: number;
-  id_ujian: number;
-  id_guru: number;
-  id_pengawas: number;
-  nama_ujian: string;
-  pengawas_ujian: string;
-  tgl_ujian: string;
-  tanggal_ujian: string;
-  waktu_mulai: string;
-  waktu_selesai: string;
-  sesi_ujian: number;
-  ruang_ujian: string;
-  id_ruang: number;
-  status_ujian: string;
-  started: number;
-  tingkat_kelas: number;
-  tingkat_kelas_id: number;
-  nama_kelas: string;
-  pembuat_username: string;
-  pengawas_username: string;
-};
-
-type JadwalUjianSiswaApiItem = Omit<
-  JadwalUjianSiswaItem,
-  "status_ujian" | "pengawas_nama_lengkap"
-> & {
-  status_ujian: string;
-  pengawas_nama_lengkap?: string | null;
-};
 
 const toClientStatus = (status: string): JadwalUjianStatusClient => {
   const normalized = status.trim().toUpperCase();

@@ -1,5 +1,7 @@
 import { useFetch } from "@/hooks/fetch";
 import { api } from "@/services/Api/api";
+import type { HasilUjianListApiItem } from "@/types/Api-Item/Ujian/HasilUjianListApiItem";
+import type { UjianEssayUngradedApiItem } from "@/types/Api-Item/Ujian/UjianEssayUngradedApiItem";
 import type {
   HasilUjianSiswa,
   StatistikUjian,
@@ -12,36 +14,6 @@ import type {
 export type HasilUjianDetailResponse = {
   statistik: StatistikUjian;
   siswa: HasilUjianSiswa[];
-};
-
-type HasilUjianListApiItem = Omit<JadwalUjianItem, "status_ujian" | "started"> & {
-  status_ujian: string;
-  started: number;
-};
-
-type UjianEssayUngradedApiItem = {
-  id: number;
-  id_ujian: number;
-  id_bank_soal: number;
-  id_guru: number;
-  id_pengawas: number;
-  nama_ujian: string;
-  pengawas_ujian: string;
-  tgl_ujian: string;
-  tanggal_ujian: string;
-  waktu_mulai: string;
-  waktu_selesai: string;
-  id_sesi: number;
-  nama_sesi: string;
-  ruang_ujian: string;
-  id_ruang: number;
-  status_ujian: string;
-  started: number;
-  tingkat_kelas: number;
-  tingkat_kelas_id: number;
-  nama_kelas: string;
-  pembuat_username: string;
-  pengawas_username: string;
 };
 
 const toClientStatus = (status: string): JadwalUjianStatusClient => {

@@ -41,14 +41,16 @@ const SiswaSubmitPreviewContent: React.FC<SiswaSubmitPreviewContentProps> = ({
       const jawaban = getJawabanBySoalId(soalId);
       return Boolean(
         jawaban &&
-          (jawaban.id_pilihan !== null ||
-            (jawaban.jawaban_essay?.trim() ?? "") !== ""),
+        (jawaban.id_pilihan !== null ||
+          (jawaban.jawaban_essay?.trim() ?? "") !== ""),
       );
     },
     [getJawabanBySoalId],
   );
 
-  const answeredCount = soalPreview.filter((soal) => isAnswered(soal.id)).length;
+  const answeredCount = soalPreview.filter((soal) =>
+    isAnswered(soal.id),
+  ).length;
 
   const scrollToQuestion = React.useCallback((soalId: number) => {
     const element = document.getElementById(`submit-preview-soal-${soalId}`);

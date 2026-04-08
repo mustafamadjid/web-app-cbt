@@ -26,7 +26,8 @@ func (r *JawabanUjianRepo) ListHasilJawabanUjianByIdAttempt(ctx context.Context,
 			jus.id_pilihan,
 			jus.jawaban_essay,
 			jus.waktu_jawab,
-			jus.essay_is_benar
+			jus.essay_is_benar,
+			hu.nilai_akhir
 		FROM attempt_ujian au
 		JOIN peserta_ujian pu
 			ON pu.id_peserta_ujian = au.id_peserta_ujian
@@ -43,6 +44,8 @@ func (r *JawabanUjianRepo) ListHasilJawabanUjianByIdAttempt(ctx context.Context,
 		LEFT JOIN jawaban_ujian_siswa jus
 			ON jus.id_attempt = au.id_attempt
 			AND jus.id_soal = s.id_soal
+		JOIN hasil_ujian hu
+			ON hu.id_attempt = au.id_attempt
 		WHERE au.id_attempt = $1
 		ORDER BY s.no_urut_soal ASC, op.id_pilihan_ganda ASC
 	`
@@ -82,6 +85,7 @@ func (r *JawabanUjianRepo) scanHasilJawabanRows(ctx context.Context, op string, 
 			jawabanEssay      sql.NullString
 			waktuJawab        sql.NullTime
 			essayIsBenar      sql.NullBool
+			nilaiAkhir        sql.NullFloat64
 		)
 
 		if err := rows.Scan(
@@ -101,6 +105,7 @@ func (r *JawabanUjianRepo) scanHasilJawabanRows(ctx context.Context, op string, 
 			&jawabanEssay,
 			&waktuJawab,
 			&essayIsBenar,
+			&nilaiAkhir,
 		); err != nil {
 			r.loggerFor(ctx).Error(ctx, "failed scan hasil jawaban ujian by attempt id", "layer", "adapter.repository", "op", op, "err", err)
 			return nil, err
@@ -118,7 +123,6 @@ func (r *JawabanUjianRepo) scanHasilJawabanRows(ctx context.Context, op string, 
 					NoUrutSoal:        noUrutSoal,
 				},
 				JawabanSiswa: ujian.JawabanUjian{
-					IdSoal:       idSoal,
 					IdPilihan:    nullInt64ToUjianIDPtr(idPilihan),
 					JawabanEssay: nullStringToPtr(jawabanEssay),
 				},
@@ -140,7 +144,10 @@ func (r *JawabanUjianRepo) scanHasilJawabanRows(ctx context.Context, op string, 
 				v := essayIsBenar.Bool
 				item.JawabanSiswa.EssayIsBenar = &v
 			}
-
+			if nilaiAkhir.Valid {
+				v := nilaiAkhir.Float64
+				item.NilaiAkhir = &v
+			}
 			itemsBySoalID[idSoal] = item
 			orderedSoalIDs = append(orderedSoalIDs, idSoal)
 		}
@@ -148,7 +155,6 @@ func (r *JawabanUjianRepo) scanHasilJawabanRows(ctx context.Context, op string, 
 		if idPilgan.Valid {
 			opsi := ujian.OpsiPilganUjian{
 				IdPilihanGanda: ujian.ID(idPilgan.Int64),
-				IdSoal:         idSoal,
 			}
 			if isiPilgan.Valid {
 				opsi.IsiPilihan = isiPilgan.String

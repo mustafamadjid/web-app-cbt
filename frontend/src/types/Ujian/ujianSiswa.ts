@@ -47,6 +47,8 @@ export type JawabanUjianSiswaItem = {
   waktu_jawab: string | null;
 };
 
+
+
 export type JawabanUjianSiswaResponse = {
   id_attempt: number;
   jawaban: JawabanUjianSiswaItem[];

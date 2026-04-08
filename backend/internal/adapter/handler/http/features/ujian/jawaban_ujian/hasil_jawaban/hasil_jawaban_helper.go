@@ -32,8 +32,19 @@ func toHasilJawabanUjianResponse(idAttempt int, items []ujian.HasilJawabanUjian)
 
 	return HasilJawabanUjianResponse{
 		IDAttempt:    idAttempt,
+		NilaiAkhir:   getHasilJawabanNilaiAkhir(items),
 		HasilJawaban: responseItems,
 	}
+}
+
+func getHasilJawabanNilaiAkhir(items []ujian.HasilJawabanUjian) *float64 {
+	for _, item := range items {
+		if item.NilaiAkhir != nil {
+			return item.NilaiAkhir
+		}
+	}
+
+	return nil
 }
 
 func toHasilJawabanUjianItemResponse(item ujian.HasilJawabanUjian) HasilJawabanUjianItemResponse {
@@ -41,7 +52,6 @@ func toHasilJawabanUjianItemResponse(item ujian.HasilJawabanUjian) HasilJawabanU
 	for _, opsi := range item.SoalUjianSiswa.OpsiJawaban {
 		opsiJawaban = append(opsiJawaban, HasilJawabanUjianOpsiJawabanResponse{
 			IDPilihanGanda: int(opsi.IdPilihanGanda),
-			IDSoal:         int(opsi.IdSoal),
 			IsiPilihan:     opsi.IsiPilihan,
 			IsBenar:        opsi.IsBenar,
 		})
