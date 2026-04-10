@@ -61,7 +61,10 @@ const buildInitialEssayCorrections = (
   const next: EssayCorrectionMap = {};
 
   items.forEach((item) => {
-    if (!isEssaySoal(item.tipe_soal) || item.jawaban_siswa.id_jawaban === null) {
+    if (
+      !isEssaySoal(item.tipe_soal) ||
+      item.jawaban_siswa.id_jawaban === null
+    ) {
       return;
     }
 
@@ -164,15 +167,20 @@ const HasilJawabanUjianContent: React.FC<HasilJawabanUjianContentProps> = ({
   submitDisabled = false,
   submitLoading = false,
 }) => {
-  const [essayCorrections, setEssayCorrections] = React.useState<EssayCorrectionMap>(
-    () => buildInitialEssayCorrections(hasilJawabanUjian),
-  );
+  const [essayCorrections, setEssayCorrections] =
+    React.useState<EssayCorrectionMap>(() =>
+      buildInitialEssayCorrections(hasilJawabanUjian),
+    );
 
   React.useEffect(() => {
     setEssayCorrections(buildInitialEssayCorrections(hasilJawabanUjian));
   }, [hasilJawabanUjian]);
 
-  const essayItems = hasilJawabanUjian.filter((item) => isEssaySoal(item.tipe_soal));
+  const essayItems = hasilJawabanUjian.filter((item) =>
+    isEssaySoal(item.tipe_soal),
+  );
+  const initialEssayCorrections =
+    buildInitialEssayCorrections(hasilJawabanUjian);
   const answeredCount = hasilJawabanUjian.filter(isItemAnswered).length;
   const reviewedEssayCount = essayItems.filter((item) => {
     const essayId = item.jawaban_siswa.id_jawaban;
@@ -182,15 +190,19 @@ const HasilJawabanUjianContent: React.FC<HasilJawabanUjianContentProps> = ({
 
     return essayCorrections[essayId] !== null;
   }).length;
-  const pendingEssayItems = essayItems.filter((item) => {
+  const editableEssayItems = essayItems.filter((item) => {
     const essayId = item.jawaban_siswa.id_jawaban;
-    return (
-      essayId !== null &&
-      getEssayAnswer(item) !== "" &&
-      item.jawaban_siswa.essay_is_benar === null
-    );
+    return essayId !== null && getEssayAnswer(item) !== "";
   });
-  const pendingEssaySelections = pendingEssayItems
+  const unresolvedEssayItems = editableEssayItems.filter((item) => {
+    const essayId = item.jawaban_siswa.id_jawaban;
+    if (essayId === null) {
+      return false;
+    }
+
+    return essayCorrections[essayId] === null;
+  });
+  const changedEssaySelections = editableEssayItems
     .map((item) => {
       const essayId = item.jawaban_siswa.id_jawaban;
       if (essayId === null) {
@@ -202,21 +214,25 @@ const HasilJawabanUjianContent: React.FC<HasilJawabanUjianContentProps> = ({
         return null;
       }
 
+      if (initialEssayCorrections[essayId] === result) {
+        return null;
+      }
+
       return {
         id_jawaban: essayId,
         essay_is_benar: result,
       };
     })
     .filter(
-      (item): item is SubmitKoreksiEssayRequest["jawaban"][number] => item !== null,
+      (item): item is SubmitKoreksiEssayRequest["jawaban"][number] =>
+        item !== null,
     );
-  const isPendingEssayComplete =
-    pendingEssayItems.length > 0 &&
-    pendingEssaySelections.length === pendingEssayItems.length;
   const shouldShowSubmit =
     canGradeEssay &&
     typeof submitEssayCorrection === "function" &&
-    pendingEssayItems.length > 0;
+    editableEssayItems.length > 0;
+  const canSubmitEssayCorrection =
+    unresolvedEssayItems.length === 0 && changedEssaySelections.length > 0;
 
   const scrollToQuestion = (soalId: number) => {
     const element = document.getElementById(`hasil-jawaban-soal-${soalId}`);
@@ -224,12 +240,12 @@ const HasilJawabanUjianContent: React.FC<HasilJawabanUjianContentProps> = ({
   };
 
   const handleSubmitEssayCorrection = () => {
-    if (!submitEssayCorrection || pendingEssaySelections.length === 0) {
+    if (!submitEssayCorrection || changedEssaySelections.length === 0) {
       return;
     }
 
     void submitEssayCorrection({
-      jawaban: pendingEssaySelections,
+      jawaban: changedEssaySelections,
     });
   };
 
@@ -240,8 +256,6 @@ const HasilJawabanUjianContent: React.FC<HasilJawabanUjianContentProps> = ({
       </div>
     );
   }
-
-
 
   return (
     <div className="flex w-full flex-col gap-6">
@@ -308,10 +322,7 @@ const HasilJawabanUjianContent: React.FC<HasilJawabanUjianContentProps> = ({
               essayId === null ? null : (essayCorrections[essayId] ?? null);
             const correctOptions = getCorrectOptions(item);
             const canEditEssay =
-              canGradeEssay &&
-              essayId !== null &&
-              essayAnswer !== "" &&
-              item.jawaban_siswa.essay_is_benar === null;
+              canGradeEssay && essayId !== null && essayAnswer !== "";
 
             return (
               <article
@@ -363,8 +374,11 @@ const HasilJawabanUjianContent: React.FC<HasilJawabanUjianContentProps> = ({
                   <div className="mt-5 space-y-3">
                     <div className="space-y-2">
                       {item.opsi_jawaban.map((option, optionIndex) => {
-                        const isSelected = selectedOptionId === option.id_pilihan_ganda;
-                        const optionLabel = String.fromCharCode(65 + optionIndex);
+                        const isSelected =
+                          selectedOptionId === option.id_pilihan_ganda;
+                        const optionLabel = String.fromCharCode(
+                          65 + optionIndex,
+                        );
                         const optionClass = option.is_benar
                           ? "border-emerald-200 bg-emerald-50 text-emerald-700"
                           : isSelected
@@ -379,9 +393,10 @@ const HasilJawabanUjianContent: React.FC<HasilJawabanUjianContentProps> = ({
                         return (
                           <div
                             key={option.id_pilihan_ganda}
-                            className={["rounded-xl border px-4 py-3 text-sm", optionClass].join(
-                              " ",
-                            )}
+                            className={[
+                              "rounded-xl border px-4 py-3 text-sm",
+                              optionClass,
+                            ].join(" ")}
                           >
                             <div className="flex items-start gap-3">
                               <span
@@ -458,7 +473,7 @@ const HasilJawabanUjianContent: React.FC<HasilJawabanUjianContentProps> = ({
                             </p>
                             <p className="mt-1 text-sm text-slate-600">
                               {canEditEssay
-                                ? "Tentukan apakah jawaban essay siswa benar atau salah."
+                                ? "Tentukan atau perbarui apakah jawaban essay siswa benar atau salah."
                                 : essayCorrectionValue === true
                                   ? "Jawaban essay sudah dinilai benar."
                                   : essayCorrectionValue === false
@@ -466,10 +481,6 @@ const HasilJawabanUjianContent: React.FC<HasilJawabanUjianContentProps> = ({
                                     : "Jawaban essay ini masih menunggu koreksi."}
                             </p>
                           </div>
-
-                          <span className="text-xs font-semibold text-slate-500">
-                            ID Jawaban: {essayId}
-                          </span>
                         </div>
 
                         {canEditEssay ? (
@@ -569,18 +580,22 @@ const HasilJawabanUjianContent: React.FC<HasilJawabanUjianContentProps> = ({
       {shouldShowSubmit && (
         <div className="sticky bottom-4 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-lg md:flex-row md:items-center md:justify-between">
           <p className="text-sm text-slate-600">
-            {isPendingEssayComplete
-              ? `Siap mengirim ${pendingEssaySelections.length} koreksi essay.`
-              : `Lengkapi ${pendingEssayItems.length - pendingEssaySelections.length} essay yang belum dipilih.`}
+            {unresolvedEssayItems.length > 0
+              ? `Lengkapi ${unresolvedEssayItems.length} essay yang belum dipilih.`
+              : changedEssaySelections.length > 0
+                ? `Siap mengirim ${changedEssaySelections.length} perubahan koreksi essay.`
+                : "Belum ada perubahan koreksi essay."}
           </p>
 
           <button
             type="button"
             onClick={handleSubmitEssayCorrection}
-            disabled={submitDisabled || submitLoading || !isPendingEssayComplete}
+            disabled={
+              submitDisabled || submitLoading || !canSubmitEssayCorrection
+            }
             className={[
               "rounded-lg px-4 py-2 text-sm font-semibold text-white transition",
-              submitDisabled || submitLoading || !isPendingEssayComplete
+              submitDisabled || submitLoading || !canSubmitEssayCorrection
                 ? "cursor-not-allowed bg-slate-300"
                 : "cursor-pointer bg-[#397e50] hover:bg-[#326f45]",
             ].join(" ")}

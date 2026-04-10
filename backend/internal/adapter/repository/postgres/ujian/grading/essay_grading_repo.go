@@ -49,19 +49,34 @@ func (r *GradingRepo) UpdateAndGradingEssayUjian(ctx context.Context, jawabanSis
 				id_jawaban bigint,
 				essay_is_benar boolean
 			)
+		), target_rows AS (
+			SELECT
+				jus.id_jawaban,
+				jus.id_attempt,
+				jus.id_soal,
+				d.essay_is_benar AS next_essay_is_benar
+			FROM jawaban_ujian_siswa jus
+			JOIN data d
+				ON d.id_jawaban = jus.id_jawaban
+			WHERE jus.essay_is_benar IS DISTINCT FROM d.essay_is_benar
+			FOR UPDATE
 		), updated AS (
 			UPDATE jawaban_ujian_siswa jus
-			SET essay_is_benar = COALESCE(d.essay_is_benar, jus.essay_is_benar)
-			FROM data d
-			WHERE jus.id_jawaban = d.id_jawaban
-				AND jus.essay_is_benar IS NULL
-			RETURNING jus.id_attempt, jus.id_soal, jus.essay_is_benar
-		), statistik_agg AS (
-			SELECT
+			SET essay_is_benar = t.next_essay_is_benar
+			FROM target_rows t
+			WHERE jus.id_jawaban = t.id_jawaban
+			RETURNING
+				jus.id_jawaban,
+				t.id_attempt,
+				t.id_soal,
+				jus.essay_is_benar
+		), affected_attempts AS (
+			SELECT DISTINCT id_attempt
+			FROM updated
+		), affected_soal AS (
+			SELECT DISTINCT
 				u.id_soal,
-				ju.id_ujian,
-				COUNT(*) FILTER (WHERE u.essay_is_benar = true)::integer AS jumlah_jawaban_benar,
-				COUNT(*) FILTER (WHERE u.essay_is_benar = false)::integer AS jumlah_jawaban_salah
+				ju.id_ujian
 			FROM updated u
 			JOIN attempt_ujian au
 				ON au.id_attempt = u.id_attempt
@@ -69,7 +84,32 @@ func (r *GradingRepo) UpdateAndGradingEssayUjian(ctx context.Context, jawabanSis
 				ON pu.id_peserta_ujian = au.id_peserta_ujian
 			JOIN jadwal_ujian ju
 				ON ju.id_jadwal_ujian = pu.id_jadwal_ujian
-			GROUP BY u.id_soal, ju.id_ujian
+		), jawaban_current AS (
+			SELECT
+				jus.id_jawaban,
+				jus.id_attempt,
+				jus.id_soal,
+				jus.id_pilihan,
+				jus.jawaban_essay,
+				CASE
+					WHEN u.id_jawaban IS NOT NULL THEN u.essay_is_benar
+					ELSE jus.essay_is_benar
+				END AS essay_is_benar
+			FROM jawaban_ujian_siswa jus
+			LEFT JOIN updated u
+				ON u.id_jawaban = jus.id_jawaban
+			WHERE jus.id_attempt IN (SELECT id_attempt FROM affected_attempts)
+				OR jus.id_soal IN (SELECT id_soal FROM affected_soal)
+		), statistik_agg AS (
+			SELECT
+				a.id_soal,
+				a.id_ujian,
+				COUNT(*) FILTER (WHERE jc.essay_is_benar = true)::integer AS jumlah_jawaban_benar,
+				COUNT(*) FILTER (WHERE jc.essay_is_benar = false)::integer AS jumlah_jawaban_salah
+			FROM affected_soal a
+			LEFT JOIN jawaban_current jc
+				ON jc.id_soal = a.id_soal
+			GROUP BY a.id_soal, a.id_ujian
 		), statistik_upsert AS (
 			INSERT INTO statistik_soal (
 				id_soal,
@@ -85,24 +125,46 @@ func (r *GradingRepo) UpdateAndGradingEssayUjian(ctx context.Context, jawabanSis
 			FROM statistik_agg sa
 			ON CONFLICT (id_ujian, id_soal)
 			DO UPDATE SET
-				jumlah_jawaban_benar = statistik_soal.jumlah_jawaban_benar + EXCLUDED.jumlah_jawaban_benar,
-				jumlah_jawaban_salah = statistik_soal.jumlah_jawaban_salah + EXCLUDED.jumlah_jawaban_salah,
+				jumlah_jawaban_benar = EXCLUDED.jumlah_jawaban_benar,
+				jumlah_jawaban_salah = EXCLUDED.jumlah_jawaban_salah,
 				updated_at = NOW()
 		), score_agg AS (
 			SELECT
-				u.id_attempt,
+				aa.id_attempt,
 				ju.id_jadwal_ujian,
-				COALESCE(SUM(CASE WHEN u.essay_is_benar = true THEN s.bobot_soal ELSE 0 END), 0)::decimal(5,2) AS tambahan_nilai
-			FROM updated u
-			JOIN isi_soal s
-				ON s.id_soal = u.id_soal
+				COALESCE(
+					SUM(
+						CASE
+							WHEN LOWER(REPLACE(COALESCE(s.tipe_soal, ''), ' ', '_')) = 'essay'
+								AND jc.essay_is_benar = true
+							THEN s.bobot_soal
+							WHEN LOWER(REPLACE(COALESCE(s.tipe_soal, ''), ' ', '_')) = 'pilihan_ganda'
+								AND op.is_benar = true
+							THEN s.bobot_soal
+							ELSE 0
+						END
+					),
+					0
+				)::decimal(5,2) AS nilai_akhir,
+				COUNT(*) FILTER (
+					WHERE LOWER(REPLACE(COALESCE(s.tipe_soal, ''), ' ', '_')) = 'essay'
+						AND COALESCE(NULLIF(BTRIM(jc.jawaban_essay), ''), '') <> ''
+						AND jc.essay_is_benar IS NULL
+				)::integer AS jumlah_essay_belum_dikoreksi
+			FROM affected_attempts aa
 			JOIN attempt_ujian au
-				ON au.id_attempt = u.id_attempt
+				ON au.id_attempt = aa.id_attempt
 			JOIN peserta_ujian pu
 				ON pu.id_peserta_ujian = au.id_peserta_ujian
 			JOIN jadwal_ujian ju
 				ON ju.id_jadwal_ujian = pu.id_jadwal_ujian
-			GROUP BY u.id_attempt, ju.id_jadwal_ujian
+			LEFT JOIN jawaban_current jc
+				ON jc.id_attempt = aa.id_attempt
+			LEFT JOIN isi_soal s
+				ON s.id_soal = jc.id_soal
+			LEFT JOIN opsi_pilihan_ganda op
+				ON op.id_pilihan_ganda = jc.id_pilihan
+			GROUP BY aa.id_attempt, ju.id_jadwal_ujian
 		), hasil_upsert AS (
 			INSERT INTO hasil_ujian (
 				id_attempt,
@@ -115,16 +177,16 @@ func (r *GradingRepo) UpdateAndGradingEssayUjian(ctx context.Context, jawabanSis
 			SELECT
 				sa.id_attempt,
 				$2,
-				sa.tambahan_nilai,
-				TRUE,
+				sa.nilai_akhir,
+				sa.jumlah_essay_belum_dikoreksi = 0,
 				NOW(),
 				sa.id_jadwal_ujian
 			FROM score_agg sa
 			ON CONFLICT (id_attempt)
 			DO UPDATE SET
 				graded_by = EXCLUDED.graded_by,
-				nilai_akhir = COALESCE(hasil_ujian.nilai_akhir, 0) + EXCLUDED.nilai_akhir,
-				essay_graded = TRUE,
+				nilai_akhir = EXCLUDED.nilai_akhir,
+				essay_graded = EXCLUDED.essay_graded,
 				graded_at = EXCLUDED.graded_at,
 				id_jadwal_ujian = COALESCE(hasil_ujian.id_jadwal_ujian, EXCLUDED.id_jadwal_ujian)
 			RETURNING id_jadwal_ujian
