@@ -27,6 +27,7 @@ import (
 	pgujiansiswajawaban "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/ujian/siswa/jawaban_ujian"
 	pgujiansiswa "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/ujian/siswa/ujian_siswa"
 	pgujiansiswachecker "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/ujian/siswa/ujian_siswa_checker"
+	pgujianstatistik "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/ujian/statistik_ujian"
 	pguser "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/user"
 	out "github.com/mustafamadjid/web-app-cbt/internal/core/port/out"
 	outaktivitas "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/aktivitas_user"
@@ -43,6 +44,7 @@ import (
 	txout "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/tx"
 	ujian_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/ujian"
 	grading_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/ujian/grading"
+	statistikujian_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/ujian/statistik_ujian"
 	outuser "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
 )
 
@@ -63,22 +65,23 @@ type InfraModule struct {
 	profilSekolah outprofil.ProfilSekolahRepository
 	aktivitasUser outaktivitas.AktivitasUserRepository
 
-	kelasRepo         kelas_repo.KelasRepository
-	bankSoalRepo      bank_soal_repo.BankSoalRepository
-	mapelRepo         mapel_repo.MataPelajaranRepository
-	pengumumanRepo    pengumuman_repo.PengumumanRepo
-	ruangUjianRepo    ruangujian_repo.RuangUjianRepo
-	listUjianRepo     ujian_repo.ListUjianRepository
-	ujianSiswaRepo    ujian_repo.UjianSiswaRepository
-	soalUjianRepo     ujian_repo.SoalUjianRepository
-	ujianRepo         ujian_repo.UjianRepository
-	attemptUjianRepo  ujian_repo.AttemptUjianRepository
-	jawabanUjianRepo  ujian_repo.JawabanUjianRepository
-	gradingRepo       grading_repo.GradingUjianRepository
-	listGradingRepo   grading_repo.ListGradingUjianRepository
-	gradingWorkerRepo grading_repo.GradingWorkerRepository
-	siswaUjianChecker ujian_repo.SiswaUjianChecker
-	sesiRepo          sesi_repo.SesiRepository
+	kelasRepo          kelas_repo.KelasRepository
+	bankSoalRepo       bank_soal_repo.BankSoalRepository
+	mapelRepo          mapel_repo.MataPelajaranRepository
+	pengumumanRepo     pengumuman_repo.PengumumanRepo
+	ruangUjianRepo     ruangujian_repo.RuangUjianRepo
+	listUjianRepo      ujian_repo.ListUjianRepository
+	ujianSiswaRepo     ujian_repo.UjianSiswaRepository
+	soalUjianRepo      ujian_repo.SoalUjianRepository
+	ujianRepo          ujian_repo.UjianRepository
+	attemptUjianRepo   ujian_repo.AttemptUjianRepository
+	jawabanUjianRepo   ujian_repo.JawabanUjianRepository
+	gradingRepo        grading_repo.GradingUjianRepository
+	listGradingRepo    grading_repo.ListGradingUjianRepository
+	gradingWorkerRepo  grading_repo.GradingWorkerRepository
+	statistikUjianRepo statistikujian_repo.StatistikUjianRepository
+	siswaUjianChecker  ujian_repo.SiswaUjianChecker
+	sesiRepo           sesi_repo.SesiRepository
 
 	importSoalJobRepo importsoal_repo.ImportSoalJobRepo
 	isiSoalBatchRepo  importsoal_repo.IsiSoalBatchRepo
@@ -96,6 +99,7 @@ func BuildInfraModule(pool *pgxpool.Pool, logger corelog.Logger) *InfraModule {
 	jawabanUjianRepo := pgujiansiswajawaban.NewJawabanUjianRepo(pool, logger)
 	gradingRepo := pgujiangrading.NewGradingRepo(pool, logger)
 	listGradingRepo := pgujiangradinglist.NewListGradingRepo(pool, logger)
+	statistikUjianRepo := pgujianstatistik.NewStatistikUjianRepo(pool, logger)
 
 	return &InfraModule{
 		Pool:                  pool,
@@ -124,6 +128,7 @@ func BuildInfraModule(pool *pgxpool.Pool, logger corelog.Logger) *InfraModule {
 		gradingRepo:           gradingRepo,
 		listGradingRepo:       listGradingRepo,
 		gradingWorkerRepo:     gradingRepo,
+		statistikUjianRepo:    statistikUjianRepo,
 		siswaUjianChecker:     siswaUjianChecker,
 		sesiRepo:              pgsesi.NewSesirepo(pool, logger),
 		importSoalJobRepo:     pgimportsoaljob.NewImportSoalJobRepo(pool, logger),

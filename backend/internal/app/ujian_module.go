@@ -17,6 +17,7 @@ import (
 	httplistsoalsiswa "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/list_soal_ujian_for_siswa"
 	httplistessayungraded "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/list_ujian_essay_ungraded"
 	httplistsiswa "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/list_ujian_siswa"
+	httpstatistikujian "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/statistik_ujian"
 	httpsubmitujian "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/submit_ujian"
 	httpcreateujian "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/ujian_siswa/create"
 	httpdeleteujian "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/ujian_siswa/delete"
@@ -31,7 +32,7 @@ import (
 	gradingujian_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian/grading_ujian/grading"
 	essaygrading_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian/grading_ujian/grading/essay_grading"
 	listessayungraded_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian/grading_ujian/list/list_ujian_essay_ungraded"
-	statistikujian_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian/grading_ujian/statistik_ujian"
+	gradingstatistikujian_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian/grading_ujian/statistik_ujian"
 	gradingworker_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian/grading_ujian/worker"
 	getjawaban_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian/jawaban_ujian/get_jawaban"
 	hasiljawaban_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian/jawaban_ujian/hasil_jawaban"
@@ -40,6 +41,7 @@ import (
 	siswaujiansoal_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian/soal_ujian"
 	siswaujianwaktuselesai_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian/waktu_selesai"
 	ujian_soal_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/soal_ujian"
+	getstatistikujian_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/statistik_ujian"
 	ujian_create_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/ujian_penjadwalan/create"
 	ujian_delete_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/ujian_penjadwalan/delete"
 	ujian_get_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/ujian_penjadwalan/get"
@@ -57,6 +59,7 @@ type UjianModule struct {
 	GradingUjianService              *gradingujian_service.GradingUjianService
 	EssayGradingService              *essaygrading_service.EssayGradingUjianService
 	ListUjianEssayUngradedService    *listessayungraded_service.ListUjianEssayUngradedService
+	GetStatistikUjianService         *getstatistikujian_service.StatistikUjianService
 	GradingWorker                    *gradingworker_service.GradingUjianWorkerRepo
 	GetJawabanService                *getjawaban_service.SiswaGetJawabanUjianService
 	HasilJawabanService              *hasiljawaban_service.HasilJawabanUjianService
@@ -80,6 +83,7 @@ type UjianModule struct {
 	SaveJawabanUjianHandler          *httpsavejawaban.SaveJawabanUjianHandler
 	KoreksiEssayHandler              *httpkoreksiessay.KoreksiEssayHandler
 	ListUjianEssayUngradedHandler    *httplistessayungraded.ListUjianEssayUngradedHandler
+	GetStatistikUjianHandler         *httpstatistikujian.GetStatistikUjianHandler
 	CreateUjianHandler               *httpcreateujian.CreateRuangUjianHandler
 	ListHandler                      *httplist.ListUjianHandler
 	ListUjianSiswaHandler            *httplistsiswa.ListUjianSiswaHandler
@@ -121,7 +125,8 @@ func BuildUjianModule(infra *InfraModule) *UjianModule {
 	)
 	essayGradingSvc := essaygrading_service.NewEssayGradingUjianService(infra.gradingRepo)
 	listEssayUngradedSvc := listessayungraded_service.NewListUjianEssayUngradedService(infra.listGradingRepo)
-	statistikUjianSvc := statistikujian_service.NewStatistikUjianService(infra.gradingRepo)
+	getStatistikUjianSvc := getstatistikujian_service.NewStatistikUjianService(infra.statistikUjianRepo)
+	statistikUjianSvc := gradingstatistikujian_service.NewStatistikUjianService(infra.gradingRepo)
 	gradingWorker := gradingworker_service.NewGradingUjianWorkerService(
 		infra.gradingWorkerRepo,
 		gradingworker_service.NewCompositeGradingUjianExecutor(gradingUjianSvc, statistikUjianSvc),
@@ -141,6 +146,7 @@ func BuildUjianModule(infra *InfraModule) *UjianModule {
 	saveJawabanHandler := httpsavejawaban.NewSaveJawabanUjianHandler(saveJawabanSvc)
 	koreksiEssayHandler := httpkoreksiessay.NewKoreksiEssayHandler(essayGradingSvc)
 	listEssayUngradedHandler := httplistessayungraded.NewListUjianEssayUngradedHandler(listEssayUngradedSvc)
+	getStatistikUjianHandler := httpstatistikujian.NewGetStatistikUjianHandler(getStatistikUjianSvc)
 	createUjianHandler := httpcreateujian.NewCreateUjianHandler(createUjianSvc)
 	listHandler := httplist.NewListUjianHandler(getSvc)
 	listUjianSiswaHandler := httplistsiswa.NewListUjianSiswaHandler(listUjianSiswaSvc)
@@ -167,6 +173,7 @@ func BuildUjianModule(infra *InfraModule) *UjianModule {
 		GradingUjianService:              gradingUjianSvc,
 		EssayGradingService:              essayGradingSvc,
 		ListUjianEssayUngradedService:    listEssayUngradedSvc,
+		GetStatistikUjianService:         getStatistikUjianSvc,
 		GradingWorker:                    gradingWorker,
 		ListSoalUjianService:             listSoalUjianSvc,
 		ListSoalUjianSiswaService:        listSoalUjianSiswaSvc,
@@ -184,6 +191,7 @@ func BuildUjianModule(infra *InfraModule) *UjianModule {
 		SaveJawabanUjianHandler:          saveJawabanHandler,
 		KoreksiEssayHandler:              koreksiEssayHandler,
 		ListUjianEssayUngradedHandler:    listEssayUngradedHandler,
+		GetStatistikUjianHandler:         getStatistikUjianHandler,
 		CreateUjianHandler:               createUjianHandler,
 		ListHandler:                      listHandler,
 		ListUjianSiswaHandler:            listUjianSiswaHandler,

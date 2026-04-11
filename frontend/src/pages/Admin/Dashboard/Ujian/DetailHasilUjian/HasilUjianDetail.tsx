@@ -9,52 +9,15 @@ import {
   GraduationCap,
   Hash,
   Medal,
-  type LucideIcon,
 } from "lucide-react";
-import {
-  useGetHasilUjianDetail,
-} from "@/services/Api/features-api/Ujian/hasilUjian.service";
 import { useGetListPesertaUjianSubmitted } from "@/services/Api/features-api/Ujian/attemptUjian.service";
+import { useGetStatistikUjian } from "@/services/Api/features-api/Ujian/statistikUjian.service";
+import StatWidget, {
+  type StatWidgetProps,
+} from "@/components/features/widget/StatistikHasilUjian/StatWidget";
 import type { PesertaUjianSubmittedItem } from "@/types/Ujian/AttemptUjian";
 import { useAuth } from "@/contexts/AuthContext";
 import { paths } from "@/routes/paths";
-
-// --- KOMPONEN WIDGET FLAT (NO SHADOW, NO BG DECOR) ---
-const StatWidget = ({
-  title,
-  value,
-  icon: Icon,
-  colorTheme, // 'emerald' | 'amber' | 'blue' | 'rose'
-}: {
-  title: string;
-  value: number | string;
-  icon: LucideIcon;
-  colorTheme: string;
-}) => {
-  // Mapping warna simpel (Background soft + Text color)
-  const colors: Record<string, string> = {
-    emerald: "bg-emerald-50 text-emerald-600",
-    amber: "bg-amber-50 text-amber-600",
-    blue: "bg-blue-50 text-blue-600",
-    rose: "bg-rose-50 text-rose-600",
-  };
-
-  const themeClass = colors[colorTheme] || colors.blue;
-
-  return (
-    <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-6">
-      <div>
-        <p className="text-sm font-medium text-slate-500">{title}</p>
-        <h3 className="mt-2 text-2xl font-bold text-slate-800">{value}</h3>
-      </div>
-      <div
-        className={`flex h-12 w-12 items-center justify-center rounded-xl ${themeClass}`}
-      >
-        <Icon size={24} strokeWidth={2.5} />
-      </div>
-    </div>
-  );
-};
 
 const HasilUjianDetail = () => {
   const { user } = useAuth();
@@ -63,9 +26,9 @@ const HasilUjianDetail = () => {
   const isJadwalUjianIdValid =
     Number.isInteger(jadwalUjianId) && jadwalUjianId > 0;
   const {
-    data: hasilDetail,
+    data: statistik,
     error: statistikError,
-  } = useGetHasilUjianDetail(jadwalUjianId, isJadwalUjianIdValid);
+  } = useGetStatistikUjian(jadwalUjianId, isJadwalUjianIdValid);
   const {
     data: pesertaSubmitted,
     loading: pesertaLoading,
@@ -75,7 +38,6 @@ const HasilUjianDetail = () => {
     isJadwalUjianIdValid,
   );
 
-  const statistik = hasilDetail?.statistik ?? null;
   const daftarPeserta: PesertaUjianSubmittedItem[] = pesertaSubmitted ?? [];
   const invalidIdMessage = !isJadwalUjianIdValid
     ? "ID jadwal ujian tidak valid."
@@ -105,22 +67,31 @@ const HasilUjianDetail = () => {
     });
   };
 
-  const widgetData = [
+  const formatNilaiStatistik = (value: number | null | undefined) => {
+    if (typeof value !== "number") return "0,00";
+
+    return value.toLocaleString("id-ID", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  };
+
+  const widgetData: StatWidgetProps[] = [
     {
       title: "Nilai Tertinggi",
-      value: statistik?.nilai_tertinggi ?? 0,
+      value: formatNilaiStatistik(statistik?.nilai_tertinggi),
       icon: Trophy,
       colorTheme: "amber",
     },
     {
       title: "Rata-rata Kelas",
-      value: statistik?.rata_rata ?? 0,
+      value: formatNilaiStatistik(statistik?.rata_rata),
       icon: TrendingUp,
       colorTheme: "blue",
     },
     {
       title: "Nilai Terendah",
-      value: statistik?.nilai_terendah ?? 0,
+      value: formatNilaiStatistik(statistik?.nilai_terendah),
       icon: TrendingDown,
       colorTheme: "rose",
     },
