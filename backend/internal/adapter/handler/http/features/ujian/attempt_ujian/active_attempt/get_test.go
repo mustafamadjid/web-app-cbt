@@ -15,7 +15,7 @@ import (
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 	ujian_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/ujian"
 	query "github.com/mustafamadjid/web-app-cbt/internal/core/query/ujian"
-	activeattempt_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian/active_attempt"
+	activeattempt_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/attempt_ujian/active_attempt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

@@ -9,14 +9,14 @@ import (
 	httpResponse "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/helper/response_envelope"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
-	siswaujian_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian"
+	attemptujian_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/attempt_ujian/create"
 )
 
 type AttemptUjianHandler struct {
-	svc *siswaujian_service.AttemptUjianService
+	svc *attemptujian_service.AttemptUjianService
 }
 
-func NewAttemptUjianHandler(svc *siswaujian_service.AttemptUjianService) *AttemptUjianHandler {
+func NewAttemptUjianHandler(svc *attemptujian_service.AttemptUjianService) *AttemptUjianHandler {
 	return &AttemptUjianHandler{svc: svc}
 }
 

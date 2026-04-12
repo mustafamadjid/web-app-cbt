@@ -11,7 +11,7 @@ import { useCachedActiveAttemptId } from "@/hooks/Ujian/useCachedActiveAttemptId
 import { useCachedSoalUjianForSiswa } from "@/hooks/Ujian/useCachedSoalUjianForSiswa";
 import { useExamCountdown } from "@/hooks/Ujian/useExamCountdown";
 import { useExamSessionExit } from "@/hooks/Ujian/useExamSessionExit";
-import { useUjianMulaiSiswaController } from "@/hooks/Ujian/useUjianMulaiSiswaController";
+import { useUjianMulaiSiswaController } from "@/hooks/Ujian/UjianMulaiSiswa";
 import { paths } from "@/routes/paths";
 import {
   useGetJawabanUjianSiswaByAttemptId,

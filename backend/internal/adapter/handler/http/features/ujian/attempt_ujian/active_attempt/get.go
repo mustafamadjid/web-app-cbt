@@ -10,7 +10,7 @@ import (
 	"github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/middleware"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
-	activeattempt_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian/active_attempt"
+	activeattempt_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/attempt_ujian/active_attempt"
 )
 
 type GetActiveAttemptUjianHandler struct {

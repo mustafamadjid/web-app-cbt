@@ -24,11 +24,11 @@ import (
 	httpget "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/ujian_siswa/get"
 	httpupdateujian "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/ujian_siswa/update"
 	httpgetwaktuujian "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/waktu_ujian"
+	activeattempt_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/attempt_ujian/active_attempt"
+	attempt_create_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/attempt_ujian/create"
 	attempt_list_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/attempt_ujian/list_peserta_submitted"
 	attempt_submit_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/attempt_ujian/submit_ujian"
 	attempt_update_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/attempt_ujian/update"
-	siswaujian_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian"
-	activeattempt_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian/active_attempt"
 	gradingujian_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian/grading_ujian/grading"
 	essaygrading_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian/grading_ujian/grading/essay_grading"
 	listessayungraded_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/ujian/siswa_ujian/grading_ujian/list/list_ujian_essay_ungraded"
@@ -50,7 +50,7 @@ import (
 
 type UjianModule struct {
 	CreateUjianService               *ujian_create_service.CreateUjianService
-	AttemptUjianService              *siswaujian_service.AttemptUjianService
+	AttemptUjianService              *attempt_create_service.AttemptUjianService
 	GetActiveAttemptService          *activeattempt_service.GetActiveAttemptUjianService
 	ListPesertaUjianSubmittedService *attempt_list_service.PesertaUjianSubmittedService
 	UpdateAttemptUjianService        *attempt_update_service.SiswaUpdateAttemptUjianService
@@ -97,7 +97,7 @@ type UjianModule struct {
 
 func BuildUjianModule(infra *InfraModule) *UjianModule {
 	createUjianSvc := ujian_create_service.NewCreateUjianService(infra.ujianRepo)
-	attemptUjianSvc := siswaujian_service.NewAttemptUjianService(
+	attemptUjianSvc := attempt_create_service.NewAttemptUjianService(
 		infra.siswaUjianChecker,
 		infra.attemptUjianRepo,
 	)
