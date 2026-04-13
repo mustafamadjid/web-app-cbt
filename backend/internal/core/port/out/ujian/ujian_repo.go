@@ -25,7 +25,7 @@ type UjianRepository interface {
 
 type SoalUjianRepository interface {
 	GetSoalUjianByBankSoal(ctx context.Context, idBankSoal ujian.ID) ([]ujian.SoalUjianSiswa, error)
-	GetSoalUjianByBankSoalForSiswa(ctx context.Context, idJadwalUjian ujian.ID) ([]ujian.SoalUjianSiswa,bool, error)
+	GetSoalUjianByBankSoalForSiswa(ctx context.Context, idJadwalUjian ujian.ID) ([]ujian.SoalUjianSiswa, bool, error)
 }
 
 type AttemptUjianRepository interface {
@@ -42,7 +42,7 @@ type AttemptUjianRepository interface {
 
 type JawabanUjianRepository interface {
 	GetJawabanUjianByAttemptId(ctx context.Context, idAttempt ujian.ID) ([]ujian.JawabanUjian, error)
-	SaveJawabanUjian(ctx context.Context,idAttempt ujian.ID, jawaban []ujian.JawabanUjian) error
+	SaveJawabanUjian(ctx context.Context, idAttempt ujian.ID, jawaban []ujian.JawabanUjian) error
 
 	ListHasilJawabanUjianByIdAttempt(ctx context.Context, idAttempt ujian.ID) ([]ujian.HasilJawabanUjian, error)
 }

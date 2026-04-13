@@ -2,6 +2,7 @@ package attemptujian_service
 
 import (
 	"context"
+	"errors"
 	"strings"
 	"time"
 
@@ -86,6 +87,10 @@ func (r *AttemptUjianService) AttemptUjian(ctx context.Context, idSiswa int, idJ
 	}
 
 	if err := r.attemptRepo.CreateAttemptUjian(ctx, dataAttempt); err != nil {
+		if errors.Is(err, coreerror.ErrSiswaHasActiveAttempt) {
+			return nil
+		}
+
 		logger.Error(ctx, "failed attempt ujian", "layer", "core.service", "op", "ujian.attempt.create", "err", err)
 		return err
 	}

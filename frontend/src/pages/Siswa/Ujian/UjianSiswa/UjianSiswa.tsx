@@ -26,7 +26,7 @@ const UjianSiswa: React.FC = () => {
   const exams = examData ?? [];
 
   const handleStartExam = (id: number) => {
-    navigate(paths.dashboard.ujian_siswa_token.replace(":idJadwalUjian", String(id)));
+    navigate(paths.dashboard.ujian_siswa_mulai.replace(":idJadwalUjian", String(id)));
   };
 
   const categories = [
