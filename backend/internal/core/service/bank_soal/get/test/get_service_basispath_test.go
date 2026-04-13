@@ -9,6 +9,7 @@ import (
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/bank_soal"
 	query "github.com/mustafamadjid/web-app-cbt/internal/core/query/bank_soal"
+	fakerepo "github.com/mustafamadjid/web-app-cbt/internal/core/service/bank_soal/fake_repo"
 	bank_soal_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/bank_soal/get"
 	"github.com/stretchr/testify/assert"
 )
@@ -20,7 +21,7 @@ func TestGetBankSoalService_BasisPath(t *testing.T) {
 	repoErr := errors.New("repo error")
 
 	t.Run("list -> repo error", func(t *testing.T) {
-		repo := &FakeBankSoalRepo{GetBankSoalErr: repoErr}
+		repo := &fakerepo.FakeBankSoalRepo{GetBankSoalErr: repoErr}
 		svc := bank_soal_service.NewGetBankSoalService(repo)
 
 		_, err := svc.GetBankSoalService(ctx, query.BankSoalFilter{Search: "matematika"})
@@ -29,7 +30,7 @@ func TestGetBankSoalService_BasisPath(t *testing.T) {
 	})
 
 	t.Run("list -> success", func(t *testing.T) {
-		repo := &FakeBankSoalRepo{
+		repo := &fakerepo.FakeBankSoalRepo{
 			GetBankSoalData: []bank_soal.BankSoal{
 				{IdBankSoal: 1, NamaBankSoal: "UTS", CreatedAt: time.Date(2026, time.March, 2, 10, 0, 0, 0, time.UTC)},
 			},
@@ -50,7 +51,7 @@ func TestGetBankSoalService_BasisPath(t *testing.T) {
 	})
 
 	t.Run("list uploaded -> repo error", func(t *testing.T) {
-		repo := &FakeBankSoalRepo{GetBankSoalUploadedErr: repoErr}
+		repo := &fakerepo.FakeBankSoalRepo{GetBankSoalUploadedErr: repoErr}
 		svc := bank_soal_service.NewGetBankSoalService(repo)
 
 		_, err := svc.GetBankSoalUploadedService(ctx, query.BankSoalFilter{Search: "kimia"})
@@ -59,7 +60,7 @@ func TestGetBankSoalService_BasisPath(t *testing.T) {
 	})
 
 	t.Run("list uploaded -> success", func(t *testing.T) {
-		repo := &FakeBankSoalRepo{
+		repo := &fakerepo.FakeBankSoalRepo{
 			GetBankSoalUploadedData: []bank_soal.BankSoal{
 				{IdBankSoal: 7, NamaBankSoal: "Uploaded", CreatedAt: time.Date(2026, time.March, 2, 10, 0, 0, 0, time.UTC)},
 			},
@@ -81,7 +82,7 @@ func TestGetBankSoalService_BasisPath(t *testing.T) {
 	})
 
 	t.Run("get by id -> invalid id", func(t *testing.T) {
-		repo := &FakeBankSoalRepo{}
+		repo := &fakerepo.FakeBankSoalRepo{}
 		svc := bank_soal_service.NewGetBankSoalService(repo)
 
 		_, err := svc.GetBankSoalByIdService(ctx, 0)
@@ -90,7 +91,7 @@ func TestGetBankSoalService_BasisPath(t *testing.T) {
 	})
 
 	t.Run("get by id -> repo error", func(t *testing.T) {
-		repo := &FakeBankSoalRepo{GetByIDErr: repoErr}
+		repo := &fakerepo.FakeBankSoalRepo{GetByIDErr: repoErr}
 		svc := bank_soal_service.NewGetBankSoalService(repo)
 
 		_, err := svc.GetBankSoalByIdService(ctx, 1)
@@ -100,7 +101,7 @@ func TestGetBankSoalService_BasisPath(t *testing.T) {
 	})
 
 	t.Run("get by id -> not found", func(t *testing.T) {
-		repo := &FakeBankSoalRepo{GetByIDErr: coreerror.ErrNotFound}
+		repo := &fakerepo.FakeBankSoalRepo{GetByIDErr: coreerror.ErrNotFound}
 		svc := bank_soal_service.NewGetBankSoalService(repo)
 
 		_, err := svc.GetBankSoalByIdService(ctx, 1)
@@ -109,7 +110,7 @@ func TestGetBankSoalService_BasisPath(t *testing.T) {
 	})
 
 	t.Run("get by id -> success", func(t *testing.T) {
-		repo := &FakeBankSoalRepo{
+		repo := &fakerepo.FakeBankSoalRepo{
 			GetByIDData: bank_soal.BankSoal{
 				IdBankSoal:   2,
 				NamaBankSoal: "UAS",
@@ -126,7 +127,7 @@ func TestGetBankSoalService_BasisPath(t *testing.T) {
 	})
 
 	t.Run("get by guru -> invalid id", func(t *testing.T) {
-		repo := &FakeBankSoalRepo{}
+		repo := &fakerepo.FakeBankSoalRepo{}
 		svc := bank_soal_service.NewGetBankSoalService(repo)
 
 		_, err := svc.GetBankSoalByGuruService(ctx, 0)
@@ -135,7 +136,7 @@ func TestGetBankSoalService_BasisPath(t *testing.T) {
 	})
 
 	t.Run("get by guru -> repo error", func(t *testing.T) {
-		repo := &FakeBankSoalRepo{GetByGuruErr: repoErr}
+		repo := &fakerepo.FakeBankSoalRepo{GetByGuruErr: repoErr}
 		svc := bank_soal_service.NewGetBankSoalService(repo)
 
 		_, err := svc.GetBankSoalByGuruService(ctx, 9)
@@ -145,7 +146,7 @@ func TestGetBankSoalService_BasisPath(t *testing.T) {
 	})
 
 	t.Run("get by guru -> success", func(t *testing.T) {
-		repo := &FakeBankSoalRepo{
+		repo := &fakerepo.FakeBankSoalRepo{
 			GetByGuruData: []bank_soal.BankSoal{{
 				IdBankSoal:   3,
 				NamaBankSoal: "Tryout",

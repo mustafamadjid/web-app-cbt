@@ -8,6 +8,7 @@ import (
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/bank_soal"
 	updatepatch "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/update_patch"
+	fakerepo "github.com/mustafamadjid/web-app-cbt/internal/core/service/bank_soal/fake_repo"
 	bank_soal_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/bank_soal/update"
 	"github.com/stretchr/testify/assert"
 )
@@ -23,7 +24,7 @@ func TestUpdateBankSoalService_BasisPath(t *testing.T) {
 		name       string
 		idBankSoal bank_soal.ID
 		patch      updatepatch.UpdateBankSoalPatch
-		repo       *FakeBankSoalRepo
+		repo       *fakerepo.FakeBankSoalRepo
 		wantErr    error
 		wantCalled bool
 	}{
@@ -33,7 +34,7 @@ func TestUpdateBankSoalService_BasisPath(t *testing.T) {
 			patch: updatepatch.UpdateBankSoalPatch{
 				NamaBankSoal: ptrString("Nama"),
 			},
-			repo:       &FakeBankSoalRepo{},
+			repo:       &fakerepo.FakeBankSoalRepo{},
 			wantErr:    coreerror.ErrMissingId,
 			wantCalled: false,
 		},
@@ -41,7 +42,7 @@ func TestUpdateBankSoalService_BasisPath(t *testing.T) {
 			name:       "path 2 -> no field to update",
 			idBankSoal: 1,
 			patch:      updatepatch.UpdateBankSoalPatch{},
-			repo:       &FakeBankSoalRepo{},
+			repo:       &fakerepo.FakeBankSoalRepo{},
 			wantErr:    coreerror.ErrNoFieldToUpdate,
 			wantCalled: false,
 		},
@@ -51,7 +52,7 @@ func TestUpdateBankSoalService_BasisPath(t *testing.T) {
 			patch: updatepatch.UpdateBankSoalPatch{
 				IdMapel: ptrID(0),
 			},
-			repo:       &FakeBankSoalRepo{},
+			repo:       &fakerepo.FakeBankSoalRepo{},
 			wantErr:    coreerror.ErrMissingId,
 			wantCalled: false,
 		},
@@ -61,7 +62,7 @@ func TestUpdateBankSoalService_BasisPath(t *testing.T) {
 			patch: updatepatch.UpdateBankSoalPatch{
 				IdKelas: ptrID(0),
 			},
-			repo:       &FakeBankSoalRepo{},
+			repo:       &fakerepo.FakeBankSoalRepo{},
 			wantErr:    coreerror.ErrMissingId,
 			wantCalled: false,
 		},
@@ -71,7 +72,7 @@ func TestUpdateBankSoalService_BasisPath(t *testing.T) {
 			patch: updatepatch.UpdateBankSoalPatch{
 				IdPengguna: ptrID(0),
 			},
-			repo:       &FakeBankSoalRepo{},
+			repo:       &fakerepo.FakeBankSoalRepo{},
 			wantErr:    coreerror.ErrMissingId,
 			wantCalled: false,
 		},
@@ -82,7 +83,7 @@ func TestUpdateBankSoalService_BasisPath(t *testing.T) {
 				IdPengguna:   &validID,
 				NamaBankSoal: ptrString("   "),
 			},
-			repo:       &FakeBankSoalRepo{},
+			repo:       &fakerepo.FakeBankSoalRepo{},
 			wantErr:    coreerror.ErrMissingField,
 			wantCalled: false,
 		},
@@ -93,7 +94,7 @@ func TestUpdateBankSoalService_BasisPath(t *testing.T) {
 				IdPengguna: &validID,
 				Deskripsi:  ptrString("   "),
 			},
-			repo:       &FakeBankSoalRepo{},
+			repo:       &fakerepo.FakeBankSoalRepo{},
 			wantErr:    coreerror.ErrMissingField,
 			wantCalled: false,
 		},
@@ -104,7 +105,7 @@ func TestUpdateBankSoalService_BasisPath(t *testing.T) {
 				IdPengguna: &validID,
 				Materi:     ptrString("   "),
 			},
-			repo:       &FakeBankSoalRepo{},
+			repo:       &fakerepo.FakeBankSoalRepo{},
 			wantErr:    coreerror.ErrMissingField,
 			wantCalled: false,
 		},
@@ -119,7 +120,7 @@ func TestUpdateBankSoalService_BasisPath(t *testing.T) {
 				Deskripsi:    ptrString("  Deskripsi  "),
 				Materi:       ptrString("  Materi  "),
 			},
-			repo:       &FakeBankSoalRepo{UpdateErr: repoErr},
+			repo:       &fakerepo.FakeBankSoalRepo{UpdateErr: repoErr},
 			wantErr:    repoErr,
 			wantCalled: true,
 		},
@@ -134,7 +135,7 @@ func TestUpdateBankSoalService_BasisPath(t *testing.T) {
 				Deskripsi:    ptrString("  Deskripsi UAS  "),
 				Materi:       ptrString("  Materi UAS  "),
 			},
-			repo:       &FakeBankSoalRepo{},
+			repo:       &fakerepo.FakeBankSoalRepo{},
 			wantErr:    nil,
 			wantCalled: true,
 		},

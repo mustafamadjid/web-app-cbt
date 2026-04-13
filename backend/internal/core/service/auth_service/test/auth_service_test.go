@@ -162,7 +162,7 @@ func TestAuthServiceLoginBasisPath(t *testing.T) {
 			},
 		},
 		{
-			name: "Path 7A -> Admin boleh login walau masih memiliki session aktif",
+			name: "Path 8 -> Admin boleh login walau masih memiliki session aktif",
 			setup: func(authRepo *FakeAuthUserRepo, hasher *FakeHasher, sessionRepo *FakeSessionRepo, accessToken *FakeAccessToken, refreshToken *FakeRefreshToken) {
 				authRepo.ByUsername[username] = baseUser
 				sessionRepo.Store["existing_session"] = session.Session{
@@ -186,7 +186,7 @@ func TestAuthServiceLoginBasisPath(t *testing.T) {
 			},
 		},
 		{
-			name: "Path 8 -> Create session gagal",
+			name: "Path 9 -> Create session gagal",
 			setup: func(authRepo *FakeAuthUserRepo, hasher *FakeHasher, sessionRepo *FakeSessionRepo, accessToken *FakeAccessToken, refreshToken *FakeRefreshToken) {
 				authRepo.ByUsername[username] = baseUser
 				sessionRepo.CreateSessionErr = testErr
@@ -199,7 +199,7 @@ func TestAuthServiceLoginBasisPath(t *testing.T) {
 			},
 		},
 		{
-			name: "Path 9 -> Generate access token gagal",
+			name: "Path 10 -> Generate access token gagal",
 			setup: func(authRepo *FakeAuthUserRepo, hasher *FakeHasher, sessionRepo *FakeSessionRepo, accessToken *FakeAccessToken, refreshToken *FakeRefreshToken) {
 				authRepo.ByUsername[username] = baseUser
 				accessToken.GenerateAccessTokenErr = testErr
@@ -215,7 +215,7 @@ func TestAuthServiceLoginBasisPath(t *testing.T) {
 			},
 		},
 		{
-			name: "Path 10 -> Generate refresh token gagal",
+			name: "Path 11 -> Generate refresh token gagal",
 			setup: func(authRepo *FakeAuthUserRepo, hasher *FakeHasher, sessionRepo *FakeSessionRepo, accessToken *FakeAccessToken, refreshToken *FakeRefreshToken) {
 				authRepo.ByUsername[username] = baseUser
 				refreshToken.GenerateRefreshTokenErr = testErr
@@ -231,7 +231,7 @@ func TestAuthServiceLoginBasisPath(t *testing.T) {
 			},
 		},
 		{
-			name: "Path 11 -> Login berhasil",
+			name: "Path 12 -> Login berhasil",
 			setup: func(authRepo *FakeAuthUserRepo, hasher *FakeHasher, sessionRepo *FakeSessionRepo, accessToken *FakeAccessToken, refreshToken *FakeRefreshToken) {
 				authRepo.ByUsername[username] = baseUser
 			},

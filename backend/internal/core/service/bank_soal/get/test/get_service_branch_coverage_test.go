@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	query "github.com/mustafamadjid/web-app-cbt/internal/core/query/bank_soal"
+	fakerepo "github.com/mustafamadjid/web-app-cbt/internal/core/service/bank_soal/fake_repo"
 	bank_soal_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/bank_soal/get"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -48,7 +49,7 @@ func TestGetBankSoalService_FilterBranchCoverage(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			repo := &FakeBankSoalRepo{}
+			repo := &fakerepo.FakeBankSoalRepo{}
 			svc := bank_soal_service.NewGetBankSoalService(repo)
 
 			_, err := svc.GetBankSoalService(ctx, tt.input)
@@ -99,7 +100,7 @@ func TestGetBankSoalUploadedService_FilterBranchCoverage(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			repo := &FakeBankSoalRepo{}
+			repo := &fakerepo.FakeBankSoalRepo{}
 			svc := bank_soal_service.NewGetBankSoalService(repo)
 
 			_, err := svc.GetBankSoalUploadedService(ctx, tt.input)

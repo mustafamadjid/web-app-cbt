@@ -6,6 +6,7 @@ import (
 
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	bank_soal_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/bank_soal/delete"
+	fakerepo "github.com/mustafamadjid/web-app-cbt/internal/core/service/bank_soal/fake_repo"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -15,7 +16,7 @@ func TestDeleteBankSoalService_BranchCoverage(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("branch 1 -> not found from repo diteruskan", func(t *testing.T) {
-		repo := &FakeBankSoalRepo{DeleteErr: coreerror.ErrNotFound}
+		repo := &fakerepo.FakeBankSoalRepo{DeleteErr: coreerror.ErrNotFound}
 		svc := bank_soal_service.NewDeleteBankSoalService(repo)
 
 		err := svc.DeleteBankSoalService(ctx, 1)
@@ -24,7 +25,7 @@ func TestDeleteBankSoalService_BranchCoverage(t *testing.T) {
 	})
 
 	t.Run("branch 2 -> delete restricted dari repo diteruskan", func(t *testing.T) {
-		repo := &FakeBankSoalRepo{DeleteErr: coreerror.ErrDeleteRestricted}
+		repo := &fakerepo.FakeBankSoalRepo{DeleteErr: coreerror.ErrDeleteRestricted}
 		svc := bank_soal_service.NewDeleteBankSoalService(repo)
 
 		err := svc.DeleteBankSoalService(ctx, 2)

@@ -6,6 +6,7 @@ import (
 
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/bank_soal"
 	updatepatch "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/update_patch"
+	fakerepo "github.com/mustafamadjid/web-app-cbt/internal/core/service/bank_soal/fake_repo"
 	bank_soal_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/bank_soal/update"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -15,7 +16,7 @@ func TestUpdateBankSoalService_BranchCoverage(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	repo := &FakeBankSoalRepo{}
+	repo := &fakerepo.FakeBankSoalRepo{}
 	svc := bank_soal_service.NewUpdateBankSoalService(repo)
 
 	idMapel := bank_soal.ID(2)

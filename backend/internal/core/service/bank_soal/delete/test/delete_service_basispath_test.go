@@ -8,6 +8,7 @@ import (
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/bank_soal"
 	bank_soal_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/bank_soal/delete"
+	fakerepo "github.com/mustafamadjid/web-app-cbt/internal/core/service/bank_soal/fake_repo"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -20,28 +21,28 @@ func TestDeleteBankSoalService_BasisPath(t *testing.T) {
 	tests := []struct {
 		name       string
 		idBankSoal bank_soal.ID
-		repo       *FakeBankSoalRepo
+		repo       *fakerepo.FakeBankSoalRepo
 		wantErr    error
 		wantCalled bool
 	}{
 		{
 			name:       "path 1 -> id tidak valid",
 			idBankSoal: 0,
-			repo:       &FakeBankSoalRepo{},
+			repo:       &fakerepo.FakeBankSoalRepo{},
 			wantErr:    coreerror.ErrMissingId,
 			wantCalled: false,
 		},
 		{
 			name:       "path 2 -> repository error",
 			idBankSoal: 10,
-			repo:       &FakeBankSoalRepo{DeleteErr: repoErr},
+			repo:       &fakerepo.FakeBankSoalRepo{DeleteErr: repoErr},
 			wantErr:    repoErr,
 			wantCalled: true,
 		},
 		{
 			name:       "path 3 -> success",
 			idBankSoal: 11,
-			repo:       &FakeBankSoalRepo{},
+			repo:       &fakerepo.FakeBankSoalRepo{},
 			wantErr:    nil,
 			wantCalled: true,
 		},

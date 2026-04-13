@@ -6,6 +6,7 @@ import (
 
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/bank_soal"
 	bank_soal_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/bank_soal/create"
+	fakerepo "github.com/mustafamadjid/web-app-cbt/internal/core/service/bank_soal/fake_repo"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -14,7 +15,7 @@ func TestCreateBankSoalService_BranchCoverage(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	repo := &FakeBankSoalRepo{}
+	repo := &fakerepo.FakeBankSoalRepo{}
 	svc := bank_soal_service.NewCreateBankSoalService(repo)
 
 	input := bank_soal.BankSoal{

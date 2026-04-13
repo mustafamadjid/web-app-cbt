@@ -8,6 +8,7 @@ import (
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/bank_soal"
 	bank_soal_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/bank_soal/create"
+	fakerepo "github.com/mustafamadjid/web-app-cbt/internal/core/service/bank_soal/fake_repo"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -19,14 +20,14 @@ func TestCreateBankSoalService_BasisPath(t *testing.T) {
 
 	tests := []struct {
 		name       string
-		repo       *FakeBankSoalRepo
+		repo       *fakerepo.FakeBankSoalRepo
 		input      bank_soal.BankSoal
 		wantErr    error
 		wantCalled bool
 	}{
 		{
 			name: "path 1 -> id mapel tidak valid",
-			repo: &FakeBankSoalRepo{},
+			repo: &fakerepo.FakeBankSoalRepo{},
 			input: bank_soal.BankSoal{
 				IdMapel:      0,
 				IdKelas:      1,
@@ -37,7 +38,7 @@ func TestCreateBankSoalService_BasisPath(t *testing.T) {
 		},
 		{
 			name: "path 2 -> id kelas tidak valid",
-			repo: &FakeBankSoalRepo{},
+			repo: &fakerepo.FakeBankSoalRepo{},
 			input: bank_soal.BankSoal{
 				IdMapel:      1,
 				IdKelas:      0,
@@ -48,7 +49,7 @@ func TestCreateBankSoalService_BasisPath(t *testing.T) {
 		},
 		{
 			name: "path 3 -> repository error",
-			repo: &FakeBankSoalRepo{CreateErr: repoErr},
+			repo: &fakerepo.FakeBankSoalRepo{CreateErr: repoErr},
 			input: bank_soal.BankSoal{
 				IdMapel:      2,
 				IdKelas:      3,
@@ -62,7 +63,7 @@ func TestCreateBankSoalService_BasisPath(t *testing.T) {
 		},
 		{
 			name: "path 4 -> berhasil create",
-			repo: &FakeBankSoalRepo{},
+			repo: &fakerepo.FakeBankSoalRepo{},
 			input: bank_soal.BankSoal{
 				IdMapel:      2,
 				IdKelas:      3,
