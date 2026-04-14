@@ -63,6 +63,10 @@ func (f *fakeJawabanRepo) SaveJawabanUjian(context.Context, ujian.ID, []ujian.Ja
 	return nil
 }
 
+func (*fakeJawabanRepo) ListHasilJawabanUjianByIdAttempt(context.Context, ujian.ID) ([]ujian.HasilJawabanUjian, error) {
+	return nil, nil
+}
+
 func TestSiswaGetJawabanUjianService(t *testing.T) {
 	t.Parallel()
 

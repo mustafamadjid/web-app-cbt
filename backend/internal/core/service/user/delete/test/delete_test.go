@@ -71,12 +71,13 @@ func TestDeleteUserService_Delete(t *testing.T) {
 
 		err := service.Delete(ctx, userID)
 
-		assert.ErrorIs(t, err, deleteFileErr)
+		assert.NoError(t, err)
 		assert.True(t, repo.FindCalled)
 		assert.Equal(t, userID, repo.LastFindID)
 		assert.True(t, deleteFile.DeleteCalled)
 		assert.Equal(t, "foto-lama.png", deleteFile.LastPath)
-		assert.False(t, repo.DeleteCalled)
+		assert.True(t, repo.DeleteCalled)
+		assert.Equal(t, userID, repo.LastID)
 	})
 
 	t.Run("returns error when repository delete fails", func(t *testing.T) {

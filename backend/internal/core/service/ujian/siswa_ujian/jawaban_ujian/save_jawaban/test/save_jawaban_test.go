@@ -33,6 +33,10 @@ func (f *fakeJawabanUjianRepo) SaveJawabanUjian(ctx context.Context, idAttempt u
 	return nil
 }
 
+func (*fakeJawabanUjianRepo) ListHasilJawabanUjianByIdAttempt(context.Context, ujian.ID) ([]ujian.HasilJawabanUjian, error) {
+	return nil, nil
+}
+
 func toUjianIDPointer(v ujian.ID) *ujian.ID {
 	return &v
 }

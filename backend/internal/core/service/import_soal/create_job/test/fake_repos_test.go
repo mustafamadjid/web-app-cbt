@@ -14,9 +14,12 @@ type FakeImportSoalJobRepo struct {
 	UpdateJobStatusFn   func(ctx context.Context, jobID int64, status importsoal.JobStatus, errorMsg string, totalSoal int) error
 	GetJobByIDFn        func(ctx context.Context, jobID int64) (importsoal.ImportSoalJob, error)
 	GetJobsByBankSoalFn func(ctx context.Context, bankSoalID int64) ([]importsoal.ImportSoalJob, error)
+
+	CreateJobCalled bool
 }
 
 func (f *FakeImportSoalJobRepo) CreateJob(ctx context.Context, job importsoal.ImportSoalJob) (int64, error) {
+	f.CreateJobCalled = true
 	if f.CreateJobFn != nil {
 		return f.CreateJobFn(ctx, job)
 	}
@@ -54,9 +57,12 @@ func (f *FakeImportSoalJobRepo) GetJobsByBankSoal(ctx context.Context, bankSoalI
 // FakeIsiSoalBatchRepo is a fake implementation of importsoal_repo.IsiSoalBatchRepo
 type FakeIsiSoalBatchRepo struct {
 	ImportBankSoalVersionFn func(ctx context.Context, bankID, userID int64, payload importsoalrepo.ImportBankSoalVersionPayload) (int64, error)
+
+	ImportBankSoalVersionCalled bool
 }
 
 func (f *FakeIsiSoalBatchRepo) ImportBankSoalVersion(ctx context.Context, bankID, userID int64, payload importsoalrepo.ImportBankSoalVersionPayload) (int64, error) {
+	f.ImportBankSoalVersionCalled = true
 	if f.ImportBankSoalVersionFn != nil {
 		return f.ImportBankSoalVersionFn(ctx, bankID, userID, payload)
 	}

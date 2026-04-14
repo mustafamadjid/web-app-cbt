@@ -1,2 +1,3 @@
 backend/run.ps1
 backend/internal/db/migrations/migrate.ps1
+test_planning.md

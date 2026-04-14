@@ -167,7 +167,7 @@ func TestParseMarkers(t *testing.T) {
 				assert.Equal(t, "A", s.KunciJawaban)
 				assert.True(t, s.Opsi[0].IsBenar)
 				assert.False(t, s.Opsi[1].IsBenar)
-				assert.Equal(t, 10, s.BobotSoal)
+				assert.Equal(t, 10.0, s.BobotSoal)
 			},
 		},
 		{
@@ -184,7 +184,7 @@ func TestParseMarkers(t *testing.T) {
 				assert.Equal(t, "Jelaskan fotosintesis!", s.Pertanyaan)
 				assert.Len(t, s.Opsi, 0)
 				assert.Equal(t, "Proses konversi cahaya menjadi energi", s.KunciJawaban)
-				assert.Equal(t, 20, s.BobotSoal)
+				assert.Equal(t, 20.0, s.BobotSoal)
 			},
 		},
 		{
@@ -201,8 +201,8 @@ func TestParseMarkers(t *testing.T) {
 			validate: func(t *testing.T, soal []importsoal.ParsedSoal) {
 				assert.Equal(t, "pilihan_ganda", soal[0].TipeSoal)
 				assert.Equal(t, "essay", soal[1].TipeSoal)
-				assert.Equal(t, 5, soal[0].BobotSoal)
-				assert.Equal(t, 15, soal[1].BobotSoal)
+				assert.Equal(t, 5.0, soal[0].BobotSoal)
+				assert.Equal(t, 15.0, soal[1].BobotSoal)
 			},
 		},
 		{
