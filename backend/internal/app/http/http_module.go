@@ -37,6 +37,7 @@ func BuildHTTPModule(deps HTTPDeps) *HTTPModule {
 	routes.RegisterAuthRoutes(router, deps.Auth, mw)
 	routes.RegisterUserRoutes(router, deps.Users, deps.ResetPassword, mw)
 	routes.RegisterAktivitasUserRoutes(router, deps.AktivitasUser, mw)
+	routes.RegisterDashboardRoutes(router, deps.Dashboard, mw)
 	routes.RegisterProfilSekolahRoutes(router, deps.ProfilSekolah, mw)
 	routes.RegisterKelasRoutes(router, deps.Kelas, mw)
 	routes.RegisterMataPelajaranRoutes(router, deps.MataPelajaran, mw)

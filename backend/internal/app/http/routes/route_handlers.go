@@ -8,6 +8,7 @@ import (
 	banksoalget "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/bank_soal/crud_operations/get"
 	banksoalupdate "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/bank_soal/crud_operations/update"
 	importsoal "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/bank_soal/import"
+	dashboardget "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/dashboard/get"
 	kelascreate "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/kelas/create"
 	kelasdelete "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/kelas/delete"
 	kelasget "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/kelas/get"
@@ -77,6 +78,10 @@ type ResetPasswordHandlers struct {
 
 type AktivitasUserHandlers struct {
 	GetHandler *aktivitasuserget.AktivitasUserHandler
+}
+
+type DashboardHandlers struct {
+	GetHandler *dashboardget.GetDashboardStatistikHandler
 }
 
 type ProfilSekolahHandlers struct {

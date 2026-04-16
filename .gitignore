@@ -1,3 +1,7 @@
 backend/run.ps1
 backend/internal/db/migrations/migrate.ps1
 test_planning.md
+Evaluasi_PXP_Extended_with_Rumus.xlsx
+generate_docs.py
+white_box_documentation_v2.xlsx
+white_box_documentation.md

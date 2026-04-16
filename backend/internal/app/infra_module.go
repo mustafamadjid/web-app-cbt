@@ -7,6 +7,7 @@ import (
 	pgaktivitasuser "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/aktivitas_user"
 	pgauthuser "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/auth_user"
 	pgbanksoal "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/bank_soal"
+	pgdashboard "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/dashboard"
 	pgimportsoaljob "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/import_soal_job"
 	pgisisoalbatch "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/isi_soal_batch"
 	pgkelas "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/kelas"
@@ -33,6 +34,7 @@ import (
 	outaktivitas "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/aktivitas_user"
 	outauth "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/auth_port_out"
 	bank_soal_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/bank_soal"
+	dashboard_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/dashboard_statistik"
 	importsoal_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/import_soal"
 	kelas_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/kelas"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
@@ -64,6 +66,7 @@ type InfraModule struct {
 
 	profilSekolah outprofil.ProfilSekolahRepository
 	aktivitasUser outaktivitas.AktivitasUserRepository
+	dashboardRepo dashboard_repo.DashboardStatistikRepository
 
 	kelasRepo          kelas_repo.KelasRepository
 	bankSoalRepo       bank_soal_repo.BankSoalRepository
@@ -114,6 +117,7 @@ func BuildInfraModule(pool *pgxpool.Pool, logger corelog.Logger) *InfraModule {
 		profilGuruRepo:        profilGuruRepo,
 		profilSekolah:         pgprofilsekolah.NewProfilSekolahRepo(pool, logger),
 		aktivitasUser:         pgaktivitasuser.NewAktivitasUserRepo(pool, logger),
+		dashboardRepo:         pgdashboard.NewDashboardStatistikRepo(pool, logger),
 		kelasRepo:             pgkelas.NewKelasRepo(pool, logger),
 		bankSoalRepo:          pgbanksoal.NewBankSoalRepo(pool, logger),
 		mapelRepo:             pgmapel.NewMapelRepo(pool, logger),

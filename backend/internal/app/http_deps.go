@@ -10,6 +10,7 @@ type HTTPDeps struct {
 	Users         *UserModule
 	ProfilSekolah *ProfilSekolahModule
 	AktivitasUser *AktivitasUserModule
+	Dashboard     *DashboardModule
 	Kelas         *KelasModule
 	MataPelajaran *MataPelajaranModule
 	RuangUjian    *RuangUjianModule

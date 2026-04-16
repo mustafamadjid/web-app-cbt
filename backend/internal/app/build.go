@@ -15,6 +15,7 @@ type App struct {
 	Users         *UserModule
 	ProfilSekolah *ProfilSekolahModule
 	AktivitasUser *AktivitasUserModule
+	Dashboard     *DashboardModule
 	Kelas         *KelasModule
 	MataPelajaran *MataPelajaranModule
 	RuangUjian    *RuangUjianModule
@@ -39,6 +40,7 @@ func Build(ctx context.Context, cfg Config, dbURL string, hasher out.PasswordHas
 	auth := BuildAuthModule(cfg, infra, tokens, hasher, aktivitasUser)
 	users := BuildUserModule(cfg, infra, hasher, aktivitasUser, deleteFile)
 	profilSekolah := BuildProfilSekolahModule(cfg, infra)
+	dashboard := BuildDashboardModule(infra)
 	kelas := BuildKelasModule(infra, aktivitasUser)
 	mapel := BuildMataPelajaranModule(infra)
 	ruangUjian := BuildRuangUjianModule(infra)
@@ -55,6 +57,7 @@ func Build(ctx context.Context, cfg Config, dbURL string, hasher out.PasswordHas
 		Users:         users,
 		ProfilSekolah: profilSekolah,
 		AktivitasUser: aktivitasUser,
+		Dashboard:     dashboard,
 		Kelas:         kelas,
 		MataPelajaran: mapel,
 		RuangUjian:    ruangUjian,
@@ -75,6 +78,7 @@ func Build(ctx context.Context, cfg Config, dbURL string, hasher out.PasswordHas
 		Users:         users,
 		ProfilSekolah: profilSekolah,
 		AktivitasUser: aktivitasUser,
+		Dashboard:     dashboard,
 		Kelas:         kelas,
 		MataPelajaran: mapel,
 		RuangUjian:    ruangUjian,

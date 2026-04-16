@@ -26,6 +26,7 @@ type HTTPDeps struct {
 	Users         routes.UserHandlers
 	ResetPassword routes.ResetPasswordHandlers
 	AktivitasUser routes.AktivitasUserHandlers
+	Dashboard     routes.DashboardHandlers
 	ProfilSekolah routes.ProfilSekolahHandlers
 	Kelas         routes.KelasHandlers
 	MataPelajaran routes.MataPelajaranHandlers

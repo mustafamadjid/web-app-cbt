@@ -49,6 +49,9 @@ func BuildHTTPModule(deps HTTPDeps) *HTTPModule {
 		AktivitasUser: routes.AktivitasUserHandlers{
 			GetHandler: deps.AktivitasUser.GetHandler,
 		},
+		Dashboard: routes.DashboardHandlers{
+			GetHandler: deps.Dashboard.GetHandler,
+		},
 		ProfilSekolah: routes.ProfilSekolahHandlers{
 			GetHandler:    deps.ProfilSekolah.GetHandler,
 			UpdateHandler: deps.ProfilSekolah.UpdateHandler,
