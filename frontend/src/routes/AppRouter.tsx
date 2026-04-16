@@ -54,6 +54,7 @@ import TambahPengumuman from "@/pages/Admin/Dashboard/Pengumuman/TambahPengumuma
 import EditPengumuman from "@/pages/Admin/Dashboard/Pengumuman/EditPengumuman";
 import KelolaSesi from "@/pages/Admin/Dashboard/KelolaSesi/KelolaSesi";
 import HomeSiswa from "@/pages/Siswa/HomeSiswa";
+import PengumumanSiswa from "@/pages/Siswa/Pengumuman/PengumumanSiswa";
 import UjianSiswa from "@/pages/Siswa/Ujian/UjianSiswa/UjianSiswa";
 import UjianTokenSiswa from "@/pages/Siswa/Ujian/UjianSiswa/UjianTokenSiswa";
 import UjianMulaiSiswa from "@/pages/Siswa/Ujian/UjianSiswa/UjianMulaiSiswa";
@@ -275,6 +276,10 @@ export const router = createBrowserRouter([
             element: <HeaderLayout />,
             children: [
               { index: true, element: <HomeSiswa /> },
+              {
+                path: paths.dashboard.pengumuman_siswa,
+                element: <PengumumanSiswa />,
+              },
               { path: paths.dashboard.ujian_siswa, element: <UjianSiswa /> },
               {
                 path: paths.dashboard.hasil_ujian_siswa,

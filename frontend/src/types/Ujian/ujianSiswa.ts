@@ -13,6 +13,7 @@ export type UjianSiswaExamItem = JadwalUjianItem & {
 };
 
 export type UjianSiswaResultItem = UjianSiswaExamItem & {
+  id_attempt: number;
   jumlah_benar: number;
   jumlah_salah: number;
   nilai: number;

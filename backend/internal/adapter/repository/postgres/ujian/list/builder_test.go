@@ -39,3 +39,19 @@ func TestBuildListUjianQuery_WithFiltersAndPagination(t *testing.T) {
 
 	require.Equal(t, []any{"%matematika%", "2026", 3, 7, 15, 30}, args)
 }
+
+func TestBuildListUjianSubmittedByIdSiswaQuery(t *testing.T) {
+	t.Parallel()
+
+	repo := &ListUjianRepo{}
+	queryText, args := repo.buildListUjianSubmittedByIdSiswaQuery(42)
+
+	assert.Contains(t, queryText, "FROM peserta_ujian pu")
+	assert.Contains(t, queryText, "JOIN attempt_ujian au")
+	assert.Contains(t, queryText, "AND au.status_attempt = 'submitted'")
+	assert.Contains(t, queryText, "au.id_attempt")
+	assert.Contains(t, queryText, "p.nama_lengkap AS pengawas_nama_lengkap")
+	assert.Contains(t, queryText, "ju.token")
+
+	require.Equal(t, []any{42}, args)
+}

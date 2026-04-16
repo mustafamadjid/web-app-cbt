@@ -315,6 +315,7 @@ const HasilJawabanUjianContent: React.FC<HasilJawabanUjianContentProps> = ({
             const status = getQuestionStatus(item, essayCorrections);
             const theme = STATUS_THEME[status.tone];
             const selectedOptionId = item.jawaban_siswa.id_pilihan;
+            const isAnswered = selectedOptionId !== null;
             const essayAnswer = getEssayAnswer(item);
             const gambarUrl = resolveImageUrl(item.gambar) || "";
             const essayId = item.jawaban_siswa.id_jawaban;
@@ -379,12 +380,12 @@ const HasilJawabanUjianContent: React.FC<HasilJawabanUjianContentProps> = ({
                         const optionLabel = String.fromCharCode(
                           65 + optionIndex,
                         );
-                        const optionClass = option.is_benar
+                        const optionClass = isAnswered && option.is_benar
                           ? "border-emerald-200 bg-emerald-50 text-emerald-700"
                           : isSelected
                             ? "border-rose-300 bg-rose-50 text-rose-700"
                             : "border-slate-200 bg-white text-slate-600";
-                        const bulletClass = option.is_benar
+                        const bulletClass = isAnswered && option.is_benar
                           ? "border-emerald-500 bg-emerald-500 text-white"
                           : isSelected
                             ? "border-rose-500 bg-rose-500 text-white"
@@ -417,7 +418,7 @@ const HasilJawabanUjianContent: React.FC<HasilJawabanUjianContentProps> = ({
                                       Dipilih siswa
                                     </span>
                                   )}
-                                  {option.is_benar && (
+                                  {isAnswered && option.is_benar && (
                                     <span className="rounded-full bg-white/90 px-2.5 py-1 text-xs font-semibold">
                                       Opsi benar
                                     </span>

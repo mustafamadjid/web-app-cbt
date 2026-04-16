@@ -116,6 +116,60 @@ func (r *ListUjianRepo) buildListUjianQuery(filter query.ListUjianFilter) (strin
 	return baseQuery, args
 }
 
+func (r *ListUjianRepo) buildListUjianSubmittedByIdSiswaQuery(idSiswa int) (string, []any) {
+	return `
+		SELECT
+			u.id_ujian,
+			u.id_bank_soal,
+			u.id_guru,
+			u.nama_ujian,
+			pg.username AS pembuat_username,
+			u.id_kelas,
+			u.id_nama_kelas,
+			k.tingkat_kelas,
+			nk.nama_kelas,
+			ju.id_jadwal_ujian,
+			ju.tanggal_ujian,
+			ju.waktu_mulai,
+			ju.waktu_selesai,
+			ju.status_ujian,
+			au.id_attempt,
+			ju.id_pengawas,
+			p.nama_lengkap,
+			p.username AS pengawas_username,
+			p.nama_lengkap AS pengawas_nama_lengkap,
+			ju.id_sesi,
+			s.nama_sesi,
+			ju.id_ruangan,
+			ru.nama_ruangan,
+			u.deskripsi_ujian,
+			ju.token,
+			u.acak_soal
+		FROM peserta_ujian pu
+		JOIN attempt_ujian au
+			ON au.id_peserta_ujian = pu.id_peserta_ujian
+		JOIN jadwal_ujian ju
+			ON ju.id_jadwal_ujian = pu.id_jadwal_ujian
+		JOIN ujian u
+			ON u.id_ujian = ju.id_ujian
+		JOIN kelas k
+			ON k.id_kelas = u.id_kelas
+		LEFT JOIN nama_kelas nk
+			ON nk.id_nama_kelas = u.id_nama_kelas
+		JOIN pengguna pg
+			ON pg.id_pengguna = u.id_guru
+		JOIN pengguna p
+			ON p.id_pengguna = ju.id_pengawas
+		JOIN sesi_ujian s
+			ON s.id_sesi = ju.id_sesi
+		JOIN ruang_ujian ru
+			ON ru.id_ruangan = ju.id_ruangan
+		WHERE pu.id_siswa = $1
+			AND au.status_attempt = 'submitted'
+		ORDER BY ju.tanggal_ujian ASC, ju.waktu_mulai ASC, ju.id_jadwal_ujian ASC, au.id_attempt ASC
+	`, []any{idSiswa}
+}
+
 func scanListUjianSummaryRow(row listUjianScanner) (ujian.ListUjian, error) {
 	var (
 		item        ujian.ListUjian
@@ -157,6 +211,54 @@ func scanListUjianSummaryRow(row listUjianScanner) (ujian.ListUjian, error) {
 	return item, nil
 }
 
+func scanListUjianSubmittedRow(row listUjianScanner) (ujian.ListUjian, error) {
+	var (
+		item           ujian.ListUjian
+		idNamaKls      sql.NullInt64
+		namaKelas      sql.NullString
+		statusUjian    sql.NullString
+		deskripsiUjian sql.NullString
+	)
+
+	if err := row.Scan(
+		&item.IdUjian,
+		&item.IdBankSoal,
+		&item.IdGuru,
+		&item.NamaUjian,
+		&item.PembuatUsername,
+		&item.IdKelas,
+		&idNamaKls,
+		&item.TingkatKelas,
+		&namaKelas,
+		&item.IdJadwalUjian,
+		&item.TanggalUjian,
+		&item.WaktuMulai,
+		&item.WaktuSelesai,
+		&statusUjian,
+		&item.IdAttempt,
+		&item.IdPengawas,
+		&item.NamaPengawas,
+		&item.PengawasUsername,
+		&item.PengawasNamaLengkap,
+		&item.IdSesi,
+		&item.NamaSesi,
+		&item.IdRuangan,
+		&item.NamaRuangan,
+		&deskripsiUjian,
+		&item.Token,
+		&item.AcakSoal,
+	); err != nil {
+		return ujian.ListUjian{}, err
+	}
+
+	item.IdNamaKelas = nullInt64ToUjianIDPtr(idNamaKls)
+	item.NamaKelas = nullStringToPtr(namaKelas)
+	item.StatusUjian = nullStringToStatusUjianPtr(statusUjian)
+	item.DeskripsiUjian = nullStringToPtr(deskripsiUjian)
+
+	return item, nil
+}
+
 func (r *ListUjianRepo) scanListUjianSummaryRows(ctx context.Context, op string, rows pgx.Rows) ([]ujian.ListUjian, error) {
 	var results []ujian.ListUjian
 	for rows.Next() {
@@ -170,6 +272,25 @@ func (r *ListUjianRepo) scanListUjianSummaryRows(ctx context.Context, op string,
 
 	if err := rows.Err(); err != nil {
 		r.loggerFor(ctx).Error(ctx, "failed iterating list ujian", "layer", "repo.db", "op", op, "err", err)
+		return nil, err
+	}
+
+	return results, nil
+}
+
+func (r *ListUjianRepo) scanListUjianSubmittedRows(ctx context.Context, op string, rows pgx.Rows) ([]ujian.ListUjian, error) {
+	var results []ujian.ListUjian
+	for rows.Next() {
+		item, err := scanListUjianSubmittedRow(rows)
+		if err != nil {
+			r.loggerFor(ctx).Error(ctx, "failed scanning submitted list ujian", "layer", "repo.db", "op", op, "err", err)
+			return nil, err
+		}
+		results = append(results, item)
+	}
+
+	if err := rows.Err(); err != nil {
+		r.loggerFor(ctx).Error(ctx, "failed iterating submitted list ujian", "layer", "repo.db", "op", op, "err", err)
 		return nil, err
 	}
 

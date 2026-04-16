@@ -7,6 +7,7 @@ import (
 
 func RegisterUjianRoutes(router *httprouter.Router, handlers UjianHandlers, mw MiddlewareContract) {
 	requireAdminGuru := mw.RequireAccessRole(user.ADMIN, user.GURU)
+	requireAdminGuruSiswa := mw.RequireAccessRole(user.ADMIN, user.GURU, user.SISWA)
 	requireAdmin := mw.RequireAccessRole(user.ADMIN)
 	requireSiswa := mw.RequireAccessRole(user.SISWA)
 
@@ -18,6 +19,7 @@ func RegisterUjianRoutes(router *httprouter.Router, handlers UjianHandlers, mw M
 	router.GET("/siswa/ujian/jawaban/:idAttempt", requireSiswa(mw.RateLimitStandard(handlers.GetJawabanUjianHandler.GetJawabanUjian)))
 	router.POST("/siswa/ujian/jawaban", requireSiswa(mw.RateLimitStandard(handlers.SaveJawabanUjianHandler.SaveJawabanUjian)))
 	router.GET("/siswa/ujian/list", requireSiswa(mw.RateLimitStandard(handlers.ListUjianSiswaHandler.ListUjianSiswa)))
+	router.GET("/siswa/ujian/list-selesai", requireSiswa(mw.RateLimitStandard(handlers.ListUjianSelesaiSiswaHandler.ListUjianSelesaiSiswa)))
 	router.GET("/siswa/ujian/waktu-selesai/:idJadwalUjian", requireSiswa(mw.RateLimitStandard(handlers.GetWaktuSelesaiUjianHandler.GetWaktuSelesaiUjian)))
 	router.GET("/siswa/soal-ujian/:idJadwalUjian", requireSiswa(mw.RateLimitStandard(handlers.ListSoalUjianSiswaHandler.ListSoalUjianSiswa)))
 
@@ -25,13 +27,15 @@ func RegisterUjianRoutes(router *httprouter.Router, handlers UjianHandlers, mw M
 	router.PATCH("/admin/ujian/attempt/:idAttempt/expire", requireAdmin(mw.RateLimitStandard(handlers.ExpireAttemptUjianHandler.ExpireAttemptUjian)))
 	router.POST("/ujian", requireAdminGuru(mw.RateLimitStandard(handlers.CreateUjianHandler.CreateUjian)))
 	router.GET("/ujian/peserta-submitted/:idJadwalUjian", requireAdminGuru(mw.RateLimitStandard(handlers.ListPesertaUjianSubmittedHandler.ListPesertaUjianSubmitted)))
-	router.GET("/ujian/jawaban/hasil/:idAttempt", requireAdminGuru(mw.RateLimitStandard(handlers.HasilJawabanUjianHandler.ListHasilJawabanUjianByAttempt)))
 	router.GET("/ujian/koreksi-essay/list", requireAdminGuru(mw.RateLimitStandard(handlers.ListUjianEssayUngradedHandler.ListUjianEssayUngraded)))
 	router.GET("/ujian/statistik/:idJadwalUjian", requireAdminGuru(mw.RateLimitStandard(handlers.GetStatistikUjianHandler.GetStatistikUjian)))
 	router.PATCH("/ujian/koreksi-essay", requireAdminGuru(mw.RateLimitStandard(handlers.KoreksiEssayHandler.KoreksiEssay)))
 	router.GET("/jadwal-ujian", requireAdminGuru(mw.RateLimitStandard(handlers.ListHandler.ListUjian)))
 	router.GET("/ujian/soal/bank-soal/:idBankSoal", requireAdminGuru(mw.RateLimitStandard(handlers.ListSoalUjianHandler.ListSoalUjian)))
 	router.GET("/ujian/detail/:idUjian", requireAdminGuru(mw.RateLimitStandard(handlers.GetHandler.GetUjianById)))
+
+	// Router admin-guru-siswa
+	router.GET("/ujian/jawaban/hasil/:idAttempt", requireAdminGuruSiswa(mw.RateLimitStandard(handlers.HasilJawabanUjianHandler.ListHasilJawabanUjianByAttempt)))
 
 	router.PATCH("/ujian/detail/:idUjian", requireAdminGuru(mw.RateLimitStandard(handlers.UpdateUjianHandler.UpdateUjian)))
 	router.DELETE("/ujian/detail/:idUjian", requireAdminGuru(mw.RateLimitStandard(handlers.DeleteUjianHandler.DeleteUjian)))

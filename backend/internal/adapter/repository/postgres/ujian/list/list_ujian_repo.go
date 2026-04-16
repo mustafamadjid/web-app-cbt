@@ -39,6 +39,19 @@ func (r *ListUjianRepo) GetAllUjian(ctx context.Context, filter query.ListUjianF
 	return r.scanListUjianSummaryRows(ctx, "ujian.get_all", rows)
 }
 
+func (r *ListUjianRepo) GetAllUjianSubmittedByIdSiswa(ctx context.Context, idSiswa int) ([]ujian.ListUjian, error) {
+	queryText, args := r.buildListUjianSubmittedByIdSiswaQuery(idSiswa)
+
+	rows, err := r.q.Query(ctx, queryText, args...)
+	if err != nil {
+		r.loggerFor(ctx).Error(ctx, "failed get submitted ujian list by siswa", "layer", "repo.db", "op", "ujian.get_all_submitted_by_id_siswa", "id_siswa", idSiswa, "err", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	return r.scanListUjianSubmittedRows(ctx, "ujian.get_all_submitted_by_id_siswa", rows)
+}
+
 func (r *ListUjianRepo) GetUjianById(ctx context.Context, id ujian.ID) (ujian.ListUjian, error) {
 	query := `
 		SELECT

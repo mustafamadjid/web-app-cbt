@@ -91,8 +91,11 @@ export const paths = {
     profil_siswa: djoinSiswa("profil"),
 
     ujian_siswa : djoinSiswa("ujian"),
+    pengumuman_siswa: djoinSiswa("pengumuman"),
     hasil_ujian_siswa : djoinSiswa(join("ujian", "/hasil")),
-    hasil_ujian_detail_siswa: djoinSiswa(join("ujian", "/hasil/:id")),
+    hasil_ujian_detail_siswa: djoinSiswa(
+      join("ujian", "/hasil/:id/attempt/:attemptId")
+    ),
     ujian_siswa_token: djoinSiswa(join("ujian", "/:idJadwalUjian/token")),
     ujian_siswa_mulai: djoinSiswa(join("ujian", "/:idJadwalUjian/mulai")),
 

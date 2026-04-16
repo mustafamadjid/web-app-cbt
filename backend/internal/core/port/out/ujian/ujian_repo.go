@@ -11,6 +11,8 @@ import (
 type ListUjianRepository interface {
 	GetAllUjian(ctx context.Context, filter query.ListUjianFilter) ([]ujian.ListUjian, error)
 	GetUjianById(ctx context.Context, id ujian.ID) (ujian.ListUjian, error)
+
+	GetAllUjianSubmittedByIdSiswa(ctx context.Context, idSiswa int) ([]ujian.ListUjian, error)
 }
 
 type UjianRepository interface {

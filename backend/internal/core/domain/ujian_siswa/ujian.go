@@ -63,6 +63,8 @@ type ListUjian struct {
 	WaktuSelesai  time.Time
 	StatusUjian   *StatusUjian
 
+	IdAttempt ID
+
 	IdPengawas       ID
 	NamaPengawas     string
 	PengawasUsername string

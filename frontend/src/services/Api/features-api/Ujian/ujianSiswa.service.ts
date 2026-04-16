@@ -80,6 +80,7 @@ const dummyUjianList: UjianSiswaExamItem[] = [
 const dummyUjianCompleted: UjianSiswaResultItem[] = [
   {
     id: 301,
+    id_attempt: 9001,
     nama_ujian: "Ujian IPA",
     id_bank_soal: 5,
     mapel: "Ilmu Pengetahuan Alam",
@@ -104,6 +105,7 @@ const dummyUjianCompleted: UjianSiswaResultItem[] = [
   },
   {
     id: 302,
+    id_attempt: 9002,
     id_bank_soal: 3,
     nama_ujian: "Ujian Sejarah",
     mapel: "Sejarah",

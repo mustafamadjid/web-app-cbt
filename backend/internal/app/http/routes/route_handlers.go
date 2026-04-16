@@ -43,6 +43,7 @@ import (
 	ujianlistsoal "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/list_soal_ujian"
 	ujianlistsoalsiswa "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/list_soal_ujian_for_siswa"
 	ujianlistessayungraded "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/list_ujian_essay_ungraded"
+	ujianlistselesai "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/list_ujian_selesai_siswa"
 	ujianlistsiswa "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/list_ujian_siswa"
 	ujianstatistik "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/statistik_ujian"
 	ujiansubmit "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/submit_ujian"
@@ -116,6 +117,7 @@ type UjianHandlers struct {
 	SaveJawabanUjianHandler          *ujiansavejawaban.SaveJawabanUjianHandler
 	KoreksiEssayHandler              *ujiankoreksiessay.KoreksiEssayHandler
 	ListUjianEssayUngradedHandler    *ujianlistessayungraded.ListUjianEssayUngradedHandler
+	ListUjianSelesaiSiswaHandler     *ujianlistselesai.ListUjianSelesaiSiswaHandler
 	GetStatistikUjianHandler         *ujianstatistik.GetStatistikUjianHandler
 	CreateUjianHandler               *ujiancreate.CreateRuangUjianHandler
 	ListHandler                      *ujianlist.ListUjianHandler

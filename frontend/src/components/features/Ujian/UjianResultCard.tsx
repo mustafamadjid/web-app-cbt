@@ -8,7 +8,7 @@ const UjianResultCard: React.FC<{ item: UjianSiswaResultItem }> = ({ item }) => 
   const detailPath = paths.dashboard.hasil_ujian_detail_siswa.replace(
     ":id",
     String(item.id)
-  );
+  ).replace(":attemptId", String(item.id_attempt));
 
   return (
     <Link
