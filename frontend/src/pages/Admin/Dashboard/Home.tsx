@@ -1,6 +1,5 @@
 
 // Widgets
-import StatistikWidget from "@/components/features/widget/Soal/StatistikWidget";
 import SimpleStatWidget from "@/components/features/widget/Soal/StatistikWidgetSimpler";
 import { PengumumanWidget } from "@/components/features/widget/Pengumuman/PengumumanWidget";
 import JadwalUjianWidget from "@/components/features/widget/JadwalUjian/JadwalUjian";
@@ -13,8 +12,9 @@ import type { JadwalUjianItem } from "@/types/Ujian/jadwalUjian";
 import type { UjianBerlangsungItem } from "@/types/Widget/UjianBerlangsung";
 import type { Role } from "@/types/Sidebar/SidebarMenu";
 import { useAuth } from "@/contexts/AuthContext";
-import { useGetLogAktivitas } from "@/services/Api/features-api/LogAktivitas/log-aktivitas.service";
+import { useGetLogAktivitasEnabled } from "@/services/Api/features-api/LogAktivitas/log-aktivitas.service";
 import { useGetPengumumanActive } from "@/services/Api/features-api/pengumuman/pengumuman.service";
+import { useGetDashboardStatistik } from "@/services/Api/features-api/Dashboard/dashboard.service";
 
 export const dummyJadwalUjian: JadwalUjianItem[] = [
   {
@@ -82,24 +82,55 @@ export const dummyUjianBerlangsung: UjianBerlangsungItem[] = [
 export const Home = () => {
   const { user } = useAuth();
   const role = (user?.role ?? "SISWA") as Role;
+  const shouldFetchDashboardStatistik = role === "ADMIN" || role === "GURU";
 
   // Hook: fetch log aktivitas (only for ADMIN)
-  const { data: aktivitasItems } = useGetLogAktivitas();
+  const { data: aktivitasItems } = useGetLogAktivitasEnabled(role === "ADMIN");
 
   // Hook: fetch pengumuman aktif
   const { data: pengumumanItems } = useGetPengumumanActive();
+  const {
+    data: dashboardStatistik,
+    loading: dashboardStatistikLoading,
+    error: dashboardStatistikError,
+  } = useGetDashboardStatistik(
+    shouldFetchDashboardStatistik ? role : "ADMIN",
+    shouldFetchDashboardStatistik,
+  );
+
+  const statistik = dashboardStatistik ?? {
+    total_siswa: 0,
+    total_guru: 0,
+    total_ujian_terlaksana: 0,
+    total_bank_soal: 0,
+    total_mapel_aktif: 0,
+  };
 
   return (
     <div className="min-h-screen bg-[#ecf1ed]  pb-20">
       <div className="mx-auto max-w-[1920px] space-y-8 p-4 sm:p-6 lg:p-8">
+        {(dashboardStatistikLoading || dashboardStatistikError) && (
+          <div
+            className={`rounded-xl border px-4 py-3 text-sm ${
+              dashboardStatistikError
+                ? "border-amber-200 bg-amber-50 text-amber-800"
+                : "border-emerald-200 bg-emerald-50 text-emerald-700"
+            }`}
+          >
+            {dashboardStatistikError
+              ? `Statistik dashboard belum bisa dimuat: ${dashboardStatistikError}`
+              : "Menyegarkan statistik dashboard..."}
+          </div>
+        )}
+
         {/* === TOP STATS (GRID 4 KOLOM) === */}
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
           {/* Card 1: Total User (Dibuat Lebih Lebar) */}
           {role === "ADMIN" && (
             <div className="h-full sm:col-span-2 lg:col-span-2">
               <TotalSiswaGuruWidget
-                totalGuru={24}
-                totalSiswa={450}
+                totalGuru={statistik.total_guru}
+                totalSiswa={statistik.total_siswa}
                 className="h-full"
               />
             </div>
@@ -111,12 +142,11 @@ export const Home = () => {
               role === "ADMIN" ? "lg:col-span-1" : "lg:col-span-3"
             }`}
           >
-            <StatistikWidget
+            <SimpleStatWidget
               title="Total Ujian Terlaksana"
-              value={4}
-              footerText="4 Selesai dari 10 Jadwal"
-              percent={40}
-              centerLabel="Progress"
+              value={statistik.total_ujian_terlaksana}
+              trend="neutral"
+              trendText="Total ujian yang sudah terlaksana"
               className="h-full"
             />
           </div>
@@ -125,9 +155,9 @@ export const Home = () => {
           <div className="h-full lg:col-span-1">
             <SimpleStatWidget
               title="Total Bank Soal"
-              value="1,240"
-              trend="up"
-              trendText="+12% bulan ini"
+              value={statistik.total_bank_soal}
+              trend="neutral"
+              trendText="Total bank soal tersedia"
               className="h-full"
             />
           </div>
@@ -136,9 +166,9 @@ export const Home = () => {
           <div className="h-full lg:col-span-1">
             <SimpleStatWidget
               title="Mata Pelajaran Aktif"
-              value="18"
+              value={statistik.total_mapel_aktif}
               trend="neutral"
-              trendText="Tidak ada perubahan"
+              trendText="Total mata pelajaran aktif"
               className="h-full"
             />
           </div>

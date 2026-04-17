@@ -104,6 +104,7 @@ func main() {
 	bankSoalMod := app.BuildBankSoalModule(infra)
 	resetPasswordMod := app.BuildResetPasswordModule(infra, hasher)
 	importSoalMod := app.BuildImportSoalModule(infra, cfg, logger)
+	dashboardMod := app.BuildDashboardModule(infra)
 
 	httpMod := app.BuildHTTPModule(app.HTTPDeps{
 		Config:        cfg,
@@ -121,8 +122,10 @@ func main() {
 		BankSoal:      bankSoalMod,
 		ResetPassword: resetPasswordMod,
 		ImportSoal:    importSoalMod,
+		Dashboard:     dashboardMod,
 		Tokens:        tokens,
 		Infra:         infra,
+			
 	})
 
 	// 3) Start worker

@@ -17,5 +17,15 @@ export async function getLogAktivitas(): Promise<AktivitasLogItem[]> {
 // =====================
 
 export function useGetLogAktivitas() {
-  return useFetch(() => getLogAktivitas(), []);
+  return useGetLogAktivitasEnabled(true);
+}
+
+export function useGetLogAktivitasEnabled(enabled = true) {
+  return useFetch(
+    () =>
+      enabled
+        ? getLogAktivitas()
+        : Promise.resolve(null as AktivitasLogItem[] | null),
+    [enabled],
+  );
 }
