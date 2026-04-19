@@ -14,7 +14,7 @@ export type DetailUjianItem = {
   tanggal_ujian: string;
   waktu_mulai: string;
   waktu_selesai: string;
-  sesi_ujian: number;
+  sesi_ujian: string | number;
   ruang_ujian: string;
   id_ruang: number;
   status_ujian: JadwalUjianStatusClient;

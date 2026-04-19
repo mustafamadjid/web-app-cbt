@@ -124,6 +124,10 @@ func (r *UjianRepo) CreateUjian(ctx context.Context, data ujian.PenjadwalanUjian
 		data.JadwalUjian.StatusUjian,
 	).Scan(&idJadwalUjian)
 	if err != nil {
+		if mappedErr := mapJadwalUjianConflictError(err); mappedErr != nil {
+			return mappedErr
+		}
+
 		r.loggerFor(ctx).Error(ctx, "failed to insert jadwal ujian", "layer", "repo.db", "op", "ujian.create.insert_jadwal", "err", err)
 		return err
 	}
@@ -233,6 +237,10 @@ func (r *UjianRepo) UpdateUjian(ctx context.Context, id ujian.ID, payload update
 			id,
 		)
 		if err != nil {
+			if mappedErr := mapJadwalUjianConflictError(err); mappedErr != nil {
+				return mappedErr
+			}
+
 			r.loggerFor(ctx).Error(ctx, "failed update jadwal ujian", "layer", "repo.db", "op", "ujian.update.jadwal", "err", err)
 			return err
 		}
@@ -314,4 +322,17 @@ func hasUpdateJadwalUjianPatch(payload updatepatch.UpdateJadwalUjianPatch) bool 
 		payload.WaktuMulai != nil ||
 		payload.WaktuSelesai != nil ||
 		payload.StatusUjian != nil
+}
+
+func mapJadwalUjianConflictError(err error) error {
+	var pgErr *pgconn.PgError
+	if !errors.As(err, &pgErr) || pgErr.Code != "23P01" {
+		return nil
+	}
+
+	if pgErr.ConstraintName == "excl_jadwal_ujian_ruangan_sesi_waktu_active" {
+		return coreerror.ErrConflict
+	}
+
+	return nil
 }

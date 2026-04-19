@@ -36,6 +36,19 @@ const calculateDuration = (mulai: string, selesai: string) => {
   return Math.max(0, selesaiMinuteTotal - mulaiMinuteTotal);
 };
 
+const formatSesiUjian = (sesiUjian: string | number | null | undefined) => {
+  if (typeof sesiUjian === "number") {
+    return sesiUjian > 0 ? `Sesi ${sesiUjian}` : "-";
+  }
+
+  const normalizedSesi = sesiUjian?.trim();
+  if (!normalizedSesi) return "-";
+
+  return /^sesi\b/i.test(normalizedSesi) || !/^\d+$/.test(normalizedSesi)
+    ? normalizedSesi
+    : `Sesi ${normalizedSesi}`;
+};
+
 const DetailUjian = () => {
   const params = useParams();
   const { user } = useAuth();
@@ -68,6 +81,8 @@ const DetailUjian = () => {
     if (!detail) return "-";
     return detail.nama_kelas.trim() || "Semua kelas di tingkat ini";
   }, [detail]);
+
+  const sesiLabel = useMemo(() => formatSesiUjian(detail?.sesi_ujian), [detail]);
 
   const statusLabel = detail?.status_ujian
     ? (statusLabelMap[detail.status_ujian] ?? "Tidak Diketahui")
@@ -190,11 +205,7 @@ const DetailUjian = () => {
                     </div>
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-slate-500">Sesi</span>
-                      <span className="font-bold text-slate-700">
-                        {detail.sesi_ujian > 0
-                          ? `Sesi ${detail.sesi_ujian}`
-                          : "-"}
-                      </span>
+                      <span className="font-bold text-slate-700">{sesiLabel}</span>
                     </div>
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-slate-500">Pengawas</span>

@@ -508,6 +508,8 @@ paths:
           $ref: '#/components/responses/SuccessNoData'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -569,6 +571,8 @@ paths:
           $ref: '#/components/responses/SuccessNoData'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':

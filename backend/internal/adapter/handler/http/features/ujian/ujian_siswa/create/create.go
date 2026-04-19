@@ -94,6 +94,9 @@ func (s *CreateRuangUjianHandler) CreateUjian(w http.ResponseWriter, r *http.Req
 		case errors.Is(err, coreerror.ErrInvalidInput):
 			httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: invalid input")
 			return
+		case errors.Is(err, coreerror.ErrConflict):
+			httpResponse.WriteErr(w, http.StatusConflict, "CONFLICT", "jadwal ujian bentrok dengan jadwal lain pada ruangan dan sesi yang sama")
+			return
 		default:
 			httpResponse.WriteErr(w, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "internal server error")
 			return

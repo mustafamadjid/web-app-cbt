@@ -93,6 +93,8 @@ func (h *UpdateUjianHandler) UpdateUjian(w http.ResponseWriter, r *http.Request,
 		switch {
 		case errors.Is(err, coreerror.ErrNotFound):
 			httpResponse.WriteErr(w, http.StatusNotFound, "NOT_FOUND", "data not found")
+		case errors.Is(err, coreerror.ErrConflict):
+			httpResponse.WriteErr(w, http.StatusConflict, "CONFLICT", "jadwal ujian bentrok dengan jadwal lain pada ruangan dan sesi yang sama")
 		case errors.Is(err, coreerror.ErrMissingId),
 			errors.Is(err, coreerror.ErrMissingField),
 			errors.Is(err, coreerror.ErrNoFieldToUpdate),
