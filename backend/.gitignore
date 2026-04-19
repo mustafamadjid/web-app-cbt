@@ -7,6 +7,7 @@ createHashedPassword.go
 
 backend/run.ps1
 backend/internal/db/migrations/migrate.ps1
+backend/export_env.ps1
 
 run.ps1
 internal/db/migrations/migrate.ps1
