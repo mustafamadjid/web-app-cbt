@@ -16,7 +16,11 @@ ON CONFLICT DO NOTHING;
 
 -- +goose Down
 -- +goose StatementBegin
-DELETE FROM kelas;
+DELETE FROM profil_siswa
+WHERE id_nama_kelas IN (SELECT id_nama_kelas FROM nama_kelas)
+   OR id_kelas IN (SELECT id_kelas FROM kelas);
+
 DELETE FROM nama_kelas;
+DELETE FROM kelas;
 
 -- +goose StatementEnd

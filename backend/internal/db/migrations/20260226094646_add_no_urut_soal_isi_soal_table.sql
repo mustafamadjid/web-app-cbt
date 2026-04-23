@@ -5,5 +5,5 @@ ALTER TABLE isi_soal ADD COLUMN IF NOT EXISTS no_urut_soal INTEGER DEFAULT NULL;
 
 -- +goose Down
 -- +goose StatementBegin
-ALTER TABLE DROP COLUMN IF EXISTS no_urut_soal;
+ALTER TABLE isi_soal DROP COLUMN IF EXISTS no_urut_soal;
 -- +goose StatementEnd

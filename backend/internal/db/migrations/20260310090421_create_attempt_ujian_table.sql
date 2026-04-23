@@ -79,6 +79,9 @@ ALTER TABLE jawaban_ujian_siswa
         ON UPDATE CASCADE
         ON DELETE CASCADE;
 
-DROP TABLE attempt_ujian;
-DROP TABLE hasil_ujian;
+ALTER TABLE jawaban_ujian_siswa
+    DROP COLUMN id_attempt;
+
+DROP TABLE IF EXISTS hasil_ujian;
+DROP TABLE IF EXISTS attempt_ujian;
 -- +goose StatementEnd

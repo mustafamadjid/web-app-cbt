@@ -18,18 +18,6 @@ WHERE revoked_at IS NULL;
 -- +goose StatementEnd
 
 
-SELECT id_buku, judul
-FROM   buku
-WHERE  id_buku IN (
-    -- Query tengah: cari id_buku dari transaksi pelanggan Bandar Lampung
-    SELECT id_buku
-    FROM   transaksi
-    WHERE  id_pelanggan IN (
-        -- Query terdalam: cari id_pelanggan dari Bandar Lampung
-        SELECT id_pelanggan
-        FROM   pelanggan
-        WHERE  alamat ILIKE '%Bandar Lampung%'
-    )
-);
+
 
 

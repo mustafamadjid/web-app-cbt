@@ -19,6 +19,7 @@ CREATE INDEX idx_sessions_id_pengguna ON sessions(id_pengguna);
 
 -- +goose Down
 -- +goose StatementBegin
+DROP TABLE IF EXISTS sessions;
 DROP EXTENSION IF EXISTS pgcrypto;
 
 -- +goose StatementEnd

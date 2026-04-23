@@ -47,7 +47,7 @@ func (r *SesiRepo) GetSesiById(ctx context.Context, idSesi int) (sesi.Sesi, erro
 		SELECT
 			id_sesi,
 			kode_sesi,
-			nama_sesi,
+			nama_sesi
 		FROM sesi_ujian	
 		WHERE id_sesi = $1
 	`
@@ -69,7 +69,7 @@ func (r *SesiRepo) GetSesiByKode(ctx context.Context, kodeSesi string) (sesi.Ses
 		SELECT
 			id_sesi,
 			kode_sesi,
-			nama_sesi,
+			nama_sesi
 		FROM sesi_ujian		
 		WHERE kode_sesi = $1
 	`
@@ -127,16 +127,16 @@ func (r *SesiRepo) UpdateSesi(ctx context.Context, idSesi int, sesi updatepatch.
 		UPDATE sesi_ujian	
 		SET
 			kode_sesi = COALESCE($1,kode_sesi),
-			nama_sesi = COALESCE($2,nama_sesi)
+			nama_sesi = COALESCE($2,nama_sesi),
 			updated_at = now()
-		WHERE id_sesi = $3s
+		WHERE id_sesi = $3
 	`
 	tag, err := r.q.Exec(
 		ctx,
 		query,
-		idSesi,
 		sesi.KodeSesi,
 		sesi.NamaSesi,
+		idSesi,
 	)
 	if err != nil {
 		r.loggerFor(ctx).Error(ctx, "failed update sesi", "layer", "repo.db", "op", "sesi.update", "err", err)

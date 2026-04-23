@@ -7,5 +7,5 @@ ALTER TABLE profil_siswa
 -- +goose Down
 -- +goose StatementBegin
 ALTER TABLE profil_siswa
-    ADD COLUMN id_kelas BIGINT NOT NULL;    
+    ADD COLUMN IF NOT EXISTS id_kelas BIGINT;
 -- +goose StatementEnd

@@ -189,18 +189,34 @@ func (r *GradingRepo) UpdateAndGradingEssayUjian(ctx context.Context, jawabanSis
 				essay_graded = EXCLUDED.essay_graded,
 				graded_at = EXCLUDED.graded_at,
 				id_jadwal_ujian = COALESCE(hasil_ujian.id_jadwal_ujian, EXCLUDED.id_jadwal_ujian)
-			RETURNING id_jadwal_ujian
-		), statistik_ujian_agg AS (
+			RETURNING
+				id_attempt,
+				id_jadwal_ujian,
+				nilai_akhir
+		), statistik_ujian_source AS (
 			SELECT
 				hu.id_jadwal_ujian,
-				MAX(hu.nilai_akhir)::decimal(5,2) AS nilai_tertinggi,
-				MIN(hu.nilai_akhir)::decimal(5,2) AS nilai_terendah,
-				ROUND(AVG(hu.nilai_akhir)::numeric, 2)::decimal(5,2) AS nilai_rata_rata,
+				hu.nilai_akhir
+			FROM hasil_upsert hu
+			WHERE hu.nilai_akhir IS NOT NULL
+			UNION ALL
+			SELECT
+				existing.id_jadwal_ujian,
+				existing.nilai_akhir
+			FROM hasil_ujian existing
+			INNER JOIN hasil_upsert hu
+				ON hu.id_jadwal_ujian = existing.id_jadwal_ujian
+			WHERE existing.id_attempt <> hu.id_attempt
+				AND existing.nilai_akhir IS NOT NULL
+		), statistik_ujian_agg AS (
+			SELECT
+				sus.id_jadwal_ujian,
+				MAX(sus.nilai_akhir)::decimal(5,2) AS nilai_tertinggi,
+				MIN(sus.nilai_akhir)::decimal(5,2) AS nilai_terendah,
+				ROUND(AVG(sus.nilai_akhir)::numeric, 2)::decimal(5,2) AS nilai_rata_rata,
 				COUNT(*)::integer AS total_peserta_ujian
-			FROM hasil_ujian hu
-			WHERE hu.id_jadwal_ujian IN (SELECT id_jadwal_ujian FROM hasil_upsert)
-				AND hu.nilai_akhir IS NOT NULL
-			GROUP BY hu.id_jadwal_ujian
+			FROM statistik_ujian_source sus
+			GROUP BY sus.id_jadwal_ujian
 		), statistik_ujian_upsert AS (
 			INSERT INTO statistik_ujian (
 				id_jadwal_ujian,

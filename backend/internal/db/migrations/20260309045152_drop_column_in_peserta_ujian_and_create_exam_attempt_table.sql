@@ -9,7 +9,7 @@ DROP COLUMN nilai_ujian;
 -- +goose Down
 -- +goose StatementBegin
 ALTER TABLE peserta_ujian
-ADD COLUMN waktu_mulai TIMESTAMPTZ NOT NULL,
-ADD COLUMN waktu_submit TIMESTAMPTZ NOT NULL,
-ADD COLUMN nilai_ujian NUMERIC(5,2) NOT NULL;
+ADD COLUMN waktu_mulai TIMESTAMPTZ,
+ADD COLUMN waktu_submit TIMESTAMPTZ,
+ADD COLUMN nilai_ujian NUMERIC(5,2);
 -- +goose StatementEnd

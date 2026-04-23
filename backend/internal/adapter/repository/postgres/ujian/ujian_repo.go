@@ -181,9 +181,9 @@ func (r *UjianRepo) UpdateUjian(ctx context.Context, id ujian.ID, payload update
 				id_bank_soal = COALESCE($1, id_bank_soal),
 				id_kelas = COALESCE($2, id_kelas),
 				id_nama_kelas = CASE
-					WHEN $3 IS NULL THEN id_nama_kelas
-					WHEN $3 = 0 THEN NULL
-					ELSE $3
+					WHEN $3::bigint IS NULL THEN id_nama_kelas
+					WHEN $3::bigint = 0 THEN NULL
+					ELSE $3::bigint
 				END,
 				id_guru = COALESCE($4, id_guru),
 				nama_ujian = COALESCE($5, nama_ujian),

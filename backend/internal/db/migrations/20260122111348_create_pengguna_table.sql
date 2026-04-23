@@ -143,6 +143,7 @@ CREATE INDEX IF NOT EXISTS idx_guru_bidang_studi ON profil_guru(bidang_studi);
 
 -- +goose Down
 -- +goose StatementBegin
+DROP TABLE IF EXISTS sessions;
 DROP TABLE IF EXISTS profil_guru;
 DROP TABLE IF EXISTS profil_siswa;
 DROP TABLE IF EXISTS pengguna;
