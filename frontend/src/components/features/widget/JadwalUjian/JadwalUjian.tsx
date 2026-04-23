@@ -3,7 +3,6 @@ import type { JadwalUjianItem } from "@/types/Ujian/jadwalUjian";
 import { Link } from "react-router";
 import {
   CalendarCheck2,
-  ChevronRight,
   Clock,
   MapPin,
   User,
@@ -16,8 +15,6 @@ type JadwalUjianProps = {
   className?: string;
   /** tinggi maksimum list (opsional) */
   maxHeightClassName?: string;
-  /** tujuan halaman list ujian keseluruhan */
-  lihatSemuaTo?: string;
 };
 
 const JadwalUjianWidget: React.FC<JadwalUjianProps> = ({
@@ -25,7 +22,6 @@ const JadwalUjianWidget: React.FC<JadwalUjianProps> = ({
   items,
   className,
   maxHeightClassName = "max-h-[60vh] sm:max-h-[520px]",
-  lihatSemuaTo = "/jadwal-ujian",
 }) => {
   return (
     <section
@@ -52,14 +48,6 @@ const JadwalUjianWidget: React.FC<JadwalUjianProps> = ({
             </p>
           </div>
         </div>
-
-        <Link
-          to={lihatSemuaTo}
-          className="group flex items-center gap-1 text-xs font-bold text-[#397e50] transition-colors hover:text-[#2f5c3f]"
-        >
-          Lihat Semua
-          <ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-        </Link>
       </header>
 
       {/* Content Section */}

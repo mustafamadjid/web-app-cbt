@@ -1,83 +1,16 @@
-
 // Widgets
 import SimpleStatWidget from "@/components/features/widget/Soal/StatistikWidgetSimpler";
 import { PengumumanWidget } from "@/components/features/widget/Pengumuman/PengumumanWidget";
 import JadwalUjianWidget from "@/components/features/widget/JadwalUjian/JadwalUjian";
 import LogAktivitasWidget from "@/components/features/widget/LogAktivitas/LogAktivitasWidget";
 import TotalSiswaGuruWidget from "@/components/features/widget/StatistikPengguna/TotalSiswaGuruWidget";
-import UjianBerlangsungWidget from "@/components/features/widget/UjianBerlangsung/UjianBerlangsungWidget";
 
-// Types
-import type { JadwalUjianItem } from "@/types/Ujian/jadwalUjian";
-import type { UjianBerlangsungItem } from "@/types/Widget/UjianBerlangsung";
 import type { Role } from "@/types/Sidebar/SidebarMenu";
 import { useAuth } from "@/contexts/AuthContext";
 import { useGetLogAktivitasEnabled } from "@/services/Api/features-api/LogAktivitas/log-aktivitas.service";
 import { useGetPengumumanActive } from "@/services/Api/features-api/pengumuman/pengumuman.service";
 import { useGetDashboardStatistik } from "@/services/Api/features-api/Dashboard/dashboard.service";
-
-export const dummyJadwalUjian: JadwalUjianItem[] = [
-  {
-    id: 1,
-    nama_ujian: "UTS Matematika",
-    pengawas_ujian: "Budi Santoso",
-    tgl_ujian: "Kamis, 20 Nov 2025",
-    waktu_mulai: "08:00",
-    status_ujian: "belum_dimulai",
-    started: 0,
-    sesi_ujian: 1,
-    ruang_ujian: "R. 101",
-  },
-  {
-    id: 2,
-    nama_ujian: "UTS B. Indonesia",
-    pengawas_ujian: "Siti Aminah",
-    tgl_ujian: "Kamis, 20 Nov 2025",
-    waktu_mulai: "10:30",
-    status_ujian: "belum_dimulai",
-    started: 0,
-    sesi_ujian: 2,
-    ruang_ujian: "R. 102",
-  },
-  {
-    id: 3,
-    nama_ujian: "UAS Fisika",
-    pengawas_ujian: "Ahmad Fauzi",
-    tgl_ujian: "Jumat, 21 Nov 2025",
-    waktu_mulai: "08:00",
-    status_ujian: "belum_dimulai",
-    started: 0,
-    sesi_ujian: 1,
-    ruang_ujian: "Lab Fisika",
-  },
-];
-
-
-export const dummyUjianBerlangsung: UjianBerlangsungItem[] = [
-  {
-    id: 101,
-    nama_ujian: "Penilaian Harian Matematika Wajib",
-    mata_pelajaran: "Matematika",
-    kelas: ["XI IPA 1", "XI IPA 2"],
-    waktu_mulai: "08:00",
-    waktu_selesai: "09:30",
-    total_siswa: 70,
-    siswa_mengerjakan: 20, // Sedang mengerjakan (Kuning)
-    siswa_selesai: 45, // Sudah selesai (Hijau)
-    // Sisanya (5) belum login (Abu-abu)
-  },
-  {
-    id: 102,
-    nama_ujian: "Ujian Susulan Bahasa Inggris",
-    mata_pelajaran: "B. Inggris",
-    kelas: ["X IPS 3"],
-    waktu_mulai: "08:30",
-    waktu_selesai: "10:00",
-    total_siswa: 35,
-    siswa_mengerjakan: 30,
-    siswa_selesai: 2,
-  },
-];
+import { useGetJadwalUjian } from "@/services/Api/features-api/Ujian/jadwalujian.service";
 
 export const Home = () => {
   const { user } = useAuth();
@@ -89,6 +22,13 @@ export const Home = () => {
 
   // Hook: fetch pengumuman aktif
   const { data: pengumumanItems } = useGetPengumumanActive();
+  const {
+    data: jadwalUjianItems,
+    loading: jadwalUjianLoading,
+    error: jadwalUjianError,
+  } = useGetJadwalUjian({
+    kategoriUjian: "belum_dimulai",
+  });
   const {
     data: dashboardStatistik,
     loading: dashboardStatistikLoading,
@@ -120,6 +60,20 @@ export const Home = () => {
             {dashboardStatistikError
               ? `Statistik dashboard belum bisa dimuat: ${dashboardStatistikError}`
               : "Menyegarkan statistik dashboard..."}
+          </div>
+        )}
+
+        {(jadwalUjianLoading || jadwalUjianError) && (
+          <div
+            className={`rounded-xl border px-4 py-3 text-sm ${
+              jadwalUjianError
+                ? "border-amber-200 bg-amber-50 text-amber-800"
+                : "border-emerald-200 bg-emerald-50 text-emerald-700"
+            }`}
+          >
+            {jadwalUjianError
+              ? `Jadwal ujian belum bisa dimuat: ${jadwalUjianError}`
+              : "Memuat jadwal ujian mendatang..."}
           </div>
         )}
 
@@ -187,17 +141,12 @@ export const Home = () => {
               items={pengumumanItems ?? []}
               className="flex-1 min-h-0"
             />
-
-            <UjianBerlangsungWidget
-              items={dummyUjianBerlangsung}
-              className="flex-1 min-h-0"
-            />
           </div>
 
           {/* RIGHT COLUMN */}
           <div className="flex flex-col gap-6 lg:col-span-5 xl:col-span-4 h-full min-h-0">
             <JadwalUjianWidget
-              items={dummyJadwalUjian}
+              items={jadwalUjianItems ?? []}
               className="flex-1 min-h-0"
               maxHeightClassName="h-full"
             />
@@ -205,7 +154,6 @@ export const Home = () => {
             {role === "ADMIN" && (
               <LogAktivitasWidget
                 items={aktivitasItems ?? []}
-                lihatSemuaTo="/log-aktivitas"
                 className="flex-1 min-h-0"
                 maxHeightClassName="max-h-[400px] overflow-y-auto "
               />
