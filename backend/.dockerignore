@@ -1,0 +1,7 @@
+.env
+.env.*
+.gitignore
+tmp
+bin
+*.exe
+cmd/http/public/uploads
