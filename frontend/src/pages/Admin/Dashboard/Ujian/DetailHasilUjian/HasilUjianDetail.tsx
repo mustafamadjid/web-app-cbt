@@ -27,6 +27,7 @@ const HasilUjianDetail = () => {
     Number.isInteger(jadwalUjianId) && jadwalUjianId > 0;
   const {
     data: statistik,
+    loading: statistikLoading,
     error: statistikError,
   } = useGetStatistikUjian(jadwalUjianId, isJadwalUjianIdValid);
   const {
@@ -67,7 +68,11 @@ const HasilUjianDetail = () => {
     });
   };
 
-  const formatNilaiStatistik = (value: number | null | undefined) => {
+  const formatNilaiStatistik = (
+    value: number | null | undefined,
+    isLoading = false,
+  ) => {
+    if (isLoading) return "...";
     if (typeof value !== "number") return "0,00";
 
     return value.toLocaleString("id-ID", {
@@ -76,28 +81,33 @@ const HasilUjianDetail = () => {
     });
   };
 
+  const totalPesertaStatistik = () => {
+    if (statistikLoading) return "...";
+    return statistik?.jumlah_peserta ?? 0;
+  };
+
   const widgetData: StatWidgetProps[] = [
     {
       title: "Nilai Tertinggi",
-      value: formatNilaiStatistik(statistik?.nilai_tertinggi),
+      value: formatNilaiStatistik(statistik?.nilai_tertinggi, statistikLoading),
       icon: Trophy,
       colorTheme: "amber",
     },
     {
       title: "Rata-rata Kelas",
-      value: formatNilaiStatistik(statistik?.rata_rata),
+      value: formatNilaiStatistik(statistik?.rata_rata, statistikLoading),
       icon: TrendingUp,
       colorTheme: "blue",
     },
     {
       title: "Nilai Terendah",
-      value: formatNilaiStatistik(statistik?.nilai_terendah),
+      value: formatNilaiStatistik(statistik?.nilai_terendah, statistikLoading),
       icon: TrendingDown,
       colorTheme: "rose",
     },
     {
       title: "Total Peserta",
-      value: statistik?.jumlah_peserta ?? 0,
+      value: totalPesertaStatistik(),
       icon: Users,
       colorTheme: "emerald",
     },
