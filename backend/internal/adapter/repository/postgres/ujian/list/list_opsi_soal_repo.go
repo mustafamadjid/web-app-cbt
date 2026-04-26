@@ -12,6 +12,7 @@ func (r *ListSoalUjianRepo) GetOpsiPilihanGandaByBankSoal(ctx context.Context, i
 			op.id_pilihan_ganda,
 			op.id_soal,
 			op.isi_pilihan,
+			op.isi_pilihan_content,
 			op.is_benar
 		FROM opsi_pilihan_ganda op
 		JOIN isi_soal s

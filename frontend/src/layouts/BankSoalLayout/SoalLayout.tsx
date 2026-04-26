@@ -1,5 +1,6 @@
 import React from "react";
 
+import RichContentRenderer from "@/components/common/RichContentRenderer";
 import { formatSoalTypeLabel } from "@/helper/Ujian/soalType";
 import type { SoalPreviewItem } from "@/types/Ujian/SoalPreview";
 
@@ -145,9 +146,12 @@ const SoalLayout: React.FC<SoalLayoutProps> = ({
                       <p className="text-xs uppercase tracking-wide text-slate-400">
                         {formatSoalTypeLabel(soal.tipe)}
                       </p>
-                      <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-slate-600">
-                        {soal.pertanyaan}
-                      </p>
+                      <RichContentRenderer
+                        content={soal.pertanyaan_content}
+                        fallbackText={soal.pertanyaan}
+                        className="mt-2"
+                        paragraphClassName="whitespace-pre-wrap text-sm leading-relaxed text-slate-600"
+                      />
                     </div>
 
                     {soal.gambar_url && (
@@ -197,7 +201,14 @@ const SoalLayout: React.FC<SoalLayoutProps> = ({
                                 >
                                   {option.label}
                                 </span>
-                                <span className="flex-1">{option.text}</span>
+                                <span className="flex-1">
+                                  <RichContentRenderer
+                                    content={option.content}
+                                    fallbackText={option.text}
+                                    inline
+                                    paragraphClassName="whitespace-pre-wrap text-sm leading-relaxed text-inherit"
+                                  />
+                                </span>
                               </button>
                             );
                           })}

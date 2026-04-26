@@ -5,7 +5,10 @@ import {
   fileDocxOnly,
   fileMaxSize,
 } from "@/helper/validate/validateForm";
-import { uploadImportSoal } from "@/services/Api/features-api/BankSoal/importSoal.service";
+import {
+  getImportSoalJob,
+  uploadImportSoal,
+} from "@/services/Api/features-api/BankSoal/importSoal.service";
 import { ApiError } from "@/services/Api/api";
 import { useRef, useState, type FormEvent } from "react";
 import { useParams } from "react-router";
@@ -72,8 +75,37 @@ const TambahBankSoal = () => {
 
     setIsUploading(true);
     try {
-      await uploadImportSoal(idBankSoal, values.file);
-      setSuccessMessage("File berhasil di upload, silakan tunggu beberapa saat.");
+      const { id_job } = await uploadImportSoal(idBankSoal, values.file);
+      setSuccessMessage("File berhasil di-upload, memproses import soal...");
+
+      const maxAttempts = 20;
+      for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+        await new Promise((resolve) => window.setTimeout(resolve, 1500));
+        const job = await getImportSoalJob(id_job);
+
+        if (job.status === "failed") {
+          throw new ApiError(
+            job.error_msg || "Import soal gagal diproses.",
+            400,
+            job,
+          );
+        }
+
+        if (job.status === "completed") {
+          const warningText = job.warning_msg?.trim();
+          setSuccessMessage(
+            warningText
+              ? `Import selesai dengan peringatan: ${warningText}`
+              : `Import selesai. Total soal: ${job.total_soal}.`,
+          );
+          clearFile();
+          return;
+        }
+      }
+
+      setSuccessMessage(
+        "File berhasil di-upload. Import masih diproses, silakan cek kembali beberapa saat lagi.",
+      );
       clearFile();
     } catch (error) {
       if (error instanceof ApiError) {

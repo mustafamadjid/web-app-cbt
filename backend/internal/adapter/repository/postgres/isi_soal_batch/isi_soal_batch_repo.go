@@ -9,6 +9,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
+	pgshared "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/shared"
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	importsoal "github.com/mustafamadjid/web-app-cbt/internal/core/domain/import_soal"
 	importsoalrepo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/import_soal"
@@ -159,12 +160,16 @@ func (r *IsiSoalBatchRepo) insertIsiSoalInBatches(ctx context.Context, tx pgx.Tx
 			if noUrut <= 0 {
 				noUrut = i + 1
 			}
+			contentJSON, err := pgshared.MarshalRichContent(soal.PertanyaanContent)
+			if err != nil {
+				return nil, fmt.Errorf("marshal pertanyaan_content index %d: %w", i, err)
+			}
 
 			batch.Queue(`
-				INSERT INTO isi_soal (id_bank_soal_version, tipe_soal, pertanyaan, gambar, bobot_soal, no_urut_soal, created_at, updated_at)
-				VALUES ($1, $2, $3, $4, $5, $6, now(), now())
+				INSERT INTO isi_soal (id_bank_soal_version, tipe_soal, pertanyaan, pertanyaan_content, gambar, bobot_soal, no_urut_soal, created_at, updated_at)
+				VALUES ($1, $2, $3, $4, $5, $6, $7, now(), now())
 				RETURNING id_soal
-			`, versionID, soal.TipeSoal, soal.Pertanyaan, normalizeSoalImage(soal.Gambar), soal.BobotSoal, noUrut)
+			`, versionID, soal.TipeSoal, soal.Pertanyaan, contentJSON, normalizeSoalImage(soal.Gambar), soal.BobotSoal, noUrut)
 		}
 
 		results := tx.SendBatch(ctx, batch)
@@ -184,11 +189,12 @@ func (r *IsiSoalBatchRepo) insertIsiSoalInBatches(ctx context.Context, tx pgx.Tx
 
 func (r *IsiSoalBatchRepo) insertOpsiInBatches(ctx context.Context, tx pgx.Tx, soalIDs []int64, soalList []importsoal.ParsedSoal) error {
 	type opsiInsert struct {
-		SoalID    int64
-		Isi       string
-		IsBenar   bool
-		SoalIdx   int
-		OpsiLabel string
+		SoalID     int64
+		Isi        string
+		IsiContent []byte
+		IsBenar    bool
+		SoalIdx    int
+		OpsiLabel  string
 	}
 
 	rows := make([]opsiInsert, 0)
@@ -197,12 +203,17 @@ func (r *IsiSoalBatchRepo) insertOpsiInBatches(ctx context.Context, tx pgx.Tx, s
 			continue
 		}
 		for _, opsi := range soal.Opsi {
+			contentJSON, err := pgshared.MarshalRichContent(opsi.IsiContent)
+			if err != nil {
+				return fmt.Errorf("marshal isi_pilihan_content soal index %d opsi %q: %w", i, opsi.Label, err)
+			}
 			rows = append(rows, opsiInsert{
-				SoalID:    soalIDs[i],
-				Isi:       opsi.Isi,
-				IsBenar:   opsi.IsBenar,
-				SoalIdx:   i,
-				OpsiLabel: opsi.Label,
+				SoalID:     soalIDs[i],
+				Isi:        opsi.Isi,
+				IsiContent: contentJSON,
+				IsBenar:    opsi.IsBenar,
+				SoalIdx:    i,
+				OpsiLabel:  opsi.Label,
 			})
 		}
 	}
@@ -214,9 +225,9 @@ func (r *IsiSoalBatchRepo) insertOpsiInBatches(ctx context.Context, tx pgx.Tx, s
 		for i := start; i < end; i++ {
 			row := rows[i]
 			batch.Queue(`
-				INSERT INTO opsi_pilihan_ganda (id_soal, isi_pilihan, is_benar, created_at, updated_at)
-				VALUES ($1, $2, $3, now(), now())
-			`, row.SoalID, row.Isi, row.IsBenar)
+				INSERT INTO opsi_pilihan_ganda (id_soal, isi_pilihan, isi_pilihan_content, is_benar, created_at, updated_at)
+				VALUES ($1, $2, $3, $4, now(), now())
+			`, row.SoalID, row.Isi, row.IsiContent, row.IsBenar)
 		}
 
 		results := tx.SendBatch(ctx, batch)

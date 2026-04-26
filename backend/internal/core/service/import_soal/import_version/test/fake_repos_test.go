@@ -11,7 +11,7 @@ import (
 type FakeImportSoalJobRepo struct {
 	CreateJobFn         func(ctx context.Context, job importsoal.ImportSoalJob) (int64, error)
 	GetPendingJobsFn    func(ctx context.Context, limit int) ([]importsoal.ImportSoalJob, error)
-	UpdateJobStatusFn   func(ctx context.Context, jobID int64, status importsoal.JobStatus, errorMsg string, totalSoal int) error
+	UpdateJobStatusFn   func(ctx context.Context, jobID int64, status importsoal.JobStatus, errorMsg, warningMsg string, totalSoal int) error
 	GetJobByIDFn        func(ctx context.Context, jobID int64) (importsoal.ImportSoalJob, error)
 	GetJobsByBankSoalFn func(ctx context.Context, bankSoalID int64) ([]importsoal.ImportSoalJob, error)
 }
@@ -30,9 +30,9 @@ func (f *FakeImportSoalJobRepo) GetPendingJobs(ctx context.Context, limit int) (
 	return nil, nil
 }
 
-func (f *FakeImportSoalJobRepo) UpdateJobStatus(ctx context.Context, jobID int64, status importsoal.JobStatus, errorMsg string, totalSoal int) error {
+func (f *FakeImportSoalJobRepo) UpdateJobStatus(ctx context.Context, jobID int64, status importsoal.JobStatus, errorMsg, warningMsg string, totalSoal int) error {
 	if f.UpdateJobStatusFn != nil {
-		return f.UpdateJobStatusFn(ctx, jobID, status, errorMsg, totalSoal)
+		return f.UpdateJobStatusFn(ctx, jobID, status, errorMsg, warningMsg, totalSoal)
 	}
 	return nil
 }

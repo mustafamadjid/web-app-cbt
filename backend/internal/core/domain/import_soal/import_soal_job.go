@@ -18,6 +18,7 @@ type ImportSoalJob struct {
 	Status     JobStatus
 	FilePath   string
 	ErrorMsg   string
+	WarningMsg string
 	TotalSoal  int
 	CreatedAt  time.Time
 	UpdatedAt  time.Time

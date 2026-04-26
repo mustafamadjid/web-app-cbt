@@ -1,7 +1,10 @@
+import type { RichContent } from "@/types/Content/RichContent";
+
 export type SoalPreviewOption = {
   id: number;
   label: string;
   text: string;
+  content?: RichContent | null;
 };
 
 export type SoalPreviewItem = {
@@ -9,6 +12,7 @@ export type SoalPreviewItem = {
   nomor: number;
   tipe: string;
   pertanyaan: string;
+  pertanyaan_content?: RichContent | null;
   gambar_url?: string;
   opsi: SoalPreviewOption[];
 };

@@ -1,5 +1,6 @@
 import React from "react";
 
+import RichContentRenderer from "@/components/common/RichContentRenderer";
 import { resolveImageUrl } from "@/helper/MediaUrl/resolveMediaUrl";
 import {
   formatSoalTypeLabel,
@@ -357,9 +358,12 @@ const HasilJawabanUjianContent: React.FC<HasilJawabanUjianContentProps> = ({
                   </span>
                 </div>
 
-                <p className="mt-4 whitespace-pre-wrap text-sm leading-relaxed text-slate-700">
-                  {item.pertanyaan}
-                </p>
+                <RichContentRenderer
+                  content={item.pertanyaan_content}
+                  fallbackText={item.pertanyaan}
+                  className="mt-4"
+                  paragraphClassName="whitespace-pre-wrap text-sm leading-relaxed text-slate-700"
+                />
 
                 {gambarUrl && (
                   <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white">
@@ -410,7 +414,11 @@ const HasilJawabanUjianContent: React.FC<HasilJawabanUjianContentProps> = ({
                               </span>
 
                               <div className="flex-1 space-y-2">
-                                <p>{option.isi_pilihan}</p>
+                                <RichContentRenderer
+                                  content={option.isi_pilihan_content}
+                                  fallbackText={option.isi_pilihan}
+                                  paragraphClassName="whitespace-pre-wrap text-sm leading-relaxed text-inherit"
+                                />
 
                                 <div className="flex flex-wrap gap-2">
                                   {isSelected && (
@@ -439,7 +447,13 @@ const HasilJawabanUjianContent: React.FC<HasilJawabanUjianContentProps> = ({
                         {correctOptions.length > 0 ? (
                           correctOptions.map((option) => (
                             <p key={option.id_pilihan_ganda}>
-                              {option.optionLabel}. {option.isi_pilihan}
+                              {option.optionLabel}.{" "}
+                              <RichContentRenderer
+                                content={option.isi_pilihan_content}
+                                fallbackText={option.isi_pilihan}
+                                inline
+                                paragraphClassName="whitespace-pre-wrap text-sm leading-relaxed text-inherit"
+                              />
                             </p>
                           ))
                         ) : (

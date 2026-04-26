@@ -20,6 +20,7 @@ func scanImportSoalJobRow(row importSoalJobScanner) (importsoal.ImportSoalJob, e
 		&item.Status,
 		&item.FilePath,
 		&item.ErrorMsg,
+		&item.WarningMsg,
 		&item.TotalSoal,
 		&item.CreatedAt,
 		&item.UpdatedAt,

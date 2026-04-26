@@ -75,8 +75,8 @@ func (m *MockImportSoalJobRepo) GetPendingJobs(ctx context.Context, limit int) (
 	return args.Get(0).([]importsoal.ImportSoalJob), args.Error(1)
 }
 
-func (m *MockImportSoalJobRepo) UpdateJobStatus(ctx context.Context, jobID int64, status importsoal.JobStatus, errorMsg string, totalSoal int) error {
-	return m.Called(ctx, jobID, status, errorMsg, totalSoal).Error(0)
+func (m *MockImportSoalJobRepo) UpdateJobStatus(ctx context.Context, jobID int64, status importsoal.JobStatus, errorMsg, warningMsg string, totalSoal int) error {
+	return m.Called(ctx, jobID, status, errorMsg, warningMsg, totalSoal).Error(0)
 }
 
 func (m *MockImportSoalJobRepo) GetJobByID(ctx context.Context, jobID int64) (importsoal.ImportSoalJob, error) {

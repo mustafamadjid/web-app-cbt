@@ -1,4 +1,6 @@
 import React from "react";
+
+import { hasRichContent } from "@/types/Content/RichContent";
 import { ApiError } from "@/services/Api/api";
 import { GetSoalUjianForSiswa } from "@/services/Api/features-api/Ujian/soalUjian.service";
 import type {
@@ -6,7 +8,7 @@ import type {
   SoalUjianSiswa,
 } from "@/types/Ujian/SoalUjian";
 
-const CACHE_VERSION = 1;
+const CACHE_VERSION = 2;
 const STORAGE_PREFIX = `ujian_soal_siswa:v${CACHE_VERSION}`;
 
 type CachedSoalUjianPayload = {
@@ -29,7 +31,10 @@ const isValidOption = (value: unknown): value is OpsiJawabanSoalUjianSiswa => {
   const option = value as Partial<OpsiJawabanSoalUjianSiswa>;
   return (
     typeof option.id_pilihan_ganda === "number" &&
-    typeof option.isi_pilihan === "string"
+    typeof option.isi_pilihan === "string" &&
+    (option.isi_pilihan_content == null ||
+      (typeof option.isi_pilihan_content === "object" &&
+        hasRichContent(option.isi_pilihan_content as never)))
   );
 };
 
@@ -41,6 +46,9 @@ const isValidSoalRow = (value: unknown): value is SoalUjianSiswa => {
     typeof soal.id_soal === "number" &&
     typeof soal.tipe_soal === "string" &&
     typeof soal.pertanyaan === "string" &&
+    (soal.pertanyaan_content == null ||
+      (typeof soal.pertanyaan_content === "object" &&
+        hasRichContent(soal.pertanyaan_content as never))) &&
     typeof soal.gambar === "string" &&
     typeof soal.bobot_soal === "number" &&
     typeof soal.no_urut_soal === "number" &&

@@ -92,7 +92,7 @@ func (w *Worker) processOneJob(ctx context.Context, job importsoal.ImportSoalJob
 	logger := w.logger.With("job_id", job.IDJob, "bank_soal_id", job.IDBankSoal)
 
 	// 1. Mark as processing
-	if err := w.jobRepo.UpdateJobStatus(ctx, job.IDJob, importsoal.StatusProcessing, "", 0); err != nil {
+	if err := w.jobRepo.UpdateJobStatus(ctx, job.IDJob, importsoal.StatusProcessing, "", "", 0); err != nil {
 		logger.Error(ctx, "failed updating job to processing", "err", err)
 		return
 	}
@@ -102,33 +102,34 @@ func (w *Worker) processOneJob(ctx context.Context, job importsoal.ImportSoalJob
 	if err != nil {
 		errMsg := fmt.Sprintf("gagal membaca file: %v", err)
 		logger.Error(ctx, errMsg, "file_path", job.FilePath)
-		_ = w.jobRepo.UpdateJobStatus(ctx, job.IDJob, importsoal.StatusFailed, errMsg, 0)
+		_ = w.jobRepo.UpdateJobStatus(ctx, job.IDJob, importsoal.StatusFailed, errMsg, "", 0)
 		return
 	}
 
-	// 3. Extract paragraphs from DOCX
-	paragraphs, err := parser.ExtractParagraphs(data)
+	// 3. Extract rich paragraphs from DOCX
+	paragraphs, warnings, err := parser.ExtractParagraphContents(data)
 	if err != nil {
 		errMsg := fmt.Sprintf("gagal extract paragraf dari docx: %v", err)
 		logger.Error(ctx, errMsg)
-		_ = w.jobRepo.UpdateJobStatus(ctx, job.IDJob, importsoal.StatusFailed, errMsg, 0)
+		_ = w.jobRepo.UpdateJobStatus(ctx, job.IDJob, importsoal.StatusFailed, errMsg, "", 0)
 		return
 	}
 
 	// 4. Parse markers
-	soalList, err := parser.ParseMarkers(paragraphs, data)
+	soalList, parseWarnings, err := parser.ParseMarkersFromContent(paragraphs, data)
 	if err != nil {
 		errMsg := fmt.Sprintf("gagal parsing marker: %v", err)
 		logger.Error(ctx, errMsg)
-		_ = w.jobRepo.UpdateJobStatus(ctx, job.IDJob, importsoal.StatusFailed, errMsg, 0)
+		_ = w.jobRepo.UpdateJobStatus(ctx, job.IDJob, importsoal.StatusFailed, errMsg, "", 0)
 		return
 	}
+	warnings = append(warnings, parseWarnings...)
 
 	// 5. Validate parsed soal
 	if err := parser.ValidateParsedSoal(soalList); err != nil {
 		errMsg := fmt.Sprintf("validasi soal gagal: %v", err)
 		logger.Error(ctx, errMsg)
-		_ = w.jobRepo.UpdateJobStatus(ctx, job.IDJob, importsoal.StatusFailed, errMsg, 0)
+		_ = w.jobRepo.UpdateJobStatus(ctx, job.IDJob, importsoal.StatusFailed, errMsg, "", 0)
 		return
 	}
 
@@ -136,14 +137,14 @@ func (w *Worker) processOneJob(ctx context.Context, job importsoal.ImportSoalJob
 	if err := w.saveImages(data, soalList); err != nil {
 		errMsg := fmt.Sprintf("gagal menyimpan gambar: %v", err)
 		logger.Error(ctx, errMsg)
-		_ = w.jobRepo.UpdateJobStatus(ctx, job.IDJob, importsoal.StatusFailed, errMsg, 0)
+		_ = w.jobRepo.UpdateJobStatus(ctx, job.IDJob, importsoal.StatusFailed, errMsg, "", 0)
 		return
 	}
 
 	if w.importSvc == nil {
 		errMsg := "service import versi bank soal belum terpasang"
 		logger.Error(ctx, errMsg)
-		_ = w.jobRepo.UpdateJobStatus(ctx, job.IDJob, importsoal.StatusFailed, errMsg, 0)
+		_ = w.jobRepo.UpdateJobStatus(ctx, job.IDJob, importsoal.StatusFailed, errMsg, "", 0)
 		return
 	}
 
@@ -159,17 +160,38 @@ func (w *Worker) processOneJob(ctx context.Context, job importsoal.ImportSoalJob
 			errMsg = "konflik publish versi bank soal, silakan ulangi import"
 		}
 		logger.Error(ctx, errMsg)
-		_ = w.jobRepo.UpdateJobStatus(ctx, job.IDJob, importsoal.StatusFailed, errMsg, 0)
+		_ = w.jobRepo.UpdateJobStatus(ctx, job.IDJob, importsoal.StatusFailed, errMsg, "", 0)
 		return
 	}
 
 	// 8. Mark as completed
-	if err := w.jobRepo.UpdateJobStatus(ctx, job.IDJob, importsoal.StatusCompleted, "", len(soalList)); err != nil {
+	warningMsg := joinWarnings(warnings)
+	if err := w.jobRepo.UpdateJobStatus(ctx, job.IDJob, importsoal.StatusCompleted, "", warningMsg, len(soalList)); err != nil {
 		logger.Error(ctx, "failed updating job to completed", "err", err)
 		return
 	}
 
 	logger.Info(ctx, "import job completed", "total_soal", len(soalList), "new_version_id", importResult.VersionID)
+}
+
+func joinWarnings(items []string) string {
+	if len(items) == 0 {
+		return ""
+	}
+	seen := make(map[string]struct{}, len(items))
+	out := make([]string, 0, len(items))
+	for _, item := range items {
+		item = strings.TrimSpace(item)
+		if item == "" {
+			continue
+		}
+		if _, exists := seen[item]; exists {
+			continue
+		}
+		seen[item] = struct{}{}
+		out = append(out, item)
+	}
+	return strings.Join(out, "; ")
 }
 
 // saveImages extracts images referenced by [IMG] markers from the DOCX and

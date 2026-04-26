@@ -34,11 +34,13 @@ func (r *ListSoalUjianRepo) GetSoalUjianByBankSoal(ctx context.Context, idBankSo
 			bs.id_bank_soal_version_aktif,
 			s.tipe_soal,
 			s.pertanyaan,
+			s.pertanyaan_content,
 			s.gambar,
 			s.bobot_soal,
 			s.no_urut_soal,
 			op.id_pilihan_ganda,
 			op.isi_pilihan,
+			op.isi_pilihan_content,
 			op.is_benar
 		FROM bank_soal bs
 		JOIN isi_soal s
@@ -104,11 +106,13 @@ func (r *ListSoalUjianRepo) GetSoalUjianByBankSoalForSiswa(ctx context.Context, 
 			s.id_soal,
 			s.tipe_soal,
 			s.pertanyaan,
+			s.pertanyaan_content,
 			s.gambar,
 			s.bobot_soal,
 			s.no_urut_soal,
 			op.id_pilihan_ganda,
-			op.isi_pilihan
+			op.isi_pilihan,
+			op.isi_pilihan_content
 		FROM bank_soal bs
 		JOIN isi_soal s
 			ON s.id_bank_soal_version = bs.id_bank_soal_version_aktif

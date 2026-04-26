@@ -11,38 +11,15 @@ import (
 	"strconv"
 	"strings"
 
+	content "github.com/mustafamadjid/web-app-cbt/internal/core/domain/content"
 	importsoal "github.com/mustafamadjid/web-app-cbt/internal/core/domain/import_soal"
 )
-
-// --- OOXML structs for parsing word/document.xml ---
-
-type document struct {
-	Body body `xml:"body"`
-}
-
-type body struct {
-	Paragraphs []paragraph `xml:"p"`
-}
-
-type paragraph struct {
-	Runs []run `xml:"r"`
-}
-
-type run struct {
-	Text runText `xml:"t"`
-	// Drawing exists in real OOXML but we don't rely on unmarshalling it here;
-	// we detect images via token scan for <a:blip r:embed="...">.
-}
-
-type runText struct {
-	Value string `xml:",chardata"`
-}
 
 // --- Relationships parsing (word/_rels/document.xml.rels) ---
 
 type relationships struct {
 	XMLName       xml.Name       `xml:"Relationships"`
-	Relationships []relationship  `xml:"Relationship"`
+	Relationships []relationship `xml:"Relationship"`
 }
 
 type relationship struct {
@@ -55,50 +32,17 @@ type relationship struct {
 // and returns the text content of every <w:p> paragraph.
 // Note: this is still "text-only"; image mapping is handled by functions below.
 func ExtractParagraphs(data []byte) ([]string, error) {
-	zr, err := zip.NewReader(bytes.NewReader(data), int64(len(data)))
+	contents, _, err := ExtractParagraphContents(data)
 	if err != nil {
-		return nil, fmt.Errorf("open zip: %w", err)
+		return nil, err
 	}
-
-	var docFile *zip.File
-	for _, f := range zr.File {
-		if f.Name == "word/document.xml" {
-			docFile = f
-			break
-		}
-	}
-	if docFile == nil {
-		return nil, fmt.Errorf("word/document.xml not found in docx")
-	}
-
-	rc, err := docFile.Open()
-	if err != nil {
-		return nil, fmt.Errorf("open document.xml: %w", err)
-	}
-	defer rc.Close()
-
-	xmlBytes, err := io.ReadAll(rc)
-	if err != nil {
-		return nil, fmt.Errorf("read document.xml: %w", err)
-	}
-
-	var doc document
-	if err := xml.Unmarshal(xmlBytes, &doc); err != nil {
-		return nil, fmt.Errorf("unmarshal document.xml: %w", err)
-	}
-
-	paragraphs := make([]string, 0, len(doc.Body.Paragraphs))
-	for _, p := range doc.Body.Paragraphs {
-		var sb strings.Builder
-		for _, r := range p.Runs {
-			sb.WriteString(r.Text.Value)
-		}
-		text := strings.TrimSpace(sb.String())
+	paragraphs := make([]string, 0, len(contents))
+	for _, item := range contents {
+		text := strings.TrimSpace(item.PlainText())
 		if text != "" {
 			paragraphs = append(paragraphs, text)
 		}
 	}
-
 	return paragraphs, nil
 }
 
@@ -285,240 +229,41 @@ func extractImageNameQueue(data []byte) ([]string, error) {
 //	[W]       — weight / bobot
 
 func ParseMarkers(paragraphs []string, docxDataForAutoImg []byte) ([]importsoal.ParsedSoal, error) {
-	var result []importsoal.ParsedSoal
-	var current *importsoal.ParsedSoal
-
-	imgQueue, err := extractImageNameQueue(docxDataForAutoImg)
-	if err != nil {
-		return nil, fmt.Errorf("auto IMG mapping failed: %w", err)
-	}
-	imgIdx := 0
-	nextImage := func() (string, bool) {
-		if imgIdx >= len(imgQueue) {
-			return "", false
-		}
-		name := imgQueue[imgIdx]
-		imgIdx++
-		return name, true
-	}
-
-	flushCurrent := func() {
-		if current != nil {
-			result = append(result, *current)
-			current = nil
-		}
-	}
-
-	type fillMode int
-	const (
-		modeQuestion fillMode = iota
-		modeOption
-		modeAns
-		modeImg
-		modeW
-	)
-
-	var mode fillMode = modeQuestion
-	var lastOptLabel string
-
-	appendQuestion := func(s string) {
-		s = strings.TrimSpace(s)
-		if s == "" || current == nil {
-			return
-		}
-		if current.Pertanyaan == "" {
-			current.Pertanyaan = s
-		} else {
-			current.Pertanyaan += "\n" + s
-		}
-	}
-
-	appendOption := func(label, s string) error {
-		s = strings.TrimSpace(s)
-		if s == "" {
-			return nil
-		}
-		// append ke opsi terakhir dengan label yang sama (multi-line)
-		for i := range current.Opsi {
-			if current.Opsi[i].Label == label {
-				if current.Opsi[i].Isi == "" {
-					current.Opsi[i].Isi = s
-				} else {
-					current.Opsi[i].Isi += "\n" + s
-				}
-				return nil
-			}
-		}
-		current.Opsi = append(current.Opsi, importsoal.ParsedOpsi{
-			Label: label,
-			Isi:   s,
-		})
-		return nil
-	}
-
-	parseWeight := func(raw string) (float64, error) {
-		raw = strings.TrimSpace(raw)
-		bobot, err := strconv.ParseFloat(raw, 64)
-		if err != nil {
-			return 0, fmt.Errorf("bobot bukan angka: %q", raw)
-		}
-		if math.IsNaN(bobot) || math.IsInf(bobot, 0) {
-			return 0, fmt.Errorf("bobot bukan angka: %q", raw)
-		}
-		if bobot <= 0 {
-			return 0, fmt.Errorf("bobot harus lebih dari 0")
-		}
-		return bobot, nil
-	}
-
-	markCorrect := func() {
-		if current == nil || current.TipeSoal != "pilihan_ganda" {
-			return
-		}
-		ans := strings.ToUpper(strings.TrimSpace(current.KunciJawaban))
-		if ans == "" {
-			return
-		}
-		for i := range current.Opsi {
-			current.Opsi[i].IsBenar = (strings.ToUpper(current.Opsi[i].Label) == ans)
-		}
-	}
-
-	for i, line := range paragraphs {
-		trimmed := strings.TrimSpace(line)
+	contentParagraphs := make([]content.RichContent, 0, len(paragraphs))
+	for _, paragraph := range paragraphs {
+		trimmed := strings.TrimSpace(paragraph)
 		if trimmed == "" {
 			continue
 		}
-		upper := strings.ToUpper(trimmed)
-
-		switch {
-		case strings.HasPrefix(upper, "[Q:PG]"):
-			flushCurrent()
-			teks := strings.TrimSpace(trimmed[len("[Q:PG]"):])
-			current = &importsoal.ParsedSoal{
-				Pertanyaan: teks, // bisa kosong; nanti diisi paragraf berikutnya
-				TipeSoal:   "pilihan_ganda",
-				BobotSoal:  1,
-				NoUrutSoal: len(result) + 1,
-			}
-			mode = modeQuestion
-			lastOptLabel = ""
-
-		case strings.HasPrefix(upper, "[Q:ESSAY]"):
-			flushCurrent()
-			teks := strings.TrimSpace(trimmed[len("[Q:ESSAY]"):])
-			current = &importsoal.ParsedSoal{
-				Pertanyaan: teks,
-				TipeSoal:   "essay",
-				BobotSoal:  1,
-				NoUrutSoal: len(result) + 1,
-			}
-			mode = modeQuestion
-			lastOptLabel = ""
-
-		case isOptionMarker(upper):
-			if current == nil {
-				return nil, fmt.Errorf("baris %d: opsi ditemukan tanpa soal aktif", i+1)
-			}
-			label := strings.ToUpper(string(trimmed[1]))
-			text := ""
-			if len(trimmed) > 3 {
-				text = strings.TrimSpace(trimmed[3:]) // setelah "]"
-			}
-			// hapus leading spasi kalau ada
-			text = strings.TrimLeft(text, " \t")
-
-			mode = modeOption
-			lastOptLabel = label
-			if err := appendOption(label, text); err != nil {
-				return nil, fmt.Errorf("baris %d: %w", i+1, err)
-			}
-
-		case strings.HasPrefix(upper, "[ANS]"):
-			if current == nil {
-				return nil, fmt.Errorf("baris %d: [ANS] ditemukan tanpa soal aktif", i+1)
-			}
-			mode = modeAns
-			raw := strings.TrimSpace(trimmed[len("[ANS]"):])
-			if raw != "" {
-				current.KunciJawaban = raw
-				markCorrect()
-			}
-
-		case strings.HasPrefix(upper, "[IMG]"):
-			if current == nil {
-				return nil, fmt.Errorf("baris %d: [IMG] ditemukan tanpa soal aktif", i+1)
-			}
-			mode = modeImg
-			raw := strings.TrimSpace(trimmed[len("[IMG]"):])
-			if raw != "" {
-				current.Gambar = raw
-				break
-			}
-			// isi otomatis kalau marker kosong
-			if current.Gambar == "" {
-				if name, ok := nextImage(); ok {
-					current.Gambar = name
-				} else {
-					return nil, fmt.Errorf("baris %d: [IMG] tetapi tidak ada gambar tersisa di dokumen", i+1)
-				}
-			}
-
-		case strings.HasPrefix(upper, "[W]"):
-			if current == nil {
-				return nil, fmt.Errorf("baris %d: [W] ditemukan tanpa soal aktif", i+1)
-			}
-			mode = modeW
-			raw := strings.TrimSpace(trimmed[len("[W]"):])
-			if raw != "" {
-				bobot, err := parseWeight(raw)
-				if err != nil {
-					return nil, fmt.Errorf("baris %d: %w", i+1, err)
-				}
-				current.BobotSoal = bobot
-			}
-
-		default:
-			// Isi berdasarkan mode terakhir
-			if current == nil {
-				continue
-			}
-			switch mode {
-			case modeQuestion:
-				appendQuestion(trimmed)
-			case modeOption:
-				if lastOptLabel == "" {
-					appendQuestion(trimmed)
-					continue
-				}
-				if err := appendOption(lastOptLabel, trimmed); err != nil {
-					return nil, fmt.Errorf("baris %d: %w", i+1, err)
-				}
-			case modeAns:
-				if current.KunciJawaban == "" {
-					current.KunciJawaban = trimmed
-				} else {
-					current.KunciJawaban += "\n" + trimmed
-				}
-				markCorrect()
-			case modeImg:
-				// kalau user nulis [IMG] lalu nama file di paragraf berikutnya
-				if current.Gambar == "" {
-					current.Gambar = trimmed
-				}
-			case modeW:
-				// kalau user nulis [W] lalu angka di paragraf berikutnya
-				bobot, err := parseWeight(trimmed)
-				if err != nil {
-					return nil, fmt.Errorf("baris %d: %w", i+1, err)
-				}
-				current.BobotSoal = bobot
-			}
-		}
+		contentParagraphs = append(contentParagraphs, content.RichContent{
+			Version: 1,
+			Blocks: []content.Block{
+				{
+					Type: "paragraph",
+					Children: []content.Inline{
+						{Type: "text", Text: trimmed},
+					},
+				},
+			},
+		})
 	}
+	result, _, err := ParseMarkersFromContent(contentParagraphs, docxDataForAutoImg)
+	return result, err
+}
 
-	flushCurrent()
-	return result, nil
+func parseWeightValue(raw string) (float64, error) {
+	raw = strings.TrimSpace(raw)
+	bobot, err := strconv.ParseFloat(raw, 64)
+	if err != nil {
+		return 0, fmt.Errorf("bobot bukan angka: %q", raw)
+	}
+	if math.IsNaN(bobot) || math.IsInf(bobot, 0) {
+		return 0, fmt.Errorf("bobot bukan angka: %q", raw)
+	}
+	if bobot <= 0 {
+		return 0, fmt.Errorf("bobot harus lebih dari 0")
+	}
+	return bobot, nil
 }
 
 // ValidateParsedSoal validates all parsed questions.

@@ -5,6 +5,7 @@ import (
 	"database/sql"
 
 	"github.com/jackc/pgx/v5"
+	pgshared "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/shared"
 	ujian "github.com/mustafamadjid/web-app-cbt/internal/core/domain/ujian_siswa"
 )
 
@@ -15,11 +16,13 @@ func (r *JawabanUjianRepo) ListHasilJawabanUjianByIdAttempt(ctx context.Context,
 			s.id_bank_soal_version,
 			s.tipe_soal,
 			s.pertanyaan,
+			s.pertanyaan_content,
 			s.gambar,
 			s.bobot_soal,
 			s.no_urut_soal,
 			op.id_pilihan_ganda,
 			op.isi_pilihan,
+			op.isi_pilihan_content,
 			op.is_benar,
 			jus.id_jawaban,
 			jus.id_attempt,
@@ -73,11 +76,13 @@ func (r *JawabanUjianRepo) scanHasilJawabanRows(ctx context.Context, op string, 
 			idBankSoalVersion ujian.ID
 			tipeSoal          string
 			pertanyaan        string
+			pertanyaanContent []byte
 			gambar            sql.NullString
 			bobotSoal         float64
 			noUrutSoal        int
 			idPilgan          sql.NullInt64
 			isiPilgan         sql.NullString
+			isiPilganContent  []byte
 			isBenar           sql.NullBool
 			idJawaban         sql.NullInt64
 			idAttempt         sql.NullInt64
@@ -93,11 +98,13 @@ func (r *JawabanUjianRepo) scanHasilJawabanRows(ctx context.Context, op string, 
 			&idBankSoalVersion,
 			&tipeSoal,
 			&pertanyaan,
+			&pertanyaanContent,
 			&gambar,
 			&bobotSoal,
 			&noUrutSoal,
 			&idPilgan,
 			&isiPilgan,
+			&isiPilganContent,
 			&isBenar,
 			&idJawaban,
 			&idAttempt,
@@ -113,12 +120,18 @@ func (r *JawabanUjianRepo) scanHasilJawabanRows(ctx context.Context, op string, 
 
 		item, exists := itemsBySoalID[idSoal]
 		if !exists {
+			contentValue, err := pgshared.UnmarshalRichContent(pertanyaanContent)
+			if err != nil {
+				r.loggerFor(ctx).Error(ctx, "failed unmarshal pertanyaan content", "layer", "adapter.repository", "op", op, "err", err)
+				return nil, err
+			}
 			item = &ujian.HasilJawabanUjian{
 				SoalUjianSiswa: ujian.SoalUjianSiswa{
 					IdSoal:            idSoal,
 					IdBankSoalVersion: idBankSoalVersion,
 					TipeSoal:          tipeSoal,
 					Pertanyaan:        pertanyaan,
+					PertanyaanContent: contentValue,
 					BobotSoal:         bobotSoal,
 					NoUrutSoal:        noUrutSoal,
 				},
@@ -153,8 +166,14 @@ func (r *JawabanUjianRepo) scanHasilJawabanRows(ctx context.Context, op string, 
 		}
 
 		if idPilgan.Valid {
+			optionContent, err := pgshared.UnmarshalRichContent(isiPilganContent)
+			if err != nil {
+				r.loggerFor(ctx).Error(ctx, "failed unmarshal opsi content", "layer", "adapter.repository", "op", op, "err", err)
+				return nil, err
+			}
 			opsi := ujian.OpsiPilganUjian{
-				IdPilihanGanda: ujian.ID(idPilgan.Int64),
+				IdPilihanGanda:    ujian.ID(idPilgan.Int64),
+				IsiPilihanContent: optionContent,
 			}
 			if isiPilgan.Valid {
 				opsi.IsiPilihan = isiPilgan.String

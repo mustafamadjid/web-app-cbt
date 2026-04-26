@@ -156,11 +156,13 @@ const DetailBankSoal = () => {
         nomor: soal.no_urut_soal,
         tipe: soal.tipe_soal,
         pertanyaan: soal.pertanyaan,
+        pertanyaan_content: soal.pertanyaan_content,
         gambar_url: resolveImageUrl(soal.gambar) || undefined,
         opsi: soal.opsi_jawaban.map((opsi, index) => ({
           id: opsi.id_pilihan_ganda,
           label: OPTION_LABELS[index] ?? String(index + 1),
           text: opsi.isi_pilihan,
+          content: opsi.isi_pilihan_content,
         })),
       })),
     [soalRows],

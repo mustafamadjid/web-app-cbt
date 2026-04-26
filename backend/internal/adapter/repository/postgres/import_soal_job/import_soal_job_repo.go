@@ -49,7 +49,7 @@ func (r *ImportSoalJobRepo) CreateJob(ctx context.Context, job importsoal.Import
 func (r *ImportSoalJobRepo) GetPendingJobs(ctx context.Context, limit int) ([]importsoal.ImportSoalJob, error) {
 	query := `
 		SELECT id_job, id_bank_soal, id_pengguna, status, file_path, 
-		       COALESCE(error_msg, ''), COALESCE(total_soal, 0), created_at, updated_at
+		       COALESCE(error_msg, ''), COALESCE(warning_msg, ''), COALESCE(total_soal, 0), created_at, updated_at
 		FROM import_soal_job
 		WHERE status = 'pending'
 		ORDER BY created_at ASC
@@ -66,14 +66,14 @@ func (r *ImportSoalJobRepo) GetPendingJobs(ctx context.Context, limit int) ([]im
 	return r.scanImportSoalJobRows(ctx, "import_soal_job.get_pending", rows)
 }
 
-func (r *ImportSoalJobRepo) UpdateJobStatus(ctx context.Context, jobID int64, status importsoal.JobStatus, errorMsg string, totalSoal int) error {
+func (r *ImportSoalJobRepo) UpdateJobStatus(ctx context.Context, jobID int64, status importsoal.JobStatus, errorMsg, warningMsg string, totalSoal int) error {
 	query := `
 		UPDATE import_soal_job
-		SET status = $1, error_msg = $2, total_soal = $3, updated_at = now()
-		WHERE id_job = $4
+		SET status = $1, error_msg = $2, warning_msg = $3, total_soal = $4, updated_at = now()
+		WHERE id_job = $5
 	`
 
-	tag, err := r.q.Exec(ctx, query, string(status), errorMsg, totalSoal, jobID)
+	tag, err := r.q.Exec(ctx, query, string(status), errorMsg, warningMsg, totalSoal, jobID)
 	if err != nil {
 		r.loggerFor(ctx).Error(ctx, "failed updating job status", "layer", "repo.db", "op", "import_soal_job.update_status", "err", err)
 		return err
@@ -88,7 +88,7 @@ func (r *ImportSoalJobRepo) UpdateJobStatus(ctx context.Context, jobID int64, st
 func (r *ImportSoalJobRepo) GetJobByID(ctx context.Context, jobID int64) (importsoal.ImportSoalJob, error) {
 	query := `
 		SELECT id_job, id_bank_soal, id_pengguna, status, file_path,
-		       COALESCE(error_msg, ''), COALESCE(total_soal, 0), created_at, updated_at
+		       COALESCE(error_msg, ''), COALESCE(warning_msg, ''), COALESCE(total_soal, 0), created_at, updated_at
 		FROM import_soal_job
 		WHERE id_job = $1
 	`
@@ -108,7 +108,7 @@ func (r *ImportSoalJobRepo) GetJobByID(ctx context.Context, jobID int64) (import
 func (r *ImportSoalJobRepo) GetJobsByBankSoal(ctx context.Context, bankSoalID int64) ([]importsoal.ImportSoalJob, error) {
 	query := `
 		SELECT id_job, id_bank_soal, id_pengguna, status, file_path,
-		       COALESCE(error_msg, ''), COALESCE(total_soal, 0), created_at, updated_at
+		       COALESCE(error_msg, ''), COALESCE(warning_msg, ''), COALESCE(total_soal, 0), created_at, updated_at
 		FROM import_soal_job
 		WHERE id_bank_soal = $1
 		ORDER BY created_at DESC

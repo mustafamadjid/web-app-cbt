@@ -86,7 +86,7 @@ func TestWorkerProcessJobs_BasisPath(t *testing.T) {
 				}
 				return nil, nil
 			},
-			UpdateJobStatusFn: func(_ context.Context, _ int64, _ importsoal.JobStatus, _ string, _ int) error {
+			UpdateJobStatusFn: func(_ context.Context, _ int64, _ importsoal.JobStatus, _, _ string, _ int) error {
 				mu.Lock()
 				updateCalled = true
 				mu.Unlock()
@@ -123,7 +123,7 @@ func TestWorkerProcessJobs_BasisPath(t *testing.T) {
 				}
 				return nil, nil
 			},
-			UpdateJobStatusFn: func(_ context.Context, _ int64, status importsoal.JobStatus, _ string, _ int) error {
+			UpdateJobStatusFn: func(_ context.Context, _ int64, status importsoal.JobStatus, _, _ string, _ int) error {
 				mu.Lock()
 				statusUpdates[status] = true
 				mu.Unlock()
@@ -169,7 +169,7 @@ func TestWorkerProcessJobs_BasisPath(t *testing.T) {
 				}
 				return nil, nil
 			},
-			UpdateJobStatusFn: func(_ context.Context, _ int64, status importsoal.JobStatus, _ string, _ int) error {
+			UpdateJobStatusFn: func(_ context.Context, _ int64, status importsoal.JobStatus, _, _ string, _ int) error {
 				mu.Lock()
 				statusUpdates[status] = true
 				mu.Unlock()

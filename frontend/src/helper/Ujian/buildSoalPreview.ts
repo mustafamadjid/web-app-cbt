@@ -12,11 +12,13 @@ export function buildSoalPreview(
     nomor: index + 1,
     tipe: soal.tipe_soal,
     pertanyaan: soal.pertanyaan,
+    pertanyaan_content: soal.pertanyaan_content,
     gambar_url: resolveImageUrl(soal.gambar) || undefined,
     opsi: soal.opsi_jawaban.map((opsi, optionIndex) => ({
       id: opsi.id_pilihan_ganda,
       label: OPTION_LABELS[optionIndex] ?? String(optionIndex + 1),
       text: opsi.isi_pilihan,
+      content: opsi.isi_pilihan_content,
     })),
   }));
 }

@@ -26,6 +26,7 @@
     "clsx": "^2.1.1",
     "dotenv": "^17.2.3",
     "flowbite": "^4.0.1",
+    "katex": "^0.16.45",
     "lucide-react": "^0.562.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

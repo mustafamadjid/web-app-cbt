@@ -1,5 +1,6 @@
 import React from "react";
 
+import RichContentRenderer from "@/components/common/RichContentRenderer";
 import {
   formatSoalTypeLabel,
   isPilihanGandaSoal,
@@ -131,9 +132,12 @@ const SiswaSubmitPreviewContent: React.FC<SiswaSubmitPreviewContentProps> = ({
                     </span>
                   </div>
 
-                  <p className="mt-4 whitespace-pre-wrap text-sm leading-relaxed text-slate-600">
-                    {soal.pertanyaan}
-                  </p>
+                  <RichContentRenderer
+                    content={soal.pertanyaan_content}
+                    fallbackText={soal.pertanyaan}
+                    className="mt-4"
+                    paragraphClassName="whitespace-pre-wrap text-sm leading-relaxed text-slate-600"
+                  />
 
                   {soal.gambar_url && (
                     <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
@@ -169,7 +173,14 @@ const SiswaSubmitPreviewContent: React.FC<SiswaSubmitPreviewContentProps> = ({
                             >
                               {option.label}
                             </span>
-                            <span className="flex-1">{option.text}</span>
+                            <span className="flex-1">
+                              <RichContentRenderer
+                                content={option.content}
+                                fallbackText={option.text}
+                                inline
+                                paragraphClassName="whitespace-pre-wrap text-sm leading-relaxed text-inherit"
+                              />
+                            </span>
                           </div>
                         );
                       })}

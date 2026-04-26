@@ -39,7 +39,7 @@ func TestImportSoalJobRepo_CRUDAndQueries(t *testing.T) {
 	require.NoError(t, err)
 	assert.Len(t, pending, 1)
 
-	err = repo.UpdateJobStatus(ctx, jobID, importsoal.StatusCompleted, "", 7)
+	err = repo.UpdateJobStatus(ctx, jobID, importsoal.StatusCompleted, "", "", 7)
 	require.NoError(t, err)
 
 	updated, err := repo.GetJobByID(ctx, jobID)

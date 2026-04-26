@@ -1,6 +1,7 @@
 package ujian
 
 import "time"
+import content "github.com/mustafamadjid/web-app-cbt/internal/core/domain/content"
 
 type ID int
 type StatusUjian string
@@ -87,6 +88,7 @@ type SoalUjianSiswa struct {
 	IdBankSoalVersion ID
 	TipeSoal          string
 	Pertanyaan        string
+	PertanyaanContent content.RichContent
 	Gambar            string
 	BobotSoal         float64
 	NoUrutSoal        int
@@ -95,10 +97,11 @@ type SoalUjianSiswa struct {
 }
 
 type OpsiPilganUjian struct {
-	IdPilihanGanda ID
-	IdSoal         ID
-	IsiPilihan     string
-	IsBenar        bool
+	IdPilihanGanda    ID
+	IdSoal            ID
+	IsiPilihan        string
+	IsiPilihanContent content.RichContent
+	IsBenar           bool
 }
 
 func (status StatusUjian) ValidStatus() bool {

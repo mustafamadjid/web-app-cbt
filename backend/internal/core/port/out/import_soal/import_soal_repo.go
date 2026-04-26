@@ -9,7 +9,7 @@ import (
 type ImportSoalJobRepo interface {
 	CreateJob(ctx context.Context, job importsoal.ImportSoalJob) (int64, error)
 	GetPendingJobs(ctx context.Context, limit int) ([]importsoal.ImportSoalJob, error)
-	UpdateJobStatus(ctx context.Context, jobID int64, status importsoal.JobStatus, errorMsg string, totalSoal int) error
+	UpdateJobStatus(ctx context.Context, jobID int64, status importsoal.JobStatus, errorMsg, warningMsg string, totalSoal int) error
 	GetJobByID(ctx context.Context, jobID int64) (importsoal.ImportSoalJob, error)
 	GetJobsByBankSoal(ctx context.Context, bankSoalID int64) ([]importsoal.ImportSoalJob, error)
 }

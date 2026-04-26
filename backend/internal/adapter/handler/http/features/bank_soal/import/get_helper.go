@@ -11,6 +11,7 @@ func toJobResponse(j importsoal.ImportSoalJob) jobResponse {
 		IDBankSoal: j.IDBankSoal,
 		Status:     string(j.Status),
 		ErrorMsg:   j.ErrorMsg,
+		WarningMsg: j.WarningMsg,
 		TotalSoal:  j.TotalSoal,
 		CreatedAt:  httphelper.FormatRFC3339(j.CreatedAt),
 		UpdatedAt:  httphelper.FormatRFC3339(j.UpdatedAt),

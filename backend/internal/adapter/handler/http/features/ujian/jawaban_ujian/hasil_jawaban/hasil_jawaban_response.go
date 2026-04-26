@@ -1,5 +1,7 @@
 package httpx
 
+import content "github.com/mustafamadjid/web-app-cbt/internal/core/domain/content"
+
 type HasilJawabanUjianResponse struct {
 	IDAttempt    int                             `json:"id_attempt"`
 	NilaiAkhir   *float64                        `json:"nilai_akhir"`
@@ -11,6 +13,7 @@ type HasilJawabanUjianItemResponse struct {
 	IDBankSoalVersion int                                    `json:"id_bank_soal_version"`
 	TipeSoal          string                                 `json:"tipe_soal"`
 	Pertanyaan        string                                 `json:"pertanyaan"`
+	PertanyaanContent *content.RichContent                   `json:"pertanyaan_content,omitempty"`
 	Gambar            string                                 `json:"gambar"`
 	BobotSoal         float64                                `json:"bobot_soal"`
 	NoUrutSoal        int                                    `json:"no_urut_soal"`
@@ -21,8 +24,9 @@ type HasilJawabanUjianItemResponse struct {
 type HasilJawabanUjianOpsiJawabanResponse struct {
 	IDPilihanGanda int `json:"id_pilihan_ganda"`
 	// IDSoal         int    `json:"id_soal"`
-	IsiPilihan string `json:"isi_pilihan"`
-	IsBenar    bool   `json:"is_benar"`
+	IsiPilihan        string               `json:"isi_pilihan"`
+	IsiPilihanContent *content.RichContent `json:"isi_pilihan_content,omitempty"`
+	IsBenar           bool                 `json:"is_benar"`
 }
 
 type HasilJawabanUjianJawabanSiswaResponse struct {

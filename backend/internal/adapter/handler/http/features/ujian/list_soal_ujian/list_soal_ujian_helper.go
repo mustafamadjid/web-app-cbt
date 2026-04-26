@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/julienschmidt/httprouter"
+	content "github.com/mustafamadjid/web-app-cbt/internal/core/domain/content"
 	ujian "github.com/mustafamadjid/web-app-cbt/internal/core/domain/ujian_siswa"
 )
 
@@ -42,12 +43,24 @@ func toListSoalUjianResponses(items []ujian.SoalUjianSiswa) []ListSoalUjianRespo
 func toListSoalUjianResponse(item ujian.SoalUjianSiswa) ListSoalUjianResponse {
 	opsiJawaban := make([]ListSoalUjianOpsiJawabanResponse, 0, len(item.OpsiJawaban))
 	for _, opsi := range item.OpsiJawaban {
+		var opsiContent *content.RichContent
+		if !opsi.IsiPilihanContent.Empty() {
+			value := opsi.IsiPilihanContent
+			opsiContent = &value
+		}
 		opsiJawaban = append(opsiJawaban, ListSoalUjianOpsiJawabanResponse{
-			IDPilihanGanda: int(opsi.IdPilihanGanda),
-			IDSoal:         int(opsi.IdSoal),
-			IsiPilihan:     opsi.IsiPilihan,
-			IsBenar:        opsi.IsBenar,
+			IDPilihanGanda:    int(opsi.IdPilihanGanda),
+			IDSoal:            int(opsi.IdSoal),
+			IsiPilihan:        opsi.IsiPilihan,
+			IsiPilihanContent: opsiContent,
+			IsBenar:           opsi.IsBenar,
 		})
+	}
+
+	var pertanyaanContent *content.RichContent
+	if !item.PertanyaanContent.Empty() {
+		value := item.PertanyaanContent
+		pertanyaanContent = &value
 	}
 
 	return ListSoalUjianResponse{
@@ -55,6 +68,7 @@ func toListSoalUjianResponse(item ujian.SoalUjianSiswa) ListSoalUjianResponse {
 		IDBankSoalVersion: int(item.IdBankSoalVersion),
 		TipeSoal:          item.TipeSoal,
 		Pertanyaan:        item.Pertanyaan,
+		PertanyaanContent: pertanyaanContent,
 		Gambar:            item.Gambar,
 		BobotSoal:         item.BobotSoal,
 		NoUrutSoal:        item.NoUrutSoal,

@@ -25,6 +25,7 @@ type jobResponse struct {
 	IDBankSoal int64  `json:"id_bank_soal"`
 	Status     string `json:"status"`
 	ErrorMsg   string `json:"error_msg,omitempty"`
+	WarningMsg string `json:"warning_msg,omitempty"`
 	TotalSoal  int    `json:"total_soal"`
 	CreatedAt  string `json:"created_at"`
 	UpdatedAt  string `json:"updated_at"`

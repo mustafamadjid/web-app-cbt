@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/jackc/pgx/v5"
+	pgshared "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/shared"
 	ujian "github.com/mustafamadjid/web-app-cbt/internal/core/domain/ujian_siswa"
 	query "github.com/mustafamadjid/web-app-cbt/internal/core/query/ujian"
 )
@@ -356,11 +357,13 @@ func (r *ListSoalUjianRepo) scanSoalUjianRows(ctx context.Context, op string, ro
 			idBankSoalVersion ujian.ID
 			tipeSoal          string
 			pertanyaan        string
+			pertanyaanContent []byte
 			gambar            sql.NullString
 			bobotSoal         float64
 			noUrutSoal        int
 			idPilgan          sql.NullInt64
 			isiPilgan         sql.NullString
+			isiPilganContent  []byte
 			isBenar           sql.NullBool
 		)
 
@@ -369,11 +372,13 @@ func (r *ListSoalUjianRepo) scanSoalUjianRows(ctx context.Context, op string, ro
 			&idBankSoalVersion,
 			&tipeSoal,
 			&pertanyaan,
+			&pertanyaanContent,
 			&gambar,
 			&bobotSoal,
 			&noUrutSoal,
 			&idPilgan,
 			&isiPilgan,
+			&isiPilganContent,
 			&isBenar,
 		); err != nil {
 			r.loggerFor(ctx).Error(ctx, "failed scanning soal ujian", "op", op, "err", err)
@@ -382,11 +387,17 @@ func (r *ListSoalUjianRepo) scanSoalUjianRows(ctx context.Context, op string, ro
 
 		item, exists := itemsBySoalID[idSoal]
 		if !exists {
+			contentValue, err := pgshared.UnmarshalRichContent(pertanyaanContent)
+			if err != nil {
+				r.loggerFor(ctx).Error(ctx, "failed unmarshal pertanyaan content", "op", op, "err", err)
+				return nil, err
+			}
 			item = &ujian.SoalUjianSiswa{
 				IdSoal:            idSoal,
 				IdBankSoalVersion: idBankSoalVersion,
 				TipeSoal:          tipeSoal,
 				Pertanyaan:        pertanyaan,
+				PertanyaanContent: contentValue,
 				BobotSoal:         bobotSoal,
 				NoUrutSoal:        noUrutSoal,
 			}
@@ -398,9 +409,15 @@ func (r *ListSoalUjianRepo) scanSoalUjianRows(ctx context.Context, op string, ro
 		}
 
 		if idPilgan.Valid {
+			optionContent, err := pgshared.UnmarshalRichContent(isiPilganContent)
+			if err != nil {
+				r.loggerFor(ctx).Error(ctx, "failed unmarshal opsi content", "op", op, "err", err)
+				return nil, err
+			}
 			opsi := ujian.OpsiPilganUjian{
-				IdPilihanGanda: ujian.ID(idPilgan.Int64),
-				IdSoal:         item.IdSoal,
+				IdPilihanGanda:    ujian.ID(idPilgan.Int64),
+				IdSoal:            item.IdSoal,
+				IsiPilihanContent: optionContent,
 			}
 			if isiPilgan.Valid {
 				opsi.IsiPilihan = isiPilgan.String
@@ -433,25 +450,29 @@ func (r *ListSoalUjianRepo) scanSoalUjianSiswaRows(ctx context.Context, op strin
 
 	for rows.Next() {
 		var (
-			idSoal     ujian.ID
-			tipeSoal   string
-			pertanyaan string
-			gambar     sql.NullString
-			bobotSoal  float64
-			noUrutSoal int
-			idPilgan   sql.NullInt64
-			isiPilgan  sql.NullString
+			idSoal            ujian.ID
+			tipeSoal          string
+			pertanyaan        string
+			pertanyaanContent []byte
+			gambar            sql.NullString
+			bobotSoal         float64
+			noUrutSoal        int
+			idPilgan          sql.NullInt64
+			isiPilgan         sql.NullString
+			isiPilganContent  []byte
 		)
 
 		if err := rows.Scan(
 			&idSoal,
 			&tipeSoal,
 			&pertanyaan,
+			&pertanyaanContent,
 			&gambar,
 			&bobotSoal,
 			&noUrutSoal,
 			&idPilgan,
 			&isiPilgan,
+			&isiPilganContent,
 		); err != nil {
 			r.loggerFor(ctx).Error(ctx, "failed scanning soal ujian", "op", op, "err", err)
 			return nil, err
@@ -459,12 +480,18 @@ func (r *ListSoalUjianRepo) scanSoalUjianSiswaRows(ctx context.Context, op strin
 
 		item, exists := itemsBySoalID[idSoal]
 		if !exists {
+			contentValue, err := pgshared.UnmarshalRichContent(pertanyaanContent)
+			if err != nil {
+				r.loggerFor(ctx).Error(ctx, "failed unmarshal pertanyaan content", "op", op, "err", err)
+				return nil, err
+			}
 			item = &ujian.SoalUjianSiswa{
-				IdSoal:     idSoal,
-				TipeSoal:   tipeSoal,
-				Pertanyaan: pertanyaan,
-				BobotSoal:  bobotSoal,
-				NoUrutSoal: noUrutSoal,
+				IdSoal:            idSoal,
+				TipeSoal:          tipeSoal,
+				Pertanyaan:        pertanyaan,
+				PertanyaanContent: contentValue,
+				BobotSoal:         bobotSoal,
+				NoUrutSoal:        noUrutSoal,
 			}
 			if gambar.Valid {
 				item.Gambar = gambar.String
@@ -474,8 +501,14 @@ func (r *ListSoalUjianRepo) scanSoalUjianSiswaRows(ctx context.Context, op strin
 		}
 
 		if idPilgan.Valid {
+			optionContent, err := pgshared.UnmarshalRichContent(isiPilganContent)
+			if err != nil {
+				r.loggerFor(ctx).Error(ctx, "failed unmarshal opsi content", "op", op, "err", err)
+				return nil, err
+			}
 			opsi := ujian.OpsiPilganUjian{
-				IdPilihanGanda: ujian.ID(idPilgan.Int64),
+				IdPilihanGanda:    ujian.ID(idPilgan.Int64),
+				IsiPilihanContent: optionContent,
 			}
 			if isiPilgan.Valid {
 				opsi.IsiPilihan = isiPilgan.String
@@ -500,15 +533,23 @@ func (r *ListSoalUjianRepo) scanOpsiPilganRows(ctx context.Context, op string, r
 	var items []ujian.OpsiPilganUjian
 	for rows.Next() {
 		var item ujian.OpsiPilganUjian
+		var isiPilihanContent []byte
 		if err := rows.Scan(
 			&item.IdPilihanGanda,
 			&item.IdSoal,
 			&item.IsiPilihan,
+			&isiPilihanContent,
 			&item.IsBenar,
 		); err != nil {
 			r.loggerFor(ctx).Error(ctx, "failed scanning opsi pilihan ganda by bank soal", "layer", "repo.db", "op", op, "err", err)
 			return nil, err
 		}
+		contentValue, err := pgshared.UnmarshalRichContent(isiPilihanContent)
+		if err != nil {
+			r.loggerFor(ctx).Error(ctx, "failed unmarshal opsi pilihan ganda content", "layer", "repo.db", "op", op, "err", err)
+			return nil, err
+		}
+		item.IsiPilihanContent = contentValue
 
 		items = append(items, item)
 	}
