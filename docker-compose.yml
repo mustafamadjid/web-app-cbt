@@ -12,7 +12,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -36,8 +36,9 @@ services:
         "-dir",
         "/app/internal/db/migrations",
         "postgres",
-        "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable",
-        "up"
+        "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POS\
+          TGRES_DB}?sslmode=disable",
+        "up",
       ]
 
   backend:
@@ -64,7 +65,11 @@ services:
     volumes:
       - backend_uploads:/app/public/uploads
     healthcheck:
-      test: ["CMD-SHELL", "wget --spider -q http://localhost:8080/auth/me || test $? -eq 8"]
+      test:
+        [
+          "CMD-SHELL",
+          "wget --spider -q http://localhost:8080/auth/me || test $? -eq 8",
+        ]
       interval: 30s
       timeout: 5s
       retries: 3

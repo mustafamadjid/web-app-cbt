@@ -17,7 +17,7 @@ import LoginInputField from "../../../components/common/Input/Auth/LoginInputFie
 
 // Props Types
 type LoginFormProps = {
-  onSuccess: () => void;
+  onSuccess?: () => void;
 };
 
 const LoginForm = ({ onSuccess }: LoginFormProps) => {
@@ -34,7 +34,7 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
     setError(null);
     try {
       await login({ username, password });
-      onSuccess();
+      onSuccess?.();
     } catch (e) {
       const message =
         e instanceof ApiError

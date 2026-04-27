@@ -1,9 +1,6 @@
-import { useNavigate } from "react-router";
 import LoginForm from "../../layouts/Form/Auth/LoginForm";
 
 const LoginPage = () => {
-  const navigate = useNavigate();
-
   return (
     <div className="flex min-h-screen w-full bg-white">
       {/* KIRI: Area Form */}
@@ -35,7 +32,7 @@ const LoginPage = () => {
 
           {/* Form Container */}
           <div className="space-y-6">
-            <LoginForm onSuccess={() => navigate("/dashboard")} />
+            <LoginForm />
           </div>
 
           {/* Footer Copyright (Opsional) */}
