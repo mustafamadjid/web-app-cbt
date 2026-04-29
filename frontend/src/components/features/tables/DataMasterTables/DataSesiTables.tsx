@@ -5,7 +5,7 @@ import { useNavigate } from "react-router";
 import AddButton from "@/components/common/Button/AddButton";
 import ConfirmAlert from "@/components/ui/ConfirmAlert/ConfirmAlert";
 import { paths } from "@/routes/paths";
-import { ApiError } from "@/services/Api/api";
+import { getUserFriendlyErrorMessage } from "@/services/Api/errorMessage";
 import {
   deleteSesi,
   useGetSesi,
@@ -74,15 +74,12 @@ const DataSesiTables: React.FC = () => {
       setIdSesiAkanDihapus(null);
       await refetchSesi();
     } catch (e) {
-      const message =
-        e instanceof ApiError
-          ? e.message === "data not found"
-            ? "Data sesi tidak ditemukan."
-            : e.message === "delete restricted : constraint violation"
-              ? "Sesi tidak bisa dihapus karena masih dipakai."
-              : "Data sesi gagal dihapus."
-          : "Data sesi gagal dihapus.";
-      setDeleteErrorMsg(message);
+      setDeleteErrorMsg(
+        getUserFriendlyErrorMessage(e, {
+          action: "delete",
+          entity: "sesi",
+        }),
+      );
     } finally {
       setSedangHapus(false);
     }

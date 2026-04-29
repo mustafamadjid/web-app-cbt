@@ -10,6 +10,7 @@ import type { StudentRegisterFormValues } from "@/types/KelolaAkun/AkunSiswa";
 import { submitStudentRegister } from "@/services/Api/features-api/KelolaAkun/akunsiswa.service";
 import { paths } from "@/routes/paths";
 import { ApiError } from "@/services/Api/api";
+import { getUserFriendlyErrorMessage } from "@/services/Api/errorMessage";
 import { useGetDataKelasFull } from "@/services/Api/features-api/DataMaster/kelas.service";
 
 import { createSetField } from "@/helper/setField/setField";
@@ -60,8 +61,13 @@ const DUPLICATE_ACCOUNT_MESSAGES: Record<string, string> = {
 };
 
 const uniqueConstraintMessage = (error: ApiError) => {
-  if (!error.code) return error.message;
-  return DUPLICATE_ACCOUNT_MESSAGES[error.code] ?? error.message;
+  return (
+    (error.code ? DUPLICATE_ACCOUNT_MESSAGES[error.code] : undefined) ??
+    getUserFriendlyErrorMessage(error, {
+      action: "create",
+      entity: "akun siswa",
+    })
+  );
 };
 
 /** Konversi input string menjadi integer. Kalau invalid, pertahankan nilai sebelumnya. */
@@ -254,7 +260,13 @@ const AkunSiswaForm = () => {
       if (error instanceof ApiError) {
         setSubmitError(uniqueConstraintMessage(error));
       } else {
-        setSubmitError("Terjadi kesalahan saat menyimpan data.");
+        setSubmitError(
+          getUserFriendlyErrorMessage(error, {
+            action: "create",
+            entity: "akun siswa",
+            fallbackMessage: "Terjadi kesalahan saat menyimpan data.",
+          }),
+        );
       }
     } finally {
       setSubmitting(false);

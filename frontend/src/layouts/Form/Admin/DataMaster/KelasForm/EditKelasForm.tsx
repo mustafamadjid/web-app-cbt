@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 
 import type { KelasFormValues } from "@/types/DataMaster/Kelas";
-import { ApiError } from "@/services/Api/api";
+import { getUserFriendlyErrorMessage } from "@/services/Api/errorMessage";
 import {
   useGetDataKelasFull,
   useGetKelasByIds,
@@ -163,9 +163,12 @@ const EditKelasForm = () => {
       toast.success("Data kelas berhasil diperbarui.");
       navigate(paths.dashboard.data_master_kelas);
     } catch (error) {
-      if (error instanceof ApiError) {
-        setSubmitError(error.message);
-      }
+      setSubmitError(
+        getUserFriendlyErrorMessage(error, {
+          action: "update",
+          entity: "kelas",
+        }),
+      );
     } finally {
       setSubmitting(false);
     }

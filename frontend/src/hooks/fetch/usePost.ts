@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ApiError } from "@/services/Api/api";
+import { getUserFriendlyErrorMessage } from "@/services/Api/errorMessage";
 
 /**
  * State yang dikembalikan oleh usePost.
@@ -66,12 +66,10 @@ export default function usePost<TPayload, TResponse = unknown>(
         }
         return result;
       } catch (e: unknown) {
-        const message =
-          e instanceof ApiError
-            ? e.message
-            : e instanceof Error
-              ? e.message
-              : "Terjadi kesalahan yang tidak diketahui.";
+        const message = getUserFriendlyErrorMessage(e, {
+          action: "create",
+          entity: "data",
+        });
 
         if (mountedRef.current) {
           setError(message);

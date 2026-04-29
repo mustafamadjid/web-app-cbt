@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { resolveDocumentUrl } from "@/helper/MediaUrl/resolveMediaUrl";
-import { ApiError } from "@/services/Api/api";
+import { getUserFriendlyErrorMessage } from "@/services/Api/errorMessage";
 import type { PengumumanFormValues } from "@/types/Widget/Pengumuman";
 
 const MAX_DOCUMENT_SIZE = 10 * 1024 * 1024;
@@ -85,23 +85,12 @@ const EditPengumumanForm = ({
         dokumen_pengumuman: values.dokumen_pengumuman,
       });
     } catch (e) {
-      const message =
-        e instanceof ApiError
-          ? e.message === "bad request: invalid date format"
-            ? "Format tanggal pengumuman tidak valid."
-            : e.message === "bad request: missing fields"
-              ? "Data pengumuman tidak lengkap."
-              : e.message === "bad request: invalid dokumen_pengumuman"
-                ? "Dokumen pengumuman harus berupa PDF atau DOCX."
-                : e.message === "file too large"
-                  ? "Ukuran dokumen pengumuman maksimal 10MB."
-                  : e.message === "no fields to update"
-                    ? "Tidak ada perubahan data pengumuman."
-                    : e.message === "data not found"
-                      ? "Data pengumuman tidak ditemukan."
-                      : "Pengumuman gagal diperbarui."
-          : "Pengumuman gagal diperbarui.";
-      setSubmitError(message);
+      setSubmitError(
+        getUserFriendlyErrorMessage(e, {
+          action: "update",
+          entity: "pengumuman",
+        }),
+      );
     }
   };
 

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { getUserFriendlyErrorMessage } from "@/services/Api/errorMessage";
 
 // TODO : Tambahkan ID Device juga saat login
 
@@ -38,7 +39,7 @@ export function useLogin() {
 
       return data;
     } catch (e) {
-      const message = e instanceof Error ? e.message : "Login gagal.";
+      const message = getUserFriendlyErrorMessage(e, { action: "login" });
       setError(message);
       throw e; 
     } finally {

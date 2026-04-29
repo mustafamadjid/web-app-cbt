@@ -10,6 +10,7 @@ import type { NamaKelas } from "@/types/DataMaster/Kelas";
 
 import { useGetDataKelasFull } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { ApiError } from "@/services/Api/api";
+import { getUserFriendlyErrorMessage } from "@/services/Api/errorMessage";
 
 import { createSetField } from "@/helper/setField/setField";
 import {
@@ -51,8 +52,13 @@ const DUPLICATE_ACCOUNT_MESSAGES: Record<string, string> = {
 };
 
 const uniqueConstraintMessage = (error: ApiError) => {
-  if (!error.code) return error.message;
-  return DUPLICATE_ACCOUNT_MESSAGES[error.code] ?? error.message;
+  return (
+    (error.code ? DUPLICATE_ACCOUNT_MESSAGES[error.code] : undefined) ??
+    getUserFriendlyErrorMessage(error, {
+      action: "update",
+      entity: "akun siswa",
+    })
+  );
 };
 
 function toIntOrPrev(prev: number, raw: string): number {
@@ -213,6 +219,13 @@ const EditAkunSiswaForm = ({
     } catch (error) {
       if (error instanceof ApiError) {
         setSubmitError(uniqueConstraintMessage(error));
+      } else {
+        setSubmitError(
+          getUserFriendlyErrorMessage(error, {
+            action: "update",
+            entity: "akun siswa",
+          }),
+        );
       }
     }
   };
@@ -238,7 +251,19 @@ const EditAkunSiswaForm = ({
       setResetPasswordTouched({});
     } catch (error) {
       if (error instanceof ApiError) {
-        setResetPasswordError(error.message);
+        setResetPasswordError(
+          getUserFriendlyErrorMessage(error, {
+            action: "update",
+            entity: "password akun siswa",
+          }),
+        );
+      } else {
+        setResetPasswordError(
+          getUserFriendlyErrorMessage(error, {
+            action: "update",
+            entity: "password akun siswa",
+          }),
+        );
       }
     }
   };

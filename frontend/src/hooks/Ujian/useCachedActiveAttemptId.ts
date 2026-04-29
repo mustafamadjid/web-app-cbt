@@ -1,5 +1,5 @@
 import React from "react";
-import { ApiError } from "@/services/Api/api";
+import { getUserFriendlyErrorMessage } from "@/services/Api/errorMessage";
 import { getActiveAttemptUjian } from "@/services/Api/features-api/Ujian/ujian.service";
 
 const CACHE_VERSION = 1;
@@ -106,22 +106,22 @@ const writeCachedActiveAttemptId = (
 };
 
 const mapErrorState = (error: unknown) => {
-  if (error instanceof ApiError) {
-    return {
-      error: error.message,
-      errorCode: error.code ?? null,
-    };
-  }
-
   if (error instanceof Error) {
+    const apiLikeError = error as Error & { code?: string | null };
     return {
-      error: error.message,
-      errorCode: null,
+      error: getUserFriendlyErrorMessage(error, {
+        action: "fetch",
+        entity: "sesi ujian aktif",
+      }),
+      errorCode: apiLikeError.code ?? null,
     };
   }
 
   return {
-    error: "Terjadi kesalahan yang tidak diketahui.",
+    error: getUserFriendlyErrorMessage(error, {
+      action: "fetch",
+      entity: "sesi ujian aktif",
+    }),
     errorCode: null,
   };
 };

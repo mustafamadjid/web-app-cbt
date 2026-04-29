@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { DependencyList } from "react";
-import { ApiError } from "@/services/Api/api";
+import { getUserFriendlyErrorMessage } from "@/services/Api/errorMessage";
 
 /**
  * State yang dikembalikan oleh useFetch.
@@ -65,13 +65,12 @@ export default function useFetch<T>(
         return null;
       }
 
-      if (e instanceof ApiError) {
-        setError(e.message);
-      } else if (e instanceof Error) {
-        setError(e.message);
-      } else {
-        setError("Terjadi kesalahan yang tidak diketahui.");
-      }
+      setError(
+        getUserFriendlyErrorMessage(e, {
+          action: "fetch",
+          entity: "data",
+        }),
+      );
 
       setData(null);
       return null;

@@ -5,7 +5,7 @@ import { useNavigate } from "react-router";
 import AddButton from "@/components/common/Button/AddButton";
 import ConfirmAlert from "@/components/ui/ConfirmAlert/ConfirmAlert";
 import { paths } from "@/routes/paths";
-import { ApiError } from "@/services/Api/api";
+import { getUserFriendlyErrorMessage } from "@/services/Api/errorMessage";
 import {
   deleteRuangUjian,
   useGetRuangUjian,
@@ -74,15 +74,12 @@ const RuangUjianTables: React.FC = () => {
       setIdRuangAkanDihapus(null);
       await refetchRuangUjian();
     } catch (e) {
-      const message =
-        e instanceof ApiError
-          ? e.message === "not found"
-            ? "Data ruang ujian tidak ditemukan."
-            : e.message === "delete restricted : constraint violation"
-              ? "Ruang ujian tidak bisa dihapus karena masih dipakai."
-              : "Ruang ujian gagal dihapus."
-          : "Ruang ujian gagal dihapus.";
-      setDeleteErrorMsg(message);
+      setDeleteErrorMsg(
+        getUserFriendlyErrorMessage(e, {
+          action: "delete",
+          entity: "ruang ujian",
+        }),
+      );
     } finally {
       setSedangHapus(false);
     }

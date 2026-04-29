@@ -10,6 +10,7 @@ import {
   uploadImportSoal,
 } from "@/services/Api/features-api/BankSoal/importSoal.service";
 import { ApiError } from "@/services/Api/api";
+import { getUserFriendlyErrorMessage } from "@/services/Api/errorMessage";
 import { useRef, useState, type FormEvent } from "react";
 import { useParams } from "react-router";
 
@@ -109,7 +110,13 @@ const TambahBankSoal = () => {
       clearFile();
     } catch (error) {
       if (error instanceof ApiError) {
-        setErrorMessage(error.message);
+        setErrorMessage(
+          getUserFriendlyErrorMessage(error, {
+            action: "submit",
+            entity: "import soal",
+            fallbackMessage: "Terjadi kesalahan saat mengupload file.",
+          }),
+        );
       } else {
         setErrorMessage("Terjadi kesalahan saat mengupload file.");
       }

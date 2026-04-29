@@ -18,7 +18,7 @@ import {
 import { paths } from "@/routes/paths";
 import toast from "react-hot-toast";
 
-import { ApiError } from "@/services/Api/api";
+import { getUserFriendlyErrorMessage } from "@/services/Api/errorMessage";
 
 function useDebouncedValue<T>(value: T, delayMs = 300) {
   const [debounced, setDebounced] = useState(value);
@@ -117,13 +117,12 @@ const DataKelasTables: React.FC = () => {
       });
       toast.success("Berhasil menghapus data kelas");
     } catch (e) {
-      const message =
-        e instanceof ApiError
-          ? e.code === "DELETE_RESTRICTED"
-            ? "Gagal Menghapus. Data kelas terkait dengan data lain"
-            : "Data kelas gagal dihapus"
-          : "Data kelas gagal dihapus";
-      toast.error(message);
+      toast.error(
+        getUserFriendlyErrorMessage(e, {
+          action: "delete",
+          entity: "kelas",
+        }),
+      );
     }
   };
 

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 
 import InputField from "@/components/common/Input/InputField";
 import type { TingkatKelas } from "@/types/DataMaster/Kelas";
-import { ApiError } from "@/services/Api/api";
+import { getUserFriendlyErrorMessage } from "@/services/Api/errorMessage";
 import {
   useGetDataKelasFull,
   createNamaKelas,
@@ -64,13 +64,12 @@ const TambahNamaKelasForm = () => {
               navigate(`${paths.dashboard.data_master_kelas}`);
       })
     } catch (error) {
-      const message =
-        error instanceof ApiError
-          ? error.message === "bad request: nama kelas already exist"
-            ? "Nama kelas sudah ada."
-            : "Nama kelas gagal ditambahkan"
-          : "Nama kelas gagal ditambahkan";
-            setSubmitError(message);
+      setSubmitError(
+        getUserFriendlyErrorMessage(error, {
+          action: "create",
+          entity: "nama kelas",
+        }),
+      );
     }
   };
 

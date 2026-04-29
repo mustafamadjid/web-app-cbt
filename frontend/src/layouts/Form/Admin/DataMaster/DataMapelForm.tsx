@@ -6,7 +6,7 @@ import type { MataPelajaranFormValues } from "@/types/DataMaster/MataPelajaran";
 import type { TingkatKelas } from "@/types/DataMaster/Kelas";
 import { useGetDataKelasFull } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { createMataPelajaran } from "@/services/Api/features-api/DataMaster/mapel.service";
-import { ApiError } from "@/services/Api/api";
+import { getUserFriendlyErrorMessage } from "@/services/Api/errorMessage";
 
 import { createSetField } from "@/helper/setField/setField";
 import {
@@ -82,11 +82,12 @@ const DataMapelForm = () => {
         navigate(`${paths.dashboard.data_master_mapel}`);
       },2000)
     } catch (error) {
-      if (error instanceof ApiError) {
-        setSubmitError(error.message);
-      } else {
-        setSubmitError("Gagal menyimpan data mata pelajaran.");
-      }
+      setSubmitError(
+        getUserFriendlyErrorMessage(error, {
+          action: "create",
+          entity: "mata pelajaran",
+        }),
+      );
     } finally {
       setSubmitting(false);
     }

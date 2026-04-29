@@ -19,6 +19,7 @@ import {
   requiredValue,
 } from "@/helper/validate/validateForm";
 import { ApiError } from "@/services/Api/api";
+import { getUserFriendlyErrorMessage } from "@/services/Api/errorMessage";
 import {
   USERNAME_HELPER_TEXT,
   USERNAME_LENGTH_INVALID_MESSAGE,
@@ -49,8 +50,13 @@ const DUPLICATE_ACCOUNT_MESSAGES: Record<string, string> = {
 };
 
 const uniqueConstraintMessage = (error: ApiError) => {
-  if (!error.code) return error.message;
-  return DUPLICATE_ACCOUNT_MESSAGES[error.code] ?? error.message;
+  return (
+    (error.code ? DUPLICATE_ACCOUNT_MESSAGES[error.code] : undefined) ??
+    getUserFriendlyErrorMessage(error, {
+      action: "update",
+      entity: "akun guru",
+    })
+  );
 };
 
 const normalizeNipInput = (value: string) => {
@@ -164,6 +170,13 @@ const EditAkunGuruForm = ({
     } catch (error) {
       if (error instanceof ApiError) {
         setSubmitError(uniqueConstraintMessage(error));
+      } else {
+        setSubmitError(
+          getUserFriendlyErrorMessage(error, {
+            action: "update",
+            entity: "akun guru",
+          }),
+        );
       }
     }
   };
@@ -189,7 +202,19 @@ const EditAkunGuruForm = ({
       setResetPasswordTouched({});
     } catch (error) {
       if (error instanceof ApiError) {
-        setResetPasswordError(error.message);
+        setResetPasswordError(
+          getUserFriendlyErrorMessage(error, {
+            action: "update",
+            entity: "password akun guru",
+          }),
+        );
+      } else {
+        setResetPasswordError(
+          getUserFriendlyErrorMessage(error, {
+            action: "update",
+            entity: "password akun guru",
+          }),
+        );
       }
     }
   };

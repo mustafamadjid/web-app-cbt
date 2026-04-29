@@ -5,7 +5,7 @@ import toast from "react-hot-toast";
 import ConfirmAlert from "@/components/ui/ConfirmAlert/ConfirmAlert";
 import { useAuth } from "@/contexts/AuthContext";
 import { resolveImageUrl } from "@/helper/MediaUrl/resolveMediaUrl";
-import { ApiError } from "@/services/Api/api";
+import { getUserFriendlyErrorMessage } from "@/services/Api/errorMessage";
 import {
   useAdminRevokeSession,
   useGetActiveLoginSessions,
@@ -93,11 +93,13 @@ const KelolaSesi = () => {
       setSelectedSession(null);
       await refetch();
     } catch (e) {
-      const message =
-        e instanceof ApiError
-          ? e.message || "Gagal melakukan logout user."
-          : "Gagal melakukan logout user.";
-      toast.error(message);
+      toast.error(
+        getUserFriendlyErrorMessage(e, {
+          action: "delete",
+          entity: "sesi login",
+          fallbackMessage: "Gagal melakukan logout user.",
+        }),
+      );
     }
   };
 

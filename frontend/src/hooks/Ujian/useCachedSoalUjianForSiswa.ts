@@ -1,7 +1,7 @@
 import React from "react";
 
 import { hasRichContent } from "@/types/Content/RichContent";
-import { ApiError } from "@/services/Api/api";
+import { getUserFriendlyErrorMessage } from "@/services/Api/errorMessage";
 import { GetSoalUjianForSiswa } from "@/services/Api/features-api/Ujian/soalUjian.service";
 import type {
   OpsiJawabanSoalUjianSiswa,
@@ -113,10 +113,12 @@ const readCachedSoalUjian = (
     }
 
     return parsed.soalRows;
-  } catch (error) {
+  } catch {
     try {
       window.localStorage.removeItem(cacheKey);
-    } catch {}
+    } catch {
+      // Ignore storage cleanup errors.
+    }
     return null;
   }
 };
@@ -146,9 +148,10 @@ const writeCachedSoalUjian = (
 };
 
 const mapErrorMessage = (error: unknown) => {
-  if (error instanceof ApiError) return error.message;
-  if (error instanceof Error) return error.message;
-  return "Terjadi kesalahan yang tidak diketahui.";
+  return getUserFriendlyErrorMessage(error, {
+    action: "fetch",
+    entity: "soal ujian",
+  });
 };
 
 export function useCachedSoalUjianForSiswa(

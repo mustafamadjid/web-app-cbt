@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ApiError } from "@/services/Api/api";
+import { getUserFriendlyErrorMessage } from "@/services/Api/errorMessage";
 
 /**
  * State yang dikembalikan oleh usePut.
@@ -58,12 +58,10 @@ export default function usePut<TPayload, TResponse = unknown>(
         }
         return result;
       } catch (e: unknown) {
-        const message =
-          e instanceof ApiError
-            ? e.message
-            : e instanceof Error
-              ? e.message
-              : "Terjadi kesalahan yang tidak diketahui.";
+        const message = getUserFriendlyErrorMessage(e, {
+          action: "update",
+          entity: "data",
+        });
 
         if (mountedRef.current) {
           setError(message);

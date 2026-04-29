@@ -62,6 +62,7 @@ import HasilUjianSiswa from "@/pages/Siswa/Ujian/HasilUjian/HasilUjianSiswa";
 import HasilUjianSiswaDetailSiswa from "@/pages/Siswa/Ujian/HasilUjian/HasilUjianSiswaDetail";
 import PublicOnlyRoute from "./PublicOnlyRoute";
 import ProfilePage from "@/pages/Profile/ProfilePage";
+import NotFound from "@/pages/NotFound/NotFound";
 
 export const router = createBrowserRouter([
   // Login Page
@@ -304,5 +305,9 @@ export const router = createBrowserRouter([
         ],
       },
     ],
+  },
+  {
+    path: "*",
+    element: <NotFound />,
   },
 ]);

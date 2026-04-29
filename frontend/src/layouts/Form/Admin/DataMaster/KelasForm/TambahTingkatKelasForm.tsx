@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import { ApiError } from "@/services/Api/api";
+import { getUserFriendlyErrorMessage } from "@/services/Api/errorMessage";
 import { createTingkatKelas } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { createValidator, integerNumber, minNumber, requiredValue } from "@/helper/validate/validateForm";
 import toast from "react-hot-toast";
@@ -47,13 +47,12 @@ const TambahTingkatKelasForm = () => {
         navigate(`${paths.dashboard.data_master_kelas}`);
       })
     } catch (error) {
-      const message =
-        e instanceof ApiError
-          ? e.message === "bad request: tingkat kelas already exist"
-            ? "Tingkat kelas sudah ada."
-            : "Tingkat kelas gagal ditambahkan"
-          : "Tingkat kelas gagal ditambahkan";
-      setSubmitError(message);
+      setSubmitError(
+        getUserFriendlyErrorMessage(error, {
+          action: "create",
+          entity: "tingkat kelas",
+        }),
+      );
     }
   };
 

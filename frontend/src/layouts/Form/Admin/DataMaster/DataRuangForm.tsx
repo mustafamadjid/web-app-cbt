@@ -5,7 +5,7 @@ import InputField from "@/components/common/Input/InputField";
 import { createSetField } from "@/helper/setField/setField";
 import { createValidator, requiredString } from "@/helper/validate/validateForm";
 import { paths } from "@/routes/paths";
-import { ApiError } from "@/services/Api/api";
+import { getUserFriendlyErrorMessage } from "@/services/Api/errorMessage";
 import { createRuangUjian } from "@/services/Api/features-api/DataMaster/ruang-ujian.service";
 import type { RuangUjianFormValues } from "@/types/DataMaster/RuangUjian";
 
@@ -57,13 +57,12 @@ const DataRuangForm = () => {
       await createRuangUjian(payload);
       navigate(paths.dashboard.data_master_ruang);
     } catch (e) {
-      const message =
-        e instanceof ApiError
-          ? e.message === "bad request: kode ruang ujian already exist"
-            ? "Kode ruang ujian sudah ada."
-            : "Ruang ujian gagal ditambahkan."
-          : "Ruang ujian gagal ditambahkan.";
-      setSubmitError(message);
+      setSubmitError(
+        getUserFriendlyErrorMessage(e, {
+          action: "create",
+          entity: "ruang ujian",
+        }),
+      );
     } finally {
       setSubmitting(false);
     }

@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import InputField from "@/components/common/Input/InputField";
 import { createSetField } from "@/helper/setField/setField";
 import { createValidator, requiredString } from "@/helper/validate/validateForm";
-import { ApiError } from "@/services/Api/api";
+import { getUserFriendlyErrorMessage } from "@/services/Api/errorMessage";
 import type { SesiFormValues } from "@/types/DataMaster/Sesi";
 
 type EditSesiFormProps = {
@@ -68,16 +68,12 @@ const EditSesiForm = ({
     try {
       await onSubmit(payload);
     } catch (e) {
-      const message =
-        e instanceof ApiError
-          ? e.message === "bad request: kode sesi already exist"
-            ? "Kode sesi sudah ada."
-            : e.message === "data not found"
-              ? "Data sesi tidak ditemukan."
-              : "Data sesi gagal diperbarui."
-          : "Data sesi gagal diperbarui.";
-
-      setSubmitError(message);
+      setSubmitError(
+        getUserFriendlyErrorMessage(e, {
+          action: "update",
+          entity: "sesi",
+        }),
+      );
     }
   };
 

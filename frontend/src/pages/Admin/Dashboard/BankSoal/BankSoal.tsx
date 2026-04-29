@@ -20,7 +20,7 @@ import { useGetDataKelasFull } from "@/services/Api/features-api/DataMaster/kela
 import { useGetMapel } from "@/services/Api/features-api/DataMaster/mapel.service";
 import { paths } from "@/routes/paths";
 import { useAuth } from "@/contexts/AuthContext";
-import { ApiError } from "@/services/Api/api";
+import { getUserFriendlyErrorMessage } from "@/services/Api/errorMessage";
 
 function useDebouncedValue<T>(value: T, delayMs = 300) {
   const [debounced, setDebounced] = useState(value);
@@ -247,13 +247,13 @@ const BankSoal = () => {
       toast.success("Bank soal berhasil dihapus.");
       setTargetDeleteId(null);
     } catch (e) {
-      const message =
-        e instanceof ApiError 
-        ? e.code === "DELETE_RESTRICTED"
-        ? "Silakan hapus data yang terkait dengan bank soal ini (jadwal ujian)"
-        : "Bank soal gagal dihapus"
-        : "Bank soal gagal dihapus";
-      toast.error(message);
+      toast.error(
+        getUserFriendlyErrorMessage(e, {
+          action: "delete",
+          entity: "bank soal",
+          fallbackMessage: "Bank soal gagal dihapus.",
+        }),
+      );
     } finally {
       setDeleteLoading(false);
     }

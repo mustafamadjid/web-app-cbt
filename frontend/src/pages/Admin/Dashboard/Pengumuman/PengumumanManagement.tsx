@@ -7,7 +7,7 @@ import ConfirmAlert from "@/components/ui/ConfirmAlert/ConfirmAlert";
 import { useAuth } from "@/contexts/AuthContext";
 import { resolveDocumentUrl } from "@/helper/MediaUrl/resolveMediaUrl";
 import { paths } from "@/routes/paths";
-import { ApiError } from "@/services/Api/api";
+import { getUserFriendlyErrorMessage } from "@/services/Api/errorMessage";
 import {
   deletePengumuman,
   useGetPengumumanActive,
@@ -97,15 +97,12 @@ const PengumumanManagement = () => {
       setDeleteTarget(null);
       await activeStatusState.refetch();
     } catch (e) {
-      const message =
-        e instanceof ApiError
-          ? e.message === "data not found"
-            ? "Data pengumuman tidak ditemukan."
-            : e.message === "delete restricted : constraint violation"
-              ? "Pengumuman tidak bisa dihapus karena masih dipakai."
-              : "Pengumuman gagal dihapus."
-          : "Pengumuman gagal dihapus.";
-      setActionErrorMsg(message);
+      setActionErrorMsg(
+        getUserFriendlyErrorMessage(e, {
+          action: "delete",
+          entity: "pengumuman",
+        }),
+      );
     } finally {
       setDeleting(false);
     }

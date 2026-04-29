@@ -7,6 +7,7 @@ import type { TeacherRegisterFormValues } from "@/types/KelolaAkun/AkunGuru";
 import type { JenisKelamin } from "@/types/OpsiTypes/Option";
 import { submitTeacherRegister } from "@/services/Api/features-api/KelolaAkun/akunguru.service";
 import { ApiError } from "@/services/Api/api";
+import { getUserFriendlyErrorMessage } from "@/services/Api/errorMessage";
 import { useNavigate } from "react-router";
 import { paths } from "@/routes/paths";
 
@@ -56,8 +57,13 @@ const DUPLICATE_ACCOUNT_MESSAGES: Record<string, string> = {
 };
 
 const uniqueConstraintMessage = (error: ApiError) => {
-  if (!error.code) return error.message;
-  return DUPLICATE_ACCOUNT_MESSAGES[error.code] ?? error.message;
+  return (
+    (error.code ? DUPLICATE_ACCOUNT_MESSAGES[error.code] : undefined) ??
+    getUserFriendlyErrorMessage(error, {
+      action: "create",
+      entity: "akun guru",
+    })
+  );
 };
 
 const normalizeNipInput = (value: string) => {
@@ -170,6 +176,13 @@ const AkunGuruForm = () => {
     } catch (error) {
       if (error instanceof ApiError) {
         setSubmitError(uniqueConstraintMessage(error));
+      } else {
+        setSubmitError(
+          getUserFriendlyErrorMessage(error, {
+            action: "create",
+            entity: "akun guru",
+          }),
+        );
       }
     } finally {
       setSubmitting(false);

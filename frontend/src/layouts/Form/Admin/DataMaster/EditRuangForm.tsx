@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import InputField from "@/components/common/Input/InputField";
 import { createSetField } from "@/helper/setField/setField";
 import { createValidator, requiredString } from "@/helper/validate/validateForm";
-import { ApiError } from "@/services/Api/api";
+import { getUserFriendlyErrorMessage } from "@/services/Api/errorMessage";
 import type { RuangUjianFormValues } from "@/types/DataMaster/RuangUjian";
 
 type EditRuangFormProps = {
@@ -61,13 +61,12 @@ const EditRuangForm = ({
     try {
       await onSubmit(payload);
     } catch (e) {
-      const message =
-        e instanceof ApiError
-          ? e.message === "bad request: kode ruang ujian already exist"
-            ? "Kode ruang ujian sudah ada."
-            : "Ruang ujian gagal diperbarui."
-          : "Ruang ujian gagal diperbarui.";
-      setSubmitError(message);
+      setSubmitError(
+        getUserFriendlyErrorMessage(e, {
+          action: "update",
+          entity: "ruang ujian",
+        }),
+      );
     }
   };
 

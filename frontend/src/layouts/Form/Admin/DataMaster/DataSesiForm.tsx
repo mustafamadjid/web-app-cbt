@@ -5,7 +5,7 @@ import InputField from "@/components/common/Input/InputField";
 import { createSetField } from "@/helper/setField/setField";
 import { createValidator, requiredString } from "@/helper/validate/validateForm";
 import { paths } from "@/routes/paths";
-import { ApiError } from "@/services/Api/api";
+import { getUserFriendlyErrorMessage } from "@/services/Api/errorMessage";
 import { createSesi } from "@/services/Api/features-api/DataMaster/sesi.service";
 import type { SesiFormValues } from "@/types/DataMaster/Sesi";
 
@@ -69,13 +69,12 @@ const DataSesiForm = () => {
       await createSesi(payload);
       navigate(paths.dashboard.data_master_sesi);
     } catch (e) {
-      const message =
-        e instanceof ApiError
-          ? e.message === "bad request: kode sesi already exist"
-            ? "Kode sesi sudah ada."
-            : "Data sesi gagal ditambahkan."
-          : "Data sesi gagal ditambahkan.";
-      setSubmitError(message);
+      setSubmitError(
+        getUserFriendlyErrorMessage(e, {
+          action: "create",
+          entity: "sesi",
+        }),
+      );
     } finally {
       setSubmitting(false);
     }

@@ -10,7 +10,7 @@ import {
   useGetMapelById,
   updateMataPelajaranPartial,
 } from "@/services/Api/features-api/DataMaster/mapel.service";
-import { ApiError } from "@/services/Api/api";
+import { getUserFriendlyErrorMessage } from "@/services/Api/errorMessage";
 
 import { createSetField } from "@/helper/setField/setField";
 import {
@@ -103,11 +103,12 @@ const EditMapelForm = () => {
       await updateMataPelajaranPartial(mapelId, values, initialValues);
       navigate(paths.dashboard.data_master_mapel);
     } catch (error) {
-      if (error instanceof ApiError) {
-        setSubmitError(error.message);
-      } else {
-        setSubmitError("Gagal memperbarui data mata pelajaran.");
-      }
+      setSubmitError(
+        getUserFriendlyErrorMessage(error, {
+          action: "update",
+          entity: "mata pelajaran",
+        }),
+      );
     } finally {
       setSubmitting(false);
     }

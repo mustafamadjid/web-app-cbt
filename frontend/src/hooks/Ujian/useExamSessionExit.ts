@@ -2,7 +2,7 @@ import React from "react";
 import { useBlocker } from "react-router";
 import type { BlockerFunction } from "react-router";
 
-import { ApiError } from "@/services/Api/api";
+import { getUserFriendlyErrorMessage } from "@/services/Api/errorMessage";
 import { useExpireAttemptUjianSiswa } from "@/services/Api/features-api/Ujian/ujian.service";
 
 const EXPIRE_ATTEMPT_ERROR_MESSAGE =
@@ -30,15 +30,11 @@ type UseExamSessionExitResult = {
 };
 
 const mapExpireAttemptErrorMessage = (error: unknown): string => {
-  if (error instanceof ApiError && error.message) {
-    return error.message;
-  }
-
-  if (error instanceof Error && error.message) {
-    return error.message;
-  }
-
-  return EXPIRE_ATTEMPT_ERROR_MESSAGE;
+  return getUserFriendlyErrorMessage(error, {
+    action: "submit",
+    entity: "sesi ujian",
+    fallbackMessage: EXPIRE_ATTEMPT_ERROR_MESSAGE,
+  });
 };
 
 export function useExamSessionExit({

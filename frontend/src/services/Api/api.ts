@@ -1,6 +1,7 @@
 // services/api.ts
 import axios from "axios";
 import type { AxiosError, AxiosRequestConfig } from "axios";
+import { getUserFriendlyErrorMessage } from "@/services/Api/errorMessage";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
 
@@ -29,13 +30,21 @@ export class ApiError extends Error {
   status?: number;
   data?: unknown;
   code?: string;
+  rawMessage?: string;
 
-  constructor(message: string, status?: number, data?: unknown, code?: string) {
+  constructor(
+    message: string,
+    status?: number,
+    data?: unknown,
+    code?: string,
+    rawMessage?: string,
+  ) {
     super(message);
     this.name = "ApiError";
     this.status = status;
     this.data = data;
     this.code = code;
+    this.rawMessage = rawMessage ?? message;
   }
 }
 
@@ -68,7 +77,12 @@ function flushSubscribers(ok: boolean, err?: ApiError) {
 function toApiError(err: unknown): ApiError {
   const e = err as AxiosError;
   const status = e.response?.status;
-  const data = e.response?.data as any;
+  const data = e.response?.data as
+    | {
+        error?: { message?: unknown; code?: unknown } | null;
+        message?: unknown;
+      }
+    | undefined;
 
   // backend error: { data:null, error:{code,message} }
   const backendErrorMsg =
@@ -87,8 +101,16 @@ function toApiError(err: unknown): ApiError {
       ? data.message
       : undefined;
 
-  const msg = backendErrorMsg ?? backendTopMsg ?? e.message;
-  return new ApiError(msg, status, data, backendErrorCode);
+  const rawMessage = backendErrorMsg ?? backendTopMsg ?? e.message;
+  const apiError = new ApiError(
+    rawMessage,
+    status,
+    data,
+    backendErrorCode,
+    rawMessage,
+  );
+  apiError.message = getUserFriendlyErrorMessage(apiError);
+  return apiError;
 }
 
 /**
@@ -101,17 +123,43 @@ async function refreshSession(): Promise<void> {
 /** unwrap envelope sukses */
 function unwrapEnvelope<T>(env: ApiEnvelope<T>, path?: string): T {
   if (env?.error)
-    throw new ApiError(env.error.message, 400, env, env.error.code);
+    throw new ApiError(
+      getUserFriendlyErrorMessage(
+        new ApiError(env.error.message, 400, env, env.error.code, env.error.message),
+      ),
+      400,
+      env,
+      env.error.code,
+      env.error.message,
+    );
 
   if (!env || typeof env !== "object" || !("data" in env)) {
-    throw new ApiError("Invalid API response envelope", 500, env);
+    throw new ApiError(
+      "Terjadi kendala pada sistem. Silakan coba lagi.",
+      500,
+      env,
+      undefined,
+      "Invalid API response envelope",
+    );
   }
 
   if (env.data === null) {
     if (path === "/auth/me") {
-      throw new ApiError("Unauthenticated", 401, env, "UNAUTHENTICATED");
+      throw new ApiError(
+        "Sesi Anda telah berakhir. Silakan login kembali.",
+        401,
+        env,
+        "UNAUTHENTICATED",
+        "Unauthenticated",
+      );
     }
-    throw new ApiError("API returned null data", 500, env);
+    throw new ApiError(
+      "Terjadi kendala pada sistem. Silakan coba lagi.",
+      500,
+      env,
+      undefined,
+      "API returned null data",
+    );
   }
 
   return env.data;
@@ -168,9 +216,10 @@ export async function api<T>(
       return await api<T>(path, { ...opts, _retry: true });
     } catch (refreshErr) {
       const rErr = toApiError(refreshErr);
-       if (rErr.status === 401 ) {
-         rErr.code = rErr.code ?? "SESSION_EXPIRED";
-       }
+      if (rErr.status === 401) {
+        rErr.code = rErr.code ?? "SESSION_EXPIRED";
+        rErr.message = getUserFriendlyErrorMessage(rErr);
+      }
       flushSubscribers(false, rErr);
       throw rErr;
     } finally {

@@ -10,6 +10,7 @@ import {
   useGetHasilJawabanUjian,
   useSubmitKoreksiEssay,
 } from "@/services/Api/features-api/Ujian/hasilJawabanUjian.service";
+import { getUserFriendlyErrorMessage } from "@/services/Api/errorMessage";
 import type { SubmitKoreksiEssayRequest } from "@/types/Ujian/SubmitKoreksiEssay";
 
 const KoreksiHasilUjian: React.FC = () => {
@@ -52,12 +53,13 @@ const KoreksiHasilUjian: React.FC = () => {
       toast.success("Koreksi essay berhasil disimpan.");
       await refetch();
     } catch (submitErr) {
-      const message =
-        submitErr instanceof Error
-          ? submitErr.message
-          : "Gagal menyimpan koreksi essay.";
-
-      toast.error(message);
+      toast.error(
+        getUserFriendlyErrorMessage(submitErr, {
+          action: "submit",
+          entity: "koreksi essay",
+          fallbackMessage: "Gagal menyimpan koreksi essay.",
+        }),
+      );
     }
   };
 
@@ -110,7 +112,7 @@ const KoreksiHasilUjian: React.FC = () => {
         <>
           {submitError && (
             <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
-              Gagal menyimpan koreksi essay: {submitError}
+              {submitError}
             </div>
           )}
 

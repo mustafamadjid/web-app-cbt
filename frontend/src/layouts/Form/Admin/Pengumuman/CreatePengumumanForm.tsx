@@ -3,10 +3,10 @@ import { useNavigate } from "react-router";
 
 import DatePicker from "@/components/common/DateInput/DatePicker";
 import { useAuth } from "@/contexts/AuthContext";
+import { getUserFriendlyErrorMessage } from "@/services/Api/errorMessage";
 import { createSetField } from "@/helper/setField/setField";
 import { createValidator, requiredString } from "@/helper/validate/validateForm";
 import { paths } from "@/routes/paths";
-import { ApiError } from "@/services/Api/api";
 import { createPengumuman } from "@/services/Api/features-api/pengumuman/pengumuman.service";
 import type { PengumumanFormValues } from "@/types/Widget/Pengumuman";
 
@@ -110,19 +110,12 @@ const CreatePengumumanForm = () => {
       });
       navigate(goBackPath);
     } catch (e) {
-      const message =
-        e instanceof ApiError
-          ? e.message === "bad request: invalid date format"
-            ? "Format tanggal pengumuman tidak valid."
-            : e.message === "bad request: missing fields"
-              ? "Semua data pengumuman wajib diisi."
-              : e.message === "bad request: invalid dokumen_pengumuman"
-                ? "Dokumen pengumuman harus berupa PDF atau DOCX."
-                : e.message === "file too large"
-                  ? "Ukuran dokumen pengumuman maksimal 10MB."
-                  : "Pengumuman gagal ditambahkan."
-          : "Pengumuman gagal ditambahkan.";
-      setSubmitError(message);
+      setSubmitError(
+        getUserFriendlyErrorMessage(e, {
+          action: "create",
+          entity: "pengumuman",
+        }),
+      );
     } finally {
       setSubmitting(false);
     }

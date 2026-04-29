@@ -14,6 +14,7 @@ import {
   requiredValue,
 } from "@/helper/validate/validateForm";
 import { ApiError } from "@/services/Api/api";
+import { getUserFriendlyErrorMessage } from "@/services/Api/errorMessage";
 import { useGetBankSoal } from "@/services/Api/features-api/BankSoal/banksoal.service";
 import { useGetDataKelasFull } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { useGetMapel } from "@/services/Api/features-api/DataMaster/mapel.service";
@@ -305,9 +306,19 @@ const BuatUjianForm = ({
       await onSubmit(values);
     } catch (error) {
       if (error instanceof ApiError) {
-        setSubmitError(error.message);
+        setSubmitError(
+          getUserFriendlyErrorMessage(error, {
+            action: "create",
+            entity: "ujian",
+          }),
+        );
       } else if (error instanceof Error) {
-        setSubmitError(error.message);
+        setSubmitError(
+          getUserFriendlyErrorMessage(error, {
+            action: "create",
+            entity: "ujian",
+          }),
+        );
       } else {
         setSubmitError("Terjadi kesalahan saat menyimpan ujian.");
       }

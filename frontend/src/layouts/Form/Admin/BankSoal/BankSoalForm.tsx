@@ -4,7 +4,7 @@ import toast from "react-hot-toast";
 
 import InputField from "@/components/common/Input/InputField";
 import { paths } from "@/routes/paths";
-import { ApiError } from "@/services/Api/api";
+import { getUserFriendlyErrorMessage } from "@/services/Api/errorMessage";
 import { createBankSoal } from "@/services/Api/features-api/BankSoal/banksoal.service";
 import { useGetDataKelasFull } from "@/services/Api/features-api/DataMaster/kelas.service";
 import { useGetMataPelajaranOptions } from "@/services/Api/features-api/GetOptions/options.service";
@@ -133,11 +133,13 @@ const BankSoalForm = () => {
         navigate(paths.dashboard.bank_soal);
       }
     } catch (error) {
-      if (error instanceof ApiError) {
-        setSubmitError(error.message);
-      } else {
-        setSubmitError("Terjadi kesalahan saat menyimpan bank soal.");
-      }
+      setSubmitError(
+        getUserFriendlyErrorMessage(error, {
+          action: "create",
+          entity: "bank soal",
+          fallbackMessage: "Terjadi kesalahan saat menyimpan bank soal.",
+        }),
+      );
     } finally {
       setSubmitting(false);
     }

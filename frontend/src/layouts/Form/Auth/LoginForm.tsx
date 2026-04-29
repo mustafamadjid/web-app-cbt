@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ApiError } from "@/services/Api/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { getUserFriendlyErrorMessage } from "@/services/Api/errorMessage";
 
 // CSS
 import "../../../index.css";
@@ -40,10 +41,8 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
         e instanceof ApiError
           ? e.code === "USERNAME_LENGTH_INVALID"
             ? USERNAME_LENGTH_INVALID_MESSAGE
-            : e.code === "HAS_SESSION"
-              ? "Login gagal. Silakan logout terlebih dahulu pada device sebelumnya"
-              : "Login Gagal. Silakan Coba lagi"
-          : "Login gagal.";
+            : getUserFriendlyErrorMessage(e, { action: "login" })
+          : getUserFriendlyErrorMessage(e, { action: "login" });
       setError(message);
     } finally {
       setLoading(false);
