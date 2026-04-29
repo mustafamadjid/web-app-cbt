@@ -1,6 +1,6 @@
 # 📝 SMAFI CBT — Computer Based Test Web Application
 
-**SMAFI CBT** adalah aplikasi ujian berbasis komputer (*Computer Based Test*) yang dirancang untuk mengelola seluruh proses ujian secara digital — mulai dari pembuatan bank soal, penjadwalan ujian, pelaksanaan ujian oleh siswa, hingga koreksi dan rekap nilai secara otomatis.
+**SMAFI CBT** adalah aplikasi ujian berbasis komputer (_Computer Based Test_) yang dirancang untuk mengelola seluruh proses ujian secara digital — mulai dari pembuatan bank soal, penjadwalan ujian, pelaksanaan ujian oleh siswa, hingga koreksi dan rekap nilai secara otomatis.
 
 Aplikasi ini dibangun menggunakan arsitektur modern dengan **Go (Golang)** sebagai backend dan **React + TypeScript** di sisi frontend, serta menerapkan pola **Hexagonal Architecture** untuk menjaga pemisahan tanggung jawab dan kemudahan pengembangan.
 
@@ -24,31 +24,31 @@ Aplikasi ini dibangun menggunakan arsitektur modern dengan **Go (Golang)** sebag
 
 ### Backend
 
-| Teknologi | Keterangan |
-|---|---|
-| **Go 1.25** | Bahasa pemrograman utama backend |
-| **httprouter** | HTTP router ringan dan cepat |
-| **pgx/v5** | Driver PostgreSQL native untuk Go |
-| **golang-jwt/jwt/v5** | Autentikasi berbasis JSON Web Token |
-| **bcrypt** | Hashing password yang aman |
-| **rs/cors** | Middleware untuk Cross-Origin Resource Sharing |
-| **golang.org/x/time** | Rate limiting |
-| **PostgreSQL** | Basis data relasional |
+| Teknologi             | Keterangan                                     |
+| --------------------- | ---------------------------------------------- |
+| **Go 1.25**           | Bahasa pemrograman utama backend               |
+| **httprouter**        | HTTP router ringan dan cepat                   |
+| **pgx/v5**            | Driver PostgreSQL native untuk Go              |
+| **golang-jwt/jwt/v5** | Autentikasi berbasis JSON Web Token            |
+| **bcrypt**            | Hashing password yang aman                     |
+| **rs/cors**           | Middleware untuk Cross-Origin Resource Sharing |
+| **golang.org/x/time** | Rate limiting                                  |
+| **PostgreSQL**        | Basis data relasional                          |
 
 ### Frontend
 
-| Teknologi | Keterangan |
-|---|---|
-| **React 19** | Library UI utama |
-| **TypeScript** | Superset JavaScript dengan type safety |
-| **Vite (Rolldown)** | Build tool dan dev server super cepat |
-| **TailwindCSS v4** | Utility-first CSS framework |
-| **MUI (Material UI) v7** | Komponen UI siap pakai |
-| **Tiptap** | Rich text editor (WYSIWYG) |
-| **Axios** | HTTP client untuk komunikasi API |
-| **React Router v7** | Routing SPA |
-| **React Hot Toast** | Notifikasi toast |
-| **Lucide React** | Icon library |
+| Teknologi                | Keterangan                             |
+| ------------------------ | -------------------------------------- |
+| **React 19**             | Library UI utama                       |
+| **TypeScript**           | Superset JavaScript dengan type safety |
+| **Vite (Rolldown)**      | Build tool dan dev server super cepat  |
+| **TailwindCSS v4**       | Utility-first CSS framework            |
+| **MUI (Material UI) v7** | Komponen UI siap pakai                 |
+| **Tiptap**               | Rich text editor (WYSIWYG)             |
+| **Axios**                | HTTP client untuk komunikasi API       |
+| **React Router v7**      | Routing SPA                            |
+| **React Hot Toast**      | Notifikasi toast                       |
+| **Lucide React**         | Icon library                           |
 
 ---
 
@@ -171,13 +171,13 @@ frontend/src/
 
 Pastikan perangkat lunak berikut sudah terinstall di sistem Anda:
 
-| Software | Versi Minimum | Link Download |
-|---|---|---|
-| **Go** | 1.25+ | [golang.org/dl](https://golang.org/dl/) |
-| **Node.js** | 18+ | [nodejs.org](https://nodejs.org/) |
-| **npm** | 9+ | Terinstall bersama Node.js |
-| **PostgreSQL** | 14+ | [postgresql.org](https://www.postgresql.org/download/) |
-| **Git** | Terbaru | [git-scm.com](https://git-scm.com/) |
+| Software       | Versi Minimum | Link Download                                          |
+| -------------- | ------------- | ------------------------------------------------------ |
+| **Go**         | 1.25+         | [golang.org/dl](https://golang.org/dl/)                |
+| **Node.js**    | 18+           | [nodejs.org](https://nodejs.org/)                      |
+| **npm**        | 9+            | Terinstall bersama Node.js                             |
+| **PostgreSQL** | 14+           | [postgresql.org](https://www.postgresql.org/download/) |
+| **Git**        | Terbaru       | [git-scm.com](https://git-scm.com/)                    |
 
 ---
 
@@ -230,6 +230,7 @@ go run .
 ```
 
 > **Alternatif**: Gunakan script `run.ps1` di folder backend:
+>
 > ```powershell
 > cd backend
 > ./run.ps1
@@ -265,22 +266,22 @@ Buka browser dan akses `http://localhost:5173`. Login sesuai peran pengguna yang
 
 ### Backend (`backend/.env`)
 
-| Variable | Keterangan | Contoh |
-|---|---|---|
-| `ENVIRONMENT` | Mode environment (`dev` / `prod`) | `dev` |
-| `BASE_URL` | Base URL backend server | `http://localhost:8080` |
-| `APP_DIR` | Direktori root aplikasi | `.` |
-| `UPLOAD_DIR` | Direktori penyimpanan file upload | `public/uploads` |
-| `POSTGRES_DBURL` | Connection string PostgreSQL | `postgres://user:pass@localhost:5432/smafi_cbt_db` |
-| `ISSUER` | Issuer JWT token | `web-app-cbt` |
-| `ACCESS_TOKEN_SECRET` | Secret key untuk access token | String acak yang panjang |
-| `REFRESH_TOKEN_SECRET` | Secret key untuk refresh token | String acak yang panjang |
-| `TRUSTED_ORIGINS` | Daftar origin CORS yang diizinkan | `http://localhost:5173` |
+| Variable               | Keterangan                        | Contoh                                             |
+| ---------------------- | --------------------------------- | -------------------------------------------------- |
+| `ENVIRONMENT`          | Mode environment (`dev` / `prod`) | `dev`                                              |
+| `BASE_URL`             | Base URL backend server           | `http://localhost:8080`                            |
+| `APP_DIR`              | Direktori root aplikasi           | `.`                                                |
+| `UPLOAD_DIR`           | Direktori penyimpanan file upload | `public/uploads`                                   |
+| `POSTGRES_DBURL`       | Connection string PostgreSQL      | `postgres://user:pass@localhost:5432/smafi_cbt_db` |
+| `ISSUER`               | Issuer JWT token                  | `web-app-cbt`                                      |
+| `ACCESS_TOKEN_SECRET`  | Secret key untuk access token     | String acak yang panjang                           |
+| `REFRESH_TOKEN_SECRET` | Secret key untuk refresh token    | String acak yang panjang                           |
+| `TRUSTED_ORIGINS`      | Daftar origin CORS yang diizinkan | `http://localhost:5173`                            |
 
 ### Frontend (`frontend/.env`)
 
-| Variable | Keterangan | Contoh |
-|---|---|---|
+| Variable       | Keterangan      | Contoh                  |
+| -------------- | --------------- | ----------------------- |
 | `VITE_API_URL` | URL backend API | `http://localhost:8080` |
 
 ---
@@ -394,10 +395,10 @@ Aplikasi mendukung **3 peran pengguna** dengan akses yang berbeda:
 
 ## 📄 Lisensi
 
-Proyek ini dibuat untuk keperluan akademis — Tugas Semester 7, Program Studi Informatika.
+Proyek ini dibuat sebagai penelitian Tugas Akhir, Program Studi Teknik Informatika ITERA.
 
 ---
 
 <p align="center">
-  Dibuat dengan ❤️ oleh <strong>Mustafa Madjid</strong>
+  Dibuat oleh <strong>Mustafa Madjid</strong>
 </p>
