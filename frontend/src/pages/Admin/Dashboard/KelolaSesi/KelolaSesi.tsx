@@ -51,11 +51,6 @@ const formatDateTime = (value: string) => {
   });
 };
 
-const shortenSessionId = (value: string, prefix = 10, suffix = 6) => {
-  if (value.length <= prefix + suffix + 3) return value;
-  return `${value.slice(0, prefix)}...${value.slice(-suffix)}`;
-};
-
 const KelolaSesi = () => {
   const { user } = useAuth();
   const {
@@ -147,7 +142,7 @@ const KelolaSesi = () => {
                     Role / Status
                   </th>
                   <th className="px-6 py-3 text-left font-semibold text-slate-600">
-                    Sesi
+                    Informasi Sesi
                   </th>
                   <th className="px-6 py-3 text-right font-semibold text-slate-600">
                     Aksi
@@ -220,11 +215,8 @@ const KelolaSesi = () => {
                         </td>
                         <td className="px-6 py-4 text-slate-700">
                           <div className="flex flex-col gap-1">
-                            <span
-                              className="font-mono text-xs text-slate-900"
-                              title={item.session.session_id}
-                            >
-                              {shortenSessionId(item.session.session_id)}
+                            <span className="text-xs font-medium text-slate-900">
+                              {isSelfSession ? "Sesi Anda" : "Sesi aktif"}
                             </span>
                             <span className="text-xs text-slate-500">
                               Berakhir: {formatDateTime(item.session.expires_at)}

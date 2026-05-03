@@ -168,10 +168,10 @@ const DetailBankSoal = () => {
     [soalRows],
   );
 
-  const errorMsg = !isBankSoalIdValid ? "ID bank soal tidak valid." : soalError;
+  const errorMsg = !isBankSoalIdValid ? "Data bank soal tidak valid." : soalError;
   const title =
     bankSoalData?.nama_bank_soal ??
-    (isBankSoalIdValid ? `Bank Soal #${bankSoalId}` : "Bank Soal");
+    "Bank Soal";
 
   if (loadingSoal || (isBankSoalIdValid && loadingBankSoal && !bankSoalData)) {
     return (

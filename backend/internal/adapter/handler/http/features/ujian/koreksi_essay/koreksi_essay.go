@@ -52,6 +52,11 @@ func (h *KoreksiEssayHandler) KoreksiEssay(w http.ResponseWriter, r *http.Reques
 		}
 		return
 	}
+	req, err := sanitizeAndValidateKoreksiEssayRequest(req)
+	if err != nil {
+		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: invalid essay grading payload")
+		return
+	}
 
 	if err := h.svc.EssayGrading(r.Context(), toKoreksiEssayPayload(req), ujian.ID(actor.IdPengguna)); err != nil {
 		logger.Error(r.Context(), "failed koreksi essay ujian", "layer", "adapter.http.handler", "op", "ujian.koreksi_essay", "graded_by", actor.IdPengguna, "err", err)

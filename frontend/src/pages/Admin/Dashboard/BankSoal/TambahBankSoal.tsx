@@ -70,7 +70,7 @@ const TambahBankSoal = () => {
 
     // Validasi: idBankSoal harus valid
     if (!idBankSoal || idBankSoal <= 0) {
-      setErrorMessage("ID Bank Soal tidak valid. Silakan kembali ke halaman Bank Soal.");
+      setErrorMessage("Data bank soal tidak valid. Silakan kembali ke halaman Bank Soal.");
       return;
     }
 

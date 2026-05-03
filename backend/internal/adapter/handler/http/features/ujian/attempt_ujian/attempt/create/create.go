@@ -43,8 +43,13 @@ func (h *AttemptUjianHandler) AttemptUjian(w http.ResponseWriter, r *http.Reques
 		}
 		return
 	}
+	req, err := sanitizeAndValidateAttemptUjianRequest(req)
+	if err != nil {
+		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: invalid attempt ujian payload")
+		return
+	}
 
-	err := h.svc.AttemptUjian(
+	err = h.svc.AttemptUjian(
 		r.Context(),
 		req.IdSiswa,
 		req.IdJadwalUjian,

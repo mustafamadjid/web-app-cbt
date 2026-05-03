@@ -43,6 +43,11 @@ func (h *SaveJawabanUjianHandler) SaveJawabanUjian(w http.ResponseWriter, r *htt
 		}
 		return
 	}
+	req, err := sanitizeAndValidateSaveJawabanRequest(req)
+	if err != nil {
+		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: invalid jawaban ujian payload")
+		return
+	}
 
 	idAttempt, jawaban := toSaveJawabanPayload(req)
 	if err := h.svc.SaveJawabanUjian(r.Context(), idAttempt, jawaban); err != nil {

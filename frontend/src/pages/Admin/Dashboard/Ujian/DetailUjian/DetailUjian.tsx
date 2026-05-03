@@ -65,7 +65,7 @@ const DetailUjian = () => {
     error,
   } = useGetDetailUjianById(ujianId, isUjianIdValid);
 
-  const errorMsg = !isUjianIdValid ? "ID ujian tidak valid." : (error ?? "");
+  const errorMsg = !isUjianIdValid ? "Data ujian tidak valid." : (error ?? "");
 
   const durasiMenit = useMemo(() => {
     if (!detail) return 0;

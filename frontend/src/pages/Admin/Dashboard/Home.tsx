@@ -144,7 +144,7 @@ export const Home = () => {
           </div>
 
           {/* RIGHT COLUMN */}
-          <div className="flex flex-col gap-6 lg:col-span-5 xl:col-span-4 h-full min-h-0">
+          <div className="flex-col gap-6 lg:col-span-5 xl:col-span-4 h-full min-h-0">
             <JadwalUjianWidget
               items={jadwalUjianItems ?? []}
               className="flex-1 min-h-0"

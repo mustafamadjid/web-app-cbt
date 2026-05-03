@@ -1,23 +1,15 @@
 import { useAuth } from "@/contexts/AuthContext";
-import UjianTerlaksanaWidget from "@/components/features/widget/Siswa/UjianTerlaksanaWidget";
-import RataRataNilaiWidget from "@/components/features/widget/Siswa/RataRataNilaiWidget";
 import { PengumumanWidget } from "@/components/features/widget/Pengumuman/PengumumanWidget";
 import {
   useGetSiswaDashboardSummary,
-
   useGetSiswaPengumuman,
-  useGetSiswaRataRataSemester,
 } from "@/services/Api/features-api/Siswa/homeSiswa.service";
 
 const HomeSiswa = () => {
   const { user } = useAuth();
 
-  // Hooks: fetch all siswa dashboard data
-  const { data: summary, loading: loadingSummary } = useGetSiswaDashboardSummary();
+  useGetSiswaDashboardSummary();
   const { data: pengumuman } = useGetSiswaPengumuman();
-  const { data: rataRata } = useGetSiswaRataRataSemester();
-
-  const loading = loadingSummary;
 
   return (
     <div className="min-h-screen bg-[#ecf1ed] pb-20">
@@ -34,32 +26,9 @@ const HomeSiswa = () => {
             sini.
           </p>
         </header>
-
-        <div className="grid gap-5 lg:grid-cols-12">
-          <div className="lg:col-span-6">
-            <UjianTerlaksanaWidget
-              totalSelesai={summary?.ujian_selesai ?? 0}
-              totalUjian={summary?.total_ujian ?? 0}
-              className="h-full"
-            />
-          </div>
-          <div className="lg:col-span-6">
-            <RataRataNilaiWidget items={rataRata ?? []} className="h-full" />
-          </div>
+        <div className="lg:col-span-7">
+          <PengumumanWidget items={pengumuman ?? []} />
         </div>
-
-        <div className="grid gap-6 lg:grid-cols-12">
-          <div className="lg:col-span-7">
-            <PengumumanWidget items={pengumuman ?? []} />
-          </div>
-         
-        </div>
-
-        {loading && (
-          <div className="rounded-xl border border-dashed border-gray-200 bg-white px-4 py-3 text-xs text-gray-500">
-            Menyegarkan data dashboard siswa...
-          </div>
-        )}
       </div>
     </div>
   );

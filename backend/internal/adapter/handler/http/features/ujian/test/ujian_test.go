@@ -2,6 +2,7 @@ package ujian_test
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -56,6 +57,22 @@ func TestAttemptUjian(t *testing.T) {
 
 		assert.Equal(t, http.StatusForbidden, w.Code)
 	})
+
+	t.Run("Sanitizes Token Input", func(t *testing.T) {
+		reqBody := `{"id_siswa":1, "id_jadwal_ujian":10, "token_ujian":" token123 ", "waktu_mulai":"2024-04-14T20:00:00Z"}`
+		req := httptest.NewRequest(http.MethodPost, "/attempt-ujian", strings.NewReader(reqBody))
+		req.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+
+		mockChecker.On("CheckValidSiswaInPesertaUjianById", mock.Anything, 1, 10).Return(true, 1, nil).Once()
+		mockChecker.On("GetDeadlineUjian", mock.Anything, 10).Return(time.Now().Add(time.Hour), nil).Once()
+		mockChecker.On("CheckTokenUjian", mock.Anything, "TOKEN123", 10).Return(true, nil).Once()
+		mockRepo.On("CreateAttemptUjian", mock.Anything, mock.Anything).Return(nil).Once()
+
+		handler.AttemptUjian(w, req, nil)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+	})
 }
 
 func TestSaveJawaban(t *testing.T) {
@@ -74,6 +91,20 @@ func TestSaveJawaban(t *testing.T) {
 		handler.SaveJawabanUjian(w, req, nil)
 
 		assert.Equal(t, http.StatusOK, w.Code)
+	})
+
+	t.Run("Rejects Invalid Jawaban Payload", func(t *testing.T) {
+		reqBody := `{"id_attempt":101, "jawaban":[{"id_soal":1, "id_pilihan":5, "jawaban_essay":"opsi ganda"}]}`
+		req := httptest.NewRequest(http.MethodPost, "/save-jawaban", strings.NewReader(reqBody))
+		req.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+
+		handler.SaveJawabanUjian(w, req, nil)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		var resp map[string]any
+		_ = json.Unmarshal(w.Body.Bytes(), &resp)
+		assert.Equal(t, "BAD_REQUEST", resp["error"].(map[string]any)["code"])
 	})
 }
 

@@ -94,7 +94,7 @@ const EditMapelForm = () => {
     }
 
     if (!id || Number.isNaN(mapelId)) {
-      setSubmitError("ID mata pelajaran tidak valid.");
+      setSubmitError("Data mata pelajaran tidak valid.");
       return;
     }
 
@@ -116,7 +116,7 @@ const EditMapelForm = () => {
 
   const isDisabled = loading || submitting;
   const fetchErrorMessage = !isMapelIdValid
-    ? "ID mata pelajaran tidak valid."
+    ? "Data mata pelajaran tidak valid."
     : mapelError;
 
   return (

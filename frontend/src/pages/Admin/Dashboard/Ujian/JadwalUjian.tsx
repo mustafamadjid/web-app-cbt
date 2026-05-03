@@ -84,7 +84,7 @@ const JadwalUjian = () => {
 
   const handleDelete = async () => {
     if (!deleteTarget?.id_ujian || deleteTarget.id_ujian <= 0) {
-      setActionError("ID ujian tidak valid untuk dihapus.");
+      setActionError("Data ujian tidak valid untuk dihapus.");
       setDeleteTarget(null);
       return;
     }

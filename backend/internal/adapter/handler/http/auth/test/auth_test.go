@@ -77,6 +77,7 @@ func TestLogin(t *testing.T) {
 		}
 		body, _ := json.Marshal(reqBody)
 		req := httptest.NewRequest(http.MethodPost, "/login", bytes.NewBuffer(body))
+		req.Header.Set("Content-Type", "application/json")
 		w := httptest.NewRecorder()
 
 		mockSvc.On("Login", mock.Anything, auth_service.LoginCmd{
@@ -92,11 +93,11 @@ func TestLogin(t *testing.T) {
 		handler.Login(w, req, nil)
 
 		assert.Equal(t, http.StatusOK, w.Code)
-		
+
 		var resp map[string]interface{}
 		json.Unmarshal(w.Body.Bytes(), &resp)
 		assert.Equal(t, "success", resp["message"])
-		
+
 		// Check cookies
 		cookies := w.Result().Cookies()
 		assert.Len(t, cookies, 2)
@@ -109,6 +110,7 @@ func TestLogin(t *testing.T) {
 		}
 		body, _ := json.Marshal(reqBody)
 		req := httptest.NewRequest(http.MethodPost, "/login", bytes.NewBuffer(body))
+		req.Header.Set("Content-Type", "application/json")
 		w := httptest.NewRecorder()
 
 		mockSvc.On("Login", mock.Anything, auth_service.LoginCmd{
@@ -151,6 +153,7 @@ func TestAdminRevoke(t *testing.T) {
 		reqBody := httpx.AdminRevokeRequest{SessionId: "session123"}
 		body, _ := json.Marshal(reqBody)
 		req := httptest.NewRequest(http.MethodPut, "/revoke", bytes.NewBuffer(body))
+		req.Header.Set("Content-Type", "application/json")
 		w := httptest.NewRecorder()
 
 		mockSvc.On("AdminRevokingSession", mock.Anything, "session123").Return(nil).Once()
@@ -164,6 +167,7 @@ func TestAdminRevoke(t *testing.T) {
 		reqBody := httpx.AdminRevokeRequest{SessionId: "missing"}
 		body, _ := json.Marshal(reqBody)
 		req := httptest.NewRequest(http.MethodPut, "/revoke", bytes.NewBuffer(body))
+		req.Header.Set("Content-Type", "application/json")
 		w := httptest.NewRecorder()
 
 		mockSvc.On("AdminRevokingSession", mock.Anything, "missing").Return(coreerror.ErrNotFound).Once()
@@ -190,7 +194,7 @@ func TestAuthMe(t *testing.T) {
 		handler.AuthMe(w, req, nil)
 
 		assert.Equal(t, http.StatusOK, w.Code)
-		
+
 		var resp map[string]interface{}
 		json.Unmarshal(w.Body.Bytes(), &resp)
 		data := resp["data"].(map[string]interface{})
@@ -206,4 +210,3 @@ func TestAuthMe(t *testing.T) {
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 }
-

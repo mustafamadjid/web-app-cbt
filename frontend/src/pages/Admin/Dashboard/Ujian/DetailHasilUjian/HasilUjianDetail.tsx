@@ -41,7 +41,7 @@ const HasilUjianDetail = () => {
 
   const daftarPeserta: PesertaUjianSubmittedItem[] = pesertaSubmitted ?? [];
   const invalidIdMessage = !isJadwalUjianIdValid
-    ? "ID jadwal ujian tidak valid."
+    ? "Data jadwal ujian tidak valid."
     : "";
 
   const formatDateTime = (value: string | null) => {
@@ -228,7 +228,7 @@ const HasilUjianDetail = () => {
               ) : !isJadwalUjianIdValid ? (
                 <tr>
                   <td colSpan={6} className="py-12 text-center text-slate-500">
-                    ID jadwal ujian tidak valid.
+                    Data jadwal ujian tidak valid.
                   </td>
                 </tr>
               ) : daftarPeserta.length === 0 ? (
@@ -247,9 +247,6 @@ const HasilUjianDetail = () => {
                       <div>
                         <p className="font-semibold text-slate-800">
                           {peserta.nama_lengkap}
-                        </p>
-                        <p className="text-xs text-slate-500">
-                          ID Siswa: {peserta.id_siswa}
                         </p>
                       </div>
                     </td>

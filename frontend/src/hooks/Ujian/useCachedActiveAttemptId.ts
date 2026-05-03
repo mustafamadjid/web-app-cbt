@@ -193,7 +193,7 @@ export function useCachedActiveAttemptId(
           result.id_attempt <= 0
         ) {
           setAttemptId(null);
-          setError("ID attempt aktif tidak valid.");
+          setError("Data attempt aktif tidak valid.");
           setErrorCode(null);
           return;
         }

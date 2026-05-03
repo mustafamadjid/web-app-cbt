@@ -1,7 +1,6 @@
 package httpx
 
 import (
-	"encoding/json"
 	"errors"
 	"net/http"
 	"time"
@@ -9,7 +8,6 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/cookie"
 	"github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/middleware"
-	validator "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/validation"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/aktivitas_user"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/service/auth_service"
@@ -47,31 +45,27 @@ func (h *AuthHandler) Login(write http.ResponseWriter, req *http.Request, _ http
 	logger := corelog.FromContext(req.Context())
 	var reqBody LoginRequest
 
-	dec := json.NewDecoder(req.Body)
-	dec.DisallowUnknownFields()
-	if err := dec.Decode(&reqBody); err != nil {
+	if err := httphelper.JsonHeaderBodyValidator(write, req); err != nil {
+		httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "bad request : content type must be application/json")
+		return
+	}
+
+	if err := httphelper.JSONDecoder(req, &reqBody); err != nil {
 		logger.Error(req.Context(), "failed decoding login request", "layer", "adapter.http.handler", "op", "auth.login", "err", err)
 		httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request")
 		return
 	}
 
-	username, err := validator.ValidateUsername(reqBody.Username)
+	reqBody, err := sanitizeAndValidateLoginRequest(reqBody)
 	if err != nil {
-		logger.Info(req.Context(), "invalid login username", "layer", "adapter.http.handler", "op", "auth.login", "err", err)
-		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
-		return
-	}
-
-	password, err := validator.ValidatePassword(reqBody.Password)
-	if err != nil {
-		logger.Info(req.Context(), "invalid login password", "layer", "adapter.http.handler", "op", "auth.login", "err", err)
+		logger.Info(req.Context(), "invalid login request", "layer", "adapter.http.handler", "op", "auth.login", "err", err)
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
 
 	reqCmd := auth_service.LoginCmd{
-		Username: username,
-		Password: password,
+		Username: reqBody.Username,
+		Password: reqBody.Password,
 	}
 
 	now := time.Now()
@@ -186,21 +180,24 @@ func (h *AuthHandler) AdminRevokeUser(write http.ResponseWriter, req *http.Reque
 	}
 	var reqBody AdminRevokeRequest
 
-	dec := json.NewDecoder(req.Body)
-	dec.DisallowUnknownFields()
-	if err := dec.Decode(&reqBody); err != nil {
+	if err := httphelper.JsonHeaderBodyValidator(write, req); err != nil {
+		httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "bad request : content type must be application/json")
+		return
+	}
+
+	if err := httphelper.JSONDecoder(req, &reqBody); err != nil {
 		logger.Error(req.Context(), "failed decoding revoke request", "layer", "adapter.http.handler", "op", "auth.admin_revoke", "err", err)
 		httpResponse.WriteErr(write, http.StatusBadRequest, "BAD_REQUEST", "Bad request")
 		return
 	}
 
-	sessionID, err := validator.ValidateRequiredPrintableText(reqBody.SessionId, "session_id")
+	reqBody, err := sanitizeAndValidateAdminRevokeRequest(reqBody)
 	if err != nil {
 		httpResponse.WriteErr(write, http.StatusBadRequest, "INVALID_INPUT", err.Error())
 		return
 	}
 
-	if err := h.svc.AdminRevokingSession(req.Context(), sessionID); err != nil {
+	if err := h.svc.AdminRevokingSession(req.Context(), reqBody.SessionId); err != nil {
 		logger.Error(req.Context(), "failed revoking session", "layer", "adapter.http.handler", "op", "auth.admin_revoke", "session_id", reqBody.SessionId, "err", err)
 		switch {
 		case errors.Is(err, coreerror.ErrNotFound):

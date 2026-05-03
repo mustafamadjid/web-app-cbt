@@ -232,14 +232,6 @@ export const mainMenuItems: SidebarMenuItem[] = [
     icon: SvgIcons.eye,
     roles: SISWA_ONLY,
   },
-  {
-    id: 105,
-    type: "link",
-    label: "Pengumuman",
-    to: paths.dashboard.pengumuman_siswa,
-    icon: SvgIcons.announcement,
-    roles: SISWA_ONLY,
-  },
 ];
 
 export const footerMenuItems: SidebarMenuItem[] = [

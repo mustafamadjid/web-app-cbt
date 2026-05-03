@@ -57,6 +57,11 @@ func (h *UpdateAttemptUjianHandler) UpdateAttemptUjian(w http.ResponseWriter, r 
 		}
 		return
 	}
+	req, err = sanitizeAndValidateUpdateAttemptUjianRequest(req)
+	if err != nil {
+		httpResponse.WriteErr(w, http.StatusBadRequest, "BAD_REQUEST", "bad request: invalid attempt update payload")
+		return
+	}
 
 	if err := h.svc.UpdateAttemptUjian(r.Context(), int(actor.IdPengguna), idAttempt, toUpdateAttemptUjianPatch(req)); err != nil {
 		logger.Error(r.Context(), "failed update attempt ujian by siswa", "layer", "adapter.http.handler", "op", "ujian.attempt.update_siswa", "attempt_id", idAttempt, "err", err)

@@ -49,8 +49,8 @@ const HasilUjianSiswaDetail: React.FC = () => {
       {!isHasilIdValid || !isAttemptIdValid ? (
         <div className="rounded-2xl border border-rose-200 bg-rose-50 p-6 text-sm font-medium text-rose-700">
           {!isHasilIdValid
-            ? "ID hasil ujian tidak valid."
-            : "ID attempt tidak valid."}
+            ? "Data hasil ujian tidak valid."
+            : "Data attempt ujian tidak valid."}
         </div>
       ) : loading ? (
         <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-6 text-center text-sm text-slate-500">

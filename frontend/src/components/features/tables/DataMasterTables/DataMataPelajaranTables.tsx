@@ -397,9 +397,6 @@ const DataMataPelajaran: React.FC = () => {
                           <span className="font-semibold text-slate-900">
                             {mapel.namaMapel}
                           </span>
-                          <span className="text-xs text-slate-500">
-                            ID: {mapel.id}
-                          </span>
                         </div>
                       </td>
                       <td className="px-6 py-4">

@@ -77,11 +77,8 @@ const KoreksiHasilUjian: React.FC = () => {
             />
             Kembali ke detail hasil ujian
           </Link>
-          <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
-            Attempt ID
-          </p>
-          <h1 className="mt-1 text-2xl font-bold text-slate-800">
-            {isAttemptIdValid ? parsedAttemptId : "-"}
+          <h1 className="mt-3 text-2xl font-bold text-slate-800">
+            Detail Jawaban Siswa
           </h1>
         </div>
 
@@ -98,7 +95,7 @@ const KoreksiHasilUjian: React.FC = () => {
 
       {!isAttemptIdValid ? (
         <div className="rounded-2xl border border-rose-200 bg-rose-50 p-6 text-sm font-medium text-rose-700">
-          ID attempt tidak valid.
+          Data hasil ujian tidak valid.
         </div>
       ) : loading ? (
         <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-6 text-center text-sm text-slate-500">
