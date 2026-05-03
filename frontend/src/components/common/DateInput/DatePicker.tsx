@@ -23,6 +23,7 @@ interface DatePickerProps {
   error?: boolean;
   onBlur?: () => void;
   id?: string;
+  disabled?: boolean;
 }
 
 const CalendarIcon = ({ className }: { className?: string }) => (
@@ -116,6 +117,7 @@ const DatePicker = ({
   error = false,
   onBlur,
   id,
+  disabled = false,
 }: DatePickerProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [viewDate, setViewDate] = useState(() => parseIsoDate(value) ?? new Date());
@@ -150,6 +152,10 @@ const DatePicker = ({
     };
   }, [isOpen, onBlur]);
 
+  useEffect(() => {
+    if (disabled) setIsOpen(false);
+  }, [disabled]);
+
   const year = viewDate.getFullYear();
   const month = viewDate.getMonth();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -178,6 +184,8 @@ const DatePicker = ({
   };
 
   const handleToggleOpen = () => {
+    if (disabled) return;
+
     if (isOpen) {
       setIsOpen(false);
       onBlur?.();
@@ -199,7 +207,12 @@ const DatePicker = ({
         id={id}
         type="button"
         onClick={handleToggleOpen}
-        className={`flex w-full cursor-pointer items-center justify-between rounded-lg border px-3 py-2 text-sm transition hover:bg-slate-50 ${
+        disabled={disabled}
+        className={`flex w-full items-center justify-between rounded-lg border px-3 py-2 text-sm transition ${
+          disabled
+            ? "cursor-not-allowed bg-slate-50 text-slate-500 opacity-70"
+            : "cursor-pointer hover:bg-slate-50"
+        } ${
           isOpen
             ? "border-[#397e50] ring-1 ring-[#397e50]"
             : error
@@ -208,8 +221,17 @@ const DatePicker = ({
         }`}
         aria-expanded={isOpen}
         aria-haspopup="dialog"
+        aria-disabled={disabled}
       >
-        <span className={displayValue ? "text-slate-900" : "text-slate-400"}>
+        <span
+          className={
+            disabled
+              ? "text-slate-500"
+              : displayValue
+                ? "text-slate-900"
+                : "text-slate-400"
+          }
+        >
           {displayValue || "Pilih Tanggal"}
         </span>
         <CalendarIcon className="h-4 w-4 text-slate-400" />

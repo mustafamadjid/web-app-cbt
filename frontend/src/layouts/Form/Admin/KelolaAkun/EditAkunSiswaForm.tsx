@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
+import DatePicker from "@/components/common/DateInput/DatePicker";
 import InputField from "@/components/common/Input/InputField";
 import ImageUpload from "@/components/features/Upload/ImageUpload";
 
@@ -544,20 +545,14 @@ const EditAkunSiswaForm = ({
               </div>
 
               <div>
-                <InputField
+                <DatePicker
                   id="tanggal_lahir"
-                  type="date"
                   label="Tanggal Lahir"
                   value={values.tanggal_lahir}
-                  onChange={(v) => setField("tanggal_lahir", v)}
+                  onChange={(date) => setField("tanggal_lahir", date)}
                   onBlur={() => onBlur("tanggal_lahir")}
-                  inputClassName={
-                    hasError("tanggal_lahir")
-                      ? "border-rose-300 ring-rose-100"
-                      : ""
-                  }
+                  error={hasError("tanggal_lahir")}
                   disabled={isDisabled}
-                  required
                 />
                 {hasError("tanggal_lahir") && (
                   <p className="mt-1 text-xs text-rose-600">

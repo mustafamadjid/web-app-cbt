@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 
+import DatePicker from "@/components/common/DateInput/DatePicker";
 import { resolveDocumentUrl } from "@/helper/MediaUrl/resolveMediaUrl";
 import { getUserFriendlyErrorMessage } from "@/services/Api/errorMessage";
 import type { PengumumanFormValues } from "@/types/Widget/Pengumuman";
@@ -155,46 +156,32 @@ const EditPengumumanForm = ({
               </div>
 
               <div>
-                <label
-                  htmlFor="tanggal_rilis_pengumuman"
-                  className="text-xs font-medium text-slate-600"
-                >
-                  Tanggal Rilis
-                </label>
-                <input
+                <DatePicker
                   id="tanggal_rilis_pengumuman"
-                  type="date"
+                  label="Tanggal Rilis"
                   value={values.tanggal_rilis_pengumuman}
-                  onChange={(event) =>
+                  onChange={(date) =>
                     setValues((prev) => ({
                       ...prev,
-                      tanggal_rilis_pengumuman: event.target.value,
+                      tanggal_rilis_pengumuman: date,
                     }))
                   }
                   disabled={isDisabled}
-                  className="mt-1 w-full cursor-pointer rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none transition focus:border-[#397e50] focus:ring-1 focus:ring-[#397e50] disabled:bg-slate-50 disabled:text-slate-500"
                 />
               </div>
 
               <div>
-                <label
-                  htmlFor="tanggal_selesai_pengumuman"
-                  className="text-xs font-medium text-slate-600"
-                >
-                  Tanggal Selesai
-                </label>
-                <input
+                <DatePicker
                   id="tanggal_selesai_pengumuman"
-                  type="date"
+                  label="Tanggal Selesai"
                   value={values.tanggal_selesai_pengumuman}
-                  onChange={(event) =>
+                  onChange={(date) =>
                     setValues((prev) => ({
                       ...prev,
-                      tanggal_selesai_pengumuman: event.target.value,
+                      tanggal_selesai_pengumuman: date,
                     }))
                   }
                   disabled={isDisabled}
-                  className="mt-1 w-full cursor-pointer rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none transition focus:border-[#397e50] focus:ring-1 focus:ring-[#397e50] disabled:bg-slate-50 disabled:text-slate-500"
                 />
               </div>
 

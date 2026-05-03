@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 
+import DatePicker from "@/components/common/DateInput/DatePicker";
 import InputField from "@/components/common/Input/InputField";
 import ImageUpload from "@/components/features/Upload/ImageUpload";
 
@@ -602,19 +603,13 @@ const AkunSiswaForm = () => {
               </div>
 
               <div>
-                <InputField
+                <DatePicker
                   id="tanggalLahir"
-                  type="date"
                   label="Tanggal Lahir"
                   value={values.tanggal_lahir}
-                  onChange={(v) => setField("tanggal_lahir", v)}
+                  onChange={(date) => setField("tanggal_lahir", date)}
                   onBlur={() => onBlur("tanggal_lahir")}
-                  inputClassName={
-                    hasError("tanggal_lahir")
-                      ? "border-rose-300 ring-rose-100"
-                      : ""
-                  }
-                  required
+                  error={hasError("tanggal_lahir")}
                 />
                 {hasError("tanggal_lahir") && (
                   <p className="mt-1 text-xs text-rose-600">

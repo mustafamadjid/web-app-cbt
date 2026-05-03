@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { Calendar, CalendarRange, Layers, MapPin, Search } from "lucide-react";
+import { Calendar, Layers, MapPin, Search } from "lucide-react";
 import toast from "react-hot-toast";
 
+import DatePicker from "@/components/common/DateInput/DatePicker";
 import BoxJadwalUjian from "@/components/features/Ujian/BoxJadwalUjian";
 import ConfirmAlert from "@/components/ui/ConfirmAlert/ConfirmAlert";
 import { useAuth } from "@/contexts/AuthContext";
@@ -126,14 +127,11 @@ const JadwalUjian = () => {
             </div>
 
             <div className="space-y-2">
-              <label className="flex items-center gap-2 text-sm font-semibold text-slate-600">
-                <CalendarRange size={16} /> Tanggal
-              </label>
-              <input
-                type="date"
+              <DatePicker
+                id="jadwal-ujian-tanggal"
+                label="Tanggal"
                 value={selectedDate}
-                onChange={(event) => setSelectedDate(event.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm transition-all focus:border-[#397e50] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#397e50]/10"
+                onChange={setSelectedDate}
               />
             </div>
 
