@@ -7,3 +7,5 @@ white_box_documentation.md
 backend/export_env.ps1
 backend/internal/db/migrations/migrate_original.ps1
 .env
+data_siswa.xlsx
+smafi-cbt-app.tar.gz

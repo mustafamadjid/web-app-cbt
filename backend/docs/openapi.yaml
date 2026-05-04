@@ -39,8 +39,12 @@ tags:
     description: Import soal dari file DOCX (Admin & Guru)
   - name: Ujian
     description: Manajemen ujian dan penjadwalan (Admin & Guru)
+  - name: Ujian Siswa
+    description: Alur pengerjaan ujian oleh siswa
   - name: Sesi
     description: Manajemen sesi ujian (Admin only)
+  - name: Dashboard
+    description: Statistik ringkas dashboard (Admin & Guru)
   - name: Pengumuman
     description: Manajemen pengumuman (Admin & Guru)
   - name: Profil Sekolah
@@ -166,6 +170,31 @@ paths:
           $ref: '#/components/responses/InternalError'
 
   # ── Siswa ─────────────────────────────────────────────────
+  /admin/auth/revoke-session:
+    put:
+      tags: [Auth]
+      summary: Revoke sesi pengguna
+      description: Admin mencabut sesi login aktif berdasarkan session_id.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminRevokeRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/SuccessNoData'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
   /admin/siswa:
     get:
       tags: [Siswa]
@@ -1153,6 +1182,434 @@ paths:
   # ── Peserta Ujian ─────────────────────────────────────────
   # ── Jawaban Ujian ─────────────────────────────────────────
   # ── Sesi ──────────────────────────────────────────────────
+  /ujian/peserta-submitted/{idJadwalUjian}:
+    get:
+      tags: [Ujian]
+      summary: Daftar peserta ujian yang sudah submit
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: idJadwalUjian
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Daftar peserta submitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse_ListPesertaSubmitted'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /ujian/koreksi-essay/list:
+    get:
+      tags: [Ujian]
+      summary: Daftar ujian dengan essay belum dinilai
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/SearchQuery'
+        - $ref: '#/components/parameters/LimitQuery'
+        - $ref: '#/components/parameters/OffsetQuery'
+        - name: tahun
+          in: query
+          schema:
+            type: string
+        - name: tingkat_kelas_id
+          in: query
+          schema:
+            type: integer
+        - name: ruang_ujian_id
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Daftar ujian essay belum dinilai
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse_ListUjianEssayUngraded'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /ujian/statistik/{idJadwalUjian}:
+    get:
+      tags: [Ujian]
+      summary: Statistik hasil ujian
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: idJadwalUjian
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Statistik ujian
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse_StatistikUjian'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /ujian/koreksi-essay:
+    patch:
+      tags: [Ujian]
+      summary: Koreksi jawaban essay
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KoreksiEssayRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/SuccessNoData'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /ujian/jawaban/hasil/{idAttempt}:
+    get:
+      tags: [Ujian]
+      summary: Hasil jawaban ujian berdasarkan attempt
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: idAttempt
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Hasil jawaban ujian
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse_HasilJawabanUjian'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /admin/ujian/attempt/{idAttempt}/expire:
+    patch:
+      tags: [Ujian]
+      summary: Paksa attempt ujian menjadi expired
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: idAttempt
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/SuccessNoData'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /siswa/ujian/attempt:
+    post:
+      tags: [Ujian Siswa]
+      summary: Mulai attempt ujian siswa
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AttemptUjianRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/SuccessNoData'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /siswa/ujian/attempt/active:
+    get:
+      tags: [Ujian Siswa]
+      summary: Ambil attempt aktif siswa
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id_jadwal_ujian
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Attempt aktif
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse_ActiveAttempt'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /siswa/ujian/attempt/{idAttempt}:
+    patch:
+      tags: [Ujian Siswa]
+      summary: Update status attempt ujian siswa
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: idAttempt
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAttemptUjianRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/SuccessNoData'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /siswa/uijan/submit/{idAttempt}:
+    patch:
+      tags: [Ujian Siswa]
+      summary: Submit ujian siswa
+      description: Path mengikuti route backend saat ini, termasuk ejaan `uijan`.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: idAttempt
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/SuccessNoData'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /siswa/ujian/jawaban/{idAttempt}:
+    get:
+      tags: [Ujian Siswa]
+      summary: Ambil draft jawaban ujian siswa
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: idAttempt
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Draft jawaban siswa
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse_GetJawabanUjian'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /siswa/ujian/jawaban:
+    post:
+      tags: [Ujian Siswa]
+      summary: Simpan jawaban ujian siswa
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaveJawabanRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/SuccessNoData'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /siswa/ujian/list:
+    get:
+      tags: [Ujian Siswa]
+      summary: Daftar ujian siswa
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/SearchQuery'
+        - $ref: '#/components/parameters/LimitQuery'
+        - $ref: '#/components/parameters/OffsetQuery'
+        - name: kategori
+          in: query
+          schema:
+            type: string
+            description: Filter kategori ujian siswa
+      responses:
+        '200':
+          description: Daftar ujian siswa
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse_ListUjianSiswa'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /siswa/ujian/list-selesai:
+    get:
+      tags: [Ujian Siswa]
+      summary: Daftar ujian siswa yang sudah selesai
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/SearchQuery'
+        - $ref: '#/components/parameters/LimitQuery'
+        - $ref: '#/components/parameters/OffsetQuery'
+      responses:
+        '200':
+          description: Daftar ujian selesai
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse_ListUjianSelesaiSiswa'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /siswa/ujian/waktu-selesai/{idJadwalUjian}:
+    get:
+      tags: [Ujian Siswa]
+      summary: Ambil waktu selesai ujian siswa
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: idJadwalUjian
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Waktu selesai ujian
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse_WaktuSelesaiUjian'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /siswa/soal-ujian/{idJadwalUjian}:
+    get:
+      tags: [Ujian Siswa]
+      summary: Daftar soal ujian untuk siswa
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: idJadwalUjian
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Daftar soal ujian siswa
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse_ListSoalUjianSiswa'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /admin/sesi/login-aktif:
+    get:
+      tags: [Sesi]
+      summary: Daftar sesi login aktif
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Daftar sesi login aktif
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse_ListActiveLoginSession'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
   /admin/sesi:
     get:
       tags: [Sesi]
@@ -1631,6 +2088,42 @@ paths:
           $ref: '#/components/responses/NotFound'
 
   # ── Aktivitas User ────────────────────────────────────────
+  /admin/dashboard:
+    get:
+      tags: [Dashboard]
+      summary: Statistik dashboard admin
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Statistik dashboard
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse_DashboardStatistik'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /guru/dashboard:
+    get:
+      tags: [Dashboard]
+      summary: Statistik dashboard guru
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Statistik dashboard
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse_DashboardStatistik'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
   /admin/aktivitas-user:
     get:
       tags: [Aktivitas User]
@@ -1842,6 +2335,14 @@ components:
           example: admin01
         role:
           $ref: '#/components/schemas/RoleEnum'
+
+    AdminRevokeRequest:
+      type: object
+      required: [session_id]
+      properties:
+        session_id:
+          type: string
+          example: session123
 
     SuccessResponse_LoginResponse:
       type: object
@@ -2678,6 +3179,367 @@ components:
     # ─── Peserta Ujian ───────────────────────────────────
     # ─── Jawaban Ujian ───────────────────────────────────
     # ─── Sesi ────────────────────────────────────────────
+    AttemptUjianRequest:
+      type: object
+      required: [id_siswa, id_jadwal_ujian, token_ujian, waktu_mulai]
+      properties:
+        id_siswa:
+          type: integer
+        id_jadwal_ujian:
+          type: integer
+        token_ujian:
+          type: string
+        waktu_mulai:
+          type: string
+          format: date-time
+
+    UpdateAttemptUjianRequest:
+      type: object
+      properties:
+        status_attempt:
+          type: string
+          example: submitted
+        waktu_submit:
+          type: string
+          format: date-time
+
+    ActiveAttemptItem:
+      type: object
+      properties:
+        id_attempt:
+          type: integer
+        id_peserta_ujian:
+          type: integer
+        status_attempt:
+          type: string
+        waktu_mulai:
+          type: string
+          nullable: true
+        waktu_submit:
+          type: string
+          nullable: true
+        deadline_at:
+          type: string
+          nullable: true
+
+    SuccessResponse_ActiveAttempt:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/ActiveAttemptItem'
+        message:
+          type: string
+
+    ListPesertaSubmittedItem:
+      type: object
+      properties:
+        id_peserta_ujian:
+          type: integer
+        id_attempt:
+          type: integer
+        id_siswa:
+          type: integer
+        tingkat_kelas:
+          type: integer
+        nama_kelas:
+          type: string
+        nama_lengkap:
+          type: string
+        no_absen:
+          type: integer
+        nilai_akhir:
+          type: number
+          format: float
+          nullable: true
+        waktu_mulai:
+          type: string
+          nullable: true
+        waktu_submit:
+          type: string
+          nullable: true
+
+    SuccessResponse_ListPesertaSubmitted:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ListPesertaSubmittedItem'
+        message:
+          type: string
+
+    ListUjianSiswaItem:
+      allOf:
+        - $ref: '#/components/schemas/ListUjianItem'
+        - type: object
+          properties:
+            id_bank_soal:
+              type: integer
+            id_sesi:
+              type: integer
+            nama_sesi:
+              type: string
+            pengawas_nama_lengkap:
+              type: string
+            deskripsi_ujian:
+              type: string
+            acak_soal:
+              type: boolean
+
+    ListUjianSelesaiSiswaItem:
+      allOf:
+        - $ref: '#/components/schemas/ListUjianSiswaItem'
+        - type: object
+          properties:
+            id_attempt:
+              type: integer
+
+    SuccessResponse_ListUjianSiswa:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ListUjianSiswaItem'
+        message:
+          type: string
+
+    SuccessResponse_ListUjianSelesaiSiswa:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ListUjianSelesaiSiswaItem'
+        message:
+          type: string
+
+    ListUjianEssayUngradedItem:
+      allOf:
+        - $ref: '#/components/schemas/ListUjianItem'
+        - type: object
+          properties:
+            id_bank_soal:
+              type: integer
+            id_sesi:
+              type: integer
+            nama_sesi:
+              type: string
+
+    SuccessResponse_ListUjianEssayUngraded:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ListUjianEssayUngradedItem'
+        message:
+          type: string
+
+    StatistikUjianItem:
+      type: object
+      properties:
+        id_statistik_ujian:
+          type: integer
+        id_jadwal_ujian:
+          type: integer
+        nilai_tertinggi:
+          type: number
+          format: float
+        nilai_terendah:
+          type: number
+          format: float
+        rata_rata:
+          type: number
+          format: float
+        jumlah_peserta:
+          type: integer
+
+    SuccessResponse_StatistikUjian:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/StatistikUjianItem'
+        message:
+          type: string
+
+    WaktuSelesaiUjianItem:
+      type: object
+      properties:
+        id_jadwal_ujian:
+          type: integer
+        waktu_selesai:
+          type: string
+
+    SuccessResponse_WaktuSelesaiUjian:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/WaktuSelesaiUjianItem'
+        message:
+          type: string
+
+    OpsiJawabanSiswaItem:
+      type: object
+      properties:
+        id_pilihan_ganda:
+          type: integer
+        isi_pilihan:
+          type: string
+        isi_pilihan_content:
+          nullable: true
+
+    SoalUjianSiswaItem:
+      allOf:
+        - $ref: '#/components/schemas/SoalUjianItem'
+        - type: object
+          properties:
+            opsi_jawaban:
+              type: array
+              items:
+                $ref: '#/components/schemas/OpsiJawabanSiswaItem'
+
+    SuccessResponse_ListSoalUjianSiswa:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SoalUjianSiswaItem'
+        message:
+          type: string
+
+    SaveJawabanRequest:
+      type: object
+      required: [id_attempt, jawaban]
+      properties:
+        id_attempt:
+          type: integer
+        jawaban:
+          type: array
+          items:
+            $ref: '#/components/schemas/SaveJawabanItemRequest'
+
+    SaveJawabanItemRequest:
+      type: object
+      required: [id_soal]
+      properties:
+        id_soal:
+          type: integer
+        id_pilihan:
+          type: integer
+          nullable: true
+        jawaban_essay:
+          type: string
+          nullable: true
+        waktu_jawab:
+          type: string
+          format: date-time
+          nullable: true
+
+    GetJawabanUjianItem:
+      type: object
+      properties:
+        id_jawaban:
+          type: integer
+        id_soal:
+          type: integer
+        id_pilihan:
+          type: integer
+          nullable: true
+        jawaban_essay:
+          type: string
+          nullable: true
+        waktu_jawab:
+          type: string
+          nullable: true
+
+    GetJawabanUjianData:
+      type: object
+      properties:
+        id_attempt:
+          type: integer
+        jawaban:
+          type: array
+          items:
+            $ref: '#/components/schemas/GetJawabanUjianItem'
+
+    SuccessResponse_GetJawabanUjian:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/GetJawabanUjianData'
+        message:
+          type: string
+
+    KoreksiEssayRequest:
+      type: object
+      required: [jawaban]
+      properties:
+        jawaban:
+          type: array
+          items:
+            $ref: '#/components/schemas/KoreksiEssayItemRequest'
+
+    KoreksiEssayItemRequest:
+      type: object
+      required: [id_jawaban]
+      properties:
+        id_jawaban:
+          type: integer
+        essay_is_benar:
+          type: boolean
+          nullable: true
+
+    HasilJawabanUjianData:
+      type: object
+      properties:
+        id_attempt:
+          type: integer
+        nilai_akhir:
+          type: number
+          format: float
+          nullable: true
+        hasil_jawaban:
+          type: array
+          items:
+            $ref: '#/components/schemas/HasilJawabanUjianItem'
+
+    HasilJawabanUjianItem:
+      allOf:
+        - $ref: '#/components/schemas/SoalUjianItem'
+        - type: object
+          properties:
+            jawaban_siswa:
+              $ref: '#/components/schemas/HasilJawabanSiswaItem'
+
+    HasilJawabanSiswaItem:
+      type: object
+      properties:
+        id_jawaban:
+          type: integer
+          nullable: true
+        id_pilihan:
+          type: integer
+          nullable: true
+        jawaban_essay:
+          type: string
+          nullable: true
+        waktu_jawab:
+          type: string
+          nullable: true
+        essay_is_benar:
+          type: boolean
+          nullable: true
+
+    SuccessResponse_HasilJawabanUjian:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/HasilJawabanUjianData'
+        message:
+          type: string
+
     CreateSesiRequest:
       type: object
       required: [nama_sesi, kode_sesi]
@@ -2728,6 +3590,68 @@ components:
       properties:
         data:
           $ref: '#/components/schemas/SesiItem'
+        message:
+          type: string
+
+    ActiveSessionItem:
+      type: object
+      properties:
+        session_id:
+          type: string
+        id_pengguna:
+          type: integer
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+        revoked:
+          type: boolean
+        expires_at:
+          type: string
+
+    ActiveSessionUserItem:
+      type: object
+      properties:
+        id_pengguna:
+          type: integer
+        username:
+          type: string
+        email:
+          type: string
+          nullable: true
+        nama_lengkap:
+          type: string
+        jenis_kelamin:
+          type: string
+        no_hp:
+          type: string
+          nullable: true
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+        status_akun:
+          $ref: '#/components/schemas/StatusAkunEnum'
+        foto_profil:
+          type: string
+
+    ActiveLoginSessionItem:
+      type: object
+      properties:
+        session:
+          $ref: '#/components/schemas/ActiveSessionItem'
+        pengguna:
+          $ref: '#/components/schemas/ActiveSessionUserItem'
+
+    ListActiveLoginSessionData:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActiveLoginSessionItem'
+
+    SuccessResponse_ListActiveLoginSession:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/ListActiveLoginSessionData'
         message:
           type: string
 
@@ -2903,6 +3827,28 @@ components:
           type: string
 
     # ─── Aktivitas User ──────────────────────────────────
+    DashboardStatistikItem:
+      type: object
+      properties:
+        total_siswa:
+          type: integer
+        total_guru:
+          type: integer
+        total_ujian_terlaksana:
+          type: integer
+        total_bank_soal:
+          type: integer
+        total_mapel_aktif:
+          type: integer
+
+    SuccessResponse_DashboardStatistik:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/DashboardStatistikItem'
+        message:
+          type: string
+
     AktivitasUserItem:
       type: object
       properties:
