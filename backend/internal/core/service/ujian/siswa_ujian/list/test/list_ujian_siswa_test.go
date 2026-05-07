@@ -44,7 +44,7 @@ func strPtr(s string) *string {
 	return &s
 }
 
-func TestListUjianSiswaService_BranchCoverage(t *testing.T) {
+func TestListUjianSiswaService_BasisPath(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -63,7 +63,7 @@ func TestListUjianSiswaService_BranchCoverage(t *testing.T) {
 		assertFilter func(t *testing.T, got query.ListUjianFilter)
 	}{
 		{
-			name:       "branch 1 -> id siswa tidak valid",
+			name:       "Path 1 -> id siswa tidak valid",
 			idSiswa:    0,
 			filter:     query.ListUjianFilter{},
 			repo:       &fakeListUjianSiswaRepo{},
@@ -72,7 +72,7 @@ func TestListUjianSiswaService_BranchCoverage(t *testing.T) {
 			wantCalled: false,
 		},
 		{
-			name:      "branch 2 -> filter tidak valid",
+			name:      "Path 2 -> filter tidak valid",
 			idSiswa:   7,
 			filter:    query.ListUjianFilter{TanggalUjian: strPtr("  ")},
 			repo:      &fakeListUjianSiswaRepo{},
@@ -80,7 +80,7 @@ func TestListUjianSiswaService_BranchCoverage(t *testing.T) {
 			wantItems: nil,
 		},
 		{
-			name:       "branch 3 -> repo list ujian siswa gagal",
+			name:       "Path 3 -> repo list ujian siswa gagal",
 			idSiswa:    7,
 			filter:     query.ListUjianFilter{TanggalUjian: &filterDate},
 			repo:       &fakeListUjianSiswaRepo{listErr: repoErr},
@@ -89,7 +89,7 @@ func TestListUjianSiswaService_BranchCoverage(t *testing.T) {
 			wantCalled: true,
 		},
 		{
-			name:       "branch 4 -> berhasil list ujian siswa",
+			name:       "Path 4 -> berhasil list ujian siswa",
 			idSiswa:    7,
 			filter:     query.ListUjianFilter{Search: "  uts  ", Limit: 0, Offset: -1, KategoriUjian: query.SELESAI},
 			repo:       &fakeListUjianSiswaRepo{listRet: expected},

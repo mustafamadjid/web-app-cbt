@@ -15,7 +15,7 @@ import (
 func ptrString(s string) *string                       { return &s }
 func ptrMapelID(id matapelajaran.ID) *matapelajaran.ID { return &id }
 
-func TestUpdateMapelService_BasisPath(t *testing.T) {
+func TestUpdateMapelService_BranchCoverage(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -31,7 +31,7 @@ func TestUpdateMapelService_BasisPath(t *testing.T) {
 		wantUpdate bool
 	}{
 		{
-			name:       "Path 1 -> idMapel <= 0",
+			name:       "Branch 1 -> id mapel tidak valid",
 			idMapel:    0,
 			patch:      updatepatch.UpdateMapelPatch{},
 			repo:       &FakeMapelRepo{},
@@ -39,7 +39,7 @@ func TestUpdateMapelService_BasisPath(t *testing.T) {
 			wantUpdate: false,
 		},
 		{
-			name:       "Path 2 -> IdKelas not nil tapi <= 0",
+			name:       "Branch 2 -> id kelas tidak valid",
 			idMapel:    1,
 			patch:      updatepatch.UpdateMapelPatch{IdKelas: ptrMapelID(0)},
 			repo:       &FakeMapelRepo{},
@@ -47,7 +47,7 @@ func TestUpdateMapelService_BasisPath(t *testing.T) {
 			wantUpdate: false,
 		},
 		{
-			name:       "Path 3 -> KodeMapel not nil tapi kosong",
+			name:       "Branch 3 -> kode mapel kosong",
 			idMapel:    1,
 			patch:      updatepatch.UpdateMapelPatch{KodeMapel: ptrString("  ")},
 			repo:       &FakeMapelRepo{},
@@ -55,7 +55,7 @@ func TestUpdateMapelService_BasisPath(t *testing.T) {
 			wantUpdate: false,
 		},
 		{
-			name:       "Path 4 -> ExistKodeMapel error",
+			name:       "Branch 4 -> cek kode mapel gagal",
 			idMapel:    1,
 			patch:      updatepatch.UpdateMapelPatch{KodeMapel: ptrString("MTK01")},
 			repo:       &FakeMapelRepo{ExistKodeMapelErr: existErr},
@@ -63,7 +63,7 @@ func TestUpdateMapelService_BasisPath(t *testing.T) {
 			wantUpdate: false,
 		},
 		{
-			name:       "Path 5 -> KodeMapel sudah exist",
+			name:       "Branch 5 -> kode mapel sudah ada",
 			idMapel:    1,
 			patch:      updatepatch.UpdateMapelPatch{KodeMapel: ptrString("MTK01")},
 			repo:       &FakeMapelRepo{ExistKodeMapelRet: true},
@@ -71,7 +71,7 @@ func TestUpdateMapelService_BasisPath(t *testing.T) {
 			wantUpdate: false,
 		},
 		{
-			name:       "Path 6 -> NamaMapel not nil tapi kosong",
+			name:       "Branch 6 -> nama mapel kosong",
 			idMapel:    1,
 			patch:      updatepatch.UpdateMapelPatch{NamaMapel: ptrString("  ")},
 			repo:       &FakeMapelRepo{},
@@ -79,7 +79,7 @@ func TestUpdateMapelService_BasisPath(t *testing.T) {
 			wantUpdate: false,
 		},
 		{
-			name:       "Path 7 -> Deskripsi not nil tapi kosong",
+			name:       "Branch 7 -> deskripsi kosong",
 			idMapel:    1,
 			patch:      updatepatch.UpdateMapelPatch{Deskripsi: ptrString("  ")},
 			repo:       &FakeMapelRepo{},
@@ -87,7 +87,7 @@ func TestUpdateMapelService_BasisPath(t *testing.T) {
 			wantUpdate: false,
 		},
 		{
-			name:       "Path 8 -> UpdateMapel err ErrNotFound",
+			name:       "Branch 8 -> mapel yang diupdate tidak ditemukan",
 			idMapel:    1,
 			patch:      updatepatch.UpdateMapelPatch{NamaMapel: ptrString("Matematika")},
 			repo:       &FakeMapelRepo{UpdateMapelErr: coreerror.ErrNotFound},
@@ -95,7 +95,7 @@ func TestUpdateMapelService_BasisPath(t *testing.T) {
 			wantUpdate: true,
 		},
 		{
-			name:       "Path 9 -> UpdateMapel generic error",
+			name:       "Branch 9 -> repo update gagal",
 			idMapel:    1,
 			patch:      updatepatch.UpdateMapelPatch{NamaMapel: ptrString("Matematika")},
 			repo:       &FakeMapelRepo{UpdateMapelErr: genericErr},
@@ -103,7 +103,7 @@ func TestUpdateMapelService_BasisPath(t *testing.T) {
 			wantUpdate: true,
 		},
 		{
-			name:       "Path 10 -> happy path berhasil update",
+			name:       "Branch 10 -> update mapel berhasil",
 			idMapel:    1,
 			patch:      updatepatch.UpdateMapelPatch{NamaMapel: ptrString("  Matematika  "), Deskripsi: ptrString("  Desc  ")},
 			repo:       &FakeMapelRepo{},

@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGetAttemptUjianService_BranchCoverage(t *testing.T) {
+func TestGetAttemptUjianService_BasisPath(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -27,21 +27,21 @@ func TestGetAttemptUjianService_BranchCoverage(t *testing.T) {
 		wantResult ujian.AttemptUjian
 	}{
 		{
-			name:      "Branch 1 -> idAttempt <= 0",
+			name:      "Path 1 -> id attempt tidak valid",
 			idAttempt: 0,
 			repo:      &FakeAttemptUjianRepo{},
 			wantErr:   coreerror.ErrMissingId,
 			wantGet:   false,
 		},
 		{
-			name:      "Branch 2 -> repo GetAttemptUjianById error",
+			name:      "Path 2 -> repo get attempt gagal",
 			idAttempt: 10,
 			repo:      &FakeAttemptUjianRepo{GetAttemptUjianByIdErr: repoErr},
 			wantErr:   repoErr,
 			wantGet:   true,
 		},
 		{
-			name:       "Branch 3 -> berhasil get attempt ujian",
+			name:       "Path 3 -> berhasil get attempt ujian",
 			idAttempt:  10,
 			repo:       &FakeAttemptUjianRepo{GetAttemptUjianByIdRet: expected},
 			wantGet:    true,

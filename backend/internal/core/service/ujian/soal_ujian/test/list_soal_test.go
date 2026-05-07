@@ -31,7 +31,7 @@ func (*fakeListSoalUjianRepo) GetSoalUjianByBankSoalForSiswa(context.Context, uj
 	return nil, false, nil
 }
 
-func TestListSoalUjianService_BranchCoverage(t *testing.T) {
+func TestListSoalUjianService_BasisPath(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -51,7 +51,7 @@ func TestListSoalUjianService_BranchCoverage(t *testing.T) {
 		assertGot  func(t *testing.T, got []ujian.SoalUjianSiswa)
 	}{
 		{
-			name:       "branch 1 -> id bank soal tidak valid",
+			name:       "Path 1 -> id bank soal tidak valid",
 			idBankSoal: 0,
 			repo:       &fakeListSoalUjianRepo{},
 			wantErr:    coreerror.ErrMissingId,
@@ -61,7 +61,7 @@ func TestListSoalUjianService_BranchCoverage(t *testing.T) {
 			},
 		},
 		{
-			name:       "branch 2 -> repo get soal ujian gagal",
+			name:       "Path 2 -> repo get soal ujian gagal",
 			idBankSoal: 5,
 			repo:       &fakeListSoalUjianRepo{listErr: repoErr},
 			wantErr:    repoErr,
@@ -71,7 +71,7 @@ func TestListSoalUjianService_BranchCoverage(t *testing.T) {
 			},
 		},
 		{
-			name:       "branch 3 -> berhasil list soal tanpa acak",
+			name:       "Path 3 -> berhasil list soal tanpa acak",
 			idBankSoal: 5,
 			repo:       &fakeListSoalUjianRepo{listRet: soal},
 			wantCalled: true,
@@ -80,7 +80,7 @@ func TestListSoalUjianService_BranchCoverage(t *testing.T) {
 			},
 		},
 		{
-			name:       "branch 4 -> berhasil list soal dengan acak",
+			name:       "Path 4 -> berhasil list soal dengan acak",
 			idBankSoal: 5,
 			acakSoal:   true,
 			repo:       &fakeListSoalUjianRepo{listRet: soal},
@@ -111,6 +111,81 @@ func TestListSoalUjianService_BranchCoverage(t *testing.T) {
 				assert.Equal(t, tc.idBankSoal, tc.repo.gotBankSoal)
 			}
 			tc.assertGot(t, got)
+		})
+	}
+}
+
+func TestListSoalUjianService_LoopCoverage(t *testing.T) {
+	t.Parallel()
+
+	baseSoal := []ujian.SoalUjianSiswa{
+		{IdSoal: 1, Pertanyaan: "Soal 1"},
+		{IdSoal: 2, Pertanyaan: "Soal 2"},
+		{IdSoal: 3, Pertanyaan: "Soal 3"},
+	}
+
+	tests := []struct {
+		name       string
+		repoItems  []ujian.SoalUjianSiswa
+		acakSoal   bool
+		assertGot  func(t *testing.T, expected, got []ujian.SoalUjianSiswa)
+	}{
+		{
+			name:      "Loop 1 -> acak false tidak masuk loop",
+			repoItems: append([]ujian.SoalUjianSiswa(nil), baseSoal...),
+			acakSoal:  false,
+			assertGot: func(t *testing.T, expected, got []ujian.SoalUjianSiswa) {
+				assert.Equal(t, expected, got)
+			},
+		},
+		{
+			name:      "Loop 2 -> acak true dengan 0 soal tidak masuk loop",
+			repoItems: []ujian.SoalUjianSiswa{},
+			acakSoal:  true,
+			assertGot: func(t *testing.T, expected, got []ujian.SoalUjianSiswa) {
+				assert.Empty(t, got)
+			},
+		},
+		{
+			name:      "Loop 3 -> acak true dengan 1 soal tidak masuk loop",
+			repoItems: []ujian.SoalUjianSiswa{{IdSoal: 1, Pertanyaan: "Soal 1"}},
+			acakSoal:  true,
+			assertGot: func(t *testing.T, expected, got []ujian.SoalUjianSiswa) {
+				assert.Equal(t, expected, got)
+			},
+		},
+		{
+			name:      "Loop 4 -> acak true dengan 2 soal masuk loop 1 iterasi",
+			repoItems: append([]ujian.SoalUjianSiswa(nil), baseSoal[:2]...),
+			acakSoal:  true,
+			assertGot: func(t *testing.T, expected, got []ujian.SoalUjianSiswa) {
+				assert.Len(t, got, len(expected))
+				assert.ElementsMatch(t, expected, got)
+			},
+		},
+		{
+			name:      "Loop 5 -> acak true dengan lebih dari 2 soal masuk loop banyak iterasi",
+			repoItems: append([]ujian.SoalUjianSiswa(nil), baseSoal...),
+			acakSoal:  true,
+			assertGot: func(t *testing.T, expected, got []ujian.SoalUjianSiswa) {
+				assert.Len(t, got, len(expected))
+				assert.ElementsMatch(t, expected, got)
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			repo := &fakeListSoalUjianRepo{listRet: append([]ujian.SoalUjianSiswa(nil), tc.repoItems...)}
+			svc := ujian_service.NewListSoalUjianService(repo)
+
+			got, err := svc.ListSoalUjian(context.Background(), 9, tc.acakSoal)
+
+			assert.NoError(t, err)
+			tc.assertGot(t, tc.repoItems, got)
 		})
 	}
 }

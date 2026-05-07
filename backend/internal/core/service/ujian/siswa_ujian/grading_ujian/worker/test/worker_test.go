@@ -92,22 +92,22 @@ func (f *fakeExecutorSvc) StatistikUjian(context.Context, int) error {
 	return f.statistikErr
 }
 
-func TestCompositeGradingUjianExecutor_BranchCoverage(t *testing.T) {
+func TestCompositeGradingUjianExecutor_BasisPath(t *testing.T) {
 	t.Parallel()
 
-	t.Run("branch 1 -> grading service belum terpasang", func(t *testing.T) {
+	t.Run("Path 1 -> grading service belum terpasang", func(t *testing.T) {
 		exec := gradingujian_service.NewCompositeGradingUjianExecutor(nil, &fakeExecutorSvc{})
 		err := exec.GradingUjianPilgan(context.Background(), 7)
 		assert.Error(t, err)
 	})
 
-	t.Run("branch 2 -> statistik service belum terpasang", func(t *testing.T) {
+	t.Run("Path 2 -> statistik service belum terpasang", func(t *testing.T) {
 		exec := gradingujian_service.NewCompositeGradingUjianExecutor(&fakeExecutorSvc{}, nil)
 		err := exec.StatistikUjian(context.Background(), 7)
 		assert.Error(t, err)
 	})
 
-	t.Run("branch 3 -> composite executor meneruskan panggilan", func(t *testing.T) {
+	t.Run("Path 3 -> composite executor meneruskan panggilan", func(t *testing.T) {
 		gradingSvc := &fakeExecutorSvc{}
 		statistikSvc := &fakeExecutorSvc{}
 		exec := gradingujian_service.NewCompositeGradingUjianExecutor(gradingSvc, statistikSvc)
@@ -134,7 +134,7 @@ func TestGradingUjianWorkerService_BasisPath(t *testing.T) {
 		svc.Start(timeoutCtx)
 	}
 
-	t.Run("path 1 -> claim queued jobs gagal", func(t *testing.T) {
+	t.Run("Path 1 -> claim queued jobs gagal", func(t *testing.T) {
 		t.Parallel()
 
 		repo := &fakeGradingWorkerRepo{claimErr: errors.New("claim error")}
@@ -143,7 +143,7 @@ func TestGradingUjianWorkerService_BasisPath(t *testing.T) {
 		assert.Empty(t, repo.updates)
 	})
 
-	t.Run("path 2 -> grading service belum terpasang", func(t *testing.T) {
+	t.Run("Path 2 -> grading service belum terpasang", func(t *testing.T) {
 		t.Parallel()
 
 		repo := &fakeGradingWorkerRepo{claimJobs: []ujian.GradingJob{{IDgradingJob: 1, IDAttempt: 10}}}
@@ -153,7 +153,7 @@ func TestGradingUjianWorkerService_BasisPath(t *testing.T) {
 		assert.Contains(t, repo.errorCodes, "GRADING_FAILED")
 	})
 
-	t.Run("path 3 -> grading ujian gagal", func(t *testing.T) {
+	t.Run("Path 3 -> grading ujian gagal", func(t *testing.T) {
 		t.Parallel()
 
 		repo := &fakeGradingWorkerRepo{claimJobs: []ujian.GradingJob{{IDgradingJob: 2, IDAttempt: 11}}}
@@ -164,7 +164,7 @@ func TestGradingUjianWorkerService_BasisPath(t *testing.T) {
 		assert.Contains(t, repo.updates, ujian.StatusFailed)
 	})
 
-	t.Run("path 4 -> statistik ujian gagal", func(t *testing.T) {
+	t.Run("Path 4 -> statistik ujian gagal", func(t *testing.T) {
 		t.Parallel()
 
 		repo := &fakeGradingWorkerRepo{claimJobs: []ujian.GradingJob{{IDgradingJob: 3, IDAttempt: 12}}}
@@ -176,7 +176,7 @@ func TestGradingUjianWorkerService_BasisPath(t *testing.T) {
 		assert.Contains(t, repo.updates, ujian.StatusFailed)
 	})
 
-	t.Run("path 5 -> update status done gagal", func(t *testing.T) {
+	t.Run("Path 5 -> update status done gagal", func(t *testing.T) {
 		t.Parallel()
 
 		repo := &fakeGradingWorkerRepo{
@@ -191,7 +191,7 @@ func TestGradingUjianWorkerService_BasisPath(t *testing.T) {
 		assert.Contains(t, repo.updates, ujian.StatusDone)
 	})
 
-	t.Run("path 6 -> grading job selesai", func(t *testing.T) {
+	t.Run("Path 6 -> grading job selesai", func(t *testing.T) {
 		t.Parallel()
 
 		repo := &fakeGradingWorkerRepo{claimJobs: []ujian.GradingJob{{IDgradingJob: 5, IDAttempt: 14}}}

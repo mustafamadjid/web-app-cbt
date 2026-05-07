@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCreateMapelService_BasisPath(t *testing.T) {
+func TestCreateMapelService_BranchCoverage(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -26,7 +26,7 @@ func TestCreateMapelService_BasisPath(t *testing.T) {
 		wantCreate bool
 	}{
 		{
-			name: "Path 1 -> IdKelas kosong (0)",
+			name: "Branch 1 -> id kelas kosong",
 			repo: &FakeMapelRepo{},
 			input: matapelajaran.MataPelajaran{
 				KodeMapel: "MTK01",
@@ -38,7 +38,7 @@ func TestCreateMapelService_BasisPath(t *testing.T) {
 			wantCreate: false,
 		},
 		{
-			name: "Path 2 -> gagal cek ExistKodeMapel",
+			name: "Branch 2 -> cek kode mapel gagal",
 			repo: &FakeMapelRepo{ExistKodeMapelErr: existErr},
 			input: matapelajaran.MataPelajaran{
 				KodeMapel: "MTK01",
@@ -50,7 +50,7 @@ func TestCreateMapelService_BasisPath(t *testing.T) {
 			wantCreate: false,
 		},
 		{
-			name: "Path 3 -> kode mapel sudah exist",
+			name: "Branch 3 -> kode mapel sudah ada",
 			repo: &FakeMapelRepo{ExistKodeMapelRet: true},
 			input: matapelajaran.MataPelajaran{
 				KodeMapel: "MTK01",
@@ -62,7 +62,7 @@ func TestCreateMapelService_BasisPath(t *testing.T) {
 			wantCreate: false,
 		},
 		{
-			name: "Path 4 -> gagal CreateMapel",
+			name: "Branch 4 -> create mapel gagal",
 			repo: &FakeMapelRepo{CreateMapelErr: createErr},
 			input: matapelajaran.MataPelajaran{
 				KodeMapel: "MTK01",
@@ -74,7 +74,7 @@ func TestCreateMapelService_BasisPath(t *testing.T) {
 			wantCreate: true,
 		},
 		{
-			name: "Path 5 -> berhasil create mapel",
+			name: "Branch 5 -> create mapel berhasil",
 			repo: &FakeMapelRepo{},
 			input: matapelajaran.MataPelajaran{
 				KodeMapel: "  mtk01  ",

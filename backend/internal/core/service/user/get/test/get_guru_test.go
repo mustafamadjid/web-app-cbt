@@ -34,7 +34,7 @@ func TestGetGuruService_ListGuru(t *testing.T) {
 		wantFilter *query.ListGuruFilter
 	}{
 		{
-			name: "Branch 1 -> semua patch berhasil",
+			name: "Path 1 -> filter valid berhasil dilist",
 			filter: query.ListGuruFilter{
 				Search:   "  guru ",
 				Limit:    0,
@@ -57,7 +57,7 @@ func TestGetGuruService_ListGuru(t *testing.T) {
 			},
 		},
 		{
-			name: "Branch 2 -> sortBy tidak valid",
+			name: "Path 2 -> sortBy tidak valid",
 			filter: query.ListGuruFilter{
 				SortBy: "invalid",
 			},
@@ -66,7 +66,7 @@ func TestGetGuruService_ListGuru(t *testing.T) {
 			wantCalled: false,
 		},
 		{
-			name: "Branch 3 -> status tidak valid",
+			name: "Path 3 -> status tidak valid",
 			filter: query.ListGuruFilter{
 				SortBy: "created_at",
 				Status: &invalidStatus,
@@ -76,7 +76,7 @@ func TestGetGuruService_ListGuru(t *testing.T) {
 			wantCalled: false,
 		},
 		{
-			name: "Branch 4 -> bidang kosong",
+			name: "Path 4 -> bidang kosong",
 			filter: query.ListGuruFilter{
 				SortBy: "created_at",
 				Bidang: func() *string {
@@ -89,7 +89,7 @@ func TestGetGuruService_ListGuru(t *testing.T) {
 			wantCalled: false,
 		},
 		{
-			name: "Branch 5 -> repo error",
+			name: "Path 5 -> repo error",
 			filter: query.ListGuruFilter{
 				SortBy: "created_at",
 			},

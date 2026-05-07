@@ -102,14 +102,9 @@ func runListEssayUngradedCases(t *testing.T, prefix string) {
 	}
 }
 
-func TestListUjianEssayUngradedService_BranchCoverage(t *testing.T) {
-	t.Parallel()
-	runListEssayUngradedCases(t, "branch ")
-}
-
 func TestListUjianEssayUngradedService_BasisPath(t *testing.T) {
 	t.Parallel()
-	runListEssayUngradedCases(t, "path ")
+	runListEssayUngradedCases(t, "Path ")
 }
 
 func TestListUjianEssayUngradedService_FilterSanitizer(t *testing.T) {

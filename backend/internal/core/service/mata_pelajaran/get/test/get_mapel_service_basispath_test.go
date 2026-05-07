@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGetMapelService_BasisPath(t *testing.T) {
+func TestGetMapelService_BranchCoverage(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -32,32 +32,32 @@ func TestGetMapelService_BasisPath(t *testing.T) {
 		wantItems []matapelajaran.MataPelajaran
 	}{
 		{
-			name:    "Path 1 -> NamaMapel not nil tapi kosong",
+			name:    "Branch 1 -> nama mapel kosong",
 			repo:    &FakeMapelRepo{},
 			filter:  query.ListMapelFilter{NamaMapel: &emptyNama, Limit: 10},
 			wantErr: coreerror.ErrInvalidInput,
 		},
 		{
-			name:    "Path 2 -> TingkatKelas not nil tapi <= 0",
+			name:    "Branch 2 -> tingkat kelas tidak valid",
 			repo:    &FakeMapelRepo{},
 			filter:  query.ListMapelFilter{TingkatKelas: &invalidTingkat, Limit: 10},
 			wantErr: coreerror.ErrInvalidInput,
 		},
 		{
-			name:    "Path 3 -> GetMapel repo error",
+			name:    "Branch 3 -> repo list mapel gagal",
 			repo:    &FakeMapelRepo{GetMapelErr: repoErr},
 			filter:  query.ListMapelFilter{Limit: 10},
 			wantErr: repoErr,
 		},
 		{
-			name:      "Path 4 -> happy path dengan limit/offset clamped",
+			name:      "Branch 4 -> filter valid dengan limit offset dibersihkan",
 			repo:      &FakeMapelRepo{GetMapelRet: expectedItems},
 			filter:    query.ListMapelFilter{NamaMapel: &validNama, Limit: -1, Offset: -5},
 			wantErr:   nil,
 			wantItems: expectedItems,
 		},
 		{
-			name:      "Path 5 -> limit > 50 di-clamp ke 50",
+			name:      "Branch 5 -> limit lebih dari 50 di-clamp",
 			repo:      &FakeMapelRepo{GetMapelRet: expectedItems},
 			filter:    query.ListMapelFilter{Limit: 100},
 			wantErr:   nil,
@@ -84,7 +84,7 @@ func TestGetMapelService_BasisPath(t *testing.T) {
 	}
 }
 
-func TestGetMapelByIdService_BasisPath(t *testing.T) {
+func TestGetMapelByIdService_BranchCoverage(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -99,25 +99,25 @@ func TestGetMapelByIdService_BasisPath(t *testing.T) {
 		wantItem matapelajaran.MataPelajaran
 	}{
 		{
-			name:    "Path 1 -> idMapel <= 0",
+			name:    "Branch 1 -> id mapel tidak valid",
 			idMapel: 0,
 			repo:    &FakeMapelRepo{},
 			wantErr: coreerror.ErrMissingId,
 		},
 		{
-			name:    "Path 2 -> GetMapelById err ErrNotFound",
+			name:    "Branch 2 -> mapel tidak ditemukan",
 			idMapel: 1,
 			repo:    &FakeMapelRepo{GetMapelByIdErr: coreerror.ErrNotFound},
 			wantErr: coreerror.ErrNotFound,
 		},
 		{
-			name:    "Path 3 -> GetMapelById generic error",
+			name:    "Branch 3 -> repo get by id gagal",
 			idMapel: 1,
 			repo:    &FakeMapelRepo{GetMapelByIdErr: genericErr},
 			wantErr: genericErr,
 		},
 		{
-			name:     "Path 4 -> happy path",
+			name:     "Branch 4 -> get by id berhasil",
 			idMapel:  1,
 			repo:     &FakeMapelRepo{GetMapelByIdRet: expectedItem},
 			wantErr:  nil,

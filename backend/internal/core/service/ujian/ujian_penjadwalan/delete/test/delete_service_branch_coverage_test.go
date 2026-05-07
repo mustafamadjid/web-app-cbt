@@ -36,7 +36,7 @@ func (f *fakeDeleteUjianRepo) DeleteUjian(_ context.Context, id ujian.ID) error 
 	return f.deleteErr
 }
 
-func TestDeleteUjianService_BranchCoverage(t *testing.T) {
+func TestDeleteUjianService_BasisPath(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -50,21 +50,21 @@ func TestDeleteUjianService_BranchCoverage(t *testing.T) {
 		wantCalled bool
 	}{
 		{
-			name:       "branch 1 -> id ujian tidak valid",
+			name:       "Path 1 -> id ujian tidak valid",
 			idUjian:    0,
 			repo:       &fakeDeleteUjianRepo{},
 			wantErr:    coreerror.ErrMissingId,
 			wantCalled: false,
 		},
 		{
-			name:       "branch 2 -> repo delete ujian gagal",
+			name:       "Path 2 -> repo delete ujian gagal",
 			idUjian:    15,
 			repo:       &fakeDeleteUjianRepo{deleteErr: repoErr},
 			wantErr:    repoErr,
 			wantCalled: true,
 		},
 		{
-			name:       "branch 3 -> berhasil delete ujian",
+			name:       "Path 3 -> berhasil delete ujian",
 			idUjian:    15,
 			repo:       &fakeDeleteUjianRepo{},
 			wantCalled: true,

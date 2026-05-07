@@ -95,12 +95,7 @@ func runGradingStatistikCases(t *testing.T, prefix string) {
 	}
 }
 
-func TestGradingStatistikUjianService_BranchCoverage(t *testing.T) {
-	t.Parallel()
-	runGradingStatistikCases(t, "branch ")
-}
-
 func TestGradingStatistikUjianService_BasisPath(t *testing.T) {
 	t.Parallel()
-	runGradingStatistikCases(t, "path ")
+	runGradingStatistikCases(t, "Path ")
 }

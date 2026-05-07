@@ -27,14 +27,14 @@ func TestGetGuruService_FindProfilGuruByID(t *testing.T) {
 		wantCalled bool
 	}{
 		{
-			name:       "success",
+			name:       "Path 1 -> profil guru ditemukan",
 			id:         10,
 			repo:       &FakeProfilGuruRepo{Result: wantGuru},
 			wantGuru:   wantGuru,
 			wantCalled: true,
 		},
 		{
-			name:       "error",
+			name:       "Path 2 -> repo find profil guru gagal",
 			id:         20,
 			repo:       &FakeProfilGuruRepo{Err: repoErr},
 			wantErr:    repoErr,

@@ -19,13 +19,13 @@ func TestUpdateUjianService_BasisPath(t *testing.T) {
 		wantUpdate bool
 	}{
 		{
-			name:       "path 1 -> repo conflict diteruskan",
+			name:       "Path 1 -> repo conflict diteruskan",
 			repo:       &fakeUpdateUjianRepo{updateErr: coreerror.ErrConflict},
 			wantErr:    coreerror.ErrConflict,
 			wantUpdate: true,
 		},
 		{
-			name:       "path 2 -> update ujian berhasil",
+			name:       "Path 2 -> update ujian berhasil",
 			repo:       &fakeUpdateUjianRepo{},
 			wantUpdate: true,
 		},

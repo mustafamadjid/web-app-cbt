@@ -114,12 +114,7 @@ func runListPesertaSubmittedCases(t *testing.T, prefix string) {
 	}
 }
 
-func TestPesertaUjianSubmittedService_BranchCoverage(t *testing.T) {
-	t.Parallel()
-	runListPesertaSubmittedCases(t, "branch ")
-}
-
 func TestPesertaUjianSubmittedService_BasisPath(t *testing.T) {
 	t.Parallel()
-	runListPesertaSubmittedCases(t, "path ")
+	runListPesertaSubmittedCases(t, "Path ")
 }

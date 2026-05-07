@@ -48,6 +48,10 @@ func (f *fakeGetUjianRepo) GetUjianById(_ context.Context, id ujian.ID) (ujian.L
 	return f.getByIDRet, nil
 }
 
+func (*fakeGetUjianRepo) GetAllUjianSubmittedByIdSiswa(context.Context, int) ([]ujian.ListUjian, error) {
+	return nil, nil
+}
+
 func buildValidListUjian() ujian.ListUjian {
 	namaKelas := "  XII-A  "
 	status := ujian.MULAI
@@ -75,7 +79,7 @@ func buildValidListUjian() ujian.ListUjian {
 	}
 }
 
-func TestGetUjianService_GetAllUjian_BranchCoverage(t *testing.T) {
+func TestGetUjianService_GetAllUjian_BasisPath(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -93,28 +97,28 @@ func TestGetUjianService_GetAllUjian_BranchCoverage(t *testing.T) {
 		assertFilter func(t *testing.T, got query.ListUjianFilter)
 	}{
 		{
-			name:       "branch 1 -> filter ujian tidak valid",
+			name:       "Path 1 -> filter ujian tidak valid",
 			filter:     query.ListUjianFilter{TanggalUjian: strPtr(" ")},
 			repo:       &fakeGetUjianRepo{},
 			wantErr:    coreerror.ErrInvalidInput,
 			wantCalled: false,
 		},
 		{
-			name:       "branch 2 -> repo get all ujian gagal",
+			name:       "Path 2 -> repo get all ujian gagal",
 			filter:     query.ListUjianFilter{TanggalUjian: &filterDate},
 			repo:       &fakeGetUjianRepo{getAllErr: repoErr},
 			wantErr:    repoErr,
 			wantCalled: true,
 		},
 		{
-			name:       "branch 3 -> item ujian dari repo tidak valid",
+			name:       "Path 3 -> item ujian dari repo tidak valid",
 			filter:     query.ListUjianFilter{},
 			repo:       &fakeGetUjianRepo{getAllRet: []ujian.ListUjian{{IdUjian: 0}}},
 			wantErr:    coreerror.ErrInvalidInput,
 			wantCalled: true,
 		},
 		{
-			name:       "branch 4 -> berhasil get all ujian",
+			name:       "Path 4 -> berhasil get all ujian",
 			filter:     query.ListUjianFilter{Search: "  uas  ", Limit: 70, Offset: -3, KategoriUjian: query.BERLANGSUNG},
 			repo:       &fakeGetUjianRepo{getAllRet: []ujian.ListUjian{expected}},
 			wantCalled: true,
@@ -163,7 +167,7 @@ func TestGetUjianService_GetAllUjian_BranchCoverage(t *testing.T) {
 	}
 }
 
-func TestGetUjianService_GetUjianByID_BranchCoverage(t *testing.T) {
+func TestGetUjianService_GetUjianByID_BasisPath(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -179,21 +183,21 @@ func TestGetUjianService_GetUjianByID_BranchCoverage(t *testing.T) {
 		wantItem   ujian.ListUjian
 	}{
 		{
-			name:       "branch 5 -> id ujian tidak valid",
+			name:       "Path 5 -> id ujian tidak valid",
 			idUjian:    0,
 			repo:       &fakeGetUjianRepo{},
 			wantErr:    coreerror.ErrMissingId,
 			wantCalled: false,
 		},
 		{
-			name:       "branch 6 -> repo get ujian by id gagal",
+			name:       "Path 6 -> repo get ujian by id gagal",
 			idUjian:    7,
 			repo:       &fakeGetUjianRepo{getByIDErr: repoErr},
 			wantErr:    repoErr,
 			wantCalled: true,
 		},
 		{
-			name:       "branch 7 -> berhasil get ujian by id",
+			name:       "Path 7 -> berhasil get ujian by id",
 			idUjian:    7,
 			repo:       &fakeGetUjianRepo{getByIDRet: expected},
 			wantCalled: true,

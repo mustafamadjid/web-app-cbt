@@ -28,10 +28,10 @@ func newWorkerForTest(jobRepo *FakeImportSoalJobRepo, batchRepo *FakeIsiSoalBatc
 	return worker.NewWorker(jobRepo, importSvc, imageDir, "/uploads/image", interval, testLogger{})
 }
 
-func TestWorkerProcessJobs_BasisPath(t *testing.T) {
+func TestWorkerProcessJobs_BranchCoverage(t *testing.T) {
 	t.Parallel()
 
-	t.Run("Path 1 -> GetPendingJobs error", func(t *testing.T) {
+	t.Run("Branch 1 -> get pending jobs error", func(t *testing.T) {
 		t.Parallel()
 
 		jobRepo := &FakeImportSoalJobRepo{
@@ -50,7 +50,7 @@ func TestWorkerProcessJobs_BasisPath(t *testing.T) {
 		// Worker should exit without panic when context is cancelled
 	})
 
-	t.Run("Path 2 -> no pending jobs", func(t *testing.T) {
+	t.Run("Branch 2 -> tidak ada pending jobs", func(t *testing.T) {
 		t.Parallel()
 
 		jobRepo := &FakeImportSoalJobRepo{
@@ -68,7 +68,7 @@ func TestWorkerProcessJobs_BasisPath(t *testing.T) {
 		w.Start(cancelCtx)
 	})
 
-	t.Run("Path 3 -> processOneJob UpdateJobStatus (mark processing) error", func(t *testing.T) {
+	t.Run("Branch 3 -> update status processing gagal", func(t *testing.T) {
 		t.Parallel()
 
 		updateErr := errors.New("update status error")
@@ -104,7 +104,7 @@ func TestWorkerProcessJobs_BasisPath(t *testing.T) {
 		w.Start(cancelCtx)
 	})
 
-	t.Run("Path 4 -> processOneJob ReadFile error", func(t *testing.T) {
+	t.Run("Branch 4 -> baca file job gagal", func(t *testing.T) {
 		t.Parallel()
 
 		var mu sync.Mutex
@@ -145,7 +145,7 @@ func TestWorkerProcessJobs_BasisPath(t *testing.T) {
 		assert.True(t, statusUpdates[importsoal.StatusFailed])
 	})
 
-	t.Run("Path 5 -> processOneJob ExtractParagraphs error (invalid docx)", func(t *testing.T) {
+	t.Run("Branch 5 -> extract paragraph gagal untuk docx invalid", func(t *testing.T) {
 		t.Parallel()
 
 		var mu sync.Mutex

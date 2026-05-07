@@ -31,7 +31,7 @@ func TestAttemptUjianService_BasisPath(t *testing.T) {
 		wantCreate bool
 	}{
 		{
-			name:       "path 1 -> id siswa tidak valid",
+			name:       "Path 1 -> id siswa tidak valid",
 			idSiswa:    0,
 			idJadwal:   20,
 			token:      "TOKEN",
@@ -42,7 +42,7 @@ func TestAttemptUjianService_BasisPath(t *testing.T) {
 			wantCreate: false,
 		},
 		{
-			name:       "path 2 -> id jadwal ujian tidak valid",
+			name:       "Path 2 -> id jadwal ujian tidak valid",
 			idSiswa:    10,
 			idJadwal:   0,
 			token:      "TOKEN",
@@ -53,7 +53,7 @@ func TestAttemptUjianService_BasisPath(t *testing.T) {
 			wantCreate: false,
 		},
 		{
-			name:       "path 3 -> token ujian kosong",
+			name:       "Path 3 -> token ujian kosong",
 			idSiswa:    10,
 			idJadwal:   20,
 			token:      "   ",
@@ -64,7 +64,7 @@ func TestAttemptUjianService_BasisPath(t *testing.T) {
 			wantCreate: false,
 		},
 		{
-			name:       "path 4 -> waktu attempt kosong",
+			name:       "Path 4 -> waktu attempt kosong",
 			idSiswa:    10,
 			idJadwal:   20,
 			token:      "TOKEN",
@@ -74,7 +74,7 @@ func TestAttemptUjianService_BasisPath(t *testing.T) {
 			wantCreate: false,
 		},
 		{
-			name:     "path 5 -> validasi peserta gagal",
+			name:     "Path 5 -> validasi peserta gagal",
 			idSiswa:  10,
 			idJadwal: 20,
 			token:    "TOKEN",
@@ -87,7 +87,7 @@ func TestAttemptUjianService_BasisPath(t *testing.T) {
 			wantCreate: false,
 		},
 		{
-			name:     "path 6 -> peserta tidak diizinkan attempt",
+			name:     "Path 6 -> peserta tidak diizinkan attempt",
 			idSiswa:  10,
 			idJadwal: 20,
 			token:    "TOKEN",
@@ -100,7 +100,7 @@ func TestAttemptUjianService_BasisPath(t *testing.T) {
 			wantCreate: false,
 		},
 		{
-			name:     "path 7 -> deadline ujian gagal didapat",
+			name:     "Path 7 -> deadline ujian gagal didapat",
 			idSiswa:  10,
 			idJadwal: 20,
 			token:    "TOKEN",
@@ -115,7 +115,7 @@ func TestAttemptUjianService_BasisPath(t *testing.T) {
 			wantCreate: false,
 		},
 		{
-			name:     "path 8 -> waktu attempt melewati deadline",
+			name:     "Path 8 -> waktu attempt melewati deadline",
 			idSiswa:  10,
 			idJadwal: 20,
 			token:    "TOKEN",
@@ -130,7 +130,7 @@ func TestAttemptUjianService_BasisPath(t *testing.T) {
 			wantCreate: false,
 		},
 		{
-			name:     "path 9 -> validasi token ujian gagal",
+			name:     "Path 9 -> validasi token ujian gagal",
 			idSiswa:  10,
 			idJadwal: 20,
 			token:    "TOKEN",
@@ -146,7 +146,7 @@ func TestAttemptUjianService_BasisPath(t *testing.T) {
 			wantCreate: false,
 		},
 		{
-			name:     "path 10 -> token ujian tidak valid",
+			name:     "Path 10 -> token ujian tidak valid",
 			idSiswa:  10,
 			idJadwal: 20,
 			token:    "TOKEN",
@@ -162,7 +162,7 @@ func TestAttemptUjianService_BasisPath(t *testing.T) {
 			wantCreate: false,
 		},
 		{
-			name:     "path 11 -> create attempt generic error",
+			name:     "Path 11 -> create attempt generic error",
 			idSiswa:  10,
 			idJadwal: 20,
 			token:    "TOKEN",
@@ -178,7 +178,7 @@ func TestAttemptUjianService_BasisPath(t *testing.T) {
 			wantCreate: true,
 		},
 		{
-			name:     "path 12 -> active attempt dianggap resume",
+			name:     "Path 12 -> active attempt dianggap resume",
 			idSiswa:  10,
 			idJadwal: 20,
 			token:    "TOKEN",
@@ -193,7 +193,7 @@ func TestAttemptUjianService_BasisPath(t *testing.T) {
 			wantCreate: true,
 		},
 		{
-			name:     "path 13 -> attempt ujian berhasil",
+			name:     "Path 13 -> attempt ujian berhasil",
 			idSiswa:  10,
 			idJadwal: 20,
 			token:    "TOKEN",

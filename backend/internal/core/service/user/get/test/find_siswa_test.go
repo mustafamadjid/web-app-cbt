@@ -27,14 +27,14 @@ func TestGetSiswaService_FindProfilSiswaByID(t *testing.T) {
 		wantCalled bool
 	}{
 		{
-			name:       "success",
+			name:       "Path 1 -> profil siswa ditemukan",
 			id:         11,
 			repo:       &FakeProfilSiswaRepo{Result: wantSiswa},
 			wantSiswa:  wantSiswa,
 			wantCalled: true,
 		},
 		{
-			name:       "error",
+			name:       "Path 2 -> repo find profil siswa gagal",
 			id:         12,
 			repo:       &FakeProfilSiswaRepo{Err: repoErr},
 			wantErr:    repoErr,

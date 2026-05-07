@@ -40,7 +40,7 @@ func TestGetSiswaService_ListSiswa(t *testing.T) {
 		wantFilter *query.ListSiswaFilter
 	}{
 		{
-			name: "Branch 1 -> semua patch berhasil",
+			name: "Path 1 -> filter valid berhasil dilist",
 			filter: query.ListSiswaFilter{
 				Search:       "  siswa ",
 				Limit:        0,
@@ -67,7 +67,7 @@ func TestGetSiswaService_ListSiswa(t *testing.T) {
 			},
 		},
 		{
-			name: "Branch 2 -> sortBy tidak valid",
+			name: "Path 2 -> sortBy tidak valid",
 			filter: query.ListSiswaFilter{
 				SortBy: "invalid",
 			},
@@ -76,7 +76,7 @@ func TestGetSiswaService_ListSiswa(t *testing.T) {
 			wantCalled: false,
 		},
 		{
-			name: "Branch 3 -> status tidak valid",
+			name: "Path 3 -> status tidak valid",
 			filter: query.ListSiswaFilter{
 				SortBy: "created_at",
 				Status: &invalidStatus,
@@ -86,7 +86,7 @@ func TestGetSiswaService_ListSiswa(t *testing.T) {
 			wantCalled: false,
 		},
 		{
-			name: "Branch 4 -> angkatan tidak valid",
+			name: "Path 4 -> angkatan tidak valid",
 			filter: query.ListSiswaFilter{
 				SortBy:   "created_at",
 				Angkatan: &invalidAngkatan,
@@ -96,7 +96,7 @@ func TestGetSiswaService_ListSiswa(t *testing.T) {
 			wantCalled: false,
 		},
 		{
-			name: "Branch 5 -> tingkat kelas tidak valid",
+			name: "Path 5 -> tingkat kelas tidak valid",
 			filter: query.ListSiswaFilter{
 				SortBy:       "created_at",
 				TingkatKelas: &invalidTingkat,
@@ -106,7 +106,7 @@ func TestGetSiswaService_ListSiswa(t *testing.T) {
 			wantCalled: false,
 		},
 		{
-			name: "Branch 6 -> jenis kelamin tidak valid",
+			name: "Path 6 -> jenis kelamin tidak valid",
 			filter: query.ListSiswaFilter{
 				SortBy:       "created_at",
 				JenisKelamin: &invalidJenisKelamin,
@@ -116,7 +116,7 @@ func TestGetSiswaService_ListSiswa(t *testing.T) {
 			wantCalled: false,
 		},
 		{
-			name: "Branch 7 -> repo error",
+			name: "Path 7 -> repo error",
 			filter: query.ListSiswaFilter{
 				SortBy: "created_at",
 			},

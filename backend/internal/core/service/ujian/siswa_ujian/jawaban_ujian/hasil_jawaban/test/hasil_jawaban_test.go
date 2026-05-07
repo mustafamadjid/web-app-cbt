@@ -35,7 +35,7 @@ func (f *fakeHasilJawabanRepo) ListHasilJawabanUjianByIdAttempt(_ context.Contex
 	return f.listRet, nil
 }
 
-func TestHasilJawabanUjianService_BranchCoverage(t *testing.T) {
+func TestHasilJawabanUjianService_BasisPath(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -54,7 +54,7 @@ func TestHasilJawabanUjianService_BranchCoverage(t *testing.T) {
 		wantItems  []ujian.HasilJawabanUjian
 	}{
 		{
-			name:       "branch 1 -> id attempt tidak valid",
+			name:       "Path 1 -> id attempt tidak valid",
 			idAttempt:  0,
 			repo:       &fakeHasilJawabanRepo{},
 			wantErr:    coreerror.ErrMissingId,
@@ -62,7 +62,7 @@ func TestHasilJawabanUjianService_BranchCoverage(t *testing.T) {
 			wantCalled: false,
 		},
 		{
-			name:       "branch 2 -> repo list hasil jawaban gagal",
+			name:       "Path 2 -> repo list hasil jawaban gagal",
 			idAttempt:  9,
 			repo:       &fakeHasilJawabanRepo{listErr: repoErr},
 			wantErr:    repoErr,
@@ -70,7 +70,7 @@ func TestHasilJawabanUjianService_BranchCoverage(t *testing.T) {
 			wantCalled: true,
 		},
 		{
-			name:       "branch 3 -> berhasil list hasil jawaban",
+			name:       "Path 3 -> berhasil list hasil jawaban",
 			idAttempt:  9,
 			repo:       &fakeHasilJawabanRepo{listRet: expected},
 			wantItems:  expected,

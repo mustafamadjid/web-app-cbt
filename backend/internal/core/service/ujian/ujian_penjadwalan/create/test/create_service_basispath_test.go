@@ -19,13 +19,13 @@ func TestCreateUjianService_BasisPath(t *testing.T) {
 		wantCreate bool
 	}{
 		{
-			name:       "path 1 -> repo conflict diteruskan",
+			name:       "Path 1 -> repo conflict diteruskan",
 			repo:       &fakeCreateUjianRepo{createErr: coreerror.ErrConflict},
 			wantErr:    coreerror.ErrConflict,
 			wantCreate: true,
 		},
 		{
-			name:       "path 2 -> create ujian berhasil",
+			name:       "Path 2 -> create ujian berhasil",
 			repo:       &fakeCreateUjianRepo{},
 			wantCreate: true,
 		},

@@ -7,6 +7,7 @@ import (
 
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 	user_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/user/reset_password"
+	"github.com/stretchr/testify/assert"
 )
 
 type fakeResetPasswordRepo struct {
@@ -29,9 +30,11 @@ func (f *fakeResetPasswordRepo) ResetPassword(ctx context.Context, idPengguna us
 type fakePasswordHasher struct {
 	hash    string
 	hashErr error
+	called  bool
 }
 
 func (f *fakePasswordHasher) GenerateHash(plain string) (string, error) {
+	f.called = true
 	if f.hashErr != nil {
 		return "", f.hashErr
 	}
@@ -46,55 +49,57 @@ func (f *fakePasswordHasher) ComparePaswordAndHashed(hash string, plain string) 
 }
 
 func TestResetPasswordService_ResetPasswordService(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
-		name          string
-		hasherErr     error
-		repoErr       error
-		expectErr     bool
-		expectRepoHit bool
+		name             string
+		hasherErr        error
+		repoErr          error
+		wantErr          error
+		wantRepoHit      bool
+		wantHasherCalled bool
 	}{
 		{
-			name:          "Branch 1 -> hashing failed",
-			hasherErr:     errors.New("hash failed"),
-			expectErr:     true,
-			expectRepoHit: false,
+			name:             "Path 1 -> hashing failed",
+			hasherErr:        errors.New("hash failed"),
+			wantErr:          errors.New("hash failed"),
+			wantRepoHit:      false,
+			wantHasherCalled: true,
 		},
 		{
-			name:          "Branch 2 -> username taken",
-			repoErr:       errors.New("repo failed"),
-			expectErr:     true,
-			expectRepoHit: true,
+			name:             "Path 2 -> repo reset password gagal",
+			repoErr:          errors.New("repo failed"),
+			wantErr:          errors.New("repo failed"),
+			wantRepoHit:      true,
+			wantHasherCalled: true,
 		},
 		{
-			name:          "Branch 3 -> success",
-			expectErr:     false,
-			expectRepoHit: true,
+			name:             "Path 3 -> reset password berhasil",
+			wantRepoHit:      true,
+			wantHasherCalled: true,
 		},
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			repo := &fakeResetPasswordRepo{resetErr: tt.repoErr}
 			hasher := &fakePasswordHasher{hash: "hashed-pass", hashErr: tt.hasherErr}
 			svc := user_service.NewResetPasswordService(repo, hasher)
 
 			err := svc.ResetPasswordService(context.Background(), user.ID(10), "new-pass")
-			if tt.expectErr && err == nil {
-				t.Fatalf("expected error, got nil")
+
+			if tt.wantErr != nil {
+				assert.EqualError(t, err, tt.wantErr.Error())
+			} else {
+				assert.NoError(t, err)
 			}
-			if !tt.expectErr && err != nil {
-				t.Fatalf("expected nil error, got %v", err)
-			}
-			if repo.called != tt.expectRepoHit {
-				t.Fatalf("unexpected repo call state, got %v want %v", repo.called, tt.expectRepoHit)
-			}
-			if tt.expectRepoHit {
-				if repo.receivedID != user.ID(10) {
-					t.Fatalf("unexpected user id, got %v", repo.receivedID)
-				}
-				if repo.receivedPlain != "hashed-pass" {
-					t.Fatalf("unexpected hashed password, got %q", repo.receivedPlain)
-				}
+			assert.Equal(t, tt.wantRepoHit, repo.called)
+			assert.Equal(t, tt.wantHasherCalled, hasher.called)
+			if tt.wantRepoHit {
+				assert.Equal(t, user.ID(10), repo.receivedID)
+				assert.Equal(t, "hashed-pass", repo.receivedPlain)
 			}
 		})
 	}

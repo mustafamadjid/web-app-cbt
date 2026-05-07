@@ -56,7 +56,7 @@ func idPatchPtr(v ujian.ID) *ujian.ID {
 	return &v
 }
 
-func TestUpdateAttemptUjianService_BranchCoverage(t *testing.T) {
+func TestUpdateAttemptUjianService_BasisPath(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -76,7 +76,7 @@ func TestUpdateAttemptUjianService_BranchCoverage(t *testing.T) {
 		assertion  func(*testing.T, *FakeAttemptUjianRepo)
 	}{
 		{
-			name:      "branch 1 -> status attempt kosong setelah trim",
+			name:      "Path 1 -> status attempt kosong setelah trim",
 			idAttempt: 10,
 			payload: updatepatch.UpdateAttemptUjianPatch{
 				StatusAttempt: statusPtr(ujian.StatusAttempt("   ")),
@@ -85,7 +85,7 @@ func TestUpdateAttemptUjianService_BranchCoverage(t *testing.T) {
 			wantErr: coreerror.ErrMissingField,
 		},
 		{
-			name:      "branch 2 -> id attempt tidak valid",
+			name:      "Path 2 -> id attempt tidak valid",
 			idAttempt: 0,
 			payload: updatepatch.UpdateAttemptUjianPatch{
 				StatusAttempt: statusPtr(status),
@@ -94,14 +94,14 @@ func TestUpdateAttemptUjianService_BranchCoverage(t *testing.T) {
 			wantErr: coreerror.ErrMissingId,
 		},
 		{
-			name:      "branch 3 -> tidak ada field untuk diupdate",
+			name:      "Path 3 -> tidak ada field untuk diupdate",
 			idAttempt: 10,
 			payload:   updatepatch.UpdateAttemptUjianPatch{},
 			repo:      &FakeAttemptUjianRepo{},
 			wantErr:   coreerror.ErrNoFieldToUpdate,
 		},
 		{
-			name:      "branch 4 -> status attempt tidak valid",
+			name:      "Path 4 -> status attempt tidak valid",
 			idAttempt: 10,
 			payload: updatepatch.UpdateAttemptUjianPatch{
 				StatusAttempt: statusPtr(ujian.StatusAttempt("unknown")),
@@ -110,7 +110,7 @@ func TestUpdateAttemptUjianService_BranchCoverage(t *testing.T) {
 			wantErr: coreerror.ErrInvalidInput,
 		},
 		{
-			name:      "branch 5 -> id peserta ujian tidak valid",
+			name:      "Path 5 -> id peserta ujian tidak valid",
 			idAttempt: 10,
 			payload: updatepatch.UpdateAttemptUjianPatch{
 				IdPesertaUjian: idPatchPtr(0),
@@ -119,7 +119,7 @@ func TestUpdateAttemptUjianService_BranchCoverage(t *testing.T) {
 			wantErr: coreerror.ErrMissingId,
 		},
 		{
-			name:      "branch 6 -> waktu submit sebelum waktu mulai",
+			name:      "Path 6 -> waktu submit sebelum waktu mulai",
 			idAttempt: 10,
 			payload: updatepatch.UpdateAttemptUjianPatch{
 				WaktuMulai:  timePatchPtr(submit),
@@ -129,7 +129,7 @@ func TestUpdateAttemptUjianService_BranchCoverage(t *testing.T) {
 			wantErr: coreerror.ErrInvalidInput,
 		},
 		{
-			name:      "branch 7 -> deadline tidak setelah waktu mulai",
+			name:      "Path 7 -> deadline tidak setelah waktu mulai",
 			idAttempt: 10,
 			payload: updatepatch.UpdateAttemptUjianPatch{
 				WaktuMulai: timePatchPtr(deadline),
@@ -139,7 +139,7 @@ func TestUpdateAttemptUjianService_BranchCoverage(t *testing.T) {
 			wantErr: coreerror.ErrInvalidInput,
 		},
 		{
-			name:      "branch 8 -> repo update attempt gagal",
+			name:      "Path 8 -> repo update attempt gagal",
 			idAttempt: 10,
 			payload: updatepatch.UpdateAttemptUjianPatch{
 				StatusAttempt: statusPtr(status),
@@ -152,7 +152,7 @@ func TestUpdateAttemptUjianService_BranchCoverage(t *testing.T) {
 			wantUpdate: true,
 		},
 		{
-			name:      "branch 9 -> berhasil update attempt",
+			name:      "Path 9 -> berhasil update attempt",
 			idAttempt: 10,
 			payload: updatepatch.UpdateAttemptUjianPatch{
 				StatusAttempt: statusPtr(status),
@@ -213,7 +213,7 @@ func TestSiswaUpdateAttemptUjianService_BasisPath(t *testing.T) {
 		wantUpdate bool
 	}{
 		{
-			name:      "path 1 -> id siswa tidak valid",
+			name:      "Path 1 -> id siswa tidak valid",
 			idSiswa:   0,
 			idAttempt: 11,
 			payload: updatepatch.UpdateAttemptUjianPatch{
@@ -225,7 +225,7 @@ func TestSiswaUpdateAttemptUjianService_BasisPath(t *testing.T) {
 			wantErr: coreerror.ErrMissingId,
 		},
 		{
-			name:      "path 2 -> payload siswa tidak valid",
+			name:      "Path 2 -> payload siswa tidak valid",
 			idSiswa:   9,
 			idAttempt: 11,
 			payload: updatepatch.UpdateAttemptUjianPatch{
@@ -236,7 +236,7 @@ func TestSiswaUpdateAttemptUjianService_BasisPath(t *testing.T) {
 			wantErr: coreerror.ErrMissingField,
 		},
 		{
-			name:      "path 3 -> checker ownership gagal",
+			name:      "Path 3 -> checker ownership gagal",
 			idSiswa:   9,
 			idAttempt: 11,
 			payload: updatepatch.UpdateAttemptUjianPatch{
@@ -249,7 +249,7 @@ func TestSiswaUpdateAttemptUjianService_BasisPath(t *testing.T) {
 			wantCheck: true,
 		},
 		{
-			name:      "path 4 -> attempt bukan milik siswa",
+			name:      "Path 4 -> attempt bukan milik siswa",
 			idSiswa:   9,
 			idAttempt: 11,
 			payload: updatepatch.UpdateAttemptUjianPatch{
@@ -262,7 +262,7 @@ func TestSiswaUpdateAttemptUjianService_BasisPath(t *testing.T) {
 			wantCheck: true,
 		},
 		{
-			name:      "path 5 -> update attempt siswa gagal",
+			name:      "Path 5 -> update attempt siswa gagal",
 			idSiswa:   9,
 			idAttempt: 11,
 			payload: updatepatch.UpdateAttemptUjianPatch{
@@ -275,7 +275,7 @@ func TestSiswaUpdateAttemptUjianService_BasisPath(t *testing.T) {
 			wantUpdate: true,
 		},
 		{
-			name:      "path 6 -> update attempt siswa berhasil submitted",
+			name:      "Path 6 -> update attempt siswa berhasil submitted",
 			idSiswa:   9,
 			idAttempt: 11,
 			payload: updatepatch.UpdateAttemptUjianPatch{

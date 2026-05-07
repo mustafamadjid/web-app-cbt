@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDeleteMapelService_BasisPath(t *testing.T) {
+func TestDeleteMapelService_BranchCoverage(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -24,28 +24,28 @@ func TestDeleteMapelService_BasisPath(t *testing.T) {
 		wantDelete bool
 	}{
 		{
-			name:       "Path 1 -> idMapel <= 0",
+			name:       "Branch 1 -> id mapel tidak valid",
 			idMapel:    0,
 			repo:       &FakeMapelRepo{},
 			wantErr:    coreerror.ErrMissingId,
 			wantDelete: false,
 		},
 		{
-			name:       "Path 2 -> DeleteMapel error ErrDeleteRestricted",
+			name:       "Branch 2 -> delete ditolak constraint",
 			idMapel:    1,
 			repo:       &FakeMapelRepo{DeleteMapelErr: coreerror.ErrDeleteRestricted},
 			wantErr:    coreerror.ErrDeleteRestricted,
 			wantDelete: true,
 		},
 		{
-			name:       "Path 3 -> DeleteMapel generic error",
+			name:       "Branch 3 -> repo delete gagal",
 			idMapel:    1,
 			repo:       &FakeMapelRepo{DeleteMapelErr: genericErr},
 			wantErr:    genericErr,
 			wantDelete: true,
 		},
 		{
-			name:       "Path 4 -> berhasil delete mapel",
+			name:       "Branch 4 -> delete mapel berhasil",
 			idMapel:    1,
 			repo:       &FakeMapelRepo{},
 			wantErr:    nil,

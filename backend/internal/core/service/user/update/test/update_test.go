@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestUpdateGuruBranchCoverage(t *testing.T) {
+func TestUpdateGuruBasisPath(t *testing.T) {
 	adminActor := user.Actor{IdPengguna: 1, Role: user.ADMIN}
 	nonAdminActor := user.Actor{IdPengguna: 2, Role: user.GURU}
 
@@ -57,7 +57,7 @@ func TestUpdateGuruBranchCoverage(t *testing.T) {
 		wantUsernameValue  string
 	}{
 		{
-			name:  "Branch 1 -> semua patch berhasil",
+			name:  "Path 1 -> semua patch berhasil",
 			cmd:   validCmd(),
 			actor: adminActor,
 			txm: &FakeTxManager{Tx: &FakeTx{
@@ -73,7 +73,7 @@ func TestUpdateGuruBranchCoverage(t *testing.T) {
 			wantUsernameValue:  "guruuser",
 		},
 		{
-			name:               "Branch 2 -> aktor bukan admin",
+			name:               "Path 2 -> aktor bukan admin",
 			cmd:                validCmd(),
 			actor:              nonAdminActor,
 			txm:                &FakeTxManager{Tx: &FakeTx{}},
@@ -85,7 +85,7 @@ func TestUpdateGuruBranchCoverage(t *testing.T) {
 			wantUpdateProfil:   false,
 		},
 		{
-			name:               "Branch 3 -> id pengguna kosong",
+			name:               "Path 3 -> id pengguna kosong",
 			cmd:                func() user_service.UpdateGuruCmd { c := validCmd(); c.IdPengguna = 0; return c }(),
 			actor:              adminActor,
 			txm:                &FakeTxManager{Tx: &FakeTx{}},
@@ -97,7 +97,7 @@ func TestUpdateGuruBranchCoverage(t *testing.T) {
 			wantUpdateProfil:   false,
 		},
 		{
-			name:               "Branch 4 -> username kosong",
+			name:               "Path 4 -> username kosong",
 			cmd:                func() user_service.UpdateGuruCmd { c := validCmd(); c.Username = strPtr(" "); return c }(),
 			actor:              adminActor,
 			txm:                &FakeTxManager{Tx: &FakeTx{}},
@@ -109,7 +109,7 @@ func TestUpdateGuruBranchCoverage(t *testing.T) {
 			wantUpdateProfil:   false,
 		},
 		{
-			name:               "Branch 5 -> nama lengkap kosong",
+			name:               "Path 5 -> nama lengkap kosong",
 			cmd:                func() user_service.UpdateGuruCmd { c := validCmd(); c.NamaLengkap = strPtr(" "); return c }(),
 			actor:              adminActor,
 			txm:                &FakeTxManager{Tx: &FakeTx{}},
@@ -121,7 +121,7 @@ func TestUpdateGuruBranchCoverage(t *testing.T) {
 			wantUpdateProfil:   false,
 		},
 		{
-			name:               "Branch 6 -> email tidak valid",
+			name:               "Path 6 -> email tidak valid",
 			cmd:                func() user_service.UpdateGuruCmd { c := validCmd(); c.Email = strPtr("invalid"); return c }(),
 			actor:              adminActor,
 			txm:                &FakeTxManager{Tx: &FakeTx{}},
@@ -133,7 +133,7 @@ func TestUpdateGuruBranchCoverage(t *testing.T) {
 			wantUpdateProfil:   false,
 		},
 		{
-			name: "Branch 7 -> tidak ada field yang diupdate",
+			name: "Path 7 -> tidak ada field yang diupdate",
 			cmd: func() user_service.UpdateGuruCmd {
 				return user_service.UpdateGuruCmd{IdPengguna: 10}
 			}(),
@@ -147,7 +147,7 @@ func TestUpdateGuruBranchCoverage(t *testing.T) {
 			wantUpdateProfil:   false,
 		},
 		{
-			name:  "Branch 8 -> begin tx gagal",
+			name:  "Path 8 -> begin tx gagal",
 			cmd:   validCmd(),
 			actor: adminActor,
 			txm: &FakeTxManager{
@@ -165,7 +165,7 @@ func TestUpdateGuruBranchCoverage(t *testing.T) {
 			wantUpdateProfil:   false,
 		},
 		{
-			name:  "Branch 9 -> update pengguna gagal",
+			name:  "Path 9 -> update pengguna gagal",
 			cmd:   validCmd(),
 			actor: adminActor,
 			txm: &FakeTxManager{Tx: &FakeTx{
@@ -180,7 +180,7 @@ func TestUpdateGuruBranchCoverage(t *testing.T) {
 			wantUpdateProfil:   false,
 		},
 		{
-			name:  "Branch 10 -> update profil guru gagal",
+			name:  "Path 10 -> update profil guru gagal",
 			cmd:   validCmd(),
 			actor: adminActor,
 			txm: &FakeTxManager{Tx: &FakeTx{
@@ -195,7 +195,7 @@ func TestUpdateGuruBranchCoverage(t *testing.T) {
 			wantUpdateProfil:   true,
 		},
 		{
-			name:  "Branch 11 -> commit gagal",
+			name:  "Path 11 -> commit gagal",
 			cmd:   validCmd(),
 			actor: adminActor,
 			txm: &FakeTxManager{Tx: &FakeTx{
@@ -211,7 +211,7 @@ func TestUpdateGuruBranchCoverage(t *testing.T) {
 			wantUpdateProfil:   true,
 		},
 		{
-			name: "Branch 12 -> hanya update profil",
+			name: "Path 12 -> hanya update profil",
 			cmd: func() user_service.UpdateGuruCmd {
 				c := validCmd()
 				c.Username = nil
@@ -236,7 +236,7 @@ func TestUpdateGuruBranchCoverage(t *testing.T) {
 			wantUpdateProfil:   true,
 		},
 		{
-			name: "Branch 13 -> hanya update pengguna",
+			name: "Path 13 -> hanya update pengguna",
 			cmd: func() user_service.UpdateGuruCmd {
 				c := validCmd()
 				c.Nip = nil
@@ -258,7 +258,7 @@ func TestUpdateGuruBranchCoverage(t *testing.T) {
 			wantUsernameValue:  "guruuser",
 		},
 		{
-			name: "Branch 14 -> hanya update username",
+			name: "Path 14 -> hanya update username",
 			cmd: user_service.UpdateGuruCmd{
 				IdPengguna: 10,
 				Username:   strPtr("guruupdate"),
@@ -276,7 +276,7 @@ func TestUpdateGuruBranchCoverage(t *testing.T) {
 			wantUsernameValue:  "guruupdate",
 		},
 		{
-			name: "Branch 15 -> foto kosong diabaikan",
+			name: "Path 15 -> foto kosong diabaikan",
 			cmd: user_service.UpdateGuruCmd{
 				IdPengguna: 10,
 				Foto:       strPtr(" "),
@@ -332,7 +332,7 @@ func TestUpdateGuruBranchCoverage(t *testing.T) {
 	}
 }
 
-func TestUpdateSiswaBranchCoverage(t *testing.T) {
+func TestUpdateSiswaBasisPath(t *testing.T) {
 	adminActor := user.Actor{IdPengguna: 1, Role: user.ADMIN}
 	nonAdminActor := user.Actor{IdPengguna: 2, Role: user.GURU}
 
@@ -393,7 +393,7 @@ func TestUpdateSiswaBranchCoverage(t *testing.T) {
 		wantUsernameValue  string
 	}{
 		{
-			name:  "Branch 1 -> semua patch berhasil",
+			name:  "Path 1 -> semua patch berhasil",
 			cmd:   validCmd(),
 			actor: adminActor,
 			txm: &FakeTxManager{Tx: &FakeTx{
@@ -410,7 +410,7 @@ func TestUpdateSiswaBranchCoverage(t *testing.T) {
 			wantUsernameValue:  "siswauser",
 		},
 		{
-			name:               "Branch 2 -> aktor bukan admin",
+			name:               "Path 2 -> aktor bukan admin",
 			cmd:                validCmd(),
 			actor:              nonAdminActor,
 			txm:                &FakeTxManager{Tx: &FakeTx{}},
@@ -422,7 +422,7 @@ func TestUpdateSiswaBranchCoverage(t *testing.T) {
 			wantUpdateProfil:   false,
 		},
 		{
-			name:               "Branch 3 -> id pengguna kosong",
+			name:               "Path 3 -> id pengguna kosong",
 			cmd:                func() user_service.UpdateSiswaCmd { c := validCmd(); c.IdPengguna = 0; return c }(),
 			actor:              adminActor,
 			txm:                &FakeTxManager{Tx: &FakeTx{}},
@@ -434,7 +434,7 @@ func TestUpdateSiswaBranchCoverage(t *testing.T) {
 			wantUpdateProfil:   false,
 		},
 		{
-			name:               "Branch 4 -> username kosong",
+			name:               "Path 4 -> username kosong",
 			cmd:                func() user_service.UpdateSiswaCmd { c := validCmd(); c.Username = strPtr(" "); return c }(),
 			actor:              adminActor,
 			txm:                &FakeTxManager{Tx: &FakeTx{}},
@@ -446,7 +446,7 @@ func TestUpdateSiswaBranchCoverage(t *testing.T) {
 			wantUpdateProfil:   false,
 		},
 		{
-			name:               "Branch 5 -> nama lengkap kosong",
+			name:               "Path 5 -> nama lengkap kosong",
 			cmd:                func() user_service.UpdateSiswaCmd { c := validCmd(); c.NamaLengkap = strPtr(" "); return c }(),
 			actor:              adminActor,
 			txm:                &FakeTxManager{Tx: &FakeTx{}},
@@ -458,7 +458,7 @@ func TestUpdateSiswaBranchCoverage(t *testing.T) {
 			wantUpdateProfil:   false,
 		},
 		{
-			name:               "Branch 6 -> email tidak valid",
+			name:               "Path 6 -> email tidak valid",
 			cmd:                func() user_service.UpdateSiswaCmd { c := validCmd(); c.Email = strPtr("invalid"); return c }(),
 			actor:              adminActor,
 			txm:                &FakeTxManager{Tx: &FakeTx{}},
@@ -470,7 +470,7 @@ func TestUpdateSiswaBranchCoverage(t *testing.T) {
 			wantUpdateProfil:   false,
 		},
 		{
-			name:               "Branch 7 -> nisn tidak valid",
+			name:               "Path 7 -> nisn tidak valid",
 			cmd:                func() user_service.UpdateSiswaCmd { c := validCmd(); c.Nisn = strPtr("123"); return c }(),
 			actor:              adminActor,
 			txm:                &FakeTxManager{Tx: &FakeTx{}},
@@ -482,7 +482,7 @@ func TestUpdateSiswaBranchCoverage(t *testing.T) {
 			wantUpdateProfil:   false,
 		},
 		{
-			name:               "Branch 8 -> no absen tidak valid",
+			name:               "Path 8 -> no absen tidak valid",
 			cmd:                func() user_service.UpdateSiswaCmd { c := validCmd(); c.NoAbsen = intPtr(0); return c }(),
 			actor:              adminActor,
 			txm:                &FakeTxManager{Tx: &FakeTx{}},
@@ -494,7 +494,7 @@ func TestUpdateSiswaBranchCoverage(t *testing.T) {
 			wantUpdateProfil:   false,
 		},
 		{
-			name:               "Branch 9 -> angkatan tidak valid",
+			name:               "Path 9 -> angkatan tidak valid",
 			cmd:                func() user_service.UpdateSiswaCmd { c := validCmd(); c.Angkatan = intPtr(2000); return c }(),
 			actor:              adminActor,
 			txm:                &FakeTxManager{Tx: &FakeTx{}},
@@ -506,7 +506,7 @@ func TestUpdateSiswaBranchCoverage(t *testing.T) {
 			wantUpdateProfil:   false,
 		},
 		{
-			name: "Branch 10 -> tidak ada field yang diupdate",
+			name: "Path 10 -> tidak ada field yang diupdate",
 			cmd: func() user_service.UpdateSiswaCmd {
 				return user_service.UpdateSiswaCmd{IdPengguna: 10}
 			}(),
@@ -520,7 +520,7 @@ func TestUpdateSiswaBranchCoverage(t *testing.T) {
 			wantUpdateProfil:   false,
 		},
 		{
-			name:  "Branch 11 -> begin tx gagal",
+			name:  "Path 11 -> begin tx gagal",
 			cmd:   validCmd(),
 			actor: adminActor,
 			txm: &FakeTxManager{
@@ -538,7 +538,7 @@ func TestUpdateSiswaBranchCoverage(t *testing.T) {
 			wantUpdateProfil:   false,
 		},
 		{
-			name:  "Branch 12 -> update pengguna gagal",
+			name:  "Path 12 -> update pengguna gagal",
 			cmd:   validCmd(),
 			actor: adminActor,
 			txm: &FakeTxManager{Tx: &FakeTx{
@@ -553,7 +553,7 @@ func TestUpdateSiswaBranchCoverage(t *testing.T) {
 			wantUpdateProfil:   false,
 		},
 		{
-			name:  "Branch 13 -> update profil siswa gagal",
+			name:  "Path 13 -> update profil siswa gagal",
 			cmd:   validCmd(),
 			actor: adminActor,
 			txm: &FakeTxManager{Tx: &FakeTx{
@@ -568,7 +568,7 @@ func TestUpdateSiswaBranchCoverage(t *testing.T) {
 			wantUpdateProfil:   true,
 		},
 		{
-			name:  "Branch 14 -> commit gagal",
+			name:  "Path 14 -> commit gagal",
 			cmd:   validCmd(),
 			actor: adminActor,
 			txm: &FakeTxManager{Tx: &FakeTx{
@@ -584,7 +584,7 @@ func TestUpdateSiswaBranchCoverage(t *testing.T) {
 			wantUpdateProfil:   true,
 		},
 		{
-			name: "Branch 15 -> hanya update profil",
+			name: "Path 15 -> hanya update profil",
 			cmd: func() user_service.UpdateSiswaCmd {
 				c := validCmd()
 				c.Username = nil
@@ -609,7 +609,7 @@ func TestUpdateSiswaBranchCoverage(t *testing.T) {
 			wantUpdateProfil:   true,
 		},
 		{
-			name: "Branch 16 -> hanya update pengguna",
+			name: "Path 16 -> hanya update pengguna",
 			cmd: func() user_service.UpdateSiswaCmd {
 				c := validCmd()
 				c.IdTingkatKelas = nil
@@ -635,7 +635,7 @@ func TestUpdateSiswaBranchCoverage(t *testing.T) {
 			wantUsernameValue:  "siswauser",
 		},
 		{
-			name: "Branch 17 -> hanya update username",
+			name: "Path 17 -> hanya update username",
 			cmd: user_service.UpdateSiswaCmd{
 				IdPengguna: 10,
 				Username:   strPtr("siswaupdate"),
@@ -653,7 +653,7 @@ func TestUpdateSiswaBranchCoverage(t *testing.T) {
 			wantUsernameValue:  "siswaupdate",
 		},
 		{
-			name: "Branch 18 -> foto kosong diabaikan",
+			name: "Path 18 -> foto kosong diabaikan",
 			cmd: user_service.UpdateSiswaCmd{
 				IdPengguna: 10,
 				Foto:       strPtr(" "),
@@ -712,70 +712,70 @@ func TestUpdateSiswaBranchCoverage(t *testing.T) {
 	}
 }
 
-func TestUpdateGuru_DeleteFileErrorBranch(t *testing.T) {
+func TestUpdateUser_DeleteFileErrorBasisPath(t *testing.T) {
 	t.Parallel()
 
 	actor := user.Actor{IdPengguna: 1, Role: user.ADMIN}
 	fotoBaru := "foto-baru.png"
 	deleteFileErr := errors.New("delete file failed")
 
-	cmd := user_service.UpdateGuruCmd{
-		IdPengguna: 10,
-		Foto:       &fotoBaru,
+	tests := []struct {
+		name            string
+		runGuru         bool
+		wantDeletePath  string
+		wantFindID      user.ID
+	}{
+		{
+			name:           "Path 1 -> update guru gagal saat hapus foto lama",
+			runGuru:        true,
+			wantDeletePath: "foto-lama.png",
+			wantFindID:     10,
+		},
+		{
+			name:           "Path 2 -> update siswa gagal saat hapus foto lama",
+			runGuru:        false,
+			wantDeletePath: "foto-lama.png",
+			wantFindID:     10,
+		},
 	}
 
-	txm := &FakeTxManager{Tx: &FakeTx{
-		UserRepo:       &FakeUserRepo{},
-		ProfilGuruRepo: &FakeProfilGuruRepo{},
-	}}
-	sessionRepo := &FakeSessionRepo{}
-	deleteFileRepo := &FakeDeleteFileRepo{DeleteErr: deleteFileErr}
-	userRepo := &FakeUserRepo{
-		FindResult: user.Pengguna{ID: cmd.IdPengguna, Foto: "foto-lama.png"},
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			txm := &FakeTxManager{Tx: &FakeTx{
+				UserRepo:        &FakeUserRepo{},
+				ProfilGuruRepo:  &FakeProfilGuruRepo{},
+				ProfilSiswaRepo: &FakeProfilSiswaRepo{},
+			}}
+			sessionRepo := &FakeSessionRepo{}
+			deleteFileRepo := &FakeDeleteFileRepo{DeleteErr: deleteFileErr}
+			userRepo := &FakeUserRepo{
+				FindResult: user.Pengguna{ID: tc.wantFindID, Foto: "foto-lama.png"},
+			}
+			service := user_service.NewUpdateUserService(txm, sessionRepo, deleteFileRepo, userRepo)
+
+			var err error
+			if tc.runGuru {
+				err = service.UpdateGuru(context.Background(), user_service.UpdateGuruCmd{
+					IdPengguna: tc.wantFindID,
+					Foto:       &fotoBaru,
+				}, actor)
+			} else {
+				err = service.UpdateSiswa(context.Background(), user_service.UpdateSiswaCmd{
+					IdPengguna: tc.wantFindID,
+					Foto:       &fotoBaru,
+				}, actor)
+			}
+
+			assert.ErrorIs(t, err, deleteFileErr)
+			assert.True(t, userRepo.FindCalled)
+			assert.Equal(t, tc.wantFindID, userRepo.LastFindID)
+			assert.True(t, deleteFileRepo.DeleteCalled)
+			assert.Equal(t, tc.wantDeletePath, deleteFileRepo.LastPath)
+			assert.False(t, txm.BeginCalled)
+			assert.False(t, sessionRepo.RevokeAllCalled)
+		})
 	}
-	service := user_service.NewUpdateUserService(txm, sessionRepo, deleteFileRepo, userRepo)
-
-	err := service.UpdateGuru(context.Background(), cmd, actor)
-
-	assert.ErrorIs(t, err, deleteFileErr)
-	assert.True(t, userRepo.FindCalled)
-	assert.Equal(t, cmd.IdPengguna, userRepo.LastFindID)
-	assert.True(t, deleteFileRepo.DeleteCalled)
-	assert.Equal(t, "foto-lama.png", deleteFileRepo.LastPath)
-	assert.False(t, txm.BeginCalled)
-	assert.False(t, sessionRepo.RevokeAllCalled)
-}
-
-func TestUpdateSiswa_DeleteFileErrorBranch(t *testing.T) {
-	t.Parallel()
-
-	actor := user.Actor{IdPengguna: 1, Role: user.ADMIN}
-	fotoBaru := "foto-baru.png"
-	deleteFileErr := errors.New("delete file failed")
-
-	cmd := user_service.UpdateSiswaCmd{
-		IdPengguna: 10,
-		Foto:       &fotoBaru,
-	}
-
-	txm := &FakeTxManager{Tx: &FakeTx{
-		UserRepo:        &FakeUserRepo{},
-		ProfilSiswaRepo: &FakeProfilSiswaRepo{},
-	}}
-	sessionRepo := &FakeSessionRepo{}
-	deleteFileRepo := &FakeDeleteFileRepo{DeleteErr: deleteFileErr}
-	userRepo := &FakeUserRepo{
-		FindResult: user.Pengguna{ID: cmd.IdPengguna, Foto: "foto-lama.png"},
-	}
-	service := user_service.NewUpdateUserService(txm, sessionRepo, deleteFileRepo, userRepo)
-
-	err := service.UpdateSiswa(context.Background(), cmd, actor)
-
-	assert.ErrorIs(t, err, deleteFileErr)
-	assert.True(t, userRepo.FindCalled)
-	assert.Equal(t, cmd.IdPengguna, userRepo.LastFindID)
-	assert.True(t, deleteFileRepo.DeleteCalled)
-	assert.Equal(t, "foto-lama.png", deleteFileRepo.LastPath)
-	assert.False(t, txm.BeginCalled)
-	assert.False(t, sessionRepo.RevokeAllCalled)
 }

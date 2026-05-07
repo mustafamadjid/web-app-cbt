@@ -127,12 +127,7 @@ func runEssayGradingCases(t *testing.T, prefix string) {
 	}
 }
 
-func TestEssayGradingUjianService_BranchCoverage(t *testing.T) {
-	t.Parallel()
-	runEssayGradingCases(t, "branch ")
-}
-
 func TestEssayGradingUjianService_BasisPath(t *testing.T) {
 	t.Parallel()
-	runEssayGradingCases(t, "path ")
+	runEssayGradingCases(t, "Path ")
 }

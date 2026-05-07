@@ -169,12 +169,7 @@ func runSubmitUjianCases(t *testing.T, prefix string) {
 	}
 }
 
-func TestSubmitUjianService_BranchCoverage(t *testing.T) {
-	t.Parallel()
-	runSubmitUjianCases(t, "branch ")
-}
-
 func TestSubmitUjianService_BasisPath(t *testing.T) {
 	t.Parallel()
-	runSubmitUjianCases(t, "path ")
+	runSubmitUjianCases(t, "Path ")
 }

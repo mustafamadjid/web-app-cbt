@@ -217,12 +217,12 @@ func sampleJawabanAndSoal() ([]ujian.JawabanUjian, []ujian.SoalUjianSiswa) {
 	return jawaban, soal
 }
 
-func TestGradingUjianService_TotalScore_BranchCoverage(t *testing.T) {
+func TestGradingUjianService_TotalScore_BasisPath(t *testing.T) {
 	t.Parallel()
 
 	svc := newGradingService(&fakeGradingJawabanRepo{}, &fakeGradingSoalRepo{}, &fakeGradingBankSoalRepo{}, &fakeGradingUjianRepo{}, &fakeGradingRepo{})
 
-	t.Run("branch 1 -> soal ujian kosong", func(t *testing.T) {
+	t.Run("Path 1 -> soal ujian kosong", func(t *testing.T) {
 		total, benar, salah, err := svc.TotalScore([]ujian.JawabanUjian{}, nil, 99)
 
 		assert.ErrorIs(t, err, coreerror.ErrArrayHasNoElement)
@@ -231,7 +231,7 @@ func TestGradingUjianService_TotalScore_BranchCoverage(t *testing.T) {
 		assert.Nil(t, salah)
 	})
 
-	t.Run("branch 2 -> hitung total nilai benar dan salah", func(t *testing.T) {
+	t.Run("Path 2 -> hitung total nilai benar dan salah", func(t *testing.T) {
 		jawaban, soal := sampleJawabanAndSoal()
 
 		total, benar, salah, err := svc.TotalScore(jawaban, soal, 99)
@@ -242,7 +242,7 @@ func TestGradingUjianService_TotalScore_BranchCoverage(t *testing.T) {
 		assert.Equal(t, []ujian.StatistikSoal{{IDSoal: 12, IDUjian: 99}}, salah)
 	})
 
-	t.Run("branch 3 -> jawaban tanpa pilihan diabaikan", func(t *testing.T) {
+	t.Run("Path 3 -> jawaban tanpa pilihan diabaikan", func(t *testing.T) {
 		_, soal := sampleJawabanAndSoal()
 		jawaban := []ujian.JawabanUjian{{IdSoal: 11}}
 
@@ -255,10 +255,10 @@ func TestGradingUjianService_TotalScore_BranchCoverage(t *testing.T) {
 	})
 }
 
-func TestGradingUjianService_UpsertingToStatistikSoal_BranchCoverage(t *testing.T) {
+func TestGradingUjianService_UpsertingToStatistikSoal_BasisPath(t *testing.T) {
 	t.Parallel()
 
-	t.Run("branch 1 -> upsert jawaban benar gagal", func(t *testing.T) {
+	t.Run("Path 1 -> upsert jawaban benar gagal", func(t *testing.T) {
 		repoErr := errors.New("upsert benar gagal")
 		repo := &fakeGradingRepo{upsertBenarErr: repoErr}
 		svc := newGradingService(&fakeGradingJawabanRepo{}, &fakeGradingSoalRepo{}, &fakeGradingBankSoalRepo{}, &fakeGradingUjianRepo{}, repo)
@@ -270,7 +270,7 @@ func TestGradingUjianService_UpsertingToStatistikSoal_BranchCoverage(t *testing.
 		assert.False(t, repo.upsertSalahCalled)
 	})
 
-	t.Run("branch 2 -> upsert jawaban salah gagal", func(t *testing.T) {
+	t.Run("Path 2 -> upsert jawaban salah gagal", func(t *testing.T) {
 		repoErr := errors.New("upsert salah gagal")
 		repo := &fakeGradingRepo{upsertSalahErr: repoErr}
 		svc := newGradingService(&fakeGradingJawabanRepo{}, &fakeGradingSoalRepo{}, &fakeGradingBankSoalRepo{}, &fakeGradingUjianRepo{}, repo)
@@ -282,7 +282,7 @@ func TestGradingUjianService_UpsertingToStatistikSoal_BranchCoverage(t *testing.
 		assert.True(t, repo.upsertSalahCalled)
 	})
 
-	t.Run("branch 3 -> statistik kosong tidak memanggil repo", func(t *testing.T) {
+	t.Run("Path 3 -> statistik kosong tidak memanggil repo", func(t *testing.T) {
 		repo := &fakeGradingRepo{}
 		svc := newGradingService(&fakeGradingJawabanRepo{}, &fakeGradingSoalRepo{}, &fakeGradingBankSoalRepo{}, &fakeGradingUjianRepo{}, repo)
 
@@ -319,7 +319,7 @@ func TestGradingUjianService_BasisPath(t *testing.T) {
 		assertResult func(t *testing.T, repo *fakeGradingRepo)
 	}{
 		{
-			name:        "path 1 -> id attempt tidak valid",
+			name:        "Path 1 -> id attempt tidak valid",
 			idAttempt:   0,
 			jawabanRepo: &fakeGradingJawabanRepo{},
 			soalRepo:    &fakeGradingSoalRepo{},
@@ -329,7 +329,7 @@ func TestGradingUjianService_BasisPath(t *testing.T) {
 			wantErr:     coreerror.ErrMissingId,
 		},
 		{
-			name:        "path 2 -> get jawaban ujian gagal",
+			name:        "Path 2 -> get jawaban ujian gagal",
 			idAttempt:   21,
 			jawabanRepo: &fakeGradingJawabanRepo{getErr: jawabanRepoErr},
 			soalRepo:    &fakeGradingSoalRepo{},
@@ -339,7 +339,7 @@ func TestGradingUjianService_BasisPath(t *testing.T) {
 			wantErr:     jawabanRepoErr,
 		},
 		{
-			name:        "path 3 -> get id bank soal gagal",
+			name:        "Path 3 -> get id bank soal gagal",
 			idAttempt:   21,
 			jawabanRepo: &fakeGradingJawabanRepo{getRet: jawaban},
 			soalRepo:    &fakeGradingSoalRepo{},
@@ -349,7 +349,7 @@ func TestGradingUjianService_BasisPath(t *testing.T) {
 			wantErr:     bankRepoErr,
 		},
 		{
-			name:        "path 4 -> get soal ujian gagal",
+			name:        "Path 4 -> get soal ujian gagal",
 			idAttempt:   21,
 			jawabanRepo: &fakeGradingJawabanRepo{getRet: jawaban},
 			soalRepo:    &fakeGradingSoalRepo{getErr: soalRepoErr},
@@ -359,7 +359,7 @@ func TestGradingUjianService_BasisPath(t *testing.T) {
 			wantErr:     soalRepoErr,
 		},
 		{
-			name:        "path 5 -> get id ujian gagal",
+			name:        "Path 5 -> get id ujian gagal",
 			idAttempt:   21,
 			jawabanRepo: &fakeGradingJawabanRepo{getRet: jawaban},
 			soalRepo:    &fakeGradingSoalRepo{getRet: soal},
@@ -369,7 +369,7 @@ func TestGradingUjianService_BasisPath(t *testing.T) {
 			wantErr:     ujianRepoErr,
 		},
 		{
-			name:        "path 6 -> total score gagal karena soal kosong",
+			name:        "Path 6 -> total score gagal karena soal kosong",
 			idAttempt:   21,
 			jawabanRepo: &fakeGradingJawabanRepo{getRet: jawaban},
 			soalRepo:    &fakeGradingSoalRepo{getRet: []ujian.SoalUjianSiswa{}},
@@ -379,7 +379,7 @@ func TestGradingUjianService_BasisPath(t *testing.T) {
 			wantErr:     coreerror.ErrArrayHasNoElement,
 		},
 		{
-			name:        "path 7 -> upsert nilai hasil ujian gagal",
+			name:        "Path 7 -> upsert nilai hasil ujian gagal",
 			idAttempt:   21,
 			jawabanRepo: &fakeGradingJawabanRepo{getRet: jawaban},
 			soalRepo:    &fakeGradingSoalRepo{getRet: soal},
@@ -389,7 +389,7 @@ func TestGradingUjianService_BasisPath(t *testing.T) {
 			wantErr:     upsertNilaiErr,
 		},
 		{
-			name:        "path 8 -> upsert statistik benar gagal",
+			name:        "Path 8 -> upsert statistik benar gagal",
 			idAttempt:   21,
 			jawabanRepo: &fakeGradingJawabanRepo{getRet: jawaban},
 			soalRepo:    &fakeGradingSoalRepo{getRet: soal},
@@ -399,7 +399,7 @@ func TestGradingUjianService_BasisPath(t *testing.T) {
 			wantErr:     upsertBenarErr,
 		},
 		{
-			name:        "path 9 -> upsert statistik salah gagal",
+			name:        "Path 9 -> upsert statistik salah gagal",
 			idAttempt:   21,
 			jawabanRepo: &fakeGradingJawabanRepo{getRet: jawaban},
 			soalRepo:    &fakeGradingSoalRepo{getRet: soal},
@@ -409,7 +409,7 @@ func TestGradingUjianService_BasisPath(t *testing.T) {
 			wantErr:     upsertSalahErr,
 		},
 		{
-			name:        "path 10 -> berhasil grading ujian pilihan ganda",
+			name:        "Path 10 -> berhasil grading ujian pilihan ganda",
 			idAttempt:   21,
 			jawabanRepo: &fakeGradingJawabanRepo{getRet: jawaban},
 			soalRepo:    &fakeGradingSoalRepo{getRet: soal},

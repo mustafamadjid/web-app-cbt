@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDeleteAttemptUjianService_BranchCoverage(t *testing.T) {
+func TestDeleteAttemptUjianService_BasisPath(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -25,21 +25,21 @@ func TestDeleteAttemptUjianService_BranchCoverage(t *testing.T) {
 		wantDelete bool
 	}{
 		{
-			name:       "Branch 1 -> idAttempt <= 0",
+			name:       "Path 1 -> id attempt tidak valid",
 			idAttempt:  0,
 			repo:       &FakeAttemptUjianRepo{},
 			wantErr:    coreerror.ErrMissingId,
 			wantDelete: false,
 		},
 		{
-			name:       "Branch 2 -> repo DeleteAttemptUjian error",
+			name:       "Path 2 -> repo delete attempt gagal",
 			idAttempt:  10,
 			repo:       &FakeAttemptUjianRepo{DeleteAttemptUjianErr: repoErr},
 			wantErr:    repoErr,
 			wantDelete: true,
 		},
 		{
-			name:       "Branch 3 -> berhasil delete attempt ujian",
+			name:       "Path 3 -> berhasil delete attempt ujian",
 			idAttempt:  10,
 			repo:       &FakeAttemptUjianRepo{},
 			wantDelete: true,

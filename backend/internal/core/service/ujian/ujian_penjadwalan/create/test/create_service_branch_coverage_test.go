@@ -67,7 +67,7 @@ func baseCreateUjianData() ujian.PenjadwalanUjian {
 	}
 }
 
-func TestCreateUjianService_BranchCoverage(t *testing.T) {
+func TestCreateUjianService_BasisPathValidation(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -82,7 +82,7 @@ func TestCreateUjianService_BranchCoverage(t *testing.T) {
 		assertData func(t *testing.T, repo *fakeCreateUjianRepo)
 	}{
 		{
-			name: "branch 1 -> id utama ujian tidak valid",
+			name: "Path 1 -> id utama ujian tidak valid",
 			data: func() ujian.PenjadwalanUjian {
 				item := baseCreateUjianData()
 				item.Ujian.IdBankSoal = 0
@@ -93,7 +93,7 @@ func TestCreateUjianService_BranchCoverage(t *testing.T) {
 			wantCalled: false,
 		},
 		{
-			name: "branch 2 -> id nama kelas opsional tidak valid",
+			name: "Path 2 -> id nama kelas opsional tidak valid",
 			data: func() ujian.PenjadwalanUjian {
 				item := baseCreateUjianData()
 				invalid := ujian.ID(0)
@@ -105,7 +105,7 @@ func TestCreateUjianService_BranchCoverage(t *testing.T) {
 			wantCalled: false,
 		},
 		{
-			name: "branch 3 -> nama ujian kosong setelah trim",
+			name: "Path 3 -> nama ujian kosong setelah trim",
 			data: func() ujian.PenjadwalanUjian {
 				item := baseCreateUjianData()
 				item.Ujian.NamaUjian = "   "
@@ -116,7 +116,7 @@ func TestCreateUjianService_BranchCoverage(t *testing.T) {
 			wantCalled: false,
 		},
 		{
-			name: "branch 4 -> waktu mulai tidak sebelum waktu selesai",
+			name: "Path 4 -> waktu mulai tidak sebelum waktu selesai",
 			data: func() ujian.PenjadwalanUjian {
 				item := baseCreateUjianData()
 				item.JadwalUjian.WaktuMulai = item.JadwalUjian.WaktuSelesai
@@ -127,7 +127,7 @@ func TestCreateUjianService_BranchCoverage(t *testing.T) {
 			wantCalled: false,
 		},
 		{
-			name: "branch 5 -> token kosong setelah trim",
+			name: "Path 5 -> token kosong setelah trim",
 			data: func() ujian.PenjadwalanUjian {
 				item := baseCreateUjianData()
 				item.JadwalUjian.Token = "   "
@@ -138,7 +138,7 @@ func TestCreateUjianService_BranchCoverage(t *testing.T) {
 			wantCalled: false,
 		},
 		{
-			name: "branch 6 -> status ujian tidak valid",
+			name: "Path 6 -> status ujian tidak valid",
 			data: func() ujian.PenjadwalanUjian {
 				item := baseCreateUjianData()
 				item.JadwalUjian.StatusUjian = ujian.StatusUjian("selain-valid")
@@ -149,7 +149,7 @@ func TestCreateUjianService_BranchCoverage(t *testing.T) {
 			wantCalled: false,
 		},
 		{
-			name: "branch 7 -> repo create ujian gagal",
+			name: "Path 7 -> repo create ujian gagal",
 			data: baseCreateUjianData(),
 			repo: &fakeCreateUjianRepo{
 				createErr: repoErr,
@@ -166,7 +166,7 @@ func TestCreateUjianService_BranchCoverage(t *testing.T) {
 			},
 		},
 		{
-			name:       "branch 8 -> berhasil create ujian",
+			name:       "Path 8 -> berhasil create ujian",
 			data:       baseCreateUjianData(),
 			repo:       &fakeCreateUjianRepo{},
 			wantCalled: true,

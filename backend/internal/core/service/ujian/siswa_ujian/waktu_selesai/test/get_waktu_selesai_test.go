@@ -37,7 +37,7 @@ func (*fakeWaktuSelesaiRepo) GetActiveUjianAttemptBySiswa(context.Context, int, 
 	return ujian.AttemptUjian{}, nil
 }
 
-func TestGetWaktuSelesaiService_BranchCoverage(t *testing.T) {
+func TestGetWaktuSelesaiService_BasisPath(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -53,21 +53,21 @@ func TestGetWaktuSelesaiService_BranchCoverage(t *testing.T) {
 		wantTime   time.Time
 	}{
 		{
-			name:       "branch 1 -> id jadwal ujian tidak valid",
+			name:       "Path 1 -> id jadwal ujian tidak valid",
 			idJadwal:   0,
 			repo:       &fakeWaktuSelesaiRepo{},
 			wantErr:    coreerror.ErrMissingId,
 			wantCalled: false,
 		},
 		{
-			name:       "branch 2 -> repo get waktu selesai gagal",
+			name:       "Path 2 -> repo get waktu selesai gagal",
 			idJadwal:   17,
 			repo:       &fakeWaktuSelesaiRepo{getErr: repoErr},
 			wantErr:    repoErr,
 			wantCalled: true,
 		},
 		{
-			name:       "branch 3 -> berhasil get waktu selesai",
+			name:       "Path 3 -> berhasil get waktu selesai",
 			idJadwal:   17,
 			repo:       &fakeWaktuSelesaiRepo{getRet: expected},
 			wantCalled: true,

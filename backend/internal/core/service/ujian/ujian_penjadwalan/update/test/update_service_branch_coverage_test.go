@@ -80,7 +80,7 @@ func validUpdatePayload() updatepatch.UpdatePenjadwalanUjian {
 	}
 }
 
-func TestUpdateUjianService_BranchCoverage(t *testing.T) {
+func TestUpdateUjianService_BasisPathValidation(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -96,7 +96,7 @@ func TestUpdateUjianService_BranchCoverage(t *testing.T) {
 		assertPatch func(t *testing.T, repo *fakeUpdateUjianRepo)
 	}{
 		{
-			name:       "branch 1 -> tidak ada field untuk diupdate",
+			name:       "Path 1 -> tidak ada field untuk diupdate",
 			id:         10,
 			payload:    updatepatch.UpdatePenjadwalanUjian{},
 			repo:       &fakeUpdateUjianRepo{},
@@ -104,7 +104,7 @@ func TestUpdateUjianService_BranchCoverage(t *testing.T) {
 			wantCalled: false,
 		},
 		{
-			name:       "branch 2 -> id ujian service tidak valid",
+			name:       "Path 2 -> id ujian service tidak valid",
 			id:         0,
 			payload:    validUpdatePayload(),
 			repo:       &fakeUpdateUjianRepo{},
@@ -112,7 +112,7 @@ func TestUpdateUjianService_BranchCoverage(t *testing.T) {
 			wantCalled: false,
 		},
 		{
-			name: "branch 3 -> id patch ujian tidak valid",
+			name: "Path 3 -> id patch ujian tidak valid",
 			id:   10,
 			payload: func() updatepatch.UpdatePenjadwalanUjian {
 				payload := validUpdatePayload()
@@ -124,7 +124,7 @@ func TestUpdateUjianService_BranchCoverage(t *testing.T) {
 			wantCalled: false,
 		},
 		{
-			name: "branch 4 -> id patch jadwal tidak valid",
+			name: "Path 4 -> id patch jadwal tidak valid",
 			id:   10,
 			payload: func() updatepatch.UpdatePenjadwalanUjian {
 				payload := validUpdatePayload()
@@ -136,7 +136,7 @@ func TestUpdateUjianService_BranchCoverage(t *testing.T) {
 			wantCalled: false,
 		},
 		{
-			name: "branch 5 -> nama ujian kosong setelah trim",
+			name: "Path 5 -> nama ujian kosong setelah trim",
 			id:   10,
 			payload: func() updatepatch.UpdatePenjadwalanUjian {
 				payload := validUpdatePayload()
@@ -148,7 +148,7 @@ func TestUpdateUjianService_BranchCoverage(t *testing.T) {
 			wantCalled: false,
 		},
 		{
-			name: "branch 6 -> token kosong setelah trim",
+			name: "Path 6 -> token kosong setelah trim",
 			id:   10,
 			payload: func() updatepatch.UpdatePenjadwalanUjian {
 				payload := validUpdatePayload()
@@ -160,7 +160,7 @@ func TestUpdateUjianService_BranchCoverage(t *testing.T) {
 			wantCalled: false,
 		},
 		{
-			name: "branch 7 -> status ujian tidak valid",
+			name: "Path 7 -> status ujian tidak valid",
 			id:   10,
 			payload: func() updatepatch.UpdatePenjadwalanUjian {
 				payload := validUpdatePayload()
@@ -172,7 +172,7 @@ func TestUpdateUjianService_BranchCoverage(t *testing.T) {
 			wantCalled: false,
 		},
 		{
-			name: "branch 8 -> waktu jadwal tidak valid",
+			name: "Path 8 -> waktu jadwal tidak valid",
 			id:   10,
 			payload: func() updatepatch.UpdatePenjadwalanUjian {
 				payload := validUpdatePayload()
@@ -187,7 +187,7 @@ func TestUpdateUjianService_BranchCoverage(t *testing.T) {
 			wantCalled: false,
 		},
 		{
-			name:       "branch 9 -> repo update ujian gagal",
+			name:       "Path 9 -> repo update ujian gagal",
 			id:         10,
 			payload:    validUpdatePayload(),
 			repo:       &fakeUpdateUjianRepo{updateErr: repoErr},
@@ -206,7 +206,7 @@ func TestUpdateUjianService_BranchCoverage(t *testing.T) {
 			},
 		},
 		{
-			name:       "branch 10 -> berhasil update ujian",
+			name:       "Path 10 -> berhasil update ujian",
 			id:         10,
 			payload:    validUpdatePayload(),
 			repo:       &fakeUpdateUjianRepo{},

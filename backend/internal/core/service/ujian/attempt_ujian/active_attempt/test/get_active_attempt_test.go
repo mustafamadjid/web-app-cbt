@@ -113,12 +113,7 @@ func runGetActiveAttemptCases(t *testing.T, prefix string) {
 	}
 }
 
-func TestGetActiveAttemptUjianService_BranchCoverage(t *testing.T) {
-	t.Parallel()
-	runGetActiveAttemptCases(t, "branch ")
-}
-
 func TestGetActiveAttemptUjianService_BasisPath(t *testing.T) {
 	t.Parallel()
-	runGetActiveAttemptCases(t, "path ")
+	runGetActiveAttemptCases(t, "Path ")
 }
