@@ -15,6 +15,8 @@ type Inline struct {
 	Marks   []Mark `json:"marks,omitempty"`
 	Latex   string `json:"latex,omitempty"`
 	Display string `json:"display,omitempty"`
+	Src     string `json:"src,omitempty"`
+	Alt     string `json:"alt,omitempty"`
 }
 
 type Block struct {
@@ -66,6 +68,10 @@ func (c RichContent) Empty() bool {
 				}
 			case "math":
 				if strings.TrimSpace(child.Latex) != "" {
+					return false
+				}
+			case "image":
+				if strings.TrimSpace(child.Src) != "" {
 					return false
 				}
 			}

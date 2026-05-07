@@ -309,12 +309,41 @@ func ValidateParsedSoal(soalList []importsoal.ParsedSoal) error {
 	return nil
 }
 
-// isOptionMarker checks if a line starts with [A], [B], [C], [D], or [E]
-func isOptionMarker(upper string) bool {
-	for _, label := range []string{"[A]", "[B]", "[C]", "[D]", "[E]"} {
-		if strings.HasPrefix(upper, label) {
-			return true
+// optionMarkerInfo checks whether a line starts with an option marker.
+// It accepts the canonical "[A]" format and common exported-list variants
+// like "A. [A]" where Word keeps both the visual list label and marker text.
+func optionMarkerInfo(text string) (string, int, bool) {
+	trimmed := strings.TrimLeft(text, " \t")
+	leadingLen := len([]rune(text)) - len([]rune(trimmed))
+	markerIdx := strings.Index(trimmed, "[")
+	if markerIdx < 0 {
+		return "", 0, false
+	}
+
+	prefix := strings.TrimSpace(trimmed[:markerIdx])
+	marker := strings.ToUpper(trimmed[markerIdx:])
+	if len(marker) < len("[A]") || marker[0] != '[' || marker[2] != ']' {
+		return "", 0, false
+	}
+
+	label := string(marker[1])
+	if !strings.Contains("ABCDE", label) {
+		return "", 0, false
+	}
+
+	if prefix != "" {
+		allowed := map[string]bool{
+			label:       true,
+			label + ".": true,
+			label + ")": true,
+			label + ":": true,
+			label + "-": true,
+		}
+		if !allowed[strings.ToUpper(prefix)] {
+			return "", 0, false
 		}
 	}
-	return false
+
+	prefixLen := leadingLen + len([]rune(trimmed[:markerIdx])) + len("[A]")
+	return label, prefixLen, true
 }

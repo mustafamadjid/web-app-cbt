@@ -11,6 +11,7 @@ import (
 	"time"
 
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
+	content "github.com/mustafamadjid/web-app-cbt/internal/core/domain/content"
 	importsoal "github.com/mustafamadjid/web-app-cbt/internal/core/domain/import_soal"
 	importsoal_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/import_soal"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
@@ -203,6 +204,10 @@ func (w *Worker) saveImages(docxData []byte, soalList []importsoal.ParsedSoal) e
 		if s.Gambar != "" {
 			needed[s.Gambar] = true
 		}
+		collectRichContentImages(s.PertanyaanContent, needed)
+		for _, opsi := range s.Opsi {
+			collectRichContentImages(opsi.IsiContent, needed)
+		}
 	}
 	if len(needed) == 0 {
 		return nil
@@ -219,12 +224,8 @@ func (w *Worker) saveImages(docxData []byte, soalList []importsoal.ParsedSoal) e
 		return fmt.Errorf("mkdir %s: %w", w.imageDir, err)
 	}
 
-	// Save referenced images and update soal gambar paths
-	for i := range soalList {
-		if soalList[i].Gambar == "" {
-			continue
-		}
-		imgName := soalList[i].Gambar
+	// Save referenced images once.
+	for imgName := range needed {
 		imgData, ok := images[imgName]
 		if !ok {
 			return fmt.Errorf("gambar %q tidak ditemukan di dalam file docx", imgName)
@@ -234,10 +235,43 @@ func (w *Worker) saveImages(docxData []byte, soalList []importsoal.ParsedSoal) e
 		if err := os.WriteFile(dstPath, imgData, 0o644); err != nil {
 			return fmt.Errorf("write image %s: %w", imgName, err)
 		}
+	}
 
-		// Update path to relative route
-		soalList[i].Gambar = strings.TrimRight(w.imageRoute, "/") + "/" + imgName
+	routePrefix := strings.TrimRight(w.imageRoute, "/")
+	for i := range soalList {
+		if soalList[i].Gambar != "" {
+			soalList[i].Gambar = routePrefix + "/" + soalList[i].Gambar
+		}
+		rewriteRichContentImages(&soalList[i].PertanyaanContent, routePrefix)
+		for j := range soalList[i].Opsi {
+			rewriteRichContentImages(&soalList[i].Opsi[j].IsiContent, routePrefix)
+		}
 	}
 
 	return nil
+}
+
+func collectRichContentImages(value content.RichContent, needed map[string]bool) {
+	for _, block := range value.Blocks {
+		for _, child := range block.Children {
+			if child.Type == "image" && strings.TrimSpace(child.Src) != "" {
+				needed[child.Src] = true
+			}
+		}
+	}
+}
+
+func rewriteRichContentImages(value *content.RichContent, routePrefix string) {
+	if value == nil {
+		return
+	}
+	for blockIdx := range value.Blocks {
+		for childIdx := range value.Blocks[blockIdx].Children {
+			child := &value.Blocks[blockIdx].Children[childIdx]
+			if child.Type != "image" || strings.TrimSpace(child.Src) == "" {
+				continue
+			}
+			child.Src = routePrefix + "/" + child.Src
+		}
+	}
 }

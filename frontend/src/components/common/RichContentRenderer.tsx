@@ -7,6 +7,7 @@ import {
   type RichContent,
   type RichInline,
 } from "@/types/Content/RichContent";
+import { resolveImageUrl } from "@/helper/MediaUrl/resolveMediaUrl";
 
 type RichContentRendererProps = {
   content?: RichContent | null;
@@ -30,6 +31,23 @@ function renderInlineContent(item: RichInline, key: string, inlineClassName: str
         key={key}
         className={item.display === "block" ? "block overflow-x-auto py-1" : inlineClassName}
         dangerouslySetInnerHTML={{ __html: html }}
+      />
+    );
+  }
+
+  if (item.type === "image") {
+    const src = resolveImageUrl(item.src);
+    if (!src) {
+      return null;
+    }
+
+    return (
+      <img
+        key={key}
+        src={src}
+        alt={item.alt ?? ""}
+        className="my-2 inline-block max-h-64 max-w-full rounded border border-slate-200 object-contain align-middle"
+        loading="lazy"
       />
     );
   }

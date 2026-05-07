@@ -10,6 +10,11 @@ export type RichInline =
       type: "math";
       latex: string;
       display?: "inline" | "block";
+    }
+  | {
+      type: "image";
+      src: string;
+      alt?: string;
     };
 
 export type RichBlock = {
@@ -25,4 +30,3 @@ export type RichContent = {
 export function hasRichContent(value: RichContent | null | undefined): value is RichContent {
   return Boolean(value && Array.isArray(value.blocks) && value.blocks.length > 0);
 }
-

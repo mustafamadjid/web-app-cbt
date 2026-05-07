@@ -62,6 +62,10 @@ func ParseMarkersFromContent(paragraphs []content.RichContent, docxDataForAutoIm
 		return nil, nil, fmt.Errorf("auto IMG mapping failed: %w", err)
 	}
 	imgIdx := 0
+	imgSet := make(map[string]struct{}, len(imgQueue))
+	for _, name := range imgQueue {
+		imgSet[name] = struct{}{}
+	}
 	nextImage := func() (string, bool) {
 		if imgIdx >= len(imgQueue) {
 			return "", false
@@ -69,6 +73,15 @@ func ParseMarkersFromContent(paragraphs []content.RichContent, docxDataForAutoIm
 		name := imgQueue[imgIdx]
 		imgIdx++
 		return name, true
+	}
+	imageExists := func(name string) bool {
+		_, ok := imgSet[name]
+		return ok
+	}
+	consumeImageIfNext := func(name string) {
+		if imgIdx < len(imgQueue) && imgQueue[imgIdx] == name {
+			imgIdx++
+		}
 	}
 
 	flushCurrent := func() {
@@ -132,6 +145,35 @@ func ParseMarkersFromContent(paragraphs []content.RichContent, docxDataForAutoIm
 		return nil
 	}
 
+	parseOptionContent := func(block content.RichContent) (content.RichContent, error) {
+		block = trimLeadingWhitespaceContent(block)
+		if !strings.HasPrefix(strings.ToUpper(strings.TrimSpace(block.PlainText())), "[IMG]") {
+			return block, nil
+		}
+
+		imageBody := trimContentPrefix(block, len("[IMG]"))
+		imageBody = trimLeadingWhitespaceContent(imageBody)
+		rawBody := strings.TrimSpace(imageBody.PlainText())
+
+		src, captionContent, err := imageContentParts(rawBody, imageBody, nextImage, imageExists, consumeImageIfNext)
+		if err != nil {
+			return content.RichContent{}, err
+		}
+
+		imageBlock := content.Block{
+			Type: "paragraph",
+			Children: []content.Inline{
+				{Type: "image", Src: src, Alt: captionContent.PlainText()},
+			},
+		}
+		imageContent := content.RichContent{
+			Version: 1,
+			Blocks:  []content.Block{imageBlock},
+		}
+		appendContent(&imageContent, captionContent)
+		return imageContent, nil
+	}
+
 	parseWeight := func(raw string) (float64, error) {
 		return parseWeightValue(raw)
 	}
@@ -155,6 +197,7 @@ func ParseMarkersFromContent(paragraphs []content.RichContent, docxDataForAutoIm
 			continue
 		}
 		upper := strings.ToUpper(trimmed)
+		optionLabel, markerPrefixLen, isOption := optionMarkerInfo(trimmed)
 
 		switch {
 		case strings.HasPrefix(upper, "[Q:PG]"):
@@ -183,12 +226,16 @@ func ParseMarkersFromContent(paragraphs []content.RichContent, docxDataForAutoIm
 			mode = modeQuestion
 			lastOptLabel = ""
 
-		case isOptionMarker(upper):
+		case isOption:
 			if current == nil {
 				return nil, warnings, fmt.Errorf("baris %d: opsi ditemukan tanpa soal aktif", i+1)
 			}
-			label := strings.ToUpper(string(trimmed[1]))
-			textContent := trimContentPrefix(paragraph, len("[A]"))
+			label := optionLabel
+			textContent := trimContentPrefix(paragraph, markerPrefixLen)
+			textContent, err := parseOptionContent(textContent)
+			if err != nil {
+				return nil, warnings, fmt.Errorf("baris %d: %w", i+1, err)
+			}
 
 			mode = modeOption
 			lastOptLabel = label
@@ -210,6 +257,16 @@ func ParseMarkersFromContent(paragraphs []content.RichContent, docxDataForAutoIm
 		case strings.HasPrefix(upper, "[IMG]"):
 			if current == nil {
 				return nil, warnings, fmt.Errorf("baris %d: [IMG] ditemukan tanpa soal aktif", i+1)
+			}
+			if mode == modeOption && lastOptLabel != "" {
+				textContent, err := parseOptionContent(paragraph)
+				if err != nil {
+					return nil, warnings, fmt.Errorf("baris %d: %w", i+1, err)
+				}
+				if err := appendOption(lastOptLabel, textContent); err != nil {
+					return nil, warnings, fmt.Errorf("baris %d: %w", i+1, err)
+				}
+				break
 			}
 			mode = modeImg
 			raw := strings.TrimSpace(trimContentPrefix(paragraph, len("[IMG]")).PlainText())
@@ -638,6 +695,47 @@ func marksFromRun(node xmlNode) []content.Mark {
 		return []content.Mark{content.MarkSub}
 	default:
 		return nil
+	}
+}
+
+func imageContentParts(
+	rawBody string,
+	bodyContent content.RichContent,
+	nextImage func() (string, bool),
+	imageExists func(string) bool,
+	consumeImageIfNext func(string),
+) (string, content.RichContent, error) {
+	if filename, ok := leadingImageFilename(rawBody); ok {
+		if !imageExists(filename) {
+			return "", content.RichContent{}, fmt.Errorf("gambar %q tidak ditemukan di dalam file docx", filename)
+		}
+		consumeImageIfNext(filename)
+		return filename, trimContentPrefix(bodyContent, len(filename)), nil
+	}
+
+	name, ok := nextImage()
+	if !ok {
+		return "", content.RichContent{}, fmt.Errorf("[IMG] tetapi tidak ada gambar tersisa di dokumen")
+	}
+	return name, bodyContent, nil
+}
+
+func leadingImageFilename(raw string) (string, bool) {
+	fields := strings.Fields(strings.TrimSpace(raw))
+	if len(fields) == 0 {
+		return "", false
+	}
+	name := fields[0]
+	lower := strings.ToLower(name)
+	switch {
+	case strings.HasSuffix(lower, ".png"),
+		strings.HasSuffix(lower, ".jpg"),
+		strings.HasSuffix(lower, ".jpeg"),
+		strings.HasSuffix(lower, ".gif"),
+		strings.HasSuffix(lower, ".webp"):
+		return name, true
+	default:
+		return "", false
 	}
 }
 
