@@ -3,6 +3,7 @@ package user_service
 import (
 	"context"
 	"errors"
+
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/port/out"
@@ -126,10 +127,7 @@ func (u *UpdateTx) UpdateGuru(ctx context.Context, cmd UpdateGuruCmd, actor user
 		return err
 	}
 
-	if err := u.sessions.RevokeSessionAllbyUser(ctx, cmd.IdPengguna); err != nil {
-		logger.Error(ctx, "failed revoking sessions", "layer", "core.service", "op", "user.update_guru", "user_id", cmd.IdPengguna, "err", err)
-		return err
-	}
+	
 	return nil
 }
 
@@ -221,11 +219,6 @@ func (u *UpdateTx) UpdateSiswa(ctx context.Context, cmd UpdateSiswaCmd, actor us
 
 	if err := tx.Commit(); err != nil {
 		logger.Error(ctx, "failed committing transaction", "layer", "core.service", "op", "user.update_siswa", "user_id", cmd.IdPengguna, "err", err)
-		return err
-	}
-
-	if err := u.sessions.RevokeSessionAllbyUser(ctx, cmd.IdPengguna); err != nil {
-		logger.Error(ctx, "failed revoking sessions", "layer", "core.service", "op", "user.update_guru", "user_id", cmd.IdPengguna, "err", err)
 		return err
 	}
 	return nil
