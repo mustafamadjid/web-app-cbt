@@ -1,0 +1,6 @@
+node_modules/
+.env.e2e
+artifacts/screenshots/*
+artifacts/downloads/*
+!artifacts/screenshots/.gitkeep
+!artifacts/downloads/.gitkeep

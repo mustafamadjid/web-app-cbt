@@ -88,6 +88,7 @@ func BuildHTTPModule(deps HTTPDeps) *HTTPModule {
 			ListUjianEssayUngradedHandler:    deps.Ujian.ListUjianEssayUngradedHandler,
 			ListUjianSelesaiSiswaHandler:     deps.Ujian.ListUjianSelesaiSiswaHandler,
 			GetStatistikUjianHandler:         deps.Ujian.GetStatistikUjianHandler,
+			AnalisisSoalHandler:              deps.Ujian.AnalisisSoalHandler,
 			CreateUjianHandler:               deps.Ujian.CreateUjianHandler,
 			ListHandler:                      deps.Ujian.ListHandler,
 			ListUjianSiswaHandler:            deps.Ujian.ListUjianSiswaHandler,

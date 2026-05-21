@@ -31,6 +31,7 @@ import (
 	sesidelete "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/sesi/delete"
 	sesiget "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/sesi/get"
 	sesiupdate "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/sesi/update"
+	ujiananalisissoal "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/analisis_soal"
 	ujianactiveattempt "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/attempt_ujian/active_attempt"
 	ujiancreateattempt "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/attempt_ujian/attempt/create"
 	ujianexpireattempt "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/features/ujian/attempt_ujian/attempt/expire"
@@ -124,6 +125,7 @@ type UjianHandlers struct {
 	ListUjianEssayUngradedHandler    *ujianlistessayungraded.ListUjianEssayUngradedHandler
 	ListUjianSelesaiSiswaHandler     *ujianlistselesai.ListUjianSelesaiSiswaHandler
 	GetStatistikUjianHandler         *ujianstatistik.GetStatistikUjianHandler
+	AnalisisSoalHandler              *ujiananalisissoal.AnalisisSoalHandler
 	CreateUjianHandler               *ujiancreate.CreateRuangUjianHandler
 	ListHandler                      *ujianlist.ListUjianHandler
 	ListUjianSiswaHandler            *ujianlistsiswa.ListUjianSiswaHandler

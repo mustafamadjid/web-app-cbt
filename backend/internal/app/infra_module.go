@@ -21,6 +21,7 @@ import (
 	pgsesi "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/sesi"
 	pgsession "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/session"
 	pgujian "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/ujian"
+	pgujiananalisissoal "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/ujian/analisis_soal"
 	pgujianattempt "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/ujian/attempt"
 	pgujiangrading "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/ujian/grading"
 	pgujiangradinglist "github.com/mustafamadjid/web-app-cbt/internal/adapter/repository/postgres/ujian/grading/list"
@@ -45,6 +46,7 @@ import (
 	sesi_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/sesi"
 	txout "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/tx"
 	ujian_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/ujian"
+	analisissoal_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/ujian/analisis_soal"
 	grading_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/ujian/grading"
 	statistikujian_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/ujian/statistik_ujian"
 	outuser "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
@@ -83,6 +85,7 @@ type InfraModule struct {
 	listGradingRepo    grading_repo.ListGradingUjianRepository
 	gradingWorkerRepo  grading_repo.GradingWorkerRepository
 	statistikUjianRepo statistikujian_repo.StatistikUjianRepository
+	analisisSoalRepo   analisissoal_repo.AnalisisSoalInterface
 	siswaUjianChecker  ujian_repo.SiswaUjianChecker
 	sesiRepo           sesi_repo.SesiRepository
 
@@ -103,6 +106,7 @@ func BuildInfraModule(pool *pgxpool.Pool, logger corelog.Logger) *InfraModule {
 	gradingRepo := pgujiangrading.NewGradingRepo(pool, logger)
 	listGradingRepo := pgujiangradinglist.NewListGradingRepo(pool, logger)
 	statistikUjianRepo := pgujianstatistik.NewStatistikUjianRepo(pool, logger)
+	analisisSoalRepo := pgujiananalisissoal.NewAnalisisSoalRepo(pool, logger)
 
 	return &InfraModule{
 		Pool:                  pool,
@@ -133,6 +137,7 @@ func BuildInfraModule(pool *pgxpool.Pool, logger corelog.Logger) *InfraModule {
 		listGradingRepo:       listGradingRepo,
 		gradingWorkerRepo:     gradingRepo,
 		statistikUjianRepo:    statistikUjianRepo,
+		analisisSoalRepo:      analisisSoalRepo,
 		siswaUjianChecker:     siswaUjianChecker,
 		sesiRepo:              pgsesi.NewSesirepo(pool, logger),
 		importSoalJobRepo:     pgimportsoaljob.NewImportSoalJobRepo(pool, logger),

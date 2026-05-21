@@ -22,39 +22,9 @@ func NewUpdateMapelService(mapelRepo matapelajaran_repo.MataPelajaranRepository)
 func (r *UpdateMapelRepo) UpdateMapelService(ctx context.Context, idMapel int, mapel updatepatch.UpdateMapelPatch) error {
 	logger := corelog.FromContext(ctx)
 
-	if err := validateUpdateMapelID(idMapel); err != nil {
-		return err
-	}
+	mapel = sanitizeUpdateMapelPatch(mapel)
 
-	if err := validateMapelPatch(mapel); err != nil {
-		return err
-	}
-
-	if err := validateMapelIdKelasPatch(mapel); err != nil {
-		logger.Error(ctx, "failed updating mapel", "layer", "core.service", "op", "matapelajaran.update_mapel.IdKelas", "err", err)
-		return err
-	}
-
-	if err := sanitizeKodeMapelPatch(&mapel); err != nil {
-		logger.Error(ctx, "failed updating mapel", "layer", "core.service", "op", "matapelajaran.update_mapel.KodeMapel", "err", err)
-		return err
-	}
-
-	if err := r.validateKodeMapelUniqueness(ctx, mapel); err != nil {
-		if errors.Is(err, coreerror.ErrKodeMapelExist) {
-			return err
-		}
-		logger.Error(ctx, "failed updating mapel", "layer", "core.service", "op", "matapelajaran.update_mapel.existKodeMapel", "err", err)
-		return err
-	}
-
-	if err := sanitizeNamaMapelPatch(&mapel); err != nil {
-		logger.Error(ctx, "failed updating mapel", "layer", "core.service", "op", "matapelajaran.update_mapel.NamaMapel", "err", err)
-		return err
-	}
-
-	if err := sanitizeDeskripsiMapelPatch(&mapel); err != nil {
-		logger.Error(ctx, "failed updating mapel", "layer", "core.service", "op", "matapelajaran.update_mapel.Deskripsi", "err", err)
+	if err := r.validateUpdateMapelPatch(ctx, idMapel, mapel); err != nil {
 		return err
 	}
 

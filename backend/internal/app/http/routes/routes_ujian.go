@@ -29,6 +29,7 @@ func RegisterUjianRoutes(router *httprouter.Router, handlers UjianHandlers, mw M
 	router.GET("/ujian/peserta-submitted/:idJadwalUjian", requireAdminGuru(mw.RateLimitStandard(handlers.ListPesertaUjianSubmittedHandler.ListPesertaUjianSubmitted)))
 	router.GET("/ujian/koreksi-essay/list", requireAdminGuru(mw.RateLimitStandard(handlers.ListUjianEssayUngradedHandler.ListUjianEssayUngraded)))
 	router.GET("/ujian/statistik/:idJadwalUjian", requireAdminGuru(mw.RateLimitStandard(handlers.GetStatistikUjianHandler.GetStatistikUjian)))
+	router.GET("/ujian/analisis-soal/:idJadwalUjian", requireAdminGuru(mw.RateLimitStandard(handlers.AnalisisSoalHandler.GetListAnalisisSoal)))
 	router.PATCH("/ujian/koreksi-essay", requireAdminGuru(mw.RateLimitStandard(handlers.KoreksiEssayHandler.KoreksiEssay)))
 	router.GET("/jadwal-ujian", requireAdminGuru(mw.RateLimitStandard(handlers.ListHandler.ListUjian)))
 	router.GET("/ujian/soal/bank-soal/:idBankSoal", requireAdminGuru(mw.RateLimitStandard(handlers.ListSoalUjianHandler.ListSoalUjian)))
