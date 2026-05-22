@@ -7,7 +7,7 @@ import (
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
 	delete_file_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/delete_file_system"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
-	"github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
+	out "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/user"
 )
 
 type DeleteUserService struct {
