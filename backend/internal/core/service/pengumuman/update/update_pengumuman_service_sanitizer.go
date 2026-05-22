@@ -1,70 +1,35 @@
 package pengumuman_service
 
 import (
-	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	updatepatch "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/update_patch"
-	pengumuman_service "github.com/mustafamadjid/web-app-cbt/internal/core/service/pengumuman/date_validation"
 	"strings"
 )
 
-func sanitizeJudulPengumumanPatch(payload *updatepatch.PengumumanUpdatePatch) error {
-	if payload.JudulPengumuman == nil {
-		return nil
+func sanitizeUpdatePengumumanPatch(payload updatepatch.PengumumanUpdatePatch) updatepatch.PengumumanUpdatePatch {
+	if payload.JudulPengumuman != nil {
+		judulPengumuman := strings.TrimSpace(*payload.JudulPengumuman)
+		payload.JudulPengumuman = &judulPengumuman
 	}
-	judulPengumuman := strings.TrimSpace(*payload.JudulPengumuman)
-	if judulPengumuman == "" {
-		return coreerror.ErrMissingField
+
+	if payload.IsiPengumuman != nil {
+		isiPengumuman := strings.TrimSpace(*payload.IsiPengumuman)
+		payload.IsiPengumuman = &isiPengumuman
 	}
-	payload.JudulPengumuman = &judulPengumuman
-	return nil
-}
-func sanitizeIsiPengumumanPatch(payload *updatepatch.PengumumanUpdatePatch) error {
-	if payload.IsiPengumuman == nil {
-		return nil
+
+	if payload.TanggalRilisPengumuman != nil {
+		tanggalRilisPengumuman := strings.TrimSpace(*payload.TanggalRilisPengumuman)
+		payload.TanggalRilisPengumuman = &tanggalRilisPengumuman
 	}
-	isiPengumuman := strings.TrimSpace(*payload.IsiPengumuman)
-	if isiPengumuman == "" {
-		return coreerror.ErrMissingField
+
+	if payload.TanggalSelesaiPengumuman != nil {
+		tanggalSelesaiPengumuman := strings.TrimSpace(*payload.TanggalSelesaiPengumuman)
+		payload.TanggalSelesaiPengumuman = &tanggalSelesaiPengumuman
 	}
-	payload.IsiPengumuman = &isiPengumuman
-	return nil
-}
-func sanitizeTanggalRilisPengumumanPatch(payload *updatepatch.PengumumanUpdatePatch) error {
-	if payload.TanggalRilisPengumuman == nil {
-		return nil
+
+	if payload.DokumenPengumuman != nil {
+		dokumenPengumuman := strings.TrimSpace(*payload.DokumenPengumuman)
+		payload.DokumenPengumuman = &dokumenPengumuman
 	}
-	tanggalRilisPengumuman := strings.TrimSpace(*payload.TanggalRilisPengumuman)
-	if tanggalRilisPengumuman == "" {
-		return coreerror.ErrMissingField
-	}
-	if err := pengumuman_service.ValidateDate(tanggalRilisPengumuman); err != nil {
-		return err
-	}
-	payload.TanggalRilisPengumuman = &tanggalRilisPengumuman
-	return nil
-}
-func sanitizeTanggalSelesaiPengumumanPatch(payload *updatepatch.PengumumanUpdatePatch) error {
-	if payload.TanggalSelesaiPengumuman == nil {
-		return nil
-	}
-	tanggalSelesaiPengumuman := strings.TrimSpace(*payload.TanggalSelesaiPengumuman)
-	if tanggalSelesaiPengumuman == "" {
-		return coreerror.ErrMissingField
-	}
-	if err := pengumuman_service.ValidateDate(tanggalSelesaiPengumuman); err != nil {
-		return err
-	}
-	payload.TanggalSelesaiPengumuman = &tanggalSelesaiPengumuman
-	return nil
-}
-func sanitizeDokumenPengumumanPatch(payload *updatepatch.PengumumanUpdatePatch) error {
-	if payload.DokumenPengumuman == nil {
-		return nil
-	}
-	dokumenPengumuman := strings.TrimSpace(*payload.DokumenPengumuman)
-	if dokumenPengumuman == "" {
-		return coreerror.ErrMissingField
-	}
-	payload.DokumenPengumuman = &dokumenPengumuman
-	return nil
+
+	return payload
 }

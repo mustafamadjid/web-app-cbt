@@ -2,7 +2,6 @@ package pengumuman_service
 
 import (
 	"context"
-	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/pengumuman"
 	delete_file_repo "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/delete_file_system"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
@@ -25,43 +24,9 @@ func NewUpdatePengumumanService(repo pengumuman_repo.PengumumanRepo, deleteFile 
 func (r *UpdatePengumumanService) UpdatePengumumanService(ctx context.Context, idPengumuman pengumuman.ID, pengumuman updatepatch.PengumumanUpdatePatch) error {
 	logger := corelog.FromContext(ctx)
 
-	if err := validateUpdatePengumumanID(idPengumuman); err != nil {
-		logger.Error(ctx, "failed updating pengumuman", "layer", "core.service", "op", "pengumuman.update_pengumuman.UpdatePengumumanService", "err", coreerror.ErrMissingId)
-		return err
-	}
+	pengumuman = sanitizeUpdatePengumumanPatch(pengumuman)
 
-	if err := validatePengumumanUpdateUserID(pengumuman); err != nil {
-		logger.Error(ctx, "failed updating pengumuman", "layer", "core.service", "op", "pengumuman.update_pengumuman.UpdatePengumumanService", "err", coreerror.ErrMissingId)
-		return err
-	}
-
-	if err := validatePengumumanUpdatePatch(pengumuman); err != nil {
-		logger.Error(ctx, "failed updating pengumuman", "layer", "core.service", "op", "pengumuman.update_pengumuman.UpdatePengumumanService", "err", err)
-		return err
-	}
-
-	if err := sanitizeJudulPengumumanPatch(&pengumuman); err != nil {
-		logger.Error(ctx, "failed updating pengumuman", "layer", "core.service", "op", "pengumuman.update_pengumuman.UpdatePengumumanService", "err", err)
-		return err
-	}
-
-	if err := sanitizeIsiPengumumanPatch(&pengumuman); err != nil {
-		logger.Error(ctx, "failed updating pengumuman", "layer", "core.service", "op", "pengumuman.update_pengumuman.UpdatePengumumanService", "err", err)
-		return err
-	}
-
-	if err := sanitizeTanggalRilisPengumumanPatch(&pengumuman); err != nil {
-		logger.Error(ctx, "failed updating pengumuman", "layer", "core.service", "op", "pengumuman.update_pengumuman.UpdatePengumumanService", "err", err)
-		return err
-	}
-
-	if err := sanitizeTanggalSelesaiPengumumanPatch(&pengumuman); err != nil {
-		logger.Error(ctx, "failed updating pengumuman", "layer", "core.service", "op", "pengumuman.update_pengumuman.UpdatePengumumanService", "err", err)
-		return err
-	}
-
-	if err := sanitizeDokumenPengumumanPatch(&pengumuman); err != nil {
-		logger.Error(ctx, "failed updating pengumuman", "layer", "core.service", "op", "pengumuman.update_pengumuman.UpdatePengumumanService", "err", err)
+	if err := validateUpdatePengumumanPatch(ctx, idPengumuman, pengumuman); err != nil {
 		return err
 	}
 

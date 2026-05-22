@@ -120,6 +120,16 @@ const HasilUjianDetail = () => {
     user?.role === "GURU"
       ? paths.dashboard.hasil_ujian_siswa_detail_guru
       : paths.dashboard.hasil_ujian_siswa_detail;
+  const statistikSoalPath =
+    user?.role === "GURU"
+      ? paths.dashboard.hasil_ujian_statistik_soal_guru.replace(
+          ":id",
+          String(jadwalUjianId),
+        )
+      : paths.dashboard.hasil_ujian_statistik_soal.replace(
+          ":id",
+          String(jadwalUjianId),
+        );
 
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-8 px-4 py-8 sm:px-6 lg:px-8">
@@ -183,13 +193,26 @@ const HasilUjianDetail = () => {
 
       {/* --- TABLE SECTION (SCROLLABLE) --- */}
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-100 p-5 bg-white">
-          <h2 className="text-lg font-bold text-slate-800">
-            Daftar Peserta Submit
-          </h2>
-          <p className="text-sm text-slate-500">
-            Total {daftarPeserta.length} peserta.
-          </p>
+        <div className="flex flex-col gap-4 border-b border-slate-100 bg-white p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            <div>
+              <h2 className="text-lg font-bold text-slate-800">
+                Daftar Peserta Submit
+              </h2>
+              <p className="text-sm text-slate-500">
+                Total {daftarPeserta.length} peserta.
+              </p>
+            </div>
+          </div>
+
+          {isJadwalUjianIdValid && (
+            <Link
+              to={statistikSoalPath}
+              className="inline-flex w-fit cursor-pointer items-center justify-center rounded-xl bg-[#397e50] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#326f45]"
+            >
+              Statistik Soal
+            </Link>
+          )}
         </div>
 
         {/* CONTAINER SCROLLABLE - Max 600px height */}

@@ -48,6 +48,7 @@ import TemplateLayout from "@/layouts/MainLayout/TemplateLayout/TemplateLayout";
 import PengaturanProfil from "@/pages/Admin/Dashboard/Pengaturan/Pengaturan";
 import HasilUjian from "@/pages/Admin/Dashboard/Ujian/HasilUjian";
 import HasilUjianDetail from "@/pages/Admin/Dashboard/Ujian/DetailHasilUjian/HasilUjianDetail";
+import StatistikSoalUjian from "@/pages/Admin/Dashboard/Ujian/StatistikSoalUjian/StatistikSoalUjian";
 import KoreksiHasilUjian from "@/pages/Admin/Dashboard/Ujian/KoreksiHasilUjian/KoreksiHasilUjian";
 import PengumumanManagement from "@/pages/Admin/Dashboard/Pengumuman/PengumumanManagement";
 import TambahPengumuman from "@/pages/Admin/Dashboard/Pengumuman/TambahPengumuman";
@@ -133,6 +134,10 @@ export const router = createBrowserRouter([
               {
                 path: paths.dashboard.hasil_ujian_detail,
                 element: <HasilUjianDetail />,
+              },
+              {
+                path: paths.dashboard.hasil_ujian_statistik_soal,
+                element: <StatistikSoalUjian />,
               },
               {
                 path: paths.dashboard.hasil_ujian_siswa_detail,
@@ -233,6 +238,10 @@ export const router = createBrowserRouter([
               {
                 path: paths.dashboard.hasil_ujian_detail_guru,
                 element: <HasilUjianDetail />,
+              },
+              {
+                path: paths.dashboard.hasil_ujian_statistik_soal_guru,
+                element: <StatistikSoalUjian />,
               },
               {
                 path: paths.dashboard.hasil_ujian_siswa_detail_guru,
