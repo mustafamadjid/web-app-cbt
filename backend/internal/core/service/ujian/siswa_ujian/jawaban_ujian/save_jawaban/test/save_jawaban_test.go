@@ -45,7 +45,7 @@ func toStringPointer(v string) *string {
 	return &v
 }
 
-func TestSaveJawabanUjianService(t *testing.T) {
+func TestSaveJawabanUjianService_BasisPath(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -62,7 +62,7 @@ func TestSaveJawabanUjianService(t *testing.T) {
 		assertData func(t *testing.T, repo *fakeJawabanUjianRepo)
 	}{
 		{
-			name:      "invalid attempt id",
+			name:      "path 1 -> id attempt tidak valid",
 			idAttempt: 0,
 			jawaban: []ujian.JawabanUjian{
 				{IdSoal: 10, IdPilihan: toUjianIDPointer(20)},
@@ -72,7 +72,7 @@ func TestSaveJawabanUjianService(t *testing.T) {
 			wantSave: false,
 		},
 		{
-			name:      "missing soal id",
+			name:      "path 2 -> id soal tidak valid",
 			idAttempt: 7,
 			jawaban: []ujian.JawabanUjian{
 				{IdSoal: 0, IdPilihan: toUjianIDPointer(20)},
@@ -82,7 +82,27 @@ func TestSaveJawabanUjianService(t *testing.T) {
 			wantSave: false,
 		},
 		{
-			name:      "clear answer payload allowed",
+			name:      "path 3 -> id pilihan tidak valid",
+			idAttempt: 7,
+			jawaban: []ujian.JawabanUjian{
+				{IdSoal: 10, IdPilihan: toUjianIDPointer(0)},
+			},
+			repo:     &fakeJawabanUjianRepo{},
+			wantErr:  coreerror.ErrMissingId,
+			wantSave: false,
+		},
+		{
+			name:      "path 4 -> pilihan dan essay sama-sama terisi",
+			idAttempt: 7,
+			jawaban: []ujian.JawabanUjian{
+				{IdSoal: 10, IdPilihan: toUjianIDPointer(20), JawabanEssay: toStringPointer("essay")},
+			},
+			repo:     &fakeJawabanUjianRepo{},
+			wantErr:  coreerror.ErrInvalidInput,
+			wantSave: false,
+		},
+		{
+			name:      "path 5 -> jawaban dikosongkan tetap boleh disimpan",
 			idAttempt: 7,
 			jawaban: []ujian.JawabanUjian{
 				{IdSoal: 10},
@@ -99,17 +119,7 @@ func TestSaveJawabanUjianService(t *testing.T) {
 			},
 		},
 		{
-			name:      "pilihan and essay both filled",
-			idAttempt: 7,
-			jawaban: []ujian.JawabanUjian{
-				{IdSoal: 10, IdPilihan: toUjianIDPointer(20), JawabanEssay: toStringPointer("essay")},
-			},
-			repo:     &fakeJawabanUjianRepo{},
-			wantErr:  coreerror.ErrInvalidInput,
-			wantSave: false,
-		},
-		{
-			name:      "repo error",
+			name:      "path 6 -> repo gagal menyimpan jawaban",
 			idAttempt: 7,
 			jawaban: []ujian.JawabanUjian{
 				{IdSoal: 10, IdPilihan: toUjianIDPointer(20)},
@@ -123,7 +133,7 @@ func TestSaveJawabanUjianService(t *testing.T) {
 			wantSave: true,
 		},
 		{
-			name:      "success without id_jawaban",
+			name:      "path 7 -> berhasil menyimpan jawaban pilihan",
 			idAttempt: 9,
 			jawaban: []ujian.JawabanUjian{
 				{
@@ -144,6 +154,28 @@ func TestSaveJawabanUjianService(t *testing.T) {
 				assert.Equal(t, now, *repo.gotJawaban[0].WaktuJawab)
 			},
 		},
+		{
+			name:      "path 8 -> berhasil menyimpan jawaban essay",
+			idAttempt: 9,
+			jawaban: []ujian.JawabanUjian{
+				{
+					IdSoal:       12,
+					JawabanEssay: toStringPointer("jawaban essay"),
+					WaktuJawab:   &now,
+				},
+			},
+			repo:     &fakeJawabanUjianRepo{},
+			wantSave: true,
+			assertData: func(t *testing.T, repo *fakeJawabanUjianRepo) {
+				t.Helper()
+				assert.Equal(t, ujian.ID(9), repo.gotAttempt)
+				assert.Len(t, repo.gotJawaban, 1)
+				assert.Equal(t, ujian.ID(12), repo.gotJawaban[0].IdSoal)
+				assert.Nil(t, repo.gotJawaban[0].IdPilihan)
+				assert.Equal(t, "jawaban essay", *repo.gotJawaban[0].JawabanEssay)
+				assert.Equal(t, now, *repo.gotJawaban[0].WaktuJawab)
+			},
+		},
 	}
 
 	for _, tc := range tests {
@@ -154,7 +186,11 @@ func TestSaveJawabanUjianService(t *testing.T) {
 			svc := siswaujian_service.NewJawabanUjianService(tc.repo)
 			err := svc.SaveJawabanUjian(ctx, tc.idAttempt, tc.jawaban)
 
-			assert.ErrorIs(t, err, tc.wantErr)
+			if tc.wantErr != nil {
+				assert.ErrorIs(t, err, tc.wantErr)
+			} else {
+				assert.NoError(t, err)
+			}
 			assert.Equal(t, tc.wantSave, tc.repo.saveCalled)
 
 			if tc.assertData != nil {

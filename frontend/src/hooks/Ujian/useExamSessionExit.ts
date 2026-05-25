@@ -24,6 +24,7 @@ type UseExamSessionExitResult = {
   expiringAttempt: boolean;
   allowNavigation: () => void;
   clearSessionExitError: () => void;
+  handleBrowserViolation: () => Promise<boolean>;
   handleExpiredSubmit: () => Promise<void>;
   handleLeaveConfirm: () => Promise<void>;
   handleLeaveCancel: () => void;
@@ -136,6 +137,22 @@ export function useExamSessionExit({
     onFallbackLeave();
   }, [expireAttemptBeforeLeave, onFallbackLeave]);
 
+  const handleBrowserViolation = React.useCallback(async () => {
+    const expired = await expireAttemptBeforeLeave();
+    if (!expired) {
+      return false;
+    }
+
+    allowNavigationRef.current = true;
+    setIsLeaveConfirmOpen(false);
+
+    if (navigationBlocker.state === "blocked") {
+      navigationBlocker.reset();
+    }
+
+    return true;
+  }, [expireAttemptBeforeLeave, navigationBlocker]);
+
   const handleLeaveConfirm = React.useCallback(async () => {
     const expired = await expireAttemptBeforeLeave();
     if (!expired) {
@@ -167,6 +184,7 @@ export function useExamSessionExit({
     expiringAttempt,
     allowNavigation,
     clearSessionExitError,
+    handleBrowserViolation,
     handleExpiredSubmit,
     handleLeaveConfirm,
     handleLeaveCancel,

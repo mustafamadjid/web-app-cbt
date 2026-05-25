@@ -27,6 +27,8 @@ export type UseUjianMulaiSiswaControllerParams = {
   clearSessionExitError: () => void;
   hasActiveExamSession: boolean;
   allowNavigation: () => void;
+  handleBrowserViolation: () => Promise<boolean>;
+  closeExamWindowOrLeave: () => void;
   clearAttemptCache: () => void;
   clearSoalCache: () => void;
   navigateToResults: () => void;

@@ -92,9 +92,6 @@ export const paths = {
 
 
     pengaturan: djoinAdmin("pengaturan"),
-    profil_admin: djoinAdmin("profil"),
-    profil_guru: djoinGuru("profil"),
-    profil_siswa: djoinSiswa("profil"),
 
     ujian_siswa : djoinSiswa("ujian"),
     pengumuman_siswa: djoinSiswa("pengumuman"),

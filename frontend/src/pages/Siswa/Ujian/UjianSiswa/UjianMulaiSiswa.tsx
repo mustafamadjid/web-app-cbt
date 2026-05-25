@@ -140,6 +140,7 @@ const UjianMulaiSiswa: React.FC = () => {
     expiringAttempt,
     allowNavigation,
     clearSessionExitError,
+    handleBrowserViolation,
     handleExpiredSubmit,
     handleLeaveConfirm,
     handleLeaveCancel,
@@ -180,6 +181,18 @@ const UjianMulaiSiswa: React.FC = () => {
     navigate(paths.dashboard.hasil_ujian_siswa, { replace: true });
   }, [navigate]);
 
+  const closeExamWindowOrLeave = React.useCallback(() => {
+    if (typeof window === "undefined") {
+      navigate(EXAM_LIST_PATH, { replace: true });
+      return;
+    }
+
+    window.close();
+    window.setTimeout(() => {
+      navigate(EXAM_LIST_PATH, { replace: true });
+    }, 100);
+  }, [navigate]);
+
   const {
     currentIndex,
     currentSoal,
@@ -216,6 +229,8 @@ const UjianMulaiSiswa: React.FC = () => {
     clearSessionExitError,
     hasActiveExamSession,
     allowNavigation,
+    handleBrowserViolation,
+    closeExamWindowOrLeave,
     clearAttemptCache,
     clearSoalCache,
     navigateToResults,

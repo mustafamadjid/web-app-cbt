@@ -62,7 +62,6 @@ import UjianMulaiSiswa from "@/pages/Siswa/Ujian/UjianSiswa/UjianMulaiSiswa";
 import HasilUjianSiswa from "@/pages/Siswa/Ujian/HasilUjian/HasilUjianSiswa";
 import HasilUjianSiswaDetailSiswa from "@/pages/Siswa/Ujian/HasilUjian/HasilUjianSiswaDetail";
 import PublicOnlyRoute from "./PublicOnlyRoute";
-import ProfilePage from "@/pages/Profile/ProfilePage";
 import NotFound from "@/pages/NotFound/NotFound";
 
 export const router = createBrowserRouter([
@@ -120,7 +119,6 @@ export const router = createBrowserRouter([
                 path: paths.dashboard.pengaturan,
                 element: <PengaturanProfil />,
               },
-              { path: paths.dashboard.profil_admin, element: <ProfilePage /> },
               { path: paths.dashboard.data_master_sesi, element: <DataSesi /> },
               { path: paths.dashboard.bank_soal, element: <BankSoal /> },
               {
@@ -252,7 +250,6 @@ export const router = createBrowserRouter([
                 element: <PengumumanManagement />,
               },
               { path: paths.dashboard.cetak_guru, element: <Cetak /> },
-              { path: paths.dashboard.profil_guru, element: <ProfilePage /> },
             ],
           },
           {
@@ -307,8 +304,6 @@ export const router = createBrowserRouter([
                 path: paths.dashboard.hasil_ujian_detail_siswa,
                 element: <HasilUjianSiswaDetailSiswa />,
               },
-              { path: paths.dashboard.profil_siswa, element: <ProfilePage /> },
-              
             ],
           },
         ],

@@ -96,5 +96,4 @@ func (r *AttemptUjianService) AttemptUjian(ctx context.Context, idSiswa int, idJ
 	}
 
 	return nil
-
 }

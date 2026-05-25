@@ -26,12 +26,12 @@ export function useUjianMulaiSiswaController({
   clearSessionExitError,
   hasActiveExamSession,
   allowNavigation,
+  handleBrowserViolation,
+  closeExamWindowOrLeave,
   clearAttemptCache,
   clearSoalCache,
   navigateToResults,
 }: UseUjianMulaiSiswaControllerParams): UseUjianMulaiSiswaControllerResult {
-  useExamBrowserExitCleanup({ hasActiveExamSession });
-
   const {
     currentIndex,
     currentSoal,
@@ -52,6 +52,28 @@ export function useUjianMulaiSiswaController({
     resetSaveJawabanState,
     sessionExitError,
     clearSessionExitError,
+  });
+
+  const handleBrowserExitViolation = async () => {
+    if (!hasActiveExamSession) {
+      return false;
+    }
+
+    clearSessionExitError();
+    await saveCurrentJawaban(currentSoal?.id ?? null);
+
+    const expired = await handleBrowserViolation();
+    if (!expired) {
+      return false;
+    }
+
+    closeExamWindowOrLeave();
+    return true;
+  };
+
+  useExamBrowserExitCleanup({
+    hasActiveExamSession,
+    onViolation: handleBrowserExitViolation,
   });
 
   const {

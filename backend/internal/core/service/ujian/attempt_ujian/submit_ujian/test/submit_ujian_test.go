@@ -171,5 +171,5 @@ func runSubmitUjianCases(t *testing.T, prefix string) {
 
 func TestSubmitUjianService_BasisPath(t *testing.T) {
 	t.Parallel()
-	runSubmitUjianCases(t, "Path ")
+	runSubmitUjianCases(t, "path ")
 }

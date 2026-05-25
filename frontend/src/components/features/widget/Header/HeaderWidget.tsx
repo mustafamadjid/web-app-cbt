@@ -1,8 +1,6 @@
 import React from "react";
 import { User,CalendarRange } from "lucide-react";
 import type { Role } from "@/types/Sidebar/SidebarMenu";
-import { paths } from "@/routes/paths";
-import { useNavigate } from "react-router";
 
 type HeaderProps = {
   title?: string;
@@ -42,16 +40,6 @@ const Header: React.FC<HeaderProps> = ({
     if(role === "SISWA") return "Siswa";
     return "";
   }
-
-  const navigate = useNavigate();
-
-  const pathNavigationByRole = (role : Role) => {
-    if(role === "ADMIN") return paths.dashboard.profil_admin;
-    if(role === "GURU") return paths.dashboard.profil_guru;
-    if(role === "SISWA") return paths.dashboard.profil_siswa;
-    return "";
-  }
-
 
   return (
     <header
@@ -115,10 +103,8 @@ const Header: React.FC<HeaderProps> = ({
               </div>
             </div>
 
-            <div className="group relative cursor-pointer">
-              <div 
-              onClick={()=> navigate(pathNavigationByRole(roleLabel))}
-              className="relative h-10 w-10 overflow-hidden rounded-full ring-2 ring-gray-100 transition-all group-hover:ring-[#397e50]/30 sm:h-11 sm:w-11">
+            <div className="relative">
+              <div className="relative h-10 w-10 overflow-hidden rounded-full ring-2 ring-gray-100 sm:h-11 sm:w-11">
                 {avatarUrl ? (
                   <img
                     src={avatarUrl}
