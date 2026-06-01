@@ -32,6 +32,5 @@ func (r *CreateUjianService) CreateUjianService(ctx context.Context, data ujian.
 		logger.Error(ctx, "failed create ujian", "layer", "core.service", "op", "ujian.create", "err", err)
 		return err
 	}
-
 	return nil
 }

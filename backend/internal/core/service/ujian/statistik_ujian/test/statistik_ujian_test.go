@@ -53,21 +53,21 @@ func TestStatistikUjianService_BasisPath(t *testing.T) {
 		wantItem   ujian.StatistikUjian
 	}{
 		{
-			name:       "Path 1 -> id jadwal tidak valid",
+			name:       "Branch 1 -> id jadwal tidak valid",
 			idJadwal:   0,
 			repo:       &fakeStatistikUjianRepo{},
 			wantErr:    coreerror.ErrMissingId,
 			wantCalled: false,
 		},
 		{
-			name:       "Path 2 -> repo get statistik ujian gagal",
+			name:       "Branch 2 -> repo get statistik ujian gagal",
 			idJadwal:   15,
 			repo:       &fakeStatistikUjianRepo{getErr: repoErr},
 			wantErr:    repoErr,
 			wantCalled: true,
 		},
 		{
-			name:       "Path 3 -> berhasil get statistik ujian",
+			name:       "Branch 3 -> berhasil get statistik ujian",
 			idJadwal:   15,
 			repo:       &fakeStatistikUjianRepo{getRet: expected},
 			wantCalled: true,

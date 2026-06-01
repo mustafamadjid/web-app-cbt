@@ -46,10 +46,10 @@ func TestExtractParagraphs(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name      string
-		data      []byte
-		expectLen int
-		expectErr bool
+		name       string
+		data       []byte
+		expectText []string
+		expectErr  bool
 	}{
 		{
 			name:      "path 1 -> data bukan ZIP",
@@ -62,16 +62,22 @@ func TestExtractParagraphs(t *testing.T) {
 			expectErr: true,
 		},
 		{
-			name:      "path 3 -> happy path dengan 2 paragraf",
-			data:      buildDocx(wrapXML("Hello", "World")),
-			expectLen: 2,
-			expectErr: false,
+			name:       "path 3 -> happy path dengan 2 paragraf",
+			data:       buildDocx(wrapXML("Hello", "World")),
+			expectText: []string{"Hello", "World"},
+			expectErr:  false,
 		},
 		{
-			name:      "path 4 -> paragraf kosong dilewati",
-			data:      buildDocx(wrapXML("Hello", "", "World")),
-			expectLen: 2,
-			expectErr: false,
+			name:       "path 4 -> paragraf kosong dilewati",
+			data:       buildDocx(wrapXML("Hello", "", "World")),
+			expectText: []string{"Hello", "World"},
+			expectErr:  false,
+		},
+		{
+			name:       "path 5 -> paragraf hanya spasi dilewati setelah trim",
+			data:       buildDocx(wrapXML("  Hello  ", "   ", "World")),
+			expectText: []string{"Hello", "World"},
+			expectErr:  false,
 		},
 	}
 
@@ -83,10 +89,70 @@ func TestExtractParagraphs(t *testing.T) {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
-				assert.Len(t, result, tc.expectLen)
+				assert.Equal(t, tc.expectText, result)
 			}
 		})
 	}
+}
+
+// ============================================================
+// Test ExtractImageFiles
+// ============================================================
+
+func TestExtractImageFiles(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		data      []byte
+		expect    map[string][]byte
+		expectErr bool
+	}{
+		{
+			name:      "path 1 -> data bukan ZIP",
+			data:      []byte("bukan zip file"),
+			expectErr: true,
+		},
+		{
+			name:   "path 2 -> hanya mengambil file di word/media",
+			data:   buildDocxWithMediaFiles(),
+			expect: map[string][]byte{"image1.png": []byte("image-one")},
+		},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			result, err := parser.ExtractImageFiles(tc.data)
+			if tc.expectErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tc.expect, result)
+			}
+		})
+	}
+}
+
+func buildDocxWithMediaFiles() []byte {
+	var buf bytes.Buffer
+	zw := zip.NewWriter(&buf)
+
+	fw, _ := zw.Create("word/document.xml")
+	fw.Write([]byte(wrapXML()))
+
+	rels, _ := zw.Create("word/_rels/document.xml.rels")
+	rels.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"></Relationships>`))
+
+	media, _ := zw.Create("word/media/image1.png")
+	media.Write([]byte("image-one"))
+
+	other, _ := zw.Create("custom/media/image2.png")
+	other.Write([]byte("image-two"))
+
+	zw.Close()
+	return buf.Bytes()
 }
 
 func buildDocxNoDocXML() []byte {
@@ -108,6 +174,7 @@ func TestParseMarkers(t *testing.T) {
 	tests := []struct {
 		name       string
 		paragraphs []string
+		docxData   []byte
 		expectLen  int
 		expectErr  bool
 		validate   func(t *testing.T, soal []importsoal.ParsedSoal)
@@ -206,7 +273,7 @@ func TestParseMarkers(t *testing.T) {
 			},
 		},
 		{
-			name: "path 11 -> soal dengan gambar",
+			name: "path 11 -> soal dengan nama gambar eksplisit",
 			paragraphs: []string{
 				"[Q:PG] Perhatikan gambar!",
 				"[IMG] image1.png",
@@ -219,12 +286,41 @@ func TestParseMarkers(t *testing.T) {
 				assert.Equal(t, "image1.png", soal[0].Gambar)
 			},
 		},
+		{
+			name:     "path 12 -> [IMG] kosong otomatis memakai urutan gambar docx",
+			docxData: buildDocxWithImages("image1.png"),
+			paragraphs: []string{
+				"[Q:PG] Perhatikan gambar!",
+				"[IMG]",
+				"[A] X", "[B] Y",
+				"[ANS] A",
+				"[W] 5",
+			},
+			expectLen: 1,
+			validate: func(t *testing.T, soal []importsoal.ParsedSoal) {
+				assert.Equal(t, "image1.png", soal[0].Gambar)
+			},
+		},
+		{
+			name: "path 13 -> [IMG] kosong error jika tidak ada gambar tersisa",
+			paragraphs: []string{
+				"[Q:PG] Perhatikan gambar!",
+				"[IMG]",
+				"[A] X", "[B] Y",
+				"[ANS] A",
+			},
+			expectErr: true,
+		},
 	}
 
 	for _, tc := range tests {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			result, err := parser.ParseMarkers(tc.paragraphs, buildDocx(wrapXML()))
+			docxData := tc.docxData
+			if docxData == nil {
+				docxData = buildDocx(wrapXML())
+			}
+			result, err := parser.ParseMarkers(tc.paragraphs, docxData)
 			if tc.expectErr {
 				assert.Error(t, err)
 			} else {

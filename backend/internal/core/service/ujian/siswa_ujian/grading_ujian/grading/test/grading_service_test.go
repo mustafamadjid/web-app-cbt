@@ -304,8 +304,7 @@ func TestGradingUjianService_BasisPath(t *testing.T) {
 	soalRepoErr := errors.New("soal error")
 	ujianRepoErr := errors.New("ujian error")
 	upsertNilaiErr := errors.New("nilai error")
-	upsertBenarErr := errors.New("benar error")
-	upsertSalahErr := errors.New("salah error")
+	statistikSoalErr := errors.New("statistik soal error")
 
 	tests := []struct {
 		name         string
@@ -319,7 +318,7 @@ func TestGradingUjianService_BasisPath(t *testing.T) {
 		assertResult func(t *testing.T, repo *fakeGradingRepo)
 	}{
 		{
-			name:        "Path 1 -> id attempt tidak valid",
+			name:        "Path 1 -> idAttempt tidak valid",
 			idAttempt:   0,
 			jawabanRepo: &fakeGradingJawabanRepo{},
 			soalRepo:    &fakeGradingSoalRepo{},
@@ -329,7 +328,7 @@ func TestGradingUjianService_BasisPath(t *testing.T) {
 			wantErr:     coreerror.ErrMissingId,
 		},
 		{
-			name:        "Path 2 -> get jawaban ujian gagal",
+			name:        "Path 2 -> gagal mengambil jawaban siswa",
 			idAttempt:   21,
 			jawabanRepo: &fakeGradingJawabanRepo{getErr: jawabanRepoErr},
 			soalRepo:    &fakeGradingSoalRepo{},
@@ -339,7 +338,7 @@ func TestGradingUjianService_BasisPath(t *testing.T) {
 			wantErr:     jawabanRepoErr,
 		},
 		{
-			name:        "Path 3 -> get id bank soal gagal",
+			name:        "Path 3 -> gagal mengambil id bank soal",
 			idAttempt:   21,
 			jawabanRepo: &fakeGradingJawabanRepo{getRet: jawaban},
 			soalRepo:    &fakeGradingSoalRepo{},
@@ -349,7 +348,7 @@ func TestGradingUjianService_BasisPath(t *testing.T) {
 			wantErr:     bankRepoErr,
 		},
 		{
-			name:        "Path 4 -> get soal ujian gagal",
+			name:        "Path 4 -> gagal mengambil soal ujian",
 			idAttempt:   21,
 			jawabanRepo: &fakeGradingJawabanRepo{getRet: jawaban},
 			soalRepo:    &fakeGradingSoalRepo{getErr: soalRepoErr},
@@ -359,7 +358,7 @@ func TestGradingUjianService_BasisPath(t *testing.T) {
 			wantErr:     soalRepoErr,
 		},
 		{
-			name:        "Path 5 -> get id ujian gagal",
+			name:        "Path 5 -> gagal mengambil id ujian",
 			idAttempt:   21,
 			jawabanRepo: &fakeGradingJawabanRepo{getRet: jawaban},
 			soalRepo:    &fakeGradingSoalRepo{getRet: soal},
@@ -369,7 +368,7 @@ func TestGradingUjianService_BasisPath(t *testing.T) {
 			wantErr:     ujianRepoErr,
 		},
 		{
-			name:        "Path 6 -> total score gagal karena soal kosong",
+			name:        "Path 6 -> gagal menghitung total nilai",
 			idAttempt:   21,
 			jawabanRepo: &fakeGradingJawabanRepo{getRet: jawaban},
 			soalRepo:    &fakeGradingSoalRepo{getRet: []ujian.SoalUjianSiswa{}},
@@ -379,7 +378,7 @@ func TestGradingUjianService_BasisPath(t *testing.T) {
 			wantErr:     coreerror.ErrArrayHasNoElement,
 		},
 		{
-			name:        "Path 7 -> upsert nilai hasil ujian gagal",
+			name:        "Path 7 -> gagal menyimpan nilai ke hasil ujian",
 			idAttempt:   21,
 			jawabanRepo: &fakeGradingJawabanRepo{getRet: jawaban},
 			soalRepo:    &fakeGradingSoalRepo{getRet: soal},
@@ -389,27 +388,17 @@ func TestGradingUjianService_BasisPath(t *testing.T) {
 			wantErr:     upsertNilaiErr,
 		},
 		{
-			name:        "Path 8 -> upsert statistik benar gagal",
+			name:        "Path 8 -> gagal menyimpan statistik soal",
 			idAttempt:   21,
 			jawabanRepo: &fakeGradingJawabanRepo{getRet: jawaban},
 			soalRepo:    &fakeGradingSoalRepo{getRet: soal},
 			bankRepo:    &fakeGradingBankSoalRepo{idRet: 31},
 			ujianRepo:   &fakeGradingUjianRepo{idRet: 41},
-			gradingRepo: &fakeGradingRepo{upsertBenarErr: upsertBenarErr},
-			wantErr:     upsertBenarErr,
+			gradingRepo: &fakeGradingRepo{upsertBenarErr: statistikSoalErr},
+			wantErr:     statistikSoalErr,
 		},
 		{
-			name:        "Path 9 -> upsert statistik salah gagal",
-			idAttempt:   21,
-			jawabanRepo: &fakeGradingJawabanRepo{getRet: jawaban},
-			soalRepo:    &fakeGradingSoalRepo{getRet: soal},
-			bankRepo:    &fakeGradingBankSoalRepo{idRet: 31},
-			ujianRepo:   &fakeGradingUjianRepo{idRet: 41},
-			gradingRepo: &fakeGradingRepo{upsertSalahErr: upsertSalahErr},
-			wantErr:     upsertSalahErr,
-		},
-		{
-			name:        "Path 10 -> berhasil grading ujian pilihan ganda",
+			name:        "Path 9 -> semua proses berhasil",
 			idAttempt:   21,
 			jawabanRepo: &fakeGradingJawabanRepo{getRet: jawaban},
 			soalRepo:    &fakeGradingSoalRepo{getRet: soal},

@@ -7,6 +7,7 @@ import (
 
 func RegisterUserRoutes(router *httprouter.Router, userHandlers UserHandlers, resetPasswordHandlers ResetPasswordHandlers, mw MiddlewareContract) {
 	requireAdmin := mw.RequireAccessRole(user.ADMIN)
+	requireAdminGuru := mw.RequireAccessRole(user.ADMIN, user.GURU)
 
 	// SISWA
 	router.GET("/admin/siswa", requireAdmin(mw.RateLimitStandard(userHandlers.GetSiswaHandler.ListSiswa)))
@@ -15,10 +16,10 @@ func RegisterUserRoutes(router *httprouter.Router, userHandlers UserHandlers, re
 	router.PATCH("/admin/siswa/:id", requireAdmin(mw.RateLimitStandard(userHandlers.UpdateHandler.UpdateSiswa)))
 
 	// GURU
-	router.GET("/admin/guru", requireAdmin(mw.RateLimitStandard(userHandlers.GetGuruHandler.ListGuru)))
-	router.GET("/admin/guru/:id", requireAdmin(mw.RateLimitStandard(userHandlers.GetGuruHandler.GetGuruByID)))
-	router.POST("/admin/guru", requireAdmin(mw.RateLimitStandard(userHandlers.CreateHandler.CreateGuru)))
-	router.PATCH("/admin/guru/:id", requireAdmin(mw.RateLimitStandard(userHandlers.UpdateHandler.UpdateGuru)))
+	router.GET("/admin/guru", requireAdminGuru(mw.RateLimitStandard(userHandlers.GetGuruHandler.ListGuru)))
+	router.GET("/admin/guru/:id", requireAdminGuru(mw.RateLimitStandard(userHandlers.GetGuruHandler.GetGuruByID)))
+	router.POST("/admin/guru", requireAdminGuru(mw.RateLimitStandard(userHandlers.CreateHandler.CreateGuru)))
+	router.PATCH("/admin/guru/:id", requireAdminGuru(mw.RateLimitStandard(userHandlers.UpdateHandler.UpdateGuru)))
 
 	// PENGGUNA
 	router.DELETE("/admin/pengguna", requireAdmin(mw.RateLimitStandard(userHandlers.DeleteHandler.DeleteUsers)))

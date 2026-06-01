@@ -2,26 +2,10 @@ package user_service
 
 import (
 	"context"
-	"errors"
-	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
+
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/user"
-	"github.com/mustafamadjid/web-app-cbt/internal/core/port/out"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
-	txout "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/tx"
 )
-
-type CreateTx struct {
-	txm    txout.TxManager
-	hasher out.PasswordHasher
-}
-
-func NewCreateGuruService(txm txout.TxManager, hasher out.PasswordHasher) *CreateTx {
-	return &CreateTx{txm: txm, hasher: hasher}
-}
-
-func NewCreateSiswaService(txm txout.TxManager, hasher out.PasswordHasher) *CreateTx {
-	return &CreateTx{txm: txm, hasher: hasher}
-}
 
 func (uc *CreateTx) CreateGuru(ctx context.Context, cmd CreateGuruCmd, actor user.Actor) (CreateGuruRes, error) {
 	logger := corelog.FromContext(ctx)
@@ -36,120 +20,42 @@ func (uc *CreateTx) CreateGuru(ctx context.Context, cmd CreateGuruCmd, actor use
 	}
 
 	isDashedNip := cmd.Nip == "-"
-
 	nipToStore := user.NIP(cmd.Nip)
-
 	var nipValidated user.NIP
-
 	if !isDashedNip {
-		v, error := user.CheckNewNip(cmd.Nip)
-		if error != nil {
-			return CreateGuruRes{}, error
+		v, err := user.CheckNewNip(cmd.Nip)
+		if err != nil {
+			return CreateGuruRes{}, err
 		}
 		nipValidated = v
 		nipToStore = v
 	}
 
-	// Validasi
-	var email *user.Email
-	if cmd.Email != nil {
-		emailValidated, error := user.CheckNewEmail(cmd.Email)
-		if error != nil {
-			logger.Error(ctx, "failed validating email", "layer", "core.service", "op", "user.create_guru", "err", error)
-			return CreateGuruRes{}, error
-		}
-
-		email = &emailValidated
-	}
-
-	// Hash password
-	hashedPassword, error := uc.hasher.GenerateHash(cmd.Password)
-	if error != nil {
-		logger.Error(ctx, "failed hashing password", "layer", "core.service", "op", "user.create_guru", "err", error)
-		return CreateGuruRes{}, error
-	}
-
-	// --- Transaksi ----
-	tx, err := uc.txm.Begin(ctx)
+	email, err := validateCreateEmail(cmd.Email)
 	if err != nil {
-		logger.Error(ctx, "failed starting transaction", "layer", "core.service", "op", "user.create_guru", "err", err)
 		return CreateGuruRes{}, err
 	}
 
-	defer func() { _ = tx.Rollback() }()
-
-	existUsername, error := tx.Pengguna().UserExistByUsername(ctx, cmd.Username)
-	if error != nil {
-		logger.Error(ctx, "failed checking username", "layer", "core.service", "op", "user.create_guru", "err", error)
-		return CreateGuruRes{}, error
-	}
-	if existUsername {
-		return CreateGuruRes{}, coreerror.ErrUsernameTaken
+	data := ValidatedGuruCreate{
+		cmd:          cmd,
+		email:        email,
+		nipToStore:   nipToStore,
+		nipValidated: nipValidated,
+		isDashedNip:  isDashedNip,
 	}
 
-	if !isDashedNip {
-		existNip, error := tx.ProfilGuru().ExistByNIP(ctx, nipValidated)
-		if error != nil {
-			logger.Error(ctx, "failed checking nip", "layer", "core.service", "op", "user.create_guru", "err", error)
-			return CreateGuruRes{}, error
-		}
-		if existNip {
-			logger.Error(ctx, "failed checking nip", "layer", "core.service", "op", "user.create_guru", "err", coreerror.ErrNipTaken)
-			return CreateGuruRes{}, coreerror.ErrNipTaken
-		}
+	hashedPassword, err := uc.hasher.GenerateHash(data.cmd.Password)
+	if err != nil {
+		logger.Error(ctx, "failed hashing password", "layer", "core.service", "op", opCreateGuru, "err", err)
+		return CreateGuruRes{}, err
 	}
 
-	userData := user.Pengguna{
-		Username:       cmd.Username,
-		Email:          email,
-		PasswordHashed: hashedPassword,
-		NamaLengkap:    cmd.NamaLengkap,
-		JenisKelamin:   cmd.JenisKelamin,
-		NoHp:           cmd.NoHp,
-		Foto:           cmd.Foto,
-		Role:           user.GURU,
-		StatusAkun:     user.AKTIF,
-	}
-
-	idPengguna, error := tx.Pengguna().CreateUser(ctx, userData)
-	if error != nil {
-		if errors.Is(error, coreerror.ErrUsernameTaken) ||
-			errors.Is(error, coreerror.ErrEmailTaken) ||
-			errors.Is(error, coreerror.ErrNoHpTaken) {
-			return CreateGuruRes{}, error
-		}
-
-		logger.Error(ctx, "failed creating user", "layer", "core.service", "op", "user.create_guru", "err", error)
-		return CreateGuruRes{}, error
-	}
-
-	profilGuruData := user.ProfilGuru{
-		IdPengguna:  idPengguna,
-		Nip:         nipToStore,
-		Jabatan:     cmd.Jabatan,
-		BidangStudi: cmd.BidangStudi,
-	}
-
-	idProfilGuru, error := tx.ProfilGuru().CreateProfilGuru(ctx, profilGuruData)
-	if error != nil {
-		logger.Error(ctx, "failed creating profil guru", "layer", "core.service", "op", "user.create_guru", "user_id", idPengguna, "err", error)
-		return CreateGuruRes{}, error
-	}
-
-	if error := tx.Commit(); error != nil {
-		logger.Error(ctx, "failed committing transaction", "layer", "core.service", "op", "user.create_guru", "user_id", idPengguna, "err", error)
-		return CreateGuruRes{}, error
-	}
-
-	return CreateGuruRes{
-		IdPengguna:   idPengguna,
-		IdProfilGuru: idProfilGuru,
-	}, nil
-
+	return uc.createGuruTx(ctx, data, hashedPassword)
 }
 
 func (uc *CreateTx) CreateSiswa(ctx context.Context, cmd CreateSiswaCmd, actor user.Actor) (CreateSiswaRes, error) {
 	logger := corelog.FromContext(ctx)
+
 	if err := validateCreateSiswaActor(actor); err != nil {
 		return CreateSiswaRes{}, err
 	}
@@ -160,11 +66,8 @@ func (uc *CreateTx) CreateSiswa(ctx context.Context, cmd CreateSiswaCmd, actor u
 	}
 
 	isDashedNisn := cmd.Nisn == "-"
-
 	nisnToStore := user.NISN(cmd.Nisn)
-
 	var nisnValidated user.NISN
-
 	if !isDashedNisn {
 		v, err := user.CheckNewNISN(cmd.Nisn)
 		if err != nil {
@@ -174,16 +77,9 @@ func (uc *CreateTx) CreateSiswa(ctx context.Context, cmd CreateSiswaCmd, actor u
 		nisnToStore = v
 	}
 
-	// Validasi
-	var email *user.Email
-	if cmd.Email != nil {
-		emailValidated, error := user.CheckNewEmail(cmd.Email)
-		if error != nil {
-			logger.Error(ctx, "failed validating email", "layer", "core.service", "op", "user.create_guru", "err", error)
-			return CreateSiswaRes{}, error
-		}
-
-		email = &emailValidated
+	email, err := validateCreateEmail(cmd.Email)
+	if err != nil {
+		return CreateSiswaRes{}, err
 	}
 
 	if err := user.CheckAbsen(cmd.NoAbsen); err != nil {
@@ -194,88 +90,24 @@ func (uc *CreateTx) CreateSiswa(ctx context.Context, cmd CreateSiswaCmd, actor u
 		return CreateSiswaRes{}, err
 	}
 
-	hashedPassword, err := uc.hasher.GenerateHash(cmd.Password)
+	data := ValidatedSiswaCreate{
+		cmd:           cmd,
+		email:         email,
+		nisnToStore:   nisnToStore,
+		nisnValidated: nisnValidated,
+		isDashedNisn:  isDashedNisn,
+	}
+
+	hashedPassword, err := uc.hasher.GenerateHash(data.cmd.Password)
 	if err != nil {
 		return CreateSiswaRes{}, err
 	}
 
-	tx, err := uc.txm.Begin(ctx)
+	res, err := uc.createSiswaTx(ctx, data, hashedPassword)
 	if err != nil {
-		logger.Error(ctx, "failed starting transaction", "layer", "core.service", "op", "user.create_siswa", "err", err)
 		return CreateSiswaRes{}, err
 	}
 
-	defer func() { _ = tx.Rollback() }()
-
-	existUsername, err := tx.Pengguna().UserExistByUsername(ctx, cmd.Username)
-	if err != nil {
-		logger.Error(ctx, "failed checking username", "layer", "core.service", "op", "user.create_siswa", "err", err)
-		return CreateSiswaRes{}, err
-	}
-	if existUsername {
-		return CreateSiswaRes{}, coreerror.ErrUsernameTaken
-	}
-
-	if !isDashedNisn {
-		existNisn, err := tx.ProfilSiswa().ExistByNISN(ctx, string(nisnValidated))
-		if err != nil {
-			logger.Error(ctx, "failed checking nisn", "layer", "core.service", "op", "user.create_siswa", "err", err)
-			return CreateSiswaRes{}, err
-		}
-		if existNisn {
-			return CreateSiswaRes{}, coreerror.ErrNisnTaken
-		}
-	}
-
-	userData := user.Pengguna{
-		Username:       cmd.Username,
-		Email:          email,
-		PasswordHashed: hashedPassword,
-		NamaLengkap:    cmd.NamaLengkap,
-		JenisKelamin:   cmd.JenisKelamin,
-		NoHp:           cmd.NoHp,
-		Foto:           cmd.Foto,
-		Role:           user.SISWA,
-		StatusAkun:     user.AKTIF,
-	}
-
-	idPengguna, err := tx.Pengguna().CreateUser(ctx, userData)
-	if err != nil {
-		if errors.Is(err, coreerror.ErrUsernameTaken) ||
-			errors.Is(err, coreerror.ErrEmailTaken) ||
-			errors.Is(err, coreerror.ErrNoHpTaken) {
-			return CreateSiswaRes{}, err
-		}
-
-		logger.Error(ctx, "failed creating user", "layer", "core.service", "op", "user.create_siswa", "err", err)
-		return CreateSiswaRes{}, err
-	}
-
-	profilSiswaData := user.ProfilSiswa{
-		IdPengguna:   idPengguna,
-		IdNamaKelas:  cmd.IdNamaKelas,
-		Nisn:         nisnToStore,
-		NoAbsen:      cmd.NoAbsen,
-		Angkatan:     cmd.Angkatan,
-		TempatLahir:  cmd.TempatLahir,
-		TanggalLahir: cmd.TanggalLahir,
-	}
-	// IdTingkatKelas: cmd.IdTingkatKelas,
-
-	idProfilSiswa, err := tx.ProfilSiswa().CreateProfilSiswa(ctx, profilSiswaData)
-	if err != nil {
-		logger.Error(ctx, "failed creating profil siswa", "layer", "core.service", "op", "user.create_siswa", "user_id", idPengguna, "err", err)
-		return CreateSiswaRes{}, err
-	}
-
-	if err := tx.Commit(); err != nil {
-		logger.Error(ctx, "failed committing transaction", "layer", "core.service", "op", "user.create_siswa", "user_id", idPengguna, "err", err)
-		return CreateSiswaRes{}, err
-	}
-
-	logger.Info(ctx, "success creating user", "layer", "core.service", "op", "user.create_siswa", "user_id", idPengguna)
-	return CreateSiswaRes{
-		IdPengguna:    idPengguna,
-		IdProfilSiswa: idProfilSiswa,
-	}, nil
+	logger.Info(ctx, "success creating user", "layer", "core.service", "op", opCreateSiswa, "user_id", res.IdPengguna)
+	return res, nil
 }

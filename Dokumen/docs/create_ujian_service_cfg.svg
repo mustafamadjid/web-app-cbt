@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="980" viewBox="0 0 900 980">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#222"/>
+    </marker>
+    <style>
+      .node { fill: #fff; stroke: #222; stroke-width: 4; }
+      .edge { fill: none; stroke: #222; stroke-width: 4; marker-end: url(#arrow); }
+      .num { font: 700 24px Arial, sans-serif; fill: #222; text-anchor: middle; dominant-baseline: middle; }
+      .label { font: 20px Arial, sans-serif; fill: #222; }
+      .small { font: 16px Arial, sans-serif; fill: #333; }
+      .title { font: 700 30px Arial, sans-serif; fill: #111; }
+      .subtitle { font: 18px Arial, sans-serif; fill: #444; }
+      .legend-box { fill: #fff; stroke: #ddd; stroke-width: 2; rx: 8; }
+      .terminal { fill: #f8f8f8; }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="900" height="980" fill="#fff"/>
+
+  <text x="40" y="50" class="title">Control Flow Graph - CreateUjianService</text>
+  <text x="40" y="82" class="subtitle">backend/internal/core/service/ujian/ujian_penjadwalan/create/create_service.go</text>
+
+  <!-- Main graph nodes -->
+  <circle class="node" cx="190" cy="145" r="42"/>
+  <text class="num" x="190" y="145">1</text>
+
+  <circle class="node" cx="190" cy="250" r="42"/>
+  <text class="num" x="190" y="250">2</text>
+
+  <circle class="node" cx="190" cy="355" r="42"/>
+  <text class="num" x="190" y="355">3</text>
+
+  <circle class="node" cx="190" cy="470" r="42"/>
+  <text class="num" x="190" y="470">4</text>
+
+  <circle class="node terminal" cx="65" cy="595" r="42"/>
+  <text class="num" x="65" y="595">5</text>
+
+  <circle class="node" cx="315" cy="595" r="42"/>
+  <text class="num" x="315" y="595">6</text>
+
+  <circle class="node terminal" cx="190" cy="730" r="42"/>
+  <text class="num" x="190" y="730">7</text>
+
+  <circle class="node terminal" cx="440" cy="730" r="42"/>
+  <text class="num" x="440" y="730">8</text>
+
+  <!-- Main graph edges -->
+  <path class="edge" d="M 190 187 L 190 207"/>
+  <path class="edge" d="M 190 292 L 190 312"/>
+  <path class="edge" d="M 190 397 L 190 427"/>
+  <path class="edge" d="M 162 501 L 95 563"/>
+  <path class="edge" d="M 218 501 L 285 563"/>
+  <path class="edge" d="M 285 627 L 220 698"/>
+  <path class="edge" d="M 345 627 L 410 698"/>
+
+  <!-- Branch labels -->
+  <text x="72" y="535" class="small">err != nil</text>
+  <text x="254" y="535" class="small">err == nil</text>
+  <text x="208" y="675" class="small">err != nil</text>
+  <text x="356" y="675" class="small">err == nil</text>
+
+  <!-- Node descriptions -->
+  <rect x="530" y="122" width="315" height="690" class="legend-box"/>
+  <text x="560" y="160" class="label">Node:</text>
+
+  <text x="560" y="205" class="small">1. Mulai fungsi</text>
+  <text x="560" y="245" class="small">2. Ambil logger dari context</text>
+  <text x="560" y="285" class="small">3. Sanitasi data ujian</text>
+  <text x="560" y="325" class="small">4. Validasi data</text>
+  <text x="560" y="365" class="small">5. Log error validasi, return err</text>
+  <text x="560" y="405" class="small">6. Simpan data via repository</text>
+  <text x="560" y="445" class="small">7. Log error repository, return err</text>
+  <text x="560" y="485" class="small">8. Return nil</text>
+
+  <text x="560" y="555" class="label">Edges:</text>
+  <text x="560" y="600" class="small">1 -> 2 -> 3 -> 4</text>
+  <text x="560" y="640" class="small">4 -> 5 jika validasi gagal</text>
+  <text x="560" y="680" class="small">4 -> 6 jika validasi berhasil</text>
+  <text x="560" y="720" class="small">6 -> 7 jika repository gagal</text>
+  <text x="560" y="760" class="small">6 -> 8 jika repository berhasil</text>
+
+  <!-- Footer code summary -->
+  <rect x="40" y="845" width="805" height="88" class="legend-box"/>
+  <text x="65" y="882" class="small">Alur ringkas: logger -> sanitize -> validate -> create repository -> return.</text>
+  <text x="65" y="915" class="small">Percabangan terjadi pada hasil validateCreateUjian dan r.ujianRepo.CreateUjian.</text>
+</svg>

@@ -127,6 +127,13 @@ export function useExamBrowserExitCleanup({
         return;
       }
 
+      const confirmed = window.confirm(
+        "Anda akan meninggalkan tab ujian. Lanjutkan?",
+      );
+      if (!confirmed) {
+        return;
+      }
+
       triggerViolation("tab-hidden");
     };
 

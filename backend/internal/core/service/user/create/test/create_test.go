@@ -15,719 +15,362 @@ import (
 
 func strPtr(v string) *string { return &v }
 
-func TestCreateGuruBasisPath(t *testing.T) {
-	validCmd := func() user_service.CreateGuruCmd {
-		return user_service.CreateGuruCmd{
-			Username:     "guruuser",
-			Email:        strPtr("guru@example.com"),
-			Password:     "password",
-			NamaLengkap:  "Guru Test",
-			JenisKelamin: "L",
-			NoHp:         strPtr("08123456789"),
-			Foto:         "foto.png",
-			Nip:          "123456789012345678",
-			Jabatan:      "Kepala",
-			BidangStudi:  "Matematika",
-		}
-	}
-
-	adminActor := user.Actor{IdPengguna: 1, Role: user.ADMIN}
-	nonAdminActor := user.Actor{IdPengguna: 2, Role: user.GURU}
-
-	testErr := errors.New("test error")
-
-	cases := []struct {
-		name               string
-		cmd                user_service.CreateGuruCmd
-		actor              user.Actor
-		txm                *FakeTxManager
-		hasher             *FakeHasher
-		wantErr            error
-		wantBeginCalled    bool
-		wantHasherCalled   bool
-		wantCommitCalled   bool
-		wantRollbackCalled bool
-		wantCreateUser     bool
-		wantCreateProfil   bool
-		wantResult         user_service.CreateGuruRes
-	}{
-		{
-			name:  "Path 1 -> semua validasi lolos",
-			cmd:   validCmd(),
-			actor: adminActor,
-			txm: &FakeTxManager{Tx: &FakeTx{
-				UserRepo:       &FakeUserRepo{CreateID: 10},
-				ProfilGuruRepo: &FakeProfilGuruRepo{CreateID: 20},
-			}},
-			hasher:             &FakeHasher{Hash: "hashed"},
-			wantBeginCalled:    true,
-			wantHasherCalled:   true,
-			wantCommitCalled:   true,
-			wantRollbackCalled: true,
-			wantCreateUser:     true,
-			wantCreateProfil:   true,
-			wantResult:         user_service.CreateGuruRes{IdPengguna: 10, IdProfilGuru: 20},
-		},
-		{
-			name: "Path 2 -> foto guru opsional",
-			cmd: func() user_service.CreateGuruCmd {
-				c := validCmd()
-				c.Foto = ""
-				return c
-			}(),
-			actor: adminActor,
-			txm: &FakeTxManager{Tx: &FakeTx{
-				UserRepo:       &FakeUserRepo{CreateID: 11},
-				ProfilGuruRepo: &FakeProfilGuruRepo{CreateID: 21},
-			}},
-			hasher:             &FakeHasher{Hash: "hashed"},
-			wantBeginCalled:    true,
-			wantHasherCalled:   true,
-			wantCommitCalled:   true,
-			wantRollbackCalled: true,
-			wantCreateUser:     true,
-			wantCreateProfil:   true,
-			wantResult:         user_service.CreateGuruRes{IdPengguna: 11, IdProfilGuru: 21},
-		},
-		{
-			name:  "Path 3 -> username taken",
-			cmd:   validCmd(),
-			actor: adminActor,
-			txm: &FakeTxManager{Tx: &FakeTx{
-				UserRepo:       &FakeUserRepo{ExistByUsername: true},
-				ProfilGuruRepo: &FakeProfilGuruRepo{},
-			}},
-			hasher:             &FakeHasher{Hash: "hashed"},
-			wantErr:            coreerror.ErrUsernameTaken,
-			wantBeginCalled:    true,
-			wantHasherCalled:   true,
-			wantCommitCalled:   false,
-			wantRollbackCalled: true,
-			wantCreateUser:     false,
-			wantCreateProfil:   false,
-		},
-		{
-			name:  "Path 4 -> panjang username tidak valid",
-			cmd:   func() user_service.CreateGuruCmd { c := validCmd(); c.Username = "guru"; return c }(),
-			actor: adminActor,
-			txm: &FakeTxManager{Tx: &FakeTx{
-				UserRepo:       &FakeUserRepo{},
-				ProfilGuruRepo: &FakeProfilGuruRepo{},
-			}},
-			hasher:             &FakeHasher{Hash: "hashed"},
-			wantErr:            coreerror.ErrUsernameLengthInvalid,
-			wantBeginCalled:    false,
-			wantHasherCalled:   false,
-			wantCommitCalled:   false,
-			wantRollbackCalled: false,
-			wantCreateUser:     false,
-			wantCreateProfil:   false,
-		},
-		{
-			name:  "Path 5 -> NIP taken",
-			cmd:   validCmd(),
-			actor: adminActor,
-			txm: &FakeTxManager{Tx: &FakeTx{
-				UserRepo:       &FakeUserRepo{ExistByUsername: false},
-				ProfilGuruRepo: &FakeProfilGuruRepo{ExistsNip: true},
-			}},
-			hasher:             &FakeHasher{Hash: "hashed"},
-			wantErr:            coreerror.ErrNipTaken,
-			wantBeginCalled:    true,
-			wantHasherCalled:   true,
-			wantCommitCalled:   false,
-			wantRollbackCalled: true,
-			wantCreateUser:     false,
-			wantCreateProfil:   false,
-		},
-		{
-			name:  "Path 6 -> create pengguna gagal",
-			cmd:   validCmd(),
-			actor: adminActor,
-			txm: &FakeTxManager{Tx: &FakeTx{
-				UserRepo:       &FakeUserRepo{CreateErr: testErr},
-				ProfilGuruRepo: &FakeProfilGuruRepo{},
-			}},
-			hasher:             &FakeHasher{Hash: "hashed"},
-			wantErr:            testErr,
-			wantBeginCalled:    true,
-			wantHasherCalled:   true,
-			wantCommitCalled:   false,
-			wantRollbackCalled: true,
-			wantCreateUser:     true,
-			wantCreateProfil:   false,
-		},
-		{
-			name:  "Path 7 -> create profil guru gagal",
-			cmd:   validCmd(),
-			actor: adminActor,
-			txm: &FakeTxManager{Tx: &FakeTx{
-				UserRepo:       &FakeUserRepo{CreateID: 10},
-				ProfilGuruRepo: &FakeProfilGuruRepo{CreateErr: testErr},
-			}},
-			hasher:             &FakeHasher{Hash: "hashed"},
-			wantErr:            testErr,
-			wantBeginCalled:    true,
-			wantHasherCalled:   true,
-			wantCommitCalled:   false,
-			wantRollbackCalled: true,
-			wantCreateUser:     true,
-			wantCreateProfil:   true,
-		},
-		{
-			name:  "Path 8 -> commit gagal",
-			cmd:   validCmd(),
-			actor: adminActor,
-			txm: &FakeTxManager{Tx: &FakeTx{
-				UserRepo:       &FakeUserRepo{CreateID: 10},
-				ProfilGuruRepo: &FakeProfilGuruRepo{CreateID: 20},
-				CommitErr:      testErr,
-			}},
-			hasher:             &FakeHasher{Hash: "hashed"},
-			wantErr:            testErr,
-			wantBeginCalled:    true,
-			wantHasherCalled:   true,
-			wantCommitCalled:   true,
-			wantRollbackCalled: true,
-			wantCreateUser:     true,
-			wantCreateProfil:   true,
-		},
-		{
-			name:  "Path 9 -> invalid email",
-			cmd:   func() user_service.CreateGuruCmd { c := validCmd(); c.Email = strPtr("not-an-email"); return c }(),
-			actor: adminActor,
-			txm: &FakeTxManager{Tx: &FakeTx{
-				UserRepo:       &FakeUserRepo{},
-				ProfilGuruRepo: &FakeProfilGuruRepo{},
-			}},
-			hasher:             &FakeHasher{Hash: "hashed"},
-			wantErr:            user.ErrInvalidEmail,
-			wantBeginCalled:    false,
-			wantHasherCalled:   false,
-			wantCommitCalled:   false,
-			wantRollbackCalled: false,
-			wantCreateUser:     false,
-			wantCreateProfil:   false,
-		},
-		{
-			name:  "Path 10 -> invalid nip",
-			cmd:   func() user_service.CreateGuruCmd { c := validCmd(); c.Nip = "123"; return c }(),
-			actor: adminActor,
-			txm: &FakeTxManager{Tx: &FakeTx{
-				UserRepo:       &FakeUserRepo{},
-				ProfilGuruRepo: &FakeProfilGuruRepo{},
-			}},
-			hasher:             &FakeHasher{Hash: "hashed"},
-			wantErr:            user.ErrInvalidNIP,
-			wantBeginCalled:    false,
-			wantHasherCalled:   false,
-			wantCommitCalled:   false,
-			wantRollbackCalled: false,
-			wantCreateUser:     false,
-			wantCreateProfil:   false,
-		},
-		{
-			name:  "Path 11 -> hash password gagal",
-			cmd:   validCmd(),
-			actor: adminActor,
-			txm: &FakeTxManager{Tx: &FakeTx{
-				UserRepo:       &FakeUserRepo{},
-				ProfilGuruRepo: &FakeProfilGuruRepo{},
-			}},
-			hasher:             &FakeHasher{Err: testErr},
-			wantErr:            testErr,
-			wantBeginCalled:    false,
-			wantHasherCalled:   true,
-			wantCommitCalled:   false,
-			wantRollbackCalled: false,
-			wantCreateUser:     false,
-			wantCreateProfil:   false,
-		},
-		{
-			name:  "Path 12 -> begin tx gagal",
-			cmd:   validCmd(),
-			actor: adminActor,
-			txm: &FakeTxManager{
-				BeginErr: testErr,
-				Tx: &FakeTx{
-					UserRepo:       &FakeUserRepo{},
-					ProfilGuruRepo: &FakeProfilGuruRepo{},
-				},
-			},
-			hasher:             &FakeHasher{Hash: "hashed"},
-			wantErr:            testErr,
-			wantBeginCalled:    true,
-			wantHasherCalled:   true,
-			wantCommitCalled:   false,
-			wantRollbackCalled: false,
-			wantCreateUser:     false,
-			wantCreateProfil:   false,
-		},
-		{
-			name:  "Path 13 -> aktor bukan admin",
-			cmd:   validCmd(),
-			actor: nonAdminActor,
-			txm: &FakeTxManager{
-				Tx: &FakeTx{
-					UserRepo:       &FakeUserRepo{},
-					ProfilGuruRepo: &FakeProfilGuruRepo{},
-				},
-			},
-			hasher:             &FakeHasher{Hash: "hashed"},
-			wantErr:            coreerror.ErrForbidden,
-			wantBeginCalled:    false,
-			wantHasherCalled:   false,
-			wantCommitCalled:   false,
-			wantRollbackCalled: false,
-			wantCreateUser:     false,
-			wantCreateProfil:   false,
-		},
-		{
-			name:  "Path 14 -> cek username gagal",
-			cmd:   validCmd(),
-			actor: adminActor,
-			txm: &FakeTxManager{
-				Tx: &FakeTx{
-					UserRepo:       &FakeUserRepo{UserExistErr: coreerror.ErrDbError},
-					ProfilGuruRepo: &FakeProfilGuruRepo{},
-				},
-			},
-			hasher:             &FakeHasher{Hash: "hashed"},
-			wantErr:            coreerror.ErrDbError,
-			wantBeginCalled:    true,
-			wantHasherCalled:   true,
-			wantCommitCalled:   false,
-			wantRollbackCalled: true,
-			wantCreateUser:     false,
-			wantCreateProfil:   false,
-		},
-		{
-			name:  "Path 15 -> cek nip gagal",
-			cmd:   validCmd(),
-			actor: adminActor,
-			txm: &FakeTxManager{
-				Tx: &FakeTx{
-					UserRepo:       &FakeUserRepo{},
-					ProfilGuruRepo: &FakeProfilGuruRepo{ExistErr: coreerror.ErrDbError},
-				},
-			},
-			hasher:             &FakeHasher{Hash: "hashed"},
-			wantErr:            coreerror.ErrDbError,
-			wantBeginCalled:    true,
-			wantHasherCalled:   true,
-			wantCommitCalled:   false,
-			wantRollbackCalled: true,
-			wantCreateUser:     false,
-			wantCreateProfil:   false,
-		},
-	}
-
-	for _, tc := range cases {
-		tc := tc
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-			service := user_service.NewCreateGuruService(tc.txm, tc.hasher)
-
-			res, err := service.CreateGuru(context.Background(), tc.cmd, tc.actor)
-
-			if tc.wantErr != nil {
-				assert.ErrorIs(t, err, tc.wantErr)
-			} else {
-				assert.NoError(t, err)
-			}
-
-			assert.Equal(t, tc.wantResult, res)
-			assert.Equal(t, tc.wantBeginCalled, tc.txm.BeginCalled)
-			assert.Equal(t, tc.wantHasherCalled, tc.hasher.Called)
-
-			if tc.txm.Tx != nil {
-				assert.Equal(t, tc.wantCommitCalled, tc.txm.Tx.CommitCalled)
-				assert.Equal(t, tc.wantRollbackCalled, tc.txm.Tx.RollbackCalled)
-				if tc.txm.Tx.UserRepo != nil {
-					assert.Equal(t, tc.wantCreateUser, tc.txm.Tx.UserRepo.CreateCalled)
-				}
-				if tc.txm.Tx.ProfilGuruRepo != nil {
-					assert.Equal(t, tc.wantCreateProfil, tc.txm.Tx.ProfilGuruRepo.CreateCalled)
-				}
-			}
-		})
+func validCreateGuruCmd() user_service.CreateGuruCmd {
+	return user_service.CreateGuruCmd{
+		Username:     "guruuser",
+		Email:        strPtr("guru@example.com"),
+		Password:     "password",
+		NamaLengkap:  "Guru Test",
+		JenisKelamin: "L",
+		NoHp:         strPtr("08123456789"),
+		Foto:         "foto.png",
+		Nip:          "123456789012345678",
+		Jabatan:      "Kepala",
+		BidangStudi:  "Matematika",
 	}
 }
 
+func validCreateSiswaCmd() user_service.CreateSiswaCmd {
+	return user_service.CreateSiswaCmd{
+		Username:     "siswauser",
+		Email:        strPtr("siswa@example.com"),
+		Password:     "password",
+		NamaLengkap:  "Siswa Test",
+		JenisKelamin: "L",
+		NoHp:         strPtr("08123456789"),
+		Foto:         "foto.png",
+		IdNamaKelas:  2,
+		Nisn:         "1234567890",
+		NoAbsen:      1,
+		Angkatan:     2021,
+		TempatLahir:  "Bandung",
+		TanggalLahir: time.Date(2005, time.January, 1, 0, 0, 0, 0, time.UTC),
+	}
+}
+
+func adminActor() user.Actor {
+	return user.Actor{IdPengguna: 1, Role: user.ADMIN}
+}
+
+func guruActor() user.Actor {
+	return user.Actor{IdPengguna: 2, Role: user.GURU}
+}
+
+func siswaActor() user.Actor {
+	return user.Actor{IdPengguna: 3, Role: user.SISWA}
+}
+
+func newGuruTx(userRepo *FakeUserRepo, guruRepo *FakeProfilGuruRepo) *FakeTxManager {
+	return &FakeTxManager{Tx: &FakeTx{
+		UserRepo:       userRepo,
+		ProfilGuruRepo: guruRepo,
+	}}
+}
+
+func newSiswaTx(userRepo *FakeUserRepo, siswaRepo *FakeProfilSiswaRepo) *FakeTxManager {
+	return &FakeTxManager{Tx: &FakeTx{
+		UserRepo:        userRepo,
+		ProfilSiswaRepo: siswaRepo,
+	}}
+}
+
+func assertBeforeHash(t *testing.T, txm *FakeTxManager, hasher *FakeHasher) {
+	t.Helper()
+
+	assert.False(t, hasher.Called)
+	assert.False(t, txm.BeginCalled)
+}
+
+func assertHashBeforeTx(t *testing.T, txm *FakeTxManager, hasher *FakeHasher) {
+	t.Helper()
+
+	assert.True(t, hasher.Called)
+	assert.False(t, txm.BeginCalled)
+}
+
+func TestCreateGuruBasisPath(t *testing.T) {
+	t.Parallel()
+
+	t.Run("P1 -> aktor tidak memiliki hak untuk membuat data guru", func(t *testing.T) {
+		t.Parallel()
+		txm := newGuruTx(&FakeUserRepo{}, &FakeProfilGuruRepo{})
+		hasher := &FakeHasher{Hash: "hashed"}
+		service := user_service.NewCreateGuruService(txm, hasher)
+
+		res, err := service.CreateGuru(context.Background(), validCreateGuruCmd(), guruActor())
+
+		assert.ErrorIs(t, err, coreerror.ErrForbidden)
+		assert.Equal(t, user_service.CreateGuruRes{}, res)
+		assertBeforeHash(t, txm, hasher)
+	})
+
+	t.Run("P2 -> username tidak sesuai aturan panjang karakter", func(t *testing.T) {
+		t.Parallel()
+		cmd := validCreateGuruCmd()
+		cmd.Username = "guru"
+		txm := newGuruTx(&FakeUserRepo{}, &FakeProfilGuruRepo{})
+		hasher := &FakeHasher{Hash: "hashed"}
+		service := user_service.NewCreateGuruService(txm, hasher)
+
+		res, err := service.CreateGuru(context.Background(), cmd, adminActor())
+
+		assert.ErrorIs(t, err, coreerror.ErrUsernameLengthInvalid)
+		assert.Equal(t, user_service.CreateGuruRes{}, res)
+		assertBeforeHash(t, txm, hasher)
+	})
+
+	t.Run("P3 -> NIP diisi tetapi format NIP tidak valid", func(t *testing.T) {
+		t.Parallel()
+		cmd := validCreateGuruCmd()
+		cmd.Nip = "123"
+		txm := newGuruTx(&FakeUserRepo{}, &FakeProfilGuruRepo{})
+		hasher := &FakeHasher{Hash: "hashed"}
+		service := user_service.NewCreateGuruService(txm, hasher)
+
+		res, err := service.CreateGuru(context.Background(), cmd, adminActor())
+
+		assert.ErrorIs(t, err, user.ErrInvalidNIP)
+		assert.Equal(t, user_service.CreateGuruRes{}, res)
+		assertBeforeHash(t, txm, hasher)
+	})
+
+	t.Run("P4 -> email tidak valid setelah NIP berhasil divalidasi", func(t *testing.T) {
+		t.Parallel()
+		cmd := validCreateGuruCmd()
+		cmd.Email = strPtr("not-an-email")
+		txm := newGuruTx(&FakeUserRepo{}, &FakeProfilGuruRepo{})
+		hasher := &FakeHasher{Hash: "hashed"}
+		service := user_service.NewCreateGuruService(txm, hasher)
+
+		res, err := service.CreateGuru(context.Background(), cmd, adminActor())
+
+		assert.ErrorIs(t, err, user.ErrInvalidEmail)
+		assert.Equal(t, user_service.CreateGuruRes{}, res)
+		assertBeforeHash(t, txm, hasher)
+	})
+
+	t.Run("P5 -> NIP dash tetapi hashing password gagal", func(t *testing.T) {
+		t.Parallel()
+		testErr := errors.New("test error")
+		cmd := validCreateGuruCmd()
+		cmd.Nip = "-"
+		txm := newGuruTx(&FakeUserRepo{}, &FakeProfilGuruRepo{})
+		hasher := &FakeHasher{Err: testErr}
+		service := user_service.NewCreateGuruService(txm, hasher)
+
+		res, err := service.CreateGuru(context.Background(), cmd, adminActor())
+
+		assert.ErrorIs(t, err, testErr)
+		assert.Equal(t, user_service.CreateGuruRes{}, res)
+		assertHashBeforeTx(t, txm, hasher)
+	})
+
+	t.Run("P6 -> pembuatan guru berhasil dengan NIP dash", func(t *testing.T) {
+		t.Parallel()
+		cmd := validCreateGuruCmd()
+		cmd.Nip = "-"
+		userRepo := &FakeUserRepo{CreateID: 10}
+		guruRepo := &FakeProfilGuruRepo{CreateID: 20}
+		txm := newGuruTx(userRepo, guruRepo)
+		hasher := &FakeHasher{Hash: "hashed"}
+		service := user_service.NewCreateGuruService(txm, hasher)
+
+		res, err := service.CreateGuru(context.Background(), cmd, adminActor())
+
+		assert.NoError(t, err)
+		assert.Equal(t, user_service.CreateGuruRes{IdPengguna: 10, IdProfilGuru: 20}, res)
+		assert.True(t, hasher.Called)
+		assert.True(t, txm.BeginCalled)
+		assert.False(t, guruRepo.ExistCalled)
+		assert.True(t, userRepo.CreateCalled)
+		assert.True(t, guruRepo.CreateCalled)
+		assert.True(t, txm.Tx.CommitCalled)
+	})
+
+	t.Run("P7 -> pembuatan guru berhasil dengan NIP valid", func(t *testing.T) {
+		t.Parallel()
+		userRepo := &FakeUserRepo{CreateID: 11}
+		guruRepo := &FakeProfilGuruRepo{CreateID: 21}
+		txm := newGuruTx(userRepo, guruRepo)
+		hasher := &FakeHasher{Hash: "hashed"}
+		service := user_service.NewCreateGuruService(txm, hasher)
+
+		res, err := service.CreateGuru(context.Background(), validCreateGuruCmd(), adminActor())
+
+		assert.NoError(t, err)
+		assert.Equal(t, user_service.CreateGuruRes{IdPengguna: 11, IdProfilGuru: 21}, res)
+		assert.True(t, hasher.Called)
+		assert.True(t, txm.BeginCalled)
+		assert.True(t, guruRepo.ExistCalled)
+		assert.True(t, userRepo.CreateCalled)
+		assert.True(t, guruRepo.CreateCalled)
+		assert.True(t, txm.Tx.CommitCalled)
+	})
+}
+
 func TestCreateSiswaBasisPath(t *testing.T) {
-	validCmd := func() user_service.CreateSiswaCmd {
-		return user_service.CreateSiswaCmd{
-			Username:     "siswauser",
-			Email:        strPtr("siswa@example.com"),
-			Password:     "password",
-			NamaLengkap:  "Siswa Test",
-			JenisKelamin: "L",
-			NoHp:         strPtr("08123456789"),
-			Foto:         "foto.png",
-			IdNamaKelas:  2,
-			Nisn:         "1234567890",
-			NoAbsen:      1,
-			Angkatan:     2021,
-			TempatLahir:  "Bandung",
-			TanggalLahir: time.Date(2005, time.January, 1, 0, 0, 0, 0, time.UTC),
-		}
-	}
+	t.Parallel()
 
-	adminActor := user.Actor{IdPengguna: 1, Role: user.ADMIN}
-	nonAdminActor := user.Actor{IdPengguna: 1, Role: user.SISWA}
+	t.Run("P1 -> aktor tidak memiliki hak untuk membuat data siswa", func(t *testing.T) {
+		t.Parallel()
+		txm := newSiswaTx(&FakeUserRepo{}, &FakeProfilSiswaRepo{})
+		hasher := &FakeHasher{Hash: "hashed"}
+		service := user_service.NewCreateSiswaService(txm, hasher)
 
-	testErr := errors.New("test error")
+		res, err := service.CreateSiswa(context.Background(), validCreateSiswaCmd(), siswaActor())
 
-	cases := []struct {
-		name               string
-		cmd                user_service.CreateSiswaCmd
-		actor              user.Actor
-		txm                *FakeTxManager
-		hasher             *FakeHasher
-		wantErr            error
-		wantBeginCalled    bool
-		wantHasherCalled   bool
-		wantCommitCalled   bool
-		wantRollbackCalled bool
-		wantCreateUser     bool
-		wantCreateProfil   bool
-		wantResult         user_service.CreateSiswaRes
-	}{
-		{
-			name:  "Path 1 -> semua validasi lolos",
-			cmd:   validCmd(),
-			actor: adminActor,
-			txm: &FakeTxManager{Tx: &FakeTx{
-				UserRepo:        &FakeUserRepo{CreateID: 10},
-				ProfilSiswaRepo: &FakeProfilSiswaRepo{CreateID: 20},
-			}},
-			hasher:             &FakeHasher{Hash: "hashed"},
-			wantBeginCalled:    true,
-			wantHasherCalled:   true,
-			wantCommitCalled:   true,
-			wantRollbackCalled: true,
-			wantCreateUser:     true,
-			wantCreateProfil:   true,
-			wantResult:         user_service.CreateSiswaRes{IdPengguna: 10, IdProfilSiswa: 20},
-		},
-		{
-			name: "Path 2 -> foto siswa opsional",
-			cmd: func() user_service.CreateSiswaCmd {
-				c := validCmd()
-				c.Foto = ""
-				return c
-			}(),
-			actor: adminActor,
-			txm: &FakeTxManager{Tx: &FakeTx{
-				UserRepo:        &FakeUserRepo{CreateID: 11},
-				ProfilSiswaRepo: &FakeProfilSiswaRepo{CreateID: 21},
-			}},
-			hasher:             &FakeHasher{Hash: "hashed"},
-			wantBeginCalled:    true,
-			wantHasherCalled:   true,
-			wantCommitCalled:   true,
-			wantRollbackCalled: true,
-			wantCreateUser:     true,
-			wantCreateProfil:   true,
-			wantResult:         user_service.CreateSiswaRes{IdPengguna: 11, IdProfilSiswa: 21},
-		},
-		{
-			name:  "Path 3 -> username taken",
-			cmd:   validCmd(),
-			actor: adminActor,
-			txm: &FakeTxManager{Tx: &FakeTx{
-				UserRepo:        &FakeUserRepo{ExistByUsername: true},
-				ProfilSiswaRepo: &FakeProfilSiswaRepo{},
-			}},
-			hasher:             &FakeHasher{Hash: "hashed"},
-			wantErr:            coreerror.ErrUsernameTaken,
-			wantBeginCalled:    true,
-			wantHasherCalled:   true,
-			wantCommitCalled:   false,
-			wantRollbackCalled: true,
-			wantCreateUser:     false,
-			wantCreateProfil:   false,
-		},
-		{
-			name:  "Path 4 -> panjang username tidak valid",
-			cmd:   func() user_service.CreateSiswaCmd { c := validCmd(); c.Username = "sisw"; return c }(),
-			actor: adminActor,
-			txm: &FakeTxManager{Tx: &FakeTx{
-				UserRepo:        &FakeUserRepo{},
-				ProfilSiswaRepo: &FakeProfilSiswaRepo{},
-			}},
-			hasher:             &FakeHasher{Hash: "hashed"},
-			wantErr:            coreerror.ErrUsernameLengthInvalid,
-			wantBeginCalled:    false,
-			wantHasherCalled:   false,
-			wantCommitCalled:   false,
-			wantRollbackCalled: false,
-			wantCreateUser:     false,
-			wantCreateProfil:   false,
-		},
-		{
-			name:  "Path 5 -> NISN taken",
-			cmd:   validCmd(),
-			actor: adminActor,
-			txm: &FakeTxManager{Tx: &FakeTx{
-				UserRepo:        &FakeUserRepo{ExistByUsername: false},
-				ProfilSiswaRepo: &FakeProfilSiswaRepo{ExistsNisn: true},
-			}},
-			hasher:             &FakeHasher{Hash: "hashed"},
-			wantErr:            coreerror.ErrNisnTaken,
-			wantBeginCalled:    true,
-			wantHasherCalled:   true,
-			wantCommitCalled:   false,
-			wantRollbackCalled: true,
-			wantCreateUser:     false,
-			wantCreateProfil:   false,
-		},
-		{
-			name:  "Path 6 -> create pengguna gagal",
-			cmd:   validCmd(),
-			actor: adminActor,
-			txm: &FakeTxManager{Tx: &FakeTx{
-				UserRepo:        &FakeUserRepo{CreateErr: testErr},
-				ProfilSiswaRepo: &FakeProfilSiswaRepo{},
-			}},
-			hasher:             &FakeHasher{Hash: "hashed"},
-			wantErr:            testErr,
-			wantBeginCalled:    true,
-			wantHasherCalled:   true,
-			wantCommitCalled:   false,
-			wantRollbackCalled: true,
-			wantCreateUser:     true,
-			wantCreateProfil:   false,
-		},
-		{
-			name:  "Path 7 -> create profil siswa gagal",
-			cmd:   validCmd(),
-			actor: adminActor,
-			txm: &FakeTxManager{Tx: &FakeTx{
-				UserRepo:        &FakeUserRepo{CreateID: 10},
-				ProfilSiswaRepo: &FakeProfilSiswaRepo{CreateErr: testErr},
-			}},
-			hasher:             &FakeHasher{Hash: "hashed"},
-			wantErr:            testErr,
-			wantBeginCalled:    true,
-			wantHasherCalled:   true,
-			wantCommitCalled:   false,
-			wantRollbackCalled: true,
-			wantCreateUser:     true,
-			wantCreateProfil:   true,
-		},
-		{
-			name:  "Path 8 -> commit gagal",
-			cmd:   validCmd(),
-			actor: adminActor,
-			txm: &FakeTxManager{Tx: &FakeTx{
-				UserRepo:        &FakeUserRepo{CreateID: 10},
-				ProfilSiswaRepo: &FakeProfilSiswaRepo{CreateID: 20},
-				CommitErr:       testErr,
-			}},
-			hasher:             &FakeHasher{Hash: "hashed"},
-			wantErr:            testErr,
-			wantBeginCalled:    true,
-			wantHasherCalled:   true,
-			wantCommitCalled:   true,
-			wantRollbackCalled: true,
-			wantCreateUser:     true,
-			wantCreateProfil:   true,
-		},
-		{
-			name:  "Path 9 -> invalid email",
-			cmd:   func() user_service.CreateSiswaCmd { c := validCmd(); c.Email = strPtr("not-an-email"); return c }(),
-			actor: adminActor,
-			txm: &FakeTxManager{Tx: &FakeTx{
-				UserRepo:        &FakeUserRepo{},
-				ProfilSiswaRepo: &FakeProfilSiswaRepo{},
-			}},
-			hasher:             &FakeHasher{Hash: "hashed"},
-			wantErr:            user.ErrInvalidEmail,
-			wantBeginCalled:    false,
-			wantHasherCalled:   false,
-			wantCommitCalled:   false,
-			wantRollbackCalled: false,
-			wantCreateUser:     false,
-			wantCreateProfil:   false,
-		},
-		{
-			name:  "Path 10 -> invalid nisn",
-			cmd:   func() user_service.CreateSiswaCmd { c := validCmd(); c.Nisn = "123"; return c }(),
-			actor: adminActor,
-			txm: &FakeTxManager{Tx: &FakeTx{
-				UserRepo:        &FakeUserRepo{},
-				ProfilSiswaRepo: &FakeProfilSiswaRepo{},
-			}},
-			hasher:             &FakeHasher{Hash: "hashed"},
-			wantErr:            user.ErrInvalidNISN,
-			wantBeginCalled:    false,
-			wantHasherCalled:   false,
-			wantCommitCalled:   false,
-			wantRollbackCalled: false,
-			wantCreateUser:     false,
-			wantCreateProfil:   false,
-		},
-		{
-			name:  "Path 11 -> invalid absen",
-			cmd:   func() user_service.CreateSiswaCmd { c := validCmd(); c.NoAbsen = 0; return c }(),
-			actor: adminActor,
-			txm: &FakeTxManager{Tx: &FakeTx{
-				UserRepo:        &FakeUserRepo{},
-				ProfilSiswaRepo: &FakeProfilSiswaRepo{},
-			}},
-			hasher:             &FakeHasher{Hash: "hashed"},
-			wantErr:            user.ErrInvalidAbsen,
-			wantBeginCalled:    false,
-			wantHasherCalled:   false,
-			wantCommitCalled:   false,
-			wantRollbackCalled: false,
-			wantCreateUser:     false,
-			wantCreateProfil:   false,
-		},
-		{
-			name:  "Path 12 -> invalid angkatan",
-			cmd:   func() user_service.CreateSiswaCmd { c := validCmd(); c.Angkatan = 2000; return c }(),
-			actor: adminActor,
-			txm: &FakeTxManager{Tx: &FakeTx{
-				UserRepo:        &FakeUserRepo{},
-				ProfilSiswaRepo: &FakeProfilSiswaRepo{},
-			}},
-			hasher:             &FakeHasher{Hash: "hashed"},
-			wantErr:            user.ErrInvalidAngkatan,
-			wantBeginCalled:    false,
-			wantHasherCalled:   false,
-			wantCommitCalled:   false,
-			wantRollbackCalled: false,
-			wantCreateUser:     false,
-			wantCreateProfil:   false,
-		},
-		{
-			name:  "Path 13 -> hash password gagal",
-			cmd:   validCmd(),
-			actor: adminActor,
-			txm: &FakeTxManager{Tx: &FakeTx{
-				UserRepo:        &FakeUserRepo{},
-				ProfilSiswaRepo: &FakeProfilSiswaRepo{},
-			}},
-			hasher:             &FakeHasher{Err: testErr},
-			wantErr:            testErr,
-			wantBeginCalled:    false,
-			wantHasherCalled:   true,
-			wantCommitCalled:   false,
-			wantRollbackCalled: false,
-			wantCreateUser:     false,
-			wantCreateProfil:   false,
-		},
-		{
-			name:  "Path 14 -> begin tx gagal",
-			cmd:   validCmd(),
-			actor: adminActor,
-			txm: &FakeTxManager{
-				BeginErr: testErr,
-				Tx: &FakeTx{
-					UserRepo:        &FakeUserRepo{},
-					ProfilSiswaRepo: &FakeProfilSiswaRepo{},
-				},
-			},
-			hasher:             &FakeHasher{Hash: "hashed"},
-			wantErr:            testErr,
-			wantBeginCalled:    true,
-			wantHasherCalled:   true,
-			wantCommitCalled:   false,
-			wantRollbackCalled: false,
-			wantCreateUser:     false,
-			wantCreateProfil:   false,
-		},
-		{
-			name:  "Path 15 -> aktor non admin",
-			cmd:   validCmd(),
-			actor: nonAdminActor,
-			txm: &FakeTxManager{
-				Tx: &FakeTx{
-					UserRepo:        &FakeUserRepo{},
-					ProfilSiswaRepo: &FakeProfilSiswaRepo{},
-				},
-			},
-			hasher:             &FakeHasher{Hash: "hashed"},
-			wantErr:            coreerror.ErrForbidden,
-			wantBeginCalled:    false,
-			wantHasherCalled:   false,
-			wantCommitCalled:   false,
-			wantRollbackCalled: false,
-			wantCreateUser:     false,
-			wantCreateProfil:   false,
-		},
-		{
-			name:  "Path 16 -> cek username gagal",
-			cmd:   validCmd(),
-			actor: adminActor,
-			txm: &FakeTxManager{
-				Tx: &FakeTx{
-					UserRepo:        &FakeUserRepo{UserExistErr: coreerror.ErrDbError},
-					ProfilSiswaRepo: &FakeProfilSiswaRepo{},
-				},
-			},
-			hasher:             &FakeHasher{Hash: "hashed"},
-			wantErr:            coreerror.ErrDbError,
-			wantBeginCalled:    true,
-			wantHasherCalled:   true,
-			wantCommitCalled:   false,
-			wantRollbackCalled: true,
-			wantCreateUser:     false,
-			wantCreateProfil:   false,
-		},
-		{
-			name:  "Path 17 -> cek nisn gagal",
-			cmd:   validCmd(),
-			actor: adminActor,
-			txm: &FakeTxManager{
-				Tx: &FakeTx{
-					UserRepo:        &FakeUserRepo{},
-					ProfilSiswaRepo: &FakeProfilSiswaRepo{ExistNisnErr: coreerror.ErrDbError},
-				},
-			},
-			hasher:             &FakeHasher{Hash: "hashed"},
-			wantErr:            coreerror.ErrDbError,
-			wantBeginCalled:    true,
-			wantHasherCalled:   true,
-			wantCommitCalled:   false,
-			wantRollbackCalled: true,
-			wantCreateUser:     false,
-			wantCreateProfil:   false,
-		},
-	}
+		assert.ErrorIs(t, err, coreerror.ErrForbidden)
+		assert.Equal(t, user_service.CreateSiswaRes{}, res)
+		assertBeforeHash(t, txm, hasher)
+	})
 
-	for _, tc := range cases {
-		tc := tc
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-			service := user_service.NewCreateSiswaService(tc.txm, tc.hasher)
+	t.Run("P2 -> username tidak sesuai aturan panjang karakter", func(t *testing.T) {
+		t.Parallel()
+		cmd := validCreateSiswaCmd()
+		cmd.Username = "sisw"
+		txm := newSiswaTx(&FakeUserRepo{}, &FakeProfilSiswaRepo{})
+		hasher := &FakeHasher{Hash: "hashed"}
+		service := user_service.NewCreateSiswaService(txm, hasher)
 
-			res, err := service.CreateSiswa(context.Background(), tc.cmd, tc.actor)
+		res, err := service.CreateSiswa(context.Background(), cmd, adminActor())
 
-			if tc.wantErr != nil {
-				assert.ErrorIs(t, err, tc.wantErr)
-			} else {
-				assert.NoError(t, err)
-			}
+		assert.ErrorIs(t, err, coreerror.ErrUsernameLengthInvalid)
+		assert.Equal(t, user_service.CreateSiswaRes{}, res)
+		assertBeforeHash(t, txm, hasher)
+	})
 
-			assert.Equal(t, tc.wantResult, res)
-			assert.Equal(t, tc.wantBeginCalled, tc.txm.BeginCalled)
-			assert.Equal(t, tc.wantHasherCalled, tc.hasher.Called)
+	t.Run("P3 -> NISN diisi tetapi format NISN tidak valid", func(t *testing.T) {
+		t.Parallel()
+		cmd := validCreateSiswaCmd()
+		cmd.Nisn = "123"
+		txm := newSiswaTx(&FakeUserRepo{}, &FakeProfilSiswaRepo{})
+		hasher := &FakeHasher{Hash: "hashed"}
+		service := user_service.NewCreateSiswaService(txm, hasher)
 
-			if tc.txm.Tx != nil {
-				assert.Equal(t, tc.wantCommitCalled, tc.txm.Tx.CommitCalled)
-				assert.Equal(t, tc.wantRollbackCalled, tc.txm.Tx.RollbackCalled)
-				if tc.txm.Tx.UserRepo != nil {
-					assert.Equal(t, tc.wantCreateUser, tc.txm.Tx.UserRepo.CreateCalled)
-				}
-				if tc.txm.Tx.ProfilSiswaRepo != nil {
-					assert.Equal(t, tc.wantCreateProfil, tc.txm.Tx.ProfilSiswaRepo.CreateCalled)
-				}
-			}
-		})
-	}
+		res, err := service.CreateSiswa(context.Background(), cmd, adminActor())
+
+		assert.ErrorIs(t, err, user.ErrInvalidNISN)
+		assert.Equal(t, user_service.CreateSiswaRes{}, res)
+		assertBeforeHash(t, txm, hasher)
+	})
+
+	t.Run("P4 -> email tidak valid setelah NISN berhasil divalidasi", func(t *testing.T) {
+		t.Parallel()
+		cmd := validCreateSiswaCmd()
+		cmd.Email = strPtr("not-an-email")
+		txm := newSiswaTx(&FakeUserRepo{}, &FakeProfilSiswaRepo{})
+		hasher := &FakeHasher{Hash: "hashed"}
+		service := user_service.NewCreateSiswaService(txm, hasher)
+
+		res, err := service.CreateSiswa(context.Background(), cmd, adminActor())
+
+		assert.ErrorIs(t, err, user.ErrInvalidEmail)
+		assert.Equal(t, user_service.CreateSiswaRes{}, res)
+		assertBeforeHash(t, txm, hasher)
+	})
+
+	t.Run("P5 -> nomor absen tidak valid", func(t *testing.T) {
+		t.Parallel()
+		cmd := validCreateSiswaCmd()
+		cmd.NoAbsen = 0
+		txm := newSiswaTx(&FakeUserRepo{}, &FakeProfilSiswaRepo{})
+		hasher := &FakeHasher{Hash: "hashed"}
+		service := user_service.NewCreateSiswaService(txm, hasher)
+
+		res, err := service.CreateSiswa(context.Background(), cmd, adminActor())
+
+		assert.ErrorIs(t, err, user.ErrInvalidAbsen)
+		assert.Equal(t, user_service.CreateSiswaRes{}, res)
+		assertBeforeHash(t, txm, hasher)
+	})
+
+	t.Run("P6 -> angkatan tidak valid", func(t *testing.T) {
+		t.Parallel()
+		cmd := validCreateSiswaCmd()
+		cmd.Angkatan = 2000
+		txm := newSiswaTx(&FakeUserRepo{}, &FakeProfilSiswaRepo{})
+		hasher := &FakeHasher{Hash: "hashed"}
+		service := user_service.NewCreateSiswaService(txm, hasher)
+
+		res, err := service.CreateSiswa(context.Background(), cmd, adminActor())
+
+		assert.ErrorIs(t, err, user.ErrInvalidAngkatan)
+		assert.Equal(t, user_service.CreateSiswaRes{}, res)
+		assertBeforeHash(t, txm, hasher)
+	})
+
+	t.Run("P7 -> proses hashing password gagal", func(t *testing.T) {
+		t.Parallel()
+		testErr := errors.New("test error")
+		cmd := validCreateSiswaCmd()
+		txm := newSiswaTx(&FakeUserRepo{}, &FakeProfilSiswaRepo{})
+		hasher := &FakeHasher{Err: testErr}
+		service := user_service.NewCreateSiswaService(txm, hasher)
+
+		res, err := service.CreateSiswa(context.Background(), cmd, adminActor())
+
+		assert.ErrorIs(t, err, testErr)
+		assert.Equal(t, user_service.CreateSiswaRes{}, res)
+		assertHashBeforeTx(t, txm, hasher)
+	})
+
+	t.Run("P8 -> transaksi pembuatan siswa gagal", func(t *testing.T) {
+		t.Parallel()
+		testErr := errors.New("test error")
+		txm := newSiswaTx(&FakeUserRepo{}, &FakeProfilSiswaRepo{})
+		txm.BeginErr = testErr
+		hasher := &FakeHasher{Hash: "hashed"}
+		service := user_service.NewCreateSiswaService(txm, hasher)
+
+		res, err := service.CreateSiswa(context.Background(), validCreateSiswaCmd(), adminActor())
+
+		assert.ErrorIs(t, err, testErr)
+		assert.Equal(t, user_service.CreateSiswaRes{}, res)
+		assert.True(t, hasher.Called)
+		assert.True(t, txm.BeginCalled)
+	})
+
+	t.Run("P9 -> pembuatan siswa berhasil dengan NISN dash", func(t *testing.T) {
+		t.Parallel()
+		cmd := validCreateSiswaCmd()
+		cmd.Nisn = "-"
+		userRepo := &FakeUserRepo{CreateID: 10}
+		siswaRepo := &FakeProfilSiswaRepo{CreateID: 20}
+		txm := newSiswaTx(userRepo, siswaRepo)
+		hasher := &FakeHasher{Hash: "hashed"}
+		service := user_service.NewCreateSiswaService(txm, hasher)
+
+		res, err := service.CreateSiswa(context.Background(), cmd, adminActor())
+
+		assert.NoError(t, err)
+		assert.Equal(t, user_service.CreateSiswaRes{IdPengguna: 10, IdProfilSiswa: 20}, res)
+		assert.True(t, hasher.Called)
+		assert.True(t, txm.BeginCalled)
+		assert.False(t, siswaRepo.ExistCalled)
+		assert.True(t, userRepo.CreateCalled)
+		assert.True(t, siswaRepo.CreateCalled)
+		assert.True(t, txm.Tx.CommitCalled)
+	})
+
+	t.Run("P10 -> pembuatan siswa berhasil dengan NISN valid", func(t *testing.T) {
+		t.Parallel()
+		userRepo := &FakeUserRepo{CreateID: 11}
+		siswaRepo := &FakeProfilSiswaRepo{CreateID: 21}
+		txm := newSiswaTx(userRepo, siswaRepo)
+		hasher := &FakeHasher{Hash: "hashed"}
+		service := user_service.NewCreateSiswaService(txm, hasher)
+
+		res, err := service.CreateSiswa(context.Background(), validCreateSiswaCmd(), adminActor())
+
+		assert.NoError(t, err)
+		assert.Equal(t, user_service.CreateSiswaRes{IdPengguna: 11, IdProfilSiswa: 21}, res)
+		assert.True(t, hasher.Called)
+		assert.True(t, txm.BeginCalled)
+		assert.True(t, siswaRepo.ExistCalled)
+		assert.True(t, userRepo.CreateCalled)
+		assert.True(t, siswaRepo.CreateCalled)
+		assert.True(t, txm.Tx.CommitCalled)
+	})
 }
 
 var _ out.PasswordHasher = (*FakeHasher)(nil)

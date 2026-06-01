@@ -13,6 +13,8 @@ import (
 )
 
 func TestUpdateGuruBasisPath(t *testing.T) {
+	t.Parallel()
+
 	adminActor := user.Actor{IdPengguna: 1, Role: user.ADMIN}
 	nonAdminActor := user.Actor{IdPengguna: 2, Role: user.GURU}
 
@@ -41,298 +43,118 @@ func TestUpdateGuruBasisPath(t *testing.T) {
 
 	testErr := errors.New("test error")
 
-	cases := []struct {
-		name               string
-		cmd                user_service.UpdateGuruCmd
-		actor              user.Actor
-		txm                *FakeTxManager
-		wantErr            error
-		wantErrText        string
-		wantBeginCalled    bool
-		wantCommitCalled   bool
-		wantRollbackCalled bool
-		wantUpdateUser     bool
-		wantUpdateProfil   bool
-		wantEmailValue     string
-		wantUsernameValue  string
-	}{
-		{
-			name:  "Path 1 -> semua patch berhasil",
-			cmd:   validCmd(),
-			actor: adminActor,
-			txm: &FakeTxManager{Tx: &FakeTx{
-				UserRepo:       &FakeUserRepo{},
-				ProfilGuruRepo: &FakeProfilGuruRepo{},
-			}},
-			wantBeginCalled:    true,
-			wantCommitCalled:   true,
-			wantRollbackCalled: true,
-			wantUpdateUser:     true,
-			wantUpdateProfil:   true,
-			wantEmailValue:     "guru@example.com",
-			wantUsernameValue:  "guruuser",
-		},
-		{
-			name:               "Path 2 -> aktor bukan admin",
-			cmd:                validCmd(),
-			actor:              nonAdminActor,
-			txm:                &FakeTxManager{Tx: &FakeTx{}},
-			wantErr:            coreerror.ErrForbidden,
-			wantBeginCalled:    false,
-			wantCommitCalled:   false,
-			wantRollbackCalled: false,
-			wantUpdateUser:     false,
-			wantUpdateProfil:   false,
-		},
-		{
-			name:               "Path 3 -> id pengguna kosong",
-			cmd:                func() user_service.UpdateGuruCmd { c := validCmd(); c.IdPengguna = 0; return c }(),
-			actor:              adminActor,
-			txm:                &FakeTxManager{Tx: &FakeTx{}},
-			wantErrText:        "Id pengguna required",
-			wantBeginCalled:    false,
-			wantCommitCalled:   false,
-			wantRollbackCalled: false,
-			wantUpdateUser:     false,
-			wantUpdateProfil:   false,
-		},
-		{
-			name:               "Path 4 -> username kosong",
-			cmd:                func() user_service.UpdateGuruCmd { c := validCmd(); c.Username = strPtr(" "); return c }(),
-			actor:              adminActor,
-			txm:                &FakeTxManager{Tx: &FakeTx{}},
-			wantErr:            coreerror.ErrUsernameLengthInvalid,
-			wantBeginCalled:    false,
-			wantCommitCalled:   false,
-			wantRollbackCalled: false,
-			wantUpdateUser:     false,
-			wantUpdateProfil:   false,
-		},
-		{
-			name:               "Path 5 -> nama lengkap kosong",
-			cmd:                func() user_service.UpdateGuruCmd { c := validCmd(); c.NamaLengkap = strPtr(" "); return c }(),
-			actor:              adminActor,
-			txm:                &FakeTxManager{Tx: &FakeTx{}},
-			wantErrText:        "nama_lengkap cannot be empty",
-			wantBeginCalled:    false,
-			wantCommitCalled:   false,
-			wantRollbackCalled: false,
-			wantUpdateUser:     false,
-			wantUpdateProfil:   false,
-		},
-		{
-			name:               "Path 6 -> email tidak valid",
-			cmd:                func() user_service.UpdateGuruCmd { c := validCmd(); c.Email = strPtr("invalid"); return c }(),
-			actor:              adminActor,
-			txm:                &FakeTxManager{Tx: &FakeTx{}},
-			wantErr:            user.ErrInvalidEmail,
-			wantBeginCalled:    false,
-			wantCommitCalled:   false,
-			wantRollbackCalled: false,
-			wantUpdateUser:     false,
-			wantUpdateProfil:   false,
-		},
-		{
-			name: "Path 7 -> tidak ada field yang diupdate",
-			cmd: func() user_service.UpdateGuruCmd {
-				return user_service.UpdateGuruCmd{IdPengguna: 10}
-			}(),
-			actor:              adminActor,
-			txm:                &FakeTxManager{Tx: &FakeTx{}},
-			wantErr:            coreerror.ErrNoFieldToUpdate,
-			wantBeginCalled:    false,
-			wantCommitCalled:   false,
-			wantRollbackCalled: false,
-			wantUpdateUser:     false,
-			wantUpdateProfil:   false,
-		},
-		{
-			name:  "Path 8 -> begin tx gagal",
-			cmd:   validCmd(),
-			actor: adminActor,
-			txm: &FakeTxManager{
-				BeginErr: testErr,
-				Tx: &FakeTx{
-					UserRepo:       &FakeUserRepo{},
-					ProfilGuruRepo: &FakeProfilGuruRepo{},
-				},
-			},
-			wantErr:            testErr,
-			wantBeginCalled:    true,
-			wantCommitCalled:   false,
-			wantRollbackCalled: false,
-			wantUpdateUser:     false,
-			wantUpdateProfil:   false,
-		},
-		{
-			name:  "Path 9 -> update pengguna gagal",
-			cmd:   validCmd(),
-			actor: adminActor,
-			txm: &FakeTxManager{Tx: &FakeTx{
-				UserRepo:       &FakeUserRepo{UpdateErr: testErr},
-				ProfilGuruRepo: &FakeProfilGuruRepo{},
-			}},
-			wantErr:            testErr,
-			wantBeginCalled:    true,
-			wantCommitCalled:   false,
-			wantRollbackCalled: true,
-			wantUpdateUser:     true,
-			wantUpdateProfil:   false,
-		},
-		{
-			name:  "Path 10 -> update profil guru gagal",
-			cmd:   validCmd(),
-			actor: adminActor,
-			txm: &FakeTxManager{Tx: &FakeTx{
-				UserRepo:       &FakeUserRepo{},
-				ProfilGuruRepo: &FakeProfilGuruRepo{UpdateErr: testErr},
-			}},
-			wantErr:            testErr,
-			wantBeginCalled:    true,
-			wantCommitCalled:   false,
-			wantRollbackCalled: true,
-			wantUpdateUser:     true,
-			wantUpdateProfil:   true,
-		},
-		{
-			name:  "Path 11 -> commit gagal",
-			cmd:   validCmd(),
-			actor: adminActor,
-			txm: &FakeTxManager{Tx: &FakeTx{
-				UserRepo:       &FakeUserRepo{},
-				ProfilGuruRepo: &FakeProfilGuruRepo{},
-				CommitErr:      testErr,
-			}},
-			wantErr:            testErr,
-			wantBeginCalled:    true,
-			wantCommitCalled:   true,
-			wantRollbackCalled: true,
-			wantUpdateUser:     true,
-			wantUpdateProfil:   true,
-		},
-		{
-			name: "Path 12 -> hanya update profil",
-			cmd: func() user_service.UpdateGuruCmd {
-				c := validCmd()
-				c.Username = nil
-				c.NamaLengkap = nil
-				c.Email = nil
-				c.JenisKelamin = nil
-				c.NoHp = nil
-				c.Foto = nil
-				c.StatusAkun = nil
-				c.Role = nil
-				return c
-			}(),
-			actor: adminActor,
-			txm: &FakeTxManager{Tx: &FakeTx{
-				UserRepo:       &FakeUserRepo{},
-				ProfilGuruRepo: &FakeProfilGuruRepo{},
-			}},
-			wantBeginCalled:    true,
-			wantCommitCalled:   true,
-			wantRollbackCalled: true,
-			wantUpdateUser:     false,
-			wantUpdateProfil:   true,
-		},
-		{
-			name: "Path 13 -> hanya update pengguna",
-			cmd: func() user_service.UpdateGuruCmd {
-				c := validCmd()
-				c.Nip = nil
-				c.Jabatan = nil
-				c.BidangStudi = nil
-				return c
-			}(),
-			actor: adminActor,
-			txm: &FakeTxManager{Tx: &FakeTx{
-				UserRepo:       &FakeUserRepo{},
-				ProfilGuruRepo: &FakeProfilGuruRepo{},
-			}},
-			wantBeginCalled:    true,
-			wantCommitCalled:   true,
-			wantRollbackCalled: true,
-			wantUpdateUser:     true,
-			wantUpdateProfil:   false,
-			wantEmailValue:     "guru@example.com",
-			wantUsernameValue:  "guruuser",
-		},
-		{
-			name: "Path 14 -> hanya update username",
-			cmd: user_service.UpdateGuruCmd{
-				IdPengguna: 10,
-				Username:   strPtr("guruupdate"),
-			},
-			actor: adminActor,
-			txm: &FakeTxManager{Tx: &FakeTx{
-				UserRepo:       &FakeUserRepo{},
-				ProfilGuruRepo: &FakeProfilGuruRepo{},
-			}},
-			wantBeginCalled:    true,
-			wantCommitCalled:   true,
-			wantRollbackCalled: true,
-			wantUpdateUser:     true,
-			wantUpdateProfil:   false,
-			wantUsernameValue:  "guruupdate",
-		},
-		{
-			name: "Path 15 -> foto kosong diabaikan",
-			cmd: user_service.UpdateGuruCmd{
-				IdPengguna: 10,
-				Foto:       strPtr(" "),
-			},
-			actor:              adminActor,
-			txm:                &FakeTxManager{Tx: &FakeTx{}},
-			wantErr:            coreerror.ErrNoFieldToUpdate,
-			wantBeginCalled:    false,
-			wantCommitCalled:   false,
-			wantRollbackCalled: false,
-			wantUpdateUser:     false,
-			wantUpdateProfil:   false,
-		},
-	}
+	t.Run("P1 -> aktor tidak memiliki hak untuk memperbarui data guru", func(t *testing.T) {
+		t.Parallel()
+		txm := &FakeTxManager{Tx: &FakeTx{}}
+		service := user_service.NewUpdateUserService(txm, &FakeSessionRepo{}, &FakeDeleteFileRepo{}, &FakeUserRepo{})
 
-	for _, tc := range cases {
-		tc := tc
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-			sessionRepo := &FakeSessionRepo{}
-			deleteFileRepo := &FakeDeleteFileRepo{}
-			userRepo := &FakeUserRepo{}
-			service := user_service.NewUpdateUserService(tc.txm, sessionRepo, deleteFileRepo, userRepo)
+		err := service.UpdateGuru(context.Background(), validCmd(), nonAdminActor)
 
-			err := service.UpdateGuru(context.Background(), tc.cmd, tc.actor)
+		assert.ErrorIs(t, err, coreerror.ErrForbidden)
+		assert.False(t, txm.BeginCalled)
+	})
 
-			if tc.wantErr != nil {
-				assert.ErrorIs(t, err, tc.wantErr)
-			} else if tc.wantErrText != "" {
-				assert.EqualError(t, err, tc.wantErrText)
-			} else {
-				assert.NoError(t, err)
-			}
+	t.Run("P2 -> ID pengguna tidak valid", func(t *testing.T) {
+		t.Parallel()
+		cmd := validCmd()
+		cmd.IdPengguna = 0
+		txm := &FakeTxManager{Tx: &FakeTx{}}
+		service := user_service.NewUpdateUserService(txm, &FakeSessionRepo{}, &FakeDeleteFileRepo{}, &FakeUserRepo{})
 
-			assert.Equal(t, tc.wantBeginCalled, tc.txm.BeginCalled)
-			if tc.txm.Tx != nil {
-				assert.Equal(t, tc.wantCommitCalled, tc.txm.Tx.CommitCalled)
-				assert.Equal(t, tc.wantRollbackCalled, tc.txm.Tx.RollbackCalled)
-				if tc.txm.Tx.UserRepo != nil {
-					assert.Equal(t, tc.wantUpdateUser, tc.txm.Tx.UserRepo.UpdateCalled)
-					if tc.wantUsernameValue != "" && tc.txm.Tx.UserRepo.LastPatch.Username != nil {
-						assert.Equal(t, tc.wantUsernameValue, *tc.txm.Tx.UserRepo.LastPatch.Username)
-					}
-					if tc.wantEmailValue != "" && tc.txm.Tx.UserRepo.LastPatch.Email != nil {
-						assert.Equal(t, tc.wantEmailValue, string(*tc.txm.Tx.UserRepo.LastPatch.Email))
-					}
-				}
-				if tc.txm.Tx.ProfilGuruRepo != nil {
-					assert.Equal(t, tc.wantUpdateProfil, tc.txm.Tx.ProfilGuruRepo.UpdateCalled)
-				}
-			}
-		})
-	}
+		err := service.UpdateGuru(context.Background(), cmd, adminActor)
+
+		assert.EqualError(t, err, "Id pengguna required")
+		assert.False(t, txm.BeginCalled)
+	})
+
+	t.Run("P3 -> data update guru tidak valid setelah sanitasi dan validasi", func(t *testing.T) {
+		t.Parallel()
+		cmd := validCmd()
+		cmd.Email = strPtr("invalid")
+		txm := &FakeTxManager{Tx: &FakeTx{}}
+		service := user_service.NewUpdateUserService(txm, &FakeSessionRepo{}, &FakeDeleteFileRepo{}, &FakeUserRepo{})
+
+		err := service.UpdateGuru(context.Background(), cmd, adminActor)
+
+		assert.ErrorIs(t, err, user.ErrInvalidEmail)
+		assert.False(t, txm.BeginCalled)
+	})
+
+	t.Run("P4 -> foto baru dikirim tetapi foto lama gagal dihapus", func(t *testing.T) {
+		t.Parallel()
+		txm := &FakeTxManager{Tx: &FakeTx{}}
+		deleteFileRepo := &FakeDeleteFileRepo{DeleteErr: testErr}
+		userRepo := &FakeUserRepo{FindResult: user.Pengguna{ID: 10, Foto: "foto-lama.png"}}
+		service := user_service.NewUpdateUserService(txm, &FakeSessionRepo{}, deleteFileRepo, userRepo)
+
+		err := service.UpdateGuru(context.Background(), validCmd(), adminActor)
+
+		assert.ErrorIs(t, err, testErr)
+		assert.True(t, userRepo.FindCalled)
+		assert.True(t, deleteFileRepo.DeleteCalled)
+		assert.Equal(t, "foto-lama.png", deleteFileRepo.LastPath)
+		assert.False(t, txm.BeginCalled)
+	})
+
+	t.Run("P5 -> foto kosong setelah sanitasi dan tidak ada field yang diperbarui", func(t *testing.T) {
+		t.Parallel()
+		cmd := user_service.UpdateGuruCmd{
+			IdPengguna: 10,
+			Foto:       strPtr(" "),
+		}
+		txm := &FakeTxManager{Tx: &FakeTx{}}
+		deleteFileRepo := &FakeDeleteFileRepo{}
+		userRepo := &FakeUserRepo{}
+		service := user_service.NewUpdateUserService(txm, &FakeSessionRepo{}, deleteFileRepo, userRepo)
+
+		err := service.UpdateGuru(context.Background(), cmd, adminActor)
+
+		assert.ErrorIs(t, err, coreerror.ErrNoFieldToUpdate)
+		assert.False(t, userRepo.FindCalled)
+		assert.False(t, deleteFileRepo.DeleteCalled)
+		assert.False(t, txm.BeginCalled)
+	})
+
+	t.Run("P6 -> tidak ada foto baru dan tidak ada field yang diperbarui", func(t *testing.T) {
+		t.Parallel()
+		cmd := user_service.UpdateGuruCmd{IdPengguna: 10}
+		txm := &FakeTxManager{Tx: &FakeTx{}}
+		service := user_service.NewUpdateUserService(txm, &FakeSessionRepo{}, &FakeDeleteFileRepo{}, &FakeUserRepo{})
+
+		err := service.UpdateGuru(context.Background(), cmd, adminActor)
+
+		assert.ErrorIs(t, err, coreerror.ErrNoFieldToUpdate)
+		assert.False(t, txm.BeginCalled)
+	})
+
+	t.Run("P7 -> data guru berhasil diperbarui", func(t *testing.T) {
+		t.Parallel()
+		txm := &FakeTxManager{Tx: &FakeTx{
+			UserRepo:       &FakeUserRepo{},
+			ProfilGuruRepo: &FakeProfilGuruRepo{},
+		}}
+		deleteFileRepo := &FakeDeleteFileRepo{}
+		userRepo := &FakeUserRepo{FindResult: user.Pengguna{ID: 10, Foto: "foto-lama.png"}}
+		service := user_service.NewUpdateUserService(txm, &FakeSessionRepo{}, deleteFileRepo, userRepo)
+
+		err := service.UpdateGuru(context.Background(), validCmd(), adminActor)
+
+		assert.NoError(t, err)
+		assert.True(t, userRepo.FindCalled)
+		assert.True(t, deleteFileRepo.DeleteCalled)
+		assert.True(t, txm.BeginCalled)
+		assert.True(t, txm.Tx.UserRepo.UpdateCalled)
+		assert.True(t, txm.Tx.ProfilGuruRepo.UpdateCalled)
+		assert.True(t, txm.Tx.CommitCalled)
+		assert.True(t, txm.Tx.RollbackCalled)
+		assert.Equal(t, "guruuser", *txm.Tx.UserRepo.LastPatch.Username)
+		assert.Equal(t, "guru@example.com", string(*txm.Tx.UserRepo.LastPatch.Email))
+	})
 }
 
 func TestUpdateSiswaBasisPath(t *testing.T) {
+	t.Parallel()
+
 	adminActor := user.Actor{IdPengguna: 1, Role: user.ADMIN}
 	nonAdminActor := user.Actor{IdPengguna: 2, Role: user.GURU}
 
@@ -376,340 +198,114 @@ func TestUpdateSiswaBasisPath(t *testing.T) {
 
 	testErr := errors.New("test error")
 
-	cases := []struct {
-		name               string
-		cmd                user_service.UpdateSiswaCmd
-		actor              user.Actor
-		txm                *FakeTxManager
-		wantErr            error
-		wantErrText        string
-		wantBeginCalled    bool
-		wantCommitCalled   bool
-		wantRollbackCalled bool
-		wantUpdateUser     bool
-		wantUpdateProfil   bool
-		wantEmailValue     string
-		wantNisnValue      string
-		wantUsernameValue  string
-	}{
-		{
-			name:  "Path 1 -> semua patch berhasil",
-			cmd:   validCmd(),
-			actor: adminActor,
-			txm: &FakeTxManager{Tx: &FakeTx{
-				UserRepo:        &FakeUserRepo{},
-				ProfilSiswaRepo: &FakeProfilSiswaRepo{},
-			}},
-			wantBeginCalled:    true,
-			wantCommitCalled:   true,
-			wantRollbackCalled: true,
-			wantUpdateUser:     true,
-			wantUpdateProfil:   true,
-			wantEmailValue:     "siswa@example.com",
-			wantNisnValue:      "1234567890",
-			wantUsernameValue:  "siswauser",
-		},
-		{
-			name:               "Path 2 -> aktor bukan admin",
-			cmd:                validCmd(),
-			actor:              nonAdminActor,
-			txm:                &FakeTxManager{Tx: &FakeTx{}},
-			wantErr:            coreerror.ErrForbidden,
-			wantBeginCalled:    false,
-			wantCommitCalled:   false,
-			wantRollbackCalled: false,
-			wantUpdateUser:     false,
-			wantUpdateProfil:   false,
-		},
-		{
-			name:               "Path 3 -> id pengguna kosong",
-			cmd:                func() user_service.UpdateSiswaCmd { c := validCmd(); c.IdPengguna = 0; return c }(),
-			actor:              adminActor,
-			txm:                &FakeTxManager{Tx: &FakeTx{}},
-			wantErrText:        "Id pengguna required",
-			wantBeginCalled:    false,
-			wantCommitCalled:   false,
-			wantRollbackCalled: false,
-			wantUpdateUser:     false,
-			wantUpdateProfil:   false,
-		},
-		{
-			name:               "Path 4 -> username kosong",
-			cmd:                func() user_service.UpdateSiswaCmd { c := validCmd(); c.Username = strPtr(" "); return c }(),
-			actor:              adminActor,
-			txm:                &FakeTxManager{Tx: &FakeTx{}},
-			wantErr:            coreerror.ErrUsernameLengthInvalid,
-			wantBeginCalled:    false,
-			wantCommitCalled:   false,
-			wantRollbackCalled: false,
-			wantUpdateUser:     false,
-			wantUpdateProfil:   false,
-		},
-		{
-			name:               "Path 5 -> nama lengkap kosong",
-			cmd:                func() user_service.UpdateSiswaCmd { c := validCmd(); c.NamaLengkap = strPtr(" "); return c }(),
-			actor:              adminActor,
-			txm:                &FakeTxManager{Tx: &FakeTx{}},
-			wantErrText:        "nama_lengkap cannot be empty",
-			wantBeginCalled:    false,
-			wantCommitCalled:   false,
-			wantRollbackCalled: false,
-			wantUpdateUser:     false,
-			wantUpdateProfil:   false,
-		},
-		{
-			name:               "Path 6 -> email tidak valid",
-			cmd:                func() user_service.UpdateSiswaCmd { c := validCmd(); c.Email = strPtr("invalid"); return c }(),
-			actor:              adminActor,
-			txm:                &FakeTxManager{Tx: &FakeTx{}},
-			wantErr:            user.ErrInvalidEmail,
-			wantBeginCalled:    false,
-			wantCommitCalled:   false,
-			wantRollbackCalled: false,
-			wantUpdateUser:     false,
-			wantUpdateProfil:   false,
-		},
-		{
-			name:               "Path 7 -> nisn tidak valid",
-			cmd:                func() user_service.UpdateSiswaCmd { c := validCmd(); c.Nisn = strPtr("123"); return c }(),
-			actor:              adminActor,
-			txm:                &FakeTxManager{Tx: &FakeTx{}},
-			wantErr:            user.ErrInvalidNISN,
-			wantBeginCalled:    false,
-			wantCommitCalled:   false,
-			wantRollbackCalled: false,
-			wantUpdateUser:     false,
-			wantUpdateProfil:   false,
-		},
-		{
-			name:               "Path 8 -> no absen tidak valid",
-			cmd:                func() user_service.UpdateSiswaCmd { c := validCmd(); c.NoAbsen = intPtr(0); return c }(),
-			actor:              adminActor,
-			txm:                &FakeTxManager{Tx: &FakeTx{}},
-			wantErr:            user.ErrInvalidAbsen,
-			wantBeginCalled:    false,
-			wantCommitCalled:   false,
-			wantRollbackCalled: false,
-			wantUpdateUser:     false,
-			wantUpdateProfil:   false,
-		},
-		{
-			name:               "Path 9 -> angkatan tidak valid",
-			cmd:                func() user_service.UpdateSiswaCmd { c := validCmd(); c.Angkatan = intPtr(2000); return c }(),
-			actor:              adminActor,
-			txm:                &FakeTxManager{Tx: &FakeTx{}},
-			wantErr:            user.ErrInvalidAngkatan,
-			wantBeginCalled:    false,
-			wantCommitCalled:   false,
-			wantRollbackCalled: false,
-			wantUpdateUser:     false,
-			wantUpdateProfil:   false,
-		},
-		{
-			name: "Path 10 -> tidak ada field yang diupdate",
-			cmd: func() user_service.UpdateSiswaCmd {
-				return user_service.UpdateSiswaCmd{IdPengguna: 10}
-			}(),
-			actor:              adminActor,
-			txm:                &FakeTxManager{Tx: &FakeTx{}},
-			wantErr:            coreerror.ErrNoFieldToUpdate,
-			wantBeginCalled:    false,
-			wantCommitCalled:   false,
-			wantRollbackCalled: false,
-			wantUpdateUser:     false,
-			wantUpdateProfil:   false,
-		},
-		{
-			name:  "Path 11 -> begin tx gagal",
-			cmd:   validCmd(),
-			actor: adminActor,
-			txm: &FakeTxManager{
-				BeginErr: testErr,
-				Tx: &FakeTx{
-					UserRepo:        &FakeUserRepo{},
-					ProfilSiswaRepo: &FakeProfilSiswaRepo{},
-				},
-			},
-			wantErr:            testErr,
-			wantBeginCalled:    true,
-			wantCommitCalled:   false,
-			wantRollbackCalled: false,
-			wantUpdateUser:     false,
-			wantUpdateProfil:   false,
-		},
-		{
-			name:  "Path 12 -> update pengguna gagal",
-			cmd:   validCmd(),
-			actor: adminActor,
-			txm: &FakeTxManager{Tx: &FakeTx{
-				UserRepo:        &FakeUserRepo{UpdateErr: testErr},
-				ProfilSiswaRepo: &FakeProfilSiswaRepo{},
-			}},
-			wantErr:            testErr,
-			wantBeginCalled:    true,
-			wantCommitCalled:   false,
-			wantRollbackCalled: true,
-			wantUpdateUser:     true,
-			wantUpdateProfil:   false,
-		},
-		{
-			name:  "Path 13 -> update profil siswa gagal",
-			cmd:   validCmd(),
-			actor: adminActor,
-			txm: &FakeTxManager{Tx: &FakeTx{
-				UserRepo:        &FakeUserRepo{},
-				ProfilSiswaRepo: &FakeProfilSiswaRepo{UpdateErr: testErr},
-			}},
-			wantErr:            testErr,
-			wantBeginCalled:    true,
-			wantCommitCalled:   false,
-			wantRollbackCalled: true,
-			wantUpdateUser:     true,
-			wantUpdateProfil:   true,
-		},
-		{
-			name:  "Path 14 -> commit gagal",
-			cmd:   validCmd(),
-			actor: adminActor,
-			txm: &FakeTxManager{Tx: &FakeTx{
-				UserRepo:        &FakeUserRepo{},
-				ProfilSiswaRepo: &FakeProfilSiswaRepo{},
-				CommitErr:       testErr,
-			}},
-			wantErr:            testErr,
-			wantBeginCalled:    true,
-			wantCommitCalled:   true,
-			wantRollbackCalled: true,
-			wantUpdateUser:     true,
-			wantUpdateProfil:   true,
-		},
-		{
-			name: "Path 15 -> hanya update profil",
-			cmd: func() user_service.UpdateSiswaCmd {
-				c := validCmd()
-				c.Username = nil
-				c.NamaLengkap = nil
-				c.Email = nil
-				c.JenisKelamin = nil
-				c.NoHp = nil
-				c.Foto = nil
-				c.StatusAkun = nil
-				c.Role = nil
-				return c
-			}(),
-			actor: adminActor,
-			txm: &FakeTxManager{Tx: &FakeTx{
-				UserRepo:        &FakeUserRepo{},
-				ProfilSiswaRepo: &FakeProfilSiswaRepo{},
-			}},
-			wantBeginCalled:    true,
-			wantCommitCalled:   true,
-			wantRollbackCalled: true,
-			wantUpdateUser:     false,
-			wantUpdateProfil:   true,
-		},
-		{
-			name: "Path 16 -> hanya update pengguna",
-			cmd: func() user_service.UpdateSiswaCmd {
-				c := validCmd()
-				c.IdTingkatKelas = nil
-				c.IdNamaKelas = nil
-				c.Nisn = nil
-				c.NoAbsen = nil
-				c.Angkatan = nil
-				c.TempatLahir = nil
-				c.TanggalLahir = nil
-				return c
-			}(),
-			actor: adminActor,
-			txm: &FakeTxManager{Tx: &FakeTx{
-				UserRepo:        &FakeUserRepo{},
-				ProfilSiswaRepo: &FakeProfilSiswaRepo{},
-			}},
-			wantBeginCalled:    true,
-			wantCommitCalled:   true,
-			wantRollbackCalled: true,
-			wantUpdateUser:     true,
-			wantUpdateProfil:   false,
-			wantEmailValue:     "siswa@example.com",
-			wantUsernameValue:  "siswauser",
-		},
-		{
-			name: "Path 17 -> hanya update username",
-			cmd: user_service.UpdateSiswaCmd{
-				IdPengguna: 10,
-				Username:   strPtr("siswaupdate"),
-			},
-			actor: adminActor,
-			txm: &FakeTxManager{Tx: &FakeTx{
-				UserRepo:        &FakeUserRepo{},
-				ProfilSiswaRepo: &FakeProfilSiswaRepo{},
-			}},
-			wantBeginCalled:    true,
-			wantCommitCalled:   true,
-			wantRollbackCalled: true,
-			wantUpdateUser:     true,
-			wantUpdateProfil:   false,
-			wantUsernameValue:  "siswaupdate",
-		},
-		{
-			name: "Path 18 -> foto kosong diabaikan",
-			cmd: user_service.UpdateSiswaCmd{
-				IdPengguna: 10,
-				Foto:       strPtr(" "),
-			},
-			actor:              adminActor,
-			txm:                &FakeTxManager{Tx: &FakeTx{}},
-			wantErr:            coreerror.ErrNoFieldToUpdate,
-			wantBeginCalled:    false,
-			wantCommitCalled:   false,
-			wantRollbackCalled: false,
-			wantUpdateUser:     false,
-			wantUpdateProfil:   false,
-		},
-	}
+	t.Run("P1 -> aktor tidak memiliki hak untuk memperbarui data siswa", func(t *testing.T) {
+		t.Parallel()
+		txm := &FakeTxManager{Tx: &FakeTx{}}
+		service := user_service.NewUpdateUserService(txm, &FakeSessionRepo{}, &FakeDeleteFileRepo{}, &FakeUserRepo{})
 
-	for _, tc := range cases {
-		tc := tc
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-			sessionRepo := &FakeSessionRepo{}
-			deleteFileRepo := &FakeDeleteFileRepo{}
-			userRepo := &FakeUserRepo{}
-			service := user_service.NewUpdateUserService(tc.txm, sessionRepo, deleteFileRepo, userRepo)
+		err := service.UpdateSiswa(context.Background(), validCmd(), nonAdminActor)
 
-			err := service.UpdateSiswa(context.Background(), tc.cmd, tc.actor)
+		assert.ErrorIs(t, err, coreerror.ErrForbidden)
+		assert.False(t, txm.BeginCalled)
+	})
 
-			if tc.wantErr != nil {
-				assert.ErrorIs(t, err, tc.wantErr)
-			} else if tc.wantErrText != "" {
-				assert.EqualError(t, err, tc.wantErrText)
-			} else {
-				assert.NoError(t, err)
-			}
+	t.Run("P2 -> ID pengguna tidak valid", func(t *testing.T) {
+		t.Parallel()
+		cmd := validCmd()
+		cmd.IdPengguna = 0
+		txm := &FakeTxManager{Tx: &FakeTx{}}
+		service := user_service.NewUpdateUserService(txm, &FakeSessionRepo{}, &FakeDeleteFileRepo{}, &FakeUserRepo{})
 
-			assert.Equal(t, tc.wantBeginCalled, tc.txm.BeginCalled)
-			if tc.txm.Tx != nil {
-				assert.Equal(t, tc.wantCommitCalled, tc.txm.Tx.CommitCalled)
-				assert.Equal(t, tc.wantRollbackCalled, tc.txm.Tx.RollbackCalled)
-				if tc.txm.Tx.UserRepo != nil {
-					assert.Equal(t, tc.wantUpdateUser, tc.txm.Tx.UserRepo.UpdateCalled)
-					if tc.wantUsernameValue != "" && tc.txm.Tx.UserRepo.LastPatch.Username != nil {
-						assert.Equal(t, tc.wantUsernameValue, *tc.txm.Tx.UserRepo.LastPatch.Username)
-					}
-					if tc.wantEmailValue != "" && tc.txm.Tx.UserRepo.LastPatch.Email != nil {
-						assert.Equal(t, tc.wantEmailValue, string(*tc.txm.Tx.UserRepo.LastPatch.Email))
-					}
-				}
-				if tc.txm.Tx.ProfilSiswaRepo != nil {
-					assert.Equal(t, tc.wantUpdateProfil, tc.txm.Tx.ProfilSiswaRepo.UpdateCalled)
-					if tc.wantNisnValue != "" && tc.txm.Tx.ProfilSiswaRepo.LastPatch.Nisn != nil {
-						assert.Equal(t, tc.wantNisnValue, *tc.txm.Tx.ProfilSiswaRepo.LastPatch.Nisn)
-					}
-				}
-			}
-		})
-	}
+		err := service.UpdateSiswa(context.Background(), cmd, adminActor)
+
+		assert.EqualError(t, err, "Id pengguna required")
+		assert.False(t, txm.BeginCalled)
+	})
+
+	t.Run("P3 -> data update siswa tidak valid setelah sanitasi dan validasi", func(t *testing.T) {
+		t.Parallel()
+		cmd := validCmd()
+		cmd.Nisn = strPtr("123")
+		txm := &FakeTxManager{Tx: &FakeTx{}}
+		service := user_service.NewUpdateUserService(txm, &FakeSessionRepo{}, &FakeDeleteFileRepo{}, &FakeUserRepo{})
+
+		err := service.UpdateSiswa(context.Background(), cmd, adminActor)
+
+		assert.ErrorIs(t, err, user.ErrInvalidNISN)
+		assert.False(t, txm.BeginCalled)
+	})
+
+	t.Run("P4 -> foto baru dikirim tetapi foto lama gagal dihapus", func(t *testing.T) {
+		t.Parallel()
+		txm := &FakeTxManager{Tx: &FakeTx{}}
+		deleteFileRepo := &FakeDeleteFileRepo{DeleteErr: testErr}
+		userRepo := &FakeUserRepo{FindResult: user.Pengguna{ID: 10, Foto: "foto-lama.png"}}
+		service := user_service.NewUpdateUserService(txm, &FakeSessionRepo{}, deleteFileRepo, userRepo)
+
+		err := service.UpdateSiswa(context.Background(), validCmd(), adminActor)
+
+		assert.ErrorIs(t, err, testErr)
+		assert.True(t, userRepo.FindCalled)
+		assert.True(t, deleteFileRepo.DeleteCalled)
+		assert.Equal(t, "foto-lama.png", deleteFileRepo.LastPath)
+		assert.False(t, txm.BeginCalled)
+	})
+
+	t.Run("P5 -> foto kosong setelah sanitasi dan tidak ada field yang diperbarui", func(t *testing.T) {
+		t.Parallel()
+		cmd := user_service.UpdateSiswaCmd{
+			IdPengguna: 10,
+			Foto:       strPtr(" "),
+		}
+		txm := &FakeTxManager{Tx: &FakeTx{}}
+		deleteFileRepo := &FakeDeleteFileRepo{}
+		userRepo := &FakeUserRepo{}
+		service := user_service.NewUpdateUserService(txm, &FakeSessionRepo{}, deleteFileRepo, userRepo)
+
+		err := service.UpdateSiswa(context.Background(), cmd, adminActor)
+
+		assert.ErrorIs(t, err, coreerror.ErrNoFieldToUpdate)
+		assert.False(t, userRepo.FindCalled)
+		assert.False(t, deleteFileRepo.DeleteCalled)
+		assert.False(t, txm.BeginCalled)
+	})
+
+	t.Run("P6 -> tidak ada foto baru dan tidak ada field yang diperbarui", func(t *testing.T) {
+		t.Parallel()
+		cmd := user_service.UpdateSiswaCmd{IdPengguna: 10}
+		txm := &FakeTxManager{Tx: &FakeTx{}}
+		service := user_service.NewUpdateUserService(txm, &FakeSessionRepo{}, &FakeDeleteFileRepo{}, &FakeUserRepo{})
+
+		err := service.UpdateSiswa(context.Background(), cmd, adminActor)
+
+		assert.ErrorIs(t, err, coreerror.ErrNoFieldToUpdate)
+		assert.False(t, txm.BeginCalled)
+	})
+
+	t.Run("P7 -> data siswa berhasil diperbarui", func(t *testing.T) {
+		t.Parallel()
+		txm := &FakeTxManager{Tx: &FakeTx{
+			UserRepo:        &FakeUserRepo{},
+			ProfilSiswaRepo: &FakeProfilSiswaRepo{},
+		}}
+		deleteFileRepo := &FakeDeleteFileRepo{}
+		userRepo := &FakeUserRepo{FindResult: user.Pengguna{ID: 10, Foto: "foto-lama.png"}}
+		service := user_service.NewUpdateUserService(txm, &FakeSessionRepo{}, deleteFileRepo, userRepo)
+
+		err := service.UpdateSiswa(context.Background(), validCmd(), adminActor)
+
+		assert.NoError(t, err)
+		assert.True(t, userRepo.FindCalled)
+		assert.True(t, deleteFileRepo.DeleteCalled)
+		assert.True(t, txm.BeginCalled)
+		assert.True(t, txm.Tx.UserRepo.UpdateCalled)
+		assert.True(t, txm.Tx.ProfilSiswaRepo.UpdateCalled)
+		assert.True(t, txm.Tx.CommitCalled)
+		assert.True(t, txm.Tx.RollbackCalled)
+		assert.Equal(t, "siswauser", *txm.Tx.UserRepo.LastPatch.Username)
+		assert.Equal(t, "siswa@example.com", string(*txm.Tx.UserRepo.LastPatch.Email))
+		assert.Equal(t, "1234567890", *txm.Tx.ProfilSiswaRepo.LastPatch.Nisn)
+	})
 }
 
 func TestUpdateUser_DeleteFileErrorBasisPath(t *testing.T) {
@@ -720,10 +316,10 @@ func TestUpdateUser_DeleteFileErrorBasisPath(t *testing.T) {
 	deleteFileErr := errors.New("delete file failed")
 
 	tests := []struct {
-		name            string
-		runGuru         bool
-		wantDeletePath  string
-		wantFindID      user.ID
+		name           string
+		runGuru        bool
+		wantDeletePath string
+		wantFindID     user.ID
 	}{
 		{
 			name:           "Path 1 -> update guru gagal saat hapus foto lama",

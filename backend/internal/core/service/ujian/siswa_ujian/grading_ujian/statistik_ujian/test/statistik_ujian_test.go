@@ -97,5 +97,5 @@ func runGradingStatistikCases(t *testing.T, prefix string) {
 
 func TestGradingStatistikUjianService_BasisPath(t *testing.T) {
 	t.Parallel()
-	runGradingStatistikCases(t, "Path ")
+	runGradingStatistikCases(t, "Branch ")
 }

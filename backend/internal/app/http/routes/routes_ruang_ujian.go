@@ -6,12 +6,12 @@ import (
 )
 
 func RegisterRuangUjianRoutes(router *httprouter.Router, handlers RuangUjianHandlers, mw MiddlewareContract) {
-	requireAdmin := mw.RequireAccessRole(user.ADMIN)
+	requireAdminGuru := mw.RequireAccessRole(user.ADMIN, user.GURU)
 
-	router.GET("/admin/ruang-ujian", requireAdmin(mw.RateLimitStandard(handlers.GetHandler.GetRuangUjian)))
-	router.GET("/admin/ruang-ujian/id/:IdRuangan", requireAdmin(mw.RateLimitStandard(handlers.GetHandler.GetRuangUjianByID)))
-	router.GET("/admin/ruang-ujian/kode/:KodeRuang", requireAdmin(mw.RateLimitStandard(handlers.GetHandler.GetRuangUjianByKode)))
-	router.POST("/admin/ruang-ujian", requireAdmin(mw.RateLimitStandard(handlers.CreateHandler.CreateRuangUjian)))
-	router.PATCH("/admin/ruang-ujian/:idRuangan", requireAdmin(mw.RateLimitStandard(handlers.UpdateHandler.UpdateRuangUjian)))
-	router.DELETE("/admin/ruang-ujian/:idRuangan", requireAdmin(mw.RateLimitStandard(handlers.DeleteHandler.DeleteRuangUjian)))
+	router.GET("/admin/ruang-ujian", requireAdminGuru(mw.RateLimitStandard(handlers.GetHandler.GetRuangUjian)))
+	router.GET("/admin/ruang-ujian/id/:IdRuangan", requireAdminGuru(mw.RateLimitStandard(handlers.GetHandler.GetRuangUjianByID)))
+	router.GET("/admin/ruang-ujian/kode/:KodeRuang", requireAdminGuru(mw.RateLimitStandard(handlers.GetHandler.GetRuangUjianByKode)))
+	router.POST("/admin/ruang-ujian", requireAdminGuru(mw.RateLimitStandard(handlers.CreateHandler.CreateRuangUjian)))
+	router.PATCH("/admin/ruang-ujian/:idRuangan", requireAdminGuru(mw.RateLimitStandard(handlers.UpdateHandler.UpdateRuangUjian)))
+	router.DELETE("/admin/ruang-ujian/:idRuangan", requireAdminGuru(mw.RateLimitStandard(handlers.DeleteHandler.DeleteRuangUjian)))
 }

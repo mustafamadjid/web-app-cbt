@@ -129,7 +129,7 @@ func TestCreatePengumumanService(t *testing.T) {
 			wantPayload:    &trimmedPayload,
 		},
 		{
-			name: "happy path -> normalisasi payload dan berhasil",
+			name: "branch 5 -> normalisasi payload dan berhasil",
 			payload: pengumuman.Pengumuman{
 				IdPengguna:               1,
 				JudulPengumuman:          "  Pengumuman Penting  ",

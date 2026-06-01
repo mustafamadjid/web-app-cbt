@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	content "github.com/mustafamadjid/web-app-cbt/internal/core/domain/content"
+	importsoal "github.com/mustafamadjid/web-app-cbt/internal/core/domain/import_soal"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/service/import_soal/parser"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -51,262 +52,325 @@ func TestExtractParagraphContents_SuperscriptAndMath(t *testing.T) {
 	assert.Equal(t, `\frac{a}{b}`, second.Blocks[0].Children[0].Latex)
 }
 
-func TestParseMarkersFromContent_RichQuestionAndOption(t *testing.T) {
+func TestParseMarkersFromContent_Branches(t *testing.T) {
 	t.Parallel()
 
-	paragraphs := []content.RichContent{
+	tests := []struct {
+		name        string
+		paragraphs  []content.RichContent
+		docxData    []byte
+		expectedErr string
+		validate    func(t *testing.T, result []importsoal.ParsedSoal)
+	}{
 		{
-			Version: 1,
-			Blocks: []content.Block{
-				{
-					Type: "paragraph",
-					Children: []content.Inline{
-						{Type: "text", Text: "[Q:PG] Hitung x"},
-						{Type: "text", Text: "2", Marks: []content.Mark{content.MarkSup}},
-					},
-				},
+			name:       "Branch 1 -> paragraf kosong dilewati dan default tanpa soal aktif diabaikan",
+			paragraphs: richParagraphs("", "teks tanpa marker"),
+			validate: func(t *testing.T, result []importsoal.ParsedSoal) {
+				assert.Empty(t, result)
 			},
 		},
 		{
-			Version: 1,
-			Blocks: []content.Block{
-				{
-					Type: "paragraph",
-					Children: []content.Inline{
-						{Type: "text", Text: "[A] "},
-						{Type: "math", Latex: `\frac{a}{b}`, Display: "inline"},
-					},
-				},
+			name: "Branch 2 -> [Q:PG] memulai soal pilihan ganda dengan rich content",
+			paragraphs: []content.RichContent{
+				richParagraph(
+					content.Inline{Type: "text", Text: "[Q:PG] Hitung x"},
+					content.Inline{Type: "text", Text: "2", Marks: []content.Mark{content.MarkSup}},
+				),
+				richParagraph(
+					content.Inline{Type: "text", Text: "[A] "},
+					content.Inline{Type: "math", Latex: `\frac{a}{b}`, Display: "inline"},
+				),
+				richParagraph(content.Inline{Type: "text", Text: "[B] Jawaban biasa"}),
+				richParagraph(content.Inline{Type: "text", Text: "[ANS] A"}),
+				richParagraph(content.Inline{Type: "text", Text: "[W] 5"}),
+			},
+			validate: func(t *testing.T, result []importsoal.ParsedSoal) {
+				require.Len(t, result, 1)
+				assert.Equal(t, "pilihan_ganda", result[0].TipeSoal)
+				assert.Equal(t, "Hitung x2", result[0].Pertanyaan)
+				assert.Equal(t, `\frac{a}{b}`, result[0].Opsi[0].Isi)
+				assert.Equal(t, `\frac{a}{b}`, result[0].Opsi[0].IsiContent.Blocks[0].Children[1].Latex)
+				assert.True(t, result[0].Opsi[0].IsBenar)
+				assert.Equal(t, 5.0, result[0].BobotSoal)
 			},
 		},
 		{
-			Version: 1,
-			Blocks: []content.Block{
-				{
-					Type:     "paragraph",
-					Children: []content.Inline{{Type: "text", Text: "[B] Jawaban biasa"}},
-				},
+			name:       "Branch 3 -> [Q:ESSAY] memulai soal essay",
+			paragraphs: richParagraphs("[Q:ESSAY] Jelaskan fotosintesis", "[ANS] Proses membuat makanan"),
+			validate: func(t *testing.T, result []importsoal.ParsedSoal) {
+				require.Len(t, result, 1)
+				assert.Equal(t, "essay", result[0].TipeSoal)
+				assert.Equal(t, "Jelaskan fotosintesis", result[0].Pertanyaan)
+				assert.Equal(t, "Proses membuat makanan", result[0].KunciJawaban)
 			},
 		},
 		{
-			Version: 1,
-			Blocks: []content.Block{
-				{
-					Type:     "paragraph",
-					Children: []content.Inline{{Type: "text", Text: "[ANS] A"}},
-				},
+			name:        "Branch 4 -> opsi tanpa soal aktif mengembalikan error",
+			paragraphs:  richParagraphs("[A] Jawaban A"),
+			expectedErr: "opsi ditemukan tanpa soal aktif",
+		},
+		{
+			name: "Branch 5 -> marker opsi enumerasi Word tetap terbaca",
+			paragraphs: richParagraphs(
+				"[Q:PG] Pilih jawaban",
+				"A. [A] Jawaban A",
+				"B. [B] Jawaban B",
+				"[ANS] A",
+			),
+			validate: func(t *testing.T, result []importsoal.ParsedSoal) {
+				require.Len(t, result, 1)
+				require.Len(t, result[0].Opsi, 2)
+				assert.Equal(t, "A", result[0].Opsi[0].Label)
+				assert.Equal(t, "Jawaban A", result[0].Opsi[0].Isi)
+				assert.Equal(t, "B", result[0].Opsi[1].Label)
+				assert.Equal(t, "Jawaban B", result[0].Opsi[1].Isi)
+				require.NoError(t, parser.ValidateParsedSoal(result))
 			},
 		},
 		{
-			Version: 1,
-			Blocks: []content.Block{
-				{
-					Type:     "paragraph",
-					Children: []content.Inline{{Type: "text", Text: "[W] 5"}},
-				},
+			name:        "Branch 6 -> [ANS] tanpa soal aktif mengembalikan error",
+			paragraphs:  richParagraphs("[ANS] A"),
+			expectedErr: "[ANS] ditemukan tanpa soal aktif",
+		},
+		{
+			name: "Branch 7 -> lanjutan jawaban digabung dengan baris sebelumnya",
+			paragraphs: richParagraphs(
+				"[Q:ESSAY] Jelaskan",
+				"[ANS] Baris pertama",
+				"Baris kedua",
+			),
+			validate: func(t *testing.T, result []importsoal.ParsedSoal) {
+				require.Len(t, result, 1)
+				assert.Equal(t, "Baris pertama\nBaris kedua", result[0].KunciJawaban)
 			},
+		},
+		{
+			name:        "Branch 8 -> [IMG] tanpa soal aktif mengembalikan error",
+			paragraphs:  richParagraphs("[IMG] image1.png"),
+			expectedErr: "[IMG] ditemukan tanpa soal aktif",
+		},
+		{
+			name:       "Branch 9 -> [IMG] eksplisit mengisi gambar soal",
+			paragraphs: richParagraphs("[Q:PG] Perhatikan gambar", "[IMG] image1.png", "[A] A", "[B] B", "[ANS] A"),
+			validate: func(t *testing.T, result []importsoal.ParsedSoal) {
+				require.Len(t, result, 1)
+				assert.Equal(t, "image1.png", result[0].Gambar)
+			},
+		},
+		{
+			name:       "Branch 10 -> [IMG] kosong memakai antrean gambar docx untuk soal",
+			paragraphs: richParagraphs("[Q:PG] Perhatikan gambar", "[IMG]", "[A] A", "[B] B", "[ANS] A"),
+			docxData:   buildDocxWithImages("image1.png"),
+			validate: func(t *testing.T, result []importsoal.ParsedSoal) {
+				require.Len(t, result, 1)
+				assert.Equal(t, "image1.png", result[0].Gambar)
+				assert.Empty(t, result[0].Opsi[0].IsiContent.Blocks[0].Children[0].Src)
+			},
+		},
+		{
+			name: "Branch 11 -> [IMG] setelah opsi masuk ke opsi terakhir",
+			paragraphs: richParagraphs(
+				"[Q:PG] Pilih gambar",
+				"A. [A]",
+				"[IMG]",
+				"B. [B]",
+				"[IMG]",
+				"[ANS] A",
+			),
+			docxData: buildDocxWithImages("image1.png", "image2.png"),
+			validate: func(t *testing.T, result []importsoal.ParsedSoal) {
+				require.Len(t, result, 1)
+				require.Len(t, result[0].Opsi, 2)
+				assert.Empty(t, result[0].Gambar)
+				assert.Equal(t, "image1.png", result[0].Opsi[0].IsiContent.Blocks[0].Children[0].Src)
+				assert.Equal(t, "image2.png", result[0].Opsi[1].IsiContent.Blocks[0].Children[0].Src)
+				require.NoError(t, parser.ValidateParsedSoal(result))
+			},
+		},
+		{
+			name:        "Branch 12 -> [IMG] kosong tanpa sisa gambar mengembalikan error",
+			paragraphs:  richParagraphs("[Q:PG] Perhatikan gambar", "[IMG]"),
+			expectedErr: "[IMG] tetapi tidak ada gambar tersisa di dokumen",
+		},
+		{
+			name:        "Branch 13 -> [W] tanpa soal aktif mengembalikan error",
+			paragraphs:  richParagraphs("[W] 5"),
+			expectedErr: "[W] ditemukan tanpa soal aktif",
+		},
+		{
+			name:       "Branch 14 -> [W] inline mengisi bobot soal",
+			paragraphs: richParagraphs("[Q:ESSAY] Jelaskan", "[W] 2.5"),
+			validate: func(t *testing.T, result []importsoal.ParsedSoal) {
+				require.Len(t, result, 1)
+				assert.Equal(t, 2.5, result[0].BobotSoal)
+			},
+		},
+		{
+			name:       "Branch 15 -> lanjutan [W] mengisi bobot soal",
+			paragraphs: richParagraphs("[Q:ESSAY] Jelaskan", "[W]", "3"),
+			validate: func(t *testing.T, result []importsoal.ParsedSoal) {
+				require.Len(t, result, 1)
+				assert.Equal(t, 3.0, result[0].BobotSoal)
+			},
+		},
+		{
+			name:        "Branch 16 -> bobot tidak valid mengembalikan error",
+			paragraphs:  richParagraphs("[Q:PG] Soal", "[W] abc"),
+			expectedErr: "bobot bukan angka",
+		},
+		{
+			name: "Branch 17 -> lanjutan default menambah teks pertanyaan",
+			paragraphs: richParagraphs(
+				"[Q:ESSAY] Jelaskan",
+				"dengan lengkap",
+			),
+			validate: func(t *testing.T, result []importsoal.ParsedSoal) {
+				require.Len(t, result, 1)
+				assert.Equal(t, "Jelaskan\ndengan lengkap", result[0].Pertanyaan)
+			},
+		},
+		{
+			name: "Branch 18 -> lanjutan default menambah teks opsi terakhir",
+			paragraphs: richParagraphs(
+				"[Q:PG] Pilih",
+				"[A] Baris pertama",
+				"Baris kedua",
+				"[B] Pembanding",
+				"[ANS] A",
+			),
+			validate: func(t *testing.T, result []importsoal.ParsedSoal) {
+				require.Len(t, result, 1)
+				require.Len(t, result[0].Opsi, 2)
+				assert.Equal(t, "Baris pertama\nBaris kedua", result[0].Opsi[0].Isi)
+			},
+		},
+		{
+			name: "Branch 19 -> image opsi dengan caption memakai auto image",
+			paragraphs: richParagraphs(
+				"[Q:PG] Pilih gambar yang benar",
+				"[A] [IMG] Gambar pilihan",
+				"[B] Jawaban biasa",
+				"[ANS] A",
+			),
+			docxData: buildDocxWithImages("image1.png"),
+			validate: func(t *testing.T, result []importsoal.ParsedSoal) {
+				require.Len(t, result, 1)
+				option := result[0].Opsi[0]
+				assert.Equal(t, "Gambar pilihan", option.Isi)
+				require.Len(t, option.IsiContent.Blocks, 2)
+				assert.Equal(t, "image", option.IsiContent.Blocks[0].Children[0].Type)
+				assert.Equal(t, "image1.png", option.IsiContent.Blocks[0].Children[0].Src)
+				assert.Equal(t, "Gambar pilihan", option.IsiContent.Blocks[0].Children[0].Alt)
+				assert.Equal(t, "Gambar pilihan", option.IsiContent.Blocks[1].Children[0].Text)
+				assert.True(t, option.IsBenar)
+			},
+		},
+		{
+			name: "Branch 20 -> image opsi dengan filename eksplisit memakai gambar yang disebut",
+			paragraphs: richParagraphs(
+				"[Q:PG] Pilih gambar yang benar",
+				"[A] [IMG] image2.jpg Gambar pilihan",
+				"[B] Jawaban biasa",
+				"[ANS] A",
+			),
+			docxData: buildDocxWithImages("image1.png", "image2.jpg"),
+			validate: func(t *testing.T, result []importsoal.ParsedSoal) {
+				require.Len(t, result, 1)
+				option := result[0].Opsi[0]
+				assert.Equal(t, "Gambar pilihan", option.Isi)
+				require.Len(t, option.IsiContent.Blocks, 2)
+				assert.Equal(t, "image2.jpg", option.IsiContent.Blocks[0].Children[0].Src)
+				assert.Equal(t, "Gambar pilihan", option.IsiContent.Blocks[1].Children[0].Text)
+			},
+		},
+		{
+			name: "Branch 21 -> image opsi eksplisit mengonsumsi antrean saat filename cocok item berikutnya",
+			paragraphs: richParagraphs(
+				"[Q:PG] Pilih gambar yang benar",
+				"[A] [IMG] image1.png Gambar A",
+				"[B] [IMG] Gambar B",
+				"[ANS] A",
+			),
+			docxData: buildDocxWithImages("image1.png", "image2.png"),
+			validate: func(t *testing.T, result []importsoal.ParsedSoal) {
+				require.Len(t, result, 1)
+				assert.Equal(t, "image1.png", result[0].Opsi[0].IsiContent.Blocks[0].Children[0].Src)
+				assert.Equal(t, "image2.png", result[0].Opsi[1].IsiContent.Blocks[0].Children[0].Src)
+			},
+		},
+		{
+			name: "Branch 22 -> image opsi tanpa caption tetap valid",
+			paragraphs: richParagraphs(
+				"[Q:PG] Pilih gambar yang benar",
+				"[A] [IMG]",
+				"[B] Jawaban biasa",
+				"[ANS] A",
+			),
+			docxData: buildDocxWithImages("image1.png"),
+			validate: func(t *testing.T, result []importsoal.ParsedSoal) {
+				require.Len(t, result, 1)
+				assert.Empty(t, result[0].Opsi[0].Isi)
+				assert.Equal(t, "image1.png", result[0].Opsi[0].IsiContent.Blocks[0].Children[0].Src)
+				require.NoError(t, parser.ValidateParsedSoal(result))
+			},
+		},
+		{
+			name: "Branch 23 -> image opsi filename eksplisit yang hilang mengembalikan error",
+			paragraphs: richParagraphs(
+				"[Q:PG] Pilih gambar yang benar",
+				"[A] [IMG] image2.jpg Gambar pilihan",
+				"[B] Jawaban biasa",
+				"[ANS] A",
+			),
+			docxData:    buildDocxWithImages("image1.png"),
+			expectedErr: `gambar "image2.jpg" tidak ditemukan`,
 		},
 	}
 
-	result, warnings, err := parser.ParseMarkersFromContent(paragraphs, buildDocx(wrapXML()))
-	require.NoError(t, err)
-	require.Empty(t, warnings)
-	require.Len(t, result, 1)
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	assert.Equal(t, "Hitung x2", result[0].Pertanyaan)
-	require.Len(t, result[0].PertanyaanContent.Blocks, 1)
-	require.Len(t, result[0].Opsi, 2)
-	assert.Equal(t, `\frac{a}{b}`, result[0].Opsi[0].Isi)
-	assert.Equal(t, `\frac{a}{b}`, result[0].Opsi[0].IsiContent.Blocks[0].Children[1].Latex)
-	assert.True(t, result[0].Opsi[0].IsBenar)
-}
+			docxData := tc.docxData
+			if docxData == nil {
+				docxData = buildDocx(wrapXML())
+			}
 
-func TestParseMarkersFromContent_OptionImageAutoWithCaption(t *testing.T) {
-	t.Parallel()
+			result, warnings, err := parser.ParseMarkersFromContent(tc.paragraphs, docxData)
+			if tc.expectedErr != "" {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tc.expectedErr)
+				return
+			}
 
-	paragraphs := richParagraphs(
-		"[Q:PG] Pilih gambar yang benar",
-		"[A] [IMG] Gambar pilihan",
-		"[B] Jawaban biasa",
-		"[ANS] A",
-	)
-
-	result, warnings, err := parser.ParseMarkersFromContent(paragraphs, buildDocxWithImages("image1.png"))
-	require.NoError(t, err)
-	require.Empty(t, warnings)
-	require.Len(t, result, 1)
-	require.Len(t, result[0].Opsi, 2)
-
-	option := result[0].Opsi[0]
-	assert.Equal(t, "Gambar pilihan", option.Isi)
-	require.Len(t, option.IsiContent.Blocks, 2)
-	require.Len(t, option.IsiContent.Blocks[0].Children, 1)
-	assert.Equal(t, "image", option.IsiContent.Blocks[0].Children[0].Type)
-	assert.Equal(t, "image1.png", option.IsiContent.Blocks[0].Children[0].Src)
-	assert.Equal(t, "Gambar pilihan", option.IsiContent.Blocks[0].Children[0].Alt)
-	assert.Equal(t, "Gambar pilihan", option.IsiContent.Blocks[1].Children[0].Text)
-	assert.True(t, option.IsBenar)
-}
-
-func TestParseMarkersFromContent_OptionImageExplicitFilename(t *testing.T) {
-	t.Parallel()
-
-	paragraphs := richParagraphs(
-		"[Q:PG] Pilih gambar yang benar",
-		"[A] [IMG] image2.jpg Gambar pilihan",
-		"[B] Jawaban biasa",
-		"[ANS] A",
-	)
-
-	result, warnings, err := parser.ParseMarkersFromContent(paragraphs, buildDocxWithImages("image1.png", "image2.jpg"))
-	require.NoError(t, err)
-	require.Empty(t, warnings)
-	require.Len(t, result, 1)
-	require.Len(t, result[0].Opsi, 2)
-
-	option := result[0].Opsi[0]
-	assert.Equal(t, "Gambar pilihan", option.Isi)
-	require.Len(t, option.IsiContent.Blocks, 2)
-	assert.Equal(t, "image2.jpg", option.IsiContent.Blocks[0].Children[0].Src)
-	assert.Equal(t, "Gambar pilihan", option.IsiContent.Blocks[1].Children[0].Text)
-}
-
-func TestParseMarkersFromContent_ExplicitOptionImageConsumesCurrentQueueItem(t *testing.T) {
-	t.Parallel()
-
-	paragraphs := richParagraphs(
-		"[Q:PG] Pilih gambar yang benar",
-		"[A] [IMG] image1.png Gambar A",
-		"[B] [IMG] Gambar B",
-		"[ANS] A",
-	)
-
-	result, warnings, err := parser.ParseMarkersFromContent(paragraphs, buildDocxWithImages("image1.png", "image2.png"))
-	require.NoError(t, err)
-	require.Empty(t, warnings)
-	require.Len(t, result, 1)
-	require.Len(t, result[0].Opsi, 2)
-
-	assert.Equal(t, "image1.png", result[0].Opsi[0].IsiContent.Blocks[0].Children[0].Src)
-	assert.Equal(t, "image2.png", result[0].Opsi[1].IsiContent.Blocks[0].Children[0].Src)
-}
-
-func TestParseMarkersFromContent_OptionImageOnlyIsValid(t *testing.T) {
-	t.Parallel()
-
-	paragraphs := richParagraphs(
-		"[Q:PG] Pilih gambar yang benar",
-		"[A] [IMG]",
-		"[B] Jawaban biasa",
-		"[ANS] A",
-	)
-
-	result, warnings, err := parser.ParseMarkersFromContent(paragraphs, buildDocxWithImages("image1.png"))
-	require.NoError(t, err)
-	require.Empty(t, warnings)
-	require.Len(t, result, 1)
-	require.Len(t, result[0].Opsi, 2)
-	assert.Empty(t, result[0].Opsi[0].Isi)
-	assert.Equal(t, "image1.png", result[0].Opsi[0].IsiContent.Blocks[0].Children[0].Src)
-	require.NoError(t, parser.ValidateParsedSoal(result))
-}
-
-func TestParseMarkersFromContent_EnumeratedOptionMarkers(t *testing.T) {
-	t.Parallel()
-
-	paragraphs := richParagraphs(
-		"[Q:PG] Pilih jawaban",
-		"A. [A] Jawaban A",
-		"B. [B] Jawaban B",
-		"[ANS] A",
-	)
-
-	result, warnings, err := parser.ParseMarkersFromContent(paragraphs, buildDocxWithImages())
-	require.NoError(t, err)
-	require.Empty(t, warnings)
-	require.Len(t, result, 1)
-	require.Len(t, result[0].Opsi, 2)
-
-	assert.Equal(t, "A", result[0].Opsi[0].Label)
-	assert.Equal(t, "Jawaban A", result[0].Opsi[0].Isi)
-	assert.Equal(t, "B", result[0].Opsi[1].Label)
-	assert.Equal(t, "Jawaban B", result[0].Opsi[1].Isi)
-	require.NoError(t, parser.ValidateParsedSoal(result))
-}
-
-func TestParseMarkersFromContent_EnumeratedOptionImageOnNextParagraph(t *testing.T) {
-	t.Parallel()
-
-	paragraphs := richParagraphs(
-		"[Q:PG] Pilih gambar",
-		"A. [A]",
-		"[IMG]",
-		"B. [B]",
-		"[IMG]",
-		"[ANS] A",
-	)
-
-	result, warnings, err := parser.ParseMarkersFromContent(paragraphs, buildDocxWithImages("image1.png", "image2.png"))
-	require.NoError(t, err)
-	require.Empty(t, warnings)
-	require.Len(t, result, 1)
-	require.Len(t, result[0].Opsi, 2)
-
-	assert.Empty(t, result[0].Gambar)
-	assert.Equal(t, "image1.png", result[0].Opsi[0].IsiContent.Blocks[0].Children[0].Src)
-	assert.Equal(t, "image2.png", result[0].Opsi[1].IsiContent.Blocks[0].Children[0].Src)
-	require.NoError(t, parser.ValidateParsedSoal(result))
-}
-
-func TestParseMarkersFromContent_StandaloneImageStaysQuestionImage(t *testing.T) {
-	t.Parallel()
-
-	paragraphs := richParagraphs(
-		"[Q:PG] Perhatikan gambar",
-		"[IMG]",
-		"[A] Jawaban A",
-		"[B] Jawaban B",
-		"[ANS] A",
-	)
-
-	result, warnings, err := parser.ParseMarkersFromContent(paragraphs, buildDocxWithImages("image1.png"))
-	require.NoError(t, err)
-	require.Empty(t, warnings)
-	require.Len(t, result, 1)
-
-	assert.Equal(t, "image1.png", result[0].Gambar)
-	assert.Empty(t, result[0].Opsi[0].IsiContent.Blocks[0].Children[0].Src)
-}
-
-func TestParseMarkersFromContent_OptionImageExplicitMissing(t *testing.T) {
-	t.Parallel()
-
-	paragraphs := richParagraphs(
-		"[Q:PG] Pilih gambar yang benar",
-		"[A] [IMG] image2.jpg Gambar pilihan",
-		"[B] Jawaban biasa",
-		"[ANS] A",
-	)
-
-	_, _, err := parser.ParseMarkersFromContent(paragraphs, buildDocxWithImages("image1.png"))
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), `gambar "image2.jpg" tidak ditemukan`)
+			require.NoError(t, err)
+			require.Empty(t, warnings)
+			if tc.validate != nil {
+				tc.validate(t, result)
+			}
+		})
+	}
 }
 
 func richParagraphs(items ...string) []content.RichContent {
 	out := make([]content.RichContent, 0, len(items))
 	for _, item := range items {
-		out = append(out, content.RichContent{
-			Version: 1,
-			Blocks: []content.Block{
-				{
-					Type:     "paragraph",
-					Children: []content.Inline{{Type: "text", Text: item}},
-				},
-			},
-		})
+		out = append(out, richParagraph(content.Inline{Type: "text", Text: item}))
 	}
 	return out
+}
+
+func richParagraph(children ...content.Inline) content.RichContent {
+	return content.RichContent{
+		Version: 1,
+		Blocks: []content.Block{
+			{
+				Type:     "paragraph",
+				Children: children,
+			},
+		},
+	}
 }
 
 func buildDocxWithImages(imageNames ...string) []byte {

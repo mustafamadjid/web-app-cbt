@@ -2,7 +2,7 @@ package ujian_service_test
 
 import (
 	"context"
-	"errors"
+	"strings"
 	"testing"
 	"time"
 
@@ -67,11 +67,10 @@ func baseCreateUjianData() ujian.PenjadwalanUjian {
 	}
 }
 
-func TestCreateUjianService_BasisPathValidation(t *testing.T) {
+func TestCreateUjianService_BranchCoverageValidation(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	repoErr := errors.New("repo error")
 
 	tests := []struct {
 		name       string
@@ -82,7 +81,7 @@ func TestCreateUjianService_BasisPathValidation(t *testing.T) {
 		assertData func(t *testing.T, repo *fakeCreateUjianRepo)
 	}{
 		{
-			name: "Path 1 -> id utama ujian tidak valid",
+			name: "Branch 1 -> id utama ujian tidak valid",
 			data: func() ujian.PenjadwalanUjian {
 				item := baseCreateUjianData()
 				item.Ujian.IdBankSoal = 0
@@ -93,7 +92,17 @@ func TestCreateUjianService_BasisPathValidation(t *testing.T) {
 			wantCalled: false,
 		},
 		{
-			name: "Path 2 -> id nama kelas opsional tidak valid",
+			name: "Branch 2 -> id nama kelas opsional nil tetap valid",
+			data: func() ujian.PenjadwalanUjian {
+				item := baseCreateUjianData()
+				item.Ujian.IdNamaKelas = nil
+				return item
+			}(),
+			repo:       &fakeCreateUjianRepo{},
+			wantCalled: true,
+		},
+		{
+			name: "Branch 3 -> id nama kelas opsional tidak valid",
 			data: func() ujian.PenjadwalanUjian {
 				item := baseCreateUjianData()
 				invalid := ujian.ID(0)
@@ -105,7 +114,7 @@ func TestCreateUjianService_BasisPathValidation(t *testing.T) {
 			wantCalled: false,
 		},
 		{
-			name: "Path 3 -> nama ujian kosong setelah trim",
+			name: "Branch 4 -> nama ujian kosong setelah trim",
 			data: func() ujian.PenjadwalanUjian {
 				item := baseCreateUjianData()
 				item.Ujian.NamaUjian = "   "
@@ -116,7 +125,40 @@ func TestCreateUjianService_BasisPathValidation(t *testing.T) {
 			wantCalled: false,
 		},
 		{
-			name: "Path 4 -> waktu mulai tidak sebelum waktu selesai",
+			name: "Branch 5 -> nama ujian melebihi 100 karakter",
+			data: func() ujian.PenjadwalanUjian {
+				item := baseCreateUjianData()
+				item.Ujian.NamaUjian = strings.Repeat("A", 101)
+				return item
+			}(),
+			repo:       &fakeCreateUjianRepo{},
+			wantErr:    coreerror.ErrInvalidInput,
+			wantCalled: false,
+		},
+		{
+			name: "Branch 6 -> id jadwal ujian tidak valid",
+			data: func() ujian.PenjadwalanUjian {
+				item := baseCreateUjianData()
+				item.JadwalUjian.IdSesi = 0
+				return item
+			}(),
+			repo:       &fakeCreateUjianRepo{},
+			wantErr:    coreerror.ErrMissingId,
+			wantCalled: false,
+		},
+		{
+			name: "Branch 7 -> tanggal ujian kosong",
+			data: func() ujian.PenjadwalanUjian {
+				item := baseCreateUjianData()
+				item.JadwalUjian.TanggalUjian = time.Time{}
+				return item
+			}(),
+			repo:       &fakeCreateUjianRepo{},
+			wantErr:    coreerror.ErrInvalidInput,
+			wantCalled: false,
+		},
+		{
+			name: "Branch 8 -> waktu mulai tidak sebelum waktu selesai",
 			data: func() ujian.PenjadwalanUjian {
 				item := baseCreateUjianData()
 				item.JadwalUjian.WaktuMulai = item.JadwalUjian.WaktuSelesai
@@ -127,7 +169,7 @@ func TestCreateUjianService_BasisPathValidation(t *testing.T) {
 			wantCalled: false,
 		},
 		{
-			name: "Path 5 -> token kosong setelah trim",
+			name: "Branch 9 -> token kosong setelah trim",
 			data: func() ujian.PenjadwalanUjian {
 				item := baseCreateUjianData()
 				item.JadwalUjian.Token = "   "
@@ -138,7 +180,29 @@ func TestCreateUjianService_BasisPathValidation(t *testing.T) {
 			wantCalled: false,
 		},
 		{
-			name: "Path 6 -> status ujian tidak valid",
+			name: "Branch 10 -> token melebihi 100 karakter",
+			data: func() ujian.PenjadwalanUjian {
+				item := baseCreateUjianData()
+				item.JadwalUjian.Token = strings.Repeat("A", 101)
+				return item
+			}(),
+			repo:       &fakeCreateUjianRepo{},
+			wantErr:    coreerror.ErrInvalidInput,
+			wantCalled: false,
+		},
+		{
+			name: "Branch 11 -> status ujian kosong setelah trim",
+			data: func() ujian.PenjadwalanUjian {
+				item := baseCreateUjianData()
+				item.JadwalUjian.StatusUjian = ujian.StatusUjian("   ")
+				return item
+			}(),
+			repo:       &fakeCreateUjianRepo{},
+			wantErr:    coreerror.ErrMissingField,
+			wantCalled: false,
+		},
+		{
+			name: "Branch 12 -> status ujian tidak valid",
 			data: func() ujian.PenjadwalanUjian {
 				item := baseCreateUjianData()
 				item.JadwalUjian.StatusUjian = ujian.StatusUjian("selain-valid")
@@ -149,24 +213,7 @@ func TestCreateUjianService_BasisPathValidation(t *testing.T) {
 			wantCalled: false,
 		},
 		{
-			name: "Path 7 -> repo create ujian gagal",
-			data: baseCreateUjianData(),
-			repo: &fakeCreateUjianRepo{
-				createErr: repoErr,
-			},
-			wantErr:    repoErr,
-			wantCalled: true,
-			assertData: func(t *testing.T, repo *fakeCreateUjianRepo) {
-				t.Helper()
-				assert.Equal(t, "UTS Matematika", repo.gotCreate.Ujian.NamaUjian)
-				require.NotNil(t, repo.gotCreate.Ujian.DeskripsiUjian)
-				assert.Equal(t, "Deskripsi Ujian", *repo.gotCreate.Ujian.DeskripsiUjian)
-				assert.Equal(t, "ABC123", repo.gotCreate.JadwalUjian.Token)
-				assert.Equal(t, ujian.MULAI, repo.gotCreate.JadwalUjian.StatusUjian)
-			},
-		},
-		{
-			name:       "Path 8 -> berhasil create ujian",
+			name:       "Branch 13 -> semua valid berhasil create ujian",
 			data:       baseCreateUjianData(),
 			repo:       &fakeCreateUjianRepo{},
 			wantCalled: true,

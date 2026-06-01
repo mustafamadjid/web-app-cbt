@@ -2,6 +2,7 @@ package pengumuman_service
 
 import (
 	"context"
+
 	coreerror "github.com/mustafamadjid/web-app-cbt/internal/core/core_error"
 	"github.com/mustafamadjid/web-app-cbt/internal/core/domain/pengumuman"
 	corelog "github.com/mustafamadjid/web-app-cbt/internal/core/port/out/log"
@@ -42,7 +43,5 @@ func (r *CreatePengumumanService) CreatePengumuman(ctx context.Context, pengumum
 		logger.Error(ctx, "failed creating pengumuman", "layer", "core.service", "op", "pengumuman.create_pengumuman.CreatePengumuman", "err", err)
 		return err
 	}
-
 	return nil
-
 }
