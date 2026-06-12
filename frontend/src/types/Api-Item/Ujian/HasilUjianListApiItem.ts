@@ -7,3 +7,4 @@ export type HasilUjianListApiItem = Omit<
   status_ujian: string;
   started: number;
 };
+
