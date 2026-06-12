@@ -1,7 +1,8 @@
 import http from "k6/http";
-import { check, fail, sleep } from "k6";
+import { check, sleep } from "k6";
 import { Rate, Trend } from "k6/metrics";
 import { SharedArray } from "k6/data";
+import exec from "k6/execution";
 import {
   getAnswerLimit,
   getBaseUrl,
@@ -24,6 +25,21 @@ const students = new SharedArray("students", () => {
   if (!Array.isArray(rows) || rows.length === 0) {
     throw new Error("students.json must contain at least one student account");
   }
+
+  const usernames = new Set();
+  rows.forEach((student, index) => {
+    if (!student || typeof student.username !== "string" || student.username.trim() === "") {
+      throw new Error(`students.json row ${index} must contain a non-empty username`);
+    }
+    if (typeof student.password !== "string" || student.password.trim() === "") {
+      throw new Error(`students.json row ${index} must contain a non-empty password`);
+    }
+    if (usernames.has(student.username)) {
+      throw new Error(`students.json contains duplicate username: ${student.username}`);
+    }
+    usernames.add(student.username);
+  });
+
   return rows;
 });
 
@@ -85,14 +101,15 @@ function withQuery(path, params) {
 }
 
 function pickStudent() {
-  const index = (__VU - 1) % students.length;
-  const student = students[index];
+  const index = exec.scenario.iterationInTest;
 
-  if (!student.username || !student.password) {
-    fail(`Student fixture at index ${index} must contain username and password`);
+  if (index >= students.length) {
+    exec.test.abort(
+      `Not enough student accounts for this run: iteration ${index + 1} requires a new account, but students.json only contains ${students.length} accounts`,
+    );
   }
 
-  return student;
+  return students[index];
 }
 
 function loginStudent(student) {

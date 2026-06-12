@@ -3,35 +3,29 @@ export const DEFAULT_STUDENTS_FILE = "./data/students.json";
 export const DEFAULT_ANSWER_LIMIT = 10;
 
 const TEST_SCENARIOS = {
-  baseline_10: {
-    executor: "per-vu-iterations",
-    vus: 10,
-    iterations: 1,
-    maxDuration: "5m",
-  },
-  baseline_20: {
-    executor: "per-vu-iterations",
-    vus: 20,
-    iterations: 1,
-    maxDuration: "5m",
+  baseline_5: {
+    executor: "constant-vus",
+    vus: 5,
+    duration: "5m",
+    gracefulStop: "30s",
   },
   load_25: {
-    executor: "per-vu-iterations",
+    executor: "constant-vus",
     vus: 25,
-    iterations: 1,
-    maxDuration: "10m",
+    duration: "10m",
+    gracefulStop: "30s",
   },
   load_50: {
-    executor: "per-vu-iterations",
+    executor: "constant-vus",
     vus: 50,
-    iterations: 1,
-    maxDuration: "10m",
+    duration: "10m",
+    gracefulStop: "30s",
   },
   load_100: {
-    executor: "per-vu-iterations",
+    executor: "constant-vus",
     vus: 100,
-    iterations: 1,
-    maxDuration: "10m",
+    duration: "10m",
+    gracefulStop: "30s",
   },
 };
 
@@ -55,7 +49,7 @@ export function getAnswerLimit() {
 }
 
 export function getOptions() {
-  const testType = (__ENV.TEST_TYPE || "baseline_10").trim();
+  const testType = (__ENV.TEST_TYPE || "load_100").trim();
   const scenario = TEST_SCENARIOS[testType];
 
   if (!scenario) {
