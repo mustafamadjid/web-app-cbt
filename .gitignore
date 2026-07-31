@@ -10,4 +10,5 @@ backend/internal/db/migrations/migrate_original.ps1
 data_siswa.xlsx
 smafi-cbt-app.tar.gz
 coverage-result/
-*.ps1
+
+run-service-test.ps1
