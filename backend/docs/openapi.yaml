@@ -543,8 +543,6 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
-        '409':
-          $ref: '#/components/responses/Conflict'
 
   /admin/kelas/nama-kelas:
     post:
@@ -1289,6 +1287,38 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
+  /ujian/analisis-soal/{idJadwalUjian}:
+    get:
+      tags: [Ujian]
+      summary: Analisis jawaban per soal
+      description: Mengembalikan jumlah jawaban benar dan salah untuk setiap soal pada jadwal ujian.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: idJadwalUjian
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: Analisis soal berhasil diambil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse_AnalisisSoal'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
 
   /ujian/jawaban/hasil/{idAttempt}:
     get:
@@ -3363,6 +3393,105 @@ components:
         message:
           type: string
 
+    RichContent:
+      type: object
+      properties:
+        version:
+          type: integer
+          example: 1
+        blocks:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+                example: paragraph
+              children:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      enum: [text, math, image]
+                    text:
+                      type: string
+                    marks:
+                      type: array
+                      items:
+                        type: string
+                        enum: [sup, sub]
+                    latex:
+                      type: string
+                    display:
+                      type: string
+                    src:
+                      type: string
+                    alt:
+                      type: string
+
+    AnalisisSoalOpsiItem:
+      type: object
+      properties:
+        id_pilihan_ganda:
+          type: integer
+        isi_pilihan:
+          type: string
+        isi_pilihan_content:
+          nullable: true
+          $ref: '#/components/schemas/RichContent'
+        is_benar:
+          type: boolean
+
+    AnalisisSoalItem:
+      type: object
+      properties:
+        id_soal:
+          type: integer
+        id_bank_soal_version:
+          type: integer
+        tipe_soal:
+          type: string
+        pertanyaan:
+          type: string
+        pertanyaan_content:
+          nullable: true
+          $ref: '#/components/schemas/RichContent'
+        gambar:
+          type: string
+        bobot_soal:
+          type: number
+          format: double
+        no_urut_soal:
+          type: integer
+        jumlah_jawaban_benar:
+          type: integer
+        jumlah_jawaban_salah:
+          type: integer
+        opsi_jawaban:
+          type: array
+          items:
+            $ref: '#/components/schemas/AnalisisSoalOpsiItem'
+
+    AnalisisSoalResponse:
+      type: object
+      properties:
+        id_jadwal_ujian:
+          type: integer
+        analisis_soal:
+          type: array
+          items:
+            $ref: '#/components/schemas/AnalisisSoalItem'
+
+    SuccessResponse_AnalisisSoal:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/AnalisisSoalResponse'
+        message:
+          type: string
+
     WaktuSelesaiUjianItem:
       type: object
       properties:
@@ -3878,3 +4007,5 @@ components:
             $ref: '#/components/schemas/AktivitasUserItem'
         message:
           type: string
+
+

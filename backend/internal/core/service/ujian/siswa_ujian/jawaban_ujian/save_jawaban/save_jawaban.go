@@ -20,7 +20,7 @@ func NewJawabanUjianService(repo ujian_repo.JawabanUjianRepository) *JawabanUjia
 	}
 }
 
-func (r *JawabanUjianService) SaveJawabanUjian(ctx context.Context, idAttempt ujian.ID, jawaban []ujian.JawabanUjian) error {
+func (r *JawabanUjianService) SaveJawabanUjian(ctx context.Context, idAttempt ujian.ID,  jawaban []ujian.JawabanUjian) error {
 	logger := corelog.FromContext(ctx)
 
 	if idAttempt <= 0 {

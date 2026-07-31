@@ -40,13 +40,6 @@ func RequireValidTokenAndSession(next http.Handler, access out.AccessTokenServic
 			return
 		}
 
-		// _,err = refresh.VerifyRefreshToken(c.Value, time.Now())
-		// if err != nil {
-		// 	cookie.ClearAuthCookies(w, cookies)
-		// 	httpResponse.WriteErr(w, http.StatusUnauthorized, "UNAUTHORIZED", "unauthorized")
-		// 	return
-		// }
-
 		activeSession, err := session.HasActiveSession(r.Context(), uid)
 		if err != nil || !activeSession {
 			cookie.ClearAuthCookies(w, cookies)

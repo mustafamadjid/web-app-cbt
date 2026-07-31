@@ -74,3 +74,4 @@ func attrValue(node xmlNode, local string) string {
 	}
 	return ""
 }
+

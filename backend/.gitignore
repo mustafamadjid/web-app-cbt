@@ -5,7 +5,13 @@ randomstring
 
 createHashedPassword.go
 
-backend/run.ps1
-backend/export_env.ps1
 
-run.ps1
+*.ps1
+
+# Coverage output
+coverage-result/
+coverage/
+coverage.out
+coverage.html
+*.coverage
+*.coverage.out

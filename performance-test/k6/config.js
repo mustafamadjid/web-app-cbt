@@ -1,6 +1,6 @@
 export const DEFAULT_BASE_URL = "https://staging-srv.smafi.my.id/";
 export const DEFAULT_STUDENTS_FILE = "./data/students.json";
-export const DEFAULT_ANSWER_LIMIT = 10;
+export const DEFAULT_ANSWER_LIMIT = 500;
 
 const TEST_SCENARIOS = {
   baseline_5: {

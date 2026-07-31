@@ -21,22 +21,22 @@ func NewJWTAccessTokenService(secret string, issuer string) *JWTAccessTokenServi
 }
 
 type accesClaims struct {
-	IdPengguna user.ID `json:"id_pengguna"`
-	Role user.Role		`json:"role"`
-	Username string		`json:"username"`
+	IdPengguna user.ID   `json:"id_pengguna"`
+	Role       user.Role `json:"role"`
+	Username   string    `json:"username"`
 	jwt.RegisteredClaims
 }
 
-func (s *JWTAccessTokenService)GenerateAccessToken(idPengguna user.ID, role user.Role, username string, tokenDuration time.Duration) (string,error){
+func (s *JWTAccessTokenService) GenerateAccessToken(idPengguna user.ID, role user.Role, username string, tokenDuration time.Duration) (string, error) {
 	now := time.Now()
 	claims := accesClaims{
 		IdPengguna: idPengguna,
-		Role: role,
-		Username: username,
+		Role:       role,
+		Username:   username,
 		RegisteredClaims: jwt.RegisteredClaims{
-			Issuer: s.issuer,
+			Issuer:    s.issuer,
 			ExpiresAt: jwt.NewNumericDate(now.Add(tokenDuration)),
-			IssuedAt: jwt.NewNumericDate(now),
+			IssuedAt:  jwt.NewNumericDate(now),
 			NotBefore: jwt.NewNumericDate(now),
 		},
 	}
@@ -44,10 +44,13 @@ func (s *JWTAccessTokenService)GenerateAccessToken(idPengguna user.ID, role user
 	return tok.SignedString(s.secret)
 }
 
-func (s *JWTAccessTokenService) VerifyAccessToken(token string, now time.Time) (idPengguna user.ID, role user.Role, username string,err error){
+func (s *JWTAccessTokenService) VerifyAccessToken(token string, now time.Time) (idPengguna user.ID, role user.Role, username string, err error) {
 	tok, err := jwt.ParseWithClaims(token, &accesClaims{}, func(t *jwt.Token) (any, error) {
+		if t.Method != jwt.SigningMethodHS256 {
+			return nil, errors.New("unexpected signing method")
+		}
 		return s.secret, nil
-	})
+	}, jwt.WithTimeFunc(func() time.Time { return now }))
 	if err != nil {
 		return 0, "", "", err
 	}

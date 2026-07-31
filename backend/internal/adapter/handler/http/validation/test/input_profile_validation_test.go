@@ -5,71 +5,77 @@ import (
 
 	httpx "github.com/mustafamadjid/web-app-cbt/internal/adapter/handler/http/validation"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestValidatePersonName(t *testing.T) {
-	t.Parallel()
-
-	value, err := httpx.ValidatePersonName("  Siti Aisyah, S.Pd.  ", "nama_lengkap")
-	require.NoError(t, err)
-	assert.Equal(t, "Siti Aisyah, S.Pd.", value)
-
-	_, err = httpx.ValidatePersonName("<script>alert(1)</script>", "nama_lengkap")
-	assert.ErrorIs(t, err, httpx.ErrInvalidFormat)
+	tests := []struct {
+		name, value, want string
+		wantErr           error
+	}{
+		{name: "Path 1 -> valid person name is trimmed", value: "  Siti Aisyah, S.Pd.  ", want: "Siti Aisyah, S.Pd."},
+		{name: "Path 2 -> markup in person name is rejected", value: "<script>alert(1)</script>", wantErr: httpx.ErrInvalidFormat},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := httpx.ValidatePersonName(tt.value, "nama_lengkap")
+			assert.ErrorIs(t, err, tt.wantErr)
+			assert.Equal(t, tt.want, got)
+		})
+	}
 }
 
 func TestValidateGenderLabel(t *testing.T) {
-	t.Parallel()
-
-	value, err := httpx.ValidateGenderLabel("Laki-laki", "jenis_kelamin")
-	require.NoError(t, err)
-	assert.Equal(t, "LAKI_LAKI", value)
-
-	value, err = httpx.ValidateGenderLabel("LAKI_LAKI", "jenis_kelamin")
-	require.NoError(t, err)
-	assert.Equal(t, "LAKI_LAKI", value)
-
-	_, err = httpx.ValidateGenderLabel("unknown", "jenis_kelamin")
-	assert.ErrorIs(t, err, httpx.ErrInvalidFormat)
+	tests := []struct {
+		name, value, want string
+		wantErr           error
+	}{
+		{name: "Path 1 -> male short label is normalized", value: "L", want: "LAKI_LAKI"},
+		{name: "Path 2 -> male hyphenated label is normalized", value: "Laki-laki", want: "LAKI_LAKI"},
+		{name: "Path 3 -> female synonym is normalized", value: "wanita", want: "PEREMPUAN"},
+		{name: "Path 4 -> invalid pattern fails before normalization", value: "<female>", wantErr: httpx.ErrInvalidFormat},
+		{name: "Path 5 -> unknown valid label is rejected", value: "unknown", wantErr: httpx.ErrInvalidFormat},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := httpx.ValidateGenderLabel(tt.value, "jenis_kelamin")
+			assert.ErrorIs(t, err, tt.wantErr)
+			assert.Equal(t, tt.want, got)
+		})
+	}
 }
 
-func TestValidatePhoneNumber(t *testing.T) {
-	t.Parallel()
-
-	value, err := httpx.ValidatePhoneNumber(" +62 812-3456-7890 ", "no_hp")
-	require.NoError(t, err)
-	assert.Equal(t, "+62 812-3456-7890", value)
-
-	_, err = httpx.ValidatePhoneNumber("<script>alert(1)</script>", "no_hp")
-	assert.ErrorIs(t, err, httpx.ErrInvalidFormat)
-}
-
-func TestValidateSafeLabelText(t *testing.T) {
-	t.Parallel()
-
-	value, err := httpx.ValidateSafeLabelText("Matematika & IPA", "bidang_studi")
-	require.NoError(t, err)
-	assert.Equal(t, "Matematika & IPA", value)
-
-	_, err = httpx.ValidateSafeLabelText("<b>Bandung</b>", "tempat_lahir")
-	assert.ErrorIs(t, err, httpx.ErrInvalidFormat)
-}
-
-func TestValidateNIPAndNISNText(t *testing.T) {
-	t.Parallel()
-
-	nip, err := httpx.ValidateNIPText("123456789012345678", "nip")
-	require.NoError(t, err)
-	assert.Equal(t, "123456789012345678", nip)
-
-	_, err = httpx.ValidateNIPText("123<script>", "nip")
-	assert.ErrorIs(t, err, httpx.ErrInvalidFormat)
-
-	nisn, err := httpx.ValidateNISNText("1234567890", "nisn")
-	require.NoError(t, err)
-	assert.Equal(t, "1234567890", nisn)
-
-	_, err = httpx.ValidateNISNText("123<script>", "nisn")
-	assert.ErrorIs(t, err, httpx.ErrInvalidFormat)
+func TestProfileTextValidators(t *testing.T) {
+	tests := []struct {
+		name, kind, value, want string
+		wantErr                 error
+	}{
+		{name: "Path 1 -> safe label is accepted", kind: "label", value: "Matematika & IPA", want: "Matematika & IPA"},
+		{name: "Path 2 -> markup label is rejected", kind: "label", value: "<b>Bandung</b>", wantErr: httpx.ErrInvalidFormat},
+		{name: "Path 3 -> formatted phone is accepted", kind: "phone", value: " +62 812-3456-7890 ", want: "+62 812-3456-7890"},
+		{name: "Path 4 -> alphabetic phone is rejected", kind: "phone", value: "telephone", wantErr: httpx.ErrInvalidFormat},
+		{name: "Path 5 -> 18 digit NIP is accepted", kind: "nip", value: "123456789012345678", want: "123456789012345678"},
+		{name: "Path 6 -> dash sentinel NIP is accepted", kind: "nip", value: "-", want: "-"},
+		{name: "Path 7 -> invalid NIP is rejected", kind: "nip", value: "123", wantErr: httpx.ErrInvalidFormat},
+		{name: "Path 8 -> 10 digit NISN is accepted", kind: "nisn", value: "1234567890", want: "1234567890"},
+		{name: "Path 9 -> dash sentinel NISN is accepted", kind: "nisn", value: "-", want: "-"},
+		{name: "Path 10 -> invalid NISN is rejected", kind: "nisn", value: "123", wantErr: httpx.ErrInvalidFormat},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var got string
+			var err error
+			switch tt.kind {
+			case "label":
+				got, err = httpx.ValidateSafeLabelText(tt.value, "field")
+			case "phone":
+				got, err = httpx.ValidatePhoneNumber(tt.value, "field")
+			case "nip":
+				got, err = httpx.ValidateNIPText(tt.value, "field")
+			case "nisn":
+				got, err = httpx.ValidateNISNText(tt.value, "field")
+			}
+			assert.ErrorIs(t, err, tt.wantErr)
+			assert.Equal(t, tt.want, got)
+		})
+	}
 }
