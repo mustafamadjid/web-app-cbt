@@ -1,4 +1,4 @@
-# 📝 SMAFI CBT — Computer Based Test Web Application
+# SMAFI CBT — Computer Based Test Web Application
 
 **SMAFI CBT** adalah aplikasi ujian berbasis komputer (_Computer Based Test_) yang dirancang untuk mengelola seluruh proses ujian secara digital — mulai dari pembuatan bank soal, penjadwalan ujian, pelaksanaan ujian oleh siswa, hingga koreksi dan rekap nilai secara otomatis.
 
@@ -6,21 +6,21 @@ Aplikasi ini dibangun menggunakan arsitektur modern dengan **Go (Golang)** sebag
 
 ---
 
-## 📑 Daftar Isi
+## Daftar Isi
 
-- [Tech Stack](#-tech-stack)
-- [Arsitektur Proyek](#-arsitektur-proyek)
-- [Fitur-Fitur](#-fitur-fitur)
-- [Prasyarat](#-prasyarat)
-- [Cara Install & Menjalankan](#-cara-install--menjalankan)
-- [Environment Variables](#-environment-variables)
-- [Struktur Folder](#-struktur-folder)
-- [Peran Pengguna (User Roles)](#-peran-pengguna-user-roles)
-- [Lisensi](#-lisensi)
+- [Tech Stack](#tech-stack)
+- [Arsitektur Proyek](#arsitektur-proyek)
+- [Fitur-Fitur](#fitur-fitur)
+- [Prasyarat](#prasyarat)
+- [Cara Install & Menjalankan](#cara-install--menjalankan)
+- [Environment Variables](#environment-variables)
+- [Struktur Folder](#struktur-folder)
+- [Peran Pengguna (User Roles)](#peran-pengguna-user-roles)
+- [Lisensi](#lisensi)
 
 ---
 
-## 🛠 Tech Stack
+## Tech Stack
 
 ### Backend
 
@@ -52,7 +52,7 @@ Aplikasi ini dibangun menggunakan arsitektur modern dengan **Go (Golang)** sebag
 
 ---
 
-## 🏗 Arsitektur Proyek
+## Arsitektur Proyek
 
 Backend menggunakan **Hexagonal Architecture (Ports & Adapters)** yang memisahkan logika bisnis dari detail infrastruktur:
 
@@ -88,30 +88,30 @@ frontend/src/
 
 ---
 
-## ✨ Fitur-Fitur
+## Fitur-Fitur
 
-### 🔐 Autentikasi & Otorisasi
+### Autentikasi & Otorisasi
 
 - Login & logout dengan **JWT** (Access Token + Refresh Token via HTTP-only Cookie)
 - Role-based access control: **Administrator**, **Guru**, **Siswa**
 - Protected routes berdasarkan role pengguna
 - Reset password
 
-### 👥 Manajemen Pengguna
+### Manajemen Pengguna
 
 - **Kelola Akun Siswa** — CRUD data akun siswa
 - **Kelola Akun Guru** — CRUD data akun guru
 - Upload foto profil pengguna
 - Lihat & edit profil pengguna
 
-### 📚 Data Master
+### Data Master
 
 - **Mata Pelajaran** — Kelola daftar mata pelajaran
 - **Kelas** — Kelola data kelas berdasarkan tingkat dan nama kelas
 - **Ruang Ujian** — Kelola ruang ujian fisik / virtual
 - **Sesi Ujian** — Kelola sesi/waktu ujian
 
-### 📝 Bank Soal
+### Bank Soal
 
 - Buat dan kelola **bank soal** per mata pelajaran
 - Tambah soal satu per satu secara manual
@@ -121,20 +121,20 @@ frontend/src/
 - Preview bank soal
 - Background worker untuk pemrosesan import soal secara asinkron
 
-### 📋 Penjadwalan Ujian
+### Penjadwalan Ujian
 
 - Buat jadwal ujian dengan mengaitkan bank soal, kelas, ruang ujian, dan sesi
 - Detail konfigurasi ujian (durasi, tanggal mulai, tanggal selesai)
 - Lihat daftar jadwal ujian yang akan datang dan selesai
 
-### ✏️ Pelaksanaan Ujian (Siswa)
+### Pelaksanaan Ujian (Siswa)
 
 - Masuk ujian menggunakan **token ujian**
 - Mengerjakan soal pilihan ganda dan essay
 - Timer ujian berjalan otomatis
 - Submit jawaban secara otomatis saat waktu habis
 
-### 📊 Hasil & Koreksi Ujian
+### Hasil & Koreksi Ujian
 
 - **Koreksi otomatis** untuk soal pilihan ganda
 - **Background worker** untuk proses grading secara asinkron
@@ -143,31 +143,31 @@ frontend/src/
 - Statistik nilai ujian
 - Cetak hasil ujian
 
-### 📢 Pengumuman
+### Pengumuman
 
 - Buat, edit, dan hapus pengumuman
 - Rich text editor (**Tiptap WYSIWYG**) untuk konten pengumuman
 - Mendukung upload gambar dalam pengumuman
 - Pengumuman terlihat oleh siswa di dashboard
 
-### 🏫 Profil Sekolah
+### Profil Sekolah
 
 - Kelola informasi profil sekolah (nama, alamat, logo, dll.)
 - Konfigurasi pengaturan aplikasi
 
-### 📈 Dashboard
+### Dashboard
 
 - Dashboard khusus untuk setiap role (Admin, Guru, Siswa)
 - Ringkasan statistik dan informasi penting
 
-### 📋 Aktivitas Pengguna
+### Aktivitas Pengguna
 
 - Pencatatan log aktivitas pengguna secara otomatis
 - Monitoring aktivitas login dan operasi penting
 
 ---
 
-## 📌 Prasyarat
+## Prasyarat
 
 Pastikan perangkat lunak berikut sudah terinstall di sistem Anda:
 
@@ -181,7 +181,7 @@ Pastikan perangkat lunak berikut sudah terinstall di sistem Anda:
 
 ---
 
-## 🚀 Cara Install & Menjalankan
+## Cara Install & Menjalankan
 
 ### 1. Clone Repository
 
@@ -257,7 +257,7 @@ Buka browser dan akses `http://localhost:5173`. Login sesuai peran pengguna yang
 
 ---
 
-## 🔧 Environment Variables
+## Environment Variables
 
 ### Backend (`backend/.env`)
 
@@ -281,7 +281,7 @@ Buka browser dan akses `http://localhost:5173`. Login sesuai peran pengguna yang
 
 ---
 
-## 📂 Struktur Folder
+## Struktur Folder
 
 ```
 web-app-cbt/
@@ -356,11 +356,11 @@ web-app-cbt/
 
 ---
 
-## 👤 Peran Pengguna (User Roles)
+## Peran Pengguna (User Roles)
 
 Aplikasi mendukung **3 peran pengguna** dengan akses yang berbeda:
 
-### 🔴 Administrator
+### Administrator
 
 - Mengelola seluruh data master (mata pelajaran, kelas, ruang ujian, sesi)
 - Mengelola akun guru dan siswa
@@ -371,7 +371,7 @@ Aplikasi mendukung **3 peran pengguna** dengan akses yang berbeda:
 - Mencetak laporan
 - Melihat log aktivitas pengguna
 
-### 🟡 Guru
+### Guru
 
 - Mengelola bank soal (buat, edit, import soal)
 - Membuat dan menjadwalkan ujian
@@ -379,7 +379,7 @@ Aplikasi mendukung **3 peran pengguna** dengan akses yang berbeda:
 - Membuat pengumuman
 - Mencetak laporan
 
-### 🟢 Siswa
+### Siswa
 
 - Melihat jadwal ujian
 - Mengerjakan ujian dengan token akses
@@ -388,7 +388,7 @@ Aplikasi mendukung **3 peran pengguna** dengan akses yang berbeda:
 
 ---
 
-## 📄 Lisensi
+## Lisensi
 
 Proyek ini dibuat sebagai penelitian Tugas Akhir, Program Studi Teknik Informatika ITERA.
 
