@@ -24,9 +24,17 @@ type LoginFormProps = {
 const LoginForm = ({ onSuccess }: LoginFormProps) => {
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
+  const [kodeUnik, setKodeUnik] = useState<string>("");
   const { login } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Verifikasi fungsi
+  // const verifyKode = (e: React.FormEvent<HTMLFormElement>) => {
+  //   if (kodeUnik.length == 3) {
+  //     setKodeUnik(e.target.);
+  //   }
+  // };
 
   // Submit handling
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -34,7 +42,7 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
     setLoading(true);
     setError(null);
     try {
-      await login({ username, password });
+      await login({ username, password,kodeUnik });
       onSuccess?.();
     } catch (e) {
       const message =
@@ -73,7 +81,16 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
               onChange={setPassword}
               autoComplete="current-password"
             />
-            
+          </div>
+          <div className="relative">
+            <LoginInputField
+              id="kodeUnik"
+              label="Kode Unik"
+              type="text"
+              value={kodeUnik}
+              onChange={setKodeUnik}
+              maxLength={3}
+            />
           </div>
         </div>
 

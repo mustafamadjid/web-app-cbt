@@ -202,6 +202,8 @@ Jalankan semua file migration yang ada di folder `backend/internal/db/migrations
 
 ### 3. Setup & Jalankan Backend
 
+Masuk ke folder `backend`, lalu jalankan server dari folder `cmd/http` menggunakan `go run main.go`.
+
 ```powershell
 # Masuk ke folder backend
 cd backend
@@ -221,20 +223,13 @@ cd backend
 # REFRESH_TOKEN_SECRET=<your-refresh-secret>
 # TRUSTED_ORIGINS=http://localhost:5173
 
-# Export environment variables (PowerShell)
-. ./export_env.ps1
+# Buka Command Prompt / terminal dari folder backend,
+# lalu masuk ke folder entry point backend
+cd cmd/http
 
 # Jalankan server backend
-cd cmd/http
-go run .
+go run main.go
 ```
-
-> **Alternatif**: Gunakan script `run.ps1` di folder backend:
->
-> ```powershell
-> cd backend
-> ./run.ps1
-> ```
 
 Backend akan berjalan di `http://localhost:8080`.
 

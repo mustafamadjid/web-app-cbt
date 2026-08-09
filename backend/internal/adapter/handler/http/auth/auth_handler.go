@@ -66,6 +66,7 @@ func (h *AuthHandler) Login(write http.ResponseWriter, req *http.Request, _ http
 	reqCmd := auth_service.LoginCmd{
 		Username: reqBody.Username,
 		Password: reqBody.Password,
+		
 	}
 
 	now := time.Now()

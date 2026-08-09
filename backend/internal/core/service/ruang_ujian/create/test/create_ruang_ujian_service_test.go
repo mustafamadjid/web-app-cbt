@@ -103,3 +103,22 @@ func TestCreateRuangUjianService(t *testing.T) {
 		})
 	}
 }
+
+func TestCreateRuangUjianService_KodeSudahAda(t *testing.T) {
+	repo := &fakeCreateRepo{
+		existFn: func(context.Context, string) (bool, error) {
+			return true, nil
+		},
+	}
+	svc := ruangujian_service.NewRuangUjianService(repo)
+
+	err := svc.CreateRuangUjianService(context.Background(),
+		ruangujian.RuangUjian{KodeRuang: "A-01"})
+
+	assert.ErrorIs(t, err, coreerror.ErrKodeRuangUjianExist)
+}
+// func TestCreateRuangUjianService_RepoGagal(t *testing.T) {
+// 	repo := &fakeCreateRepo{
+		
+// 	}
+// }
