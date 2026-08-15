@@ -16,6 +16,7 @@ Aplikasi ini dibangun menggunakan arsitektur modern dengan **Go (Golang)** sebag
 - [Environment Variables](#environment-variables)
 - [Struktur Folder](#struktur-folder)
 - [Peran Pengguna (User Roles)](#peran-pengguna-user-roles)
+- [Performance Test](#performance-test)
 - [Lisensi](#lisensi)
 
 ---
@@ -385,6 +386,103 @@ Aplikasi mendukung **3 peran pengguna** dengan akses yang berbeda:
 - Mengerjakan ujian dengan token akses
 - Melihat hasil ujian
 - Melihat pengumuman
+
+---
+
+## Performance Test
+
+Pengujian performa mengukur alur pengerjaan ujian oleh siswa dengan beban pengguna virtual (*virtual user* / VU). Detail script, konfigurasi, dan berkas JSON hasil tersedia di [`performance-test/`](performance-test/).
+
+### System Under Test
+
+| Komponen | Spesifikasi |
+| --- | --- |
+| Nama sistem | Sistem Ujian Sekolah Berbasis Web (SMAFI CBT) |
+| Jenis aplikasi | Web application |
+| Frontend | ReactJS |
+| Backend | Golang REST API |
+| Database | PostgreSQL 16 |
+| Reverse proxy | Traefik v3 |
+| Deployment | Docker Compose |
+| Server pengujian | 4 vCPU, 4 GB RAM, Ubuntu Server |
+| Pengguna target | Siswa |
+
+### Alur Testing
+
+Setiap VU menjalankan alur siswa berikut menggunakan akun unik pada satu kali *run*:
+
+1. Login siswa.
+2. Ambil profil melalui `/auth/me`.
+3. Ambil daftar ujian siswa.
+4. Mulai ujian atau ambil *attempt* aktif.
+5. Ambil soal ujian.
+6. Simpan maksimal 10 jawaban dengan jeda acak 1-3 detik per jawaban.
+7. Submit ujian.
+8. Validasi hasil ujian.
+
+Skenario memakai executor k6 `constant-vus`: baseline 5 VU selama 5 menit; beban 25, 50, dan 100 VU selama 10 menit.
+
+### Tools Digunakan
+
+| Tool | Fungsi |
+| --- | --- |
+| [k6](https://grafana.com/docs/k6/latest/) | Simulasi VU, eksekusi skenario, pengukuran metrik HTTP, dan validasi threshold |
+| JavaScript ES modules | Implementasi flow test k6 |
+| Docker Compose | Menjalankan service SUT dalam container |
+| Traefik v3 | Routing HTTP/HTTPS menuju service aplikasi |
+
+### Kriteria Keberhasilan
+
+| Metrik | Threshold |
+| --- | --- |
+| `http_req_duration` P95 | < 4.000 ms |
+| `http_req_failed` | < 1% |
+| `checks` | > 99% |
+| `exam_flow_failed` | < 1% |
+
+### Hasil Metrik
+
+| Skenario | Durasi | VU | Iterasi | Request | Rata-rata response | P95 response | Check berhasil | Request gagal | Flow gagal | Status |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| Baseline | 5 menit | 5 | 10 | 892 | 18,62 ms | 28,21 ms | 100% (1.904/1.904) | 0% | 0% | Lulus |
+| Load 25 | 10 menit | 25 | 113 | 8.436 | 22,85 ms | 28,15 ms | 100% (17.872/17.872) | 0% | 0% | Lulus |
+| Load 50 | 10 menit | 50 | 226 | 16.898 | 23,66 ms | 25,42 ms | 100% (35.812/35.812) | 0% | 0% | Lulus |
+| Load 100 | 10 menit | 100 | 456 | 33.790 | 29,37 ms | 19,13 ms | 100% (71.612/71.612) | 0% | 0% | Lulus |
+
+Hasil menunjukkan seluruh skenario memenuhi threshold. Pada beban 100 VU, P95 response 19,13 ms, jauh di bawah batas 4.000 ms.
+
+### Screenshot
+
+#### Baseline 5 VU
+
+![Metrik baseline 5 VU](performance-test/hasil/baseline/metrics.png)
+
+![Threshold baseline 5 VU](performance-test/hasil/baseline/threshold.png)
+
+#### Load 25 VU
+
+![Metrik load 25 VU](performance-test/hasil/load-25/metrics.png)
+
+![Threshold load 25 VU](performance-test/hasil/load-25/threshold.png)
+
+#### Load 50 VU
+
+![Metrik load 50 VU](performance-test/hasil/load-50/metrics.png)
+
+![Threshold load 50 VU](performance-test/hasil/load-50/threshold.png)
+
+#### Load 100 VU
+
+![Metrik load 100 VU](performance-test/hasil/load-100/metrics.png)
+
+![Threshold load 100 VU](performance-test/hasil/load-100/threshold.png)
+
+### Batasan Pengujian
+
+- Pengujian fokus pada alur siswa; alur administrator dan guru tidak tercakup.
+- Data siswa harus unik. Test berhenti bila akun pada `performance-test/k6/data/students.json` habis.
+- `exam_flow_duration` mencakup jeda simulasi pengguna. Threshold 4.000 ms hanya diterapkan pada waktu respons API (`http_req_duration`).
+- Hasil berlaku untuk konfigurasi SUT dan lingkungan server saat pengujian.
 
 ---
 
